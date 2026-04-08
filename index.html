@@ -1,7 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr">
-<head>
-<meta charset="UTF-8">
+<html lang="fr"><head><meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Graphe Philosophie — Terminale</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -11,9 +9,9 @@
 :root{
   --color-background-primary:#1e1e1e;
   --color-background-secondary:#2a2a2a;
-  --color-text-primary:#f0f0f0;
-  --color-text-secondary:#c8c8c8;
-  --color-text-tertiary:#888888;
+  --color-text-primary:#f5f5f5;
+  --color-text-secondary:#d4d4d4;
+  --color-text-tertiary:#a0a0a0;
   --color-border-tertiary:#3a3a3a;
   --color-border-secondary:#555555;
   --color-background-info:#1e2d1e;
@@ -33,495 +31,499 @@ body{font-family:'Inter',system-ui,sans-serif;background:#121212;min-height:100v
 .nb.active{background:var(--color-background-primary);color:var(--color-text-primary);border-color:var(--color-border-secondary);font-weight:500}
 .dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
 .main{flex:1;overflow:auto;padding:18px 22px 24px}
-.tabs{display:flex;gap:2px;margin-bottom:18px;border-bottom:0.5px solid var(--color-border-tertiary);padding-bottom:0;flex-wrap:wrap}
-.tab{padding:7px 12px;font-size:12px;cursor:pointer;color:var(--color-text-secondary);border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s}
+
+/* Tabs */
+.tabs{display:flex;gap:2px;margin-bottom:18px;border-bottom:0.5px solid var(--color-border-tertiary);padding-bottom:0}
+.tab{padding:7px 14px;font-size:12px;cursor:pointer;color:var(--color-text-secondary);border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s;border-radius:0}
 .tab:hover{color:var(--color-text-primary)}
 .tab.active{color:var(--color-text-primary);font-weight:500;border-bottom-color:currentColor}
+
 .notion-head{display:flex;align-items:center;gap:10px;margin-bottom:14px}
 .nbadge{width:10px;height:10px;border-radius:50%;flex-shrink:0}
 .ntitle{font-size:17px;font-weight:500;color:var(--color-text-primary)}
 .nsub{font-size:12px;color:var(--color-text-secondary);margin-top:2px}
+
 .def-box{background:var(--color-background-secondary);border-left:2.5px solid var(--color-border-secondary);padding:11px 13px;border-radius:0 var(--border-radius-md) var(--border-radius-md) 0;margin-bottom:16px;font-size:13px;color:var(--color-text-secondary);line-height:1.65}
 .kw{font-weight:500;color:var(--color-text-primary)}
+
 .slabel{font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.06em;color:var(--color-text-tertiary);margin-bottom:8px}
+
+/* Auteurs */
 .ag{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:9px;margin-bottom:16px}
 .ac{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:10px 12px}
 .an{font-size:12px;font-weight:500;margin-bottom:2px}
 .aw{font-size:11px;color:var(--color-text-tertiary);font-style:italic;margin-bottom:4px}
 .ai{font-size:12px;color:var(--color-text-secondary);line-height:1.5}
 .aq{font-size:11px;color:var(--color-text-tertiary);font-style:italic;margin-top:5px;border-left:2px solid var(--color-border-tertiary);padding-left:7px;line-height:1.4}
-.anew{border-color:var(--color-border-info);background:var(--color-background-info)}
-.new-badge{font-size:9px;font-weight:500;padding:1px 6px;border-radius:10px;background:var(--color-background-info);color:var(--color-text-info);margin-left:6px;vertical-align:middle}
+
+/* Textes */
 .tbox{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:11px 13px;margin-bottom:16px}
 .ti2{display:flex;gap:8px;padding:5px 0;border-bottom:0.5px solid var(--color-border-tertiary);font-size:12px;line-height:1.5}
 .ti2:last-child{border-bottom:none;padding-bottom:0}
 .tinum{font-weight:500;color:var(--color-text-primary);flex-shrink:0}
 .titxt{color:var(--color-text-secondary)}
+
+/* Axes */
 .axe-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:12px 14px;margin-bottom:10px}
 .axe-head{display:flex;align-items:center;gap:8px;margin-bottom:8px}
 .axe-num{font-size:10px;font-weight:500;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:.05em}
 .axe-title{font-size:13px;font-weight:500;color:var(--color-text-primary)}
 .axe-pb{font-size:11px;color:var(--color-text-secondary);margin-bottom:8px;font-style:italic}
 .sp{margin:4px 0 0 0;padding:0}
-.sp-item{display:flex;gap:7px;font-size:12px;padding:3px 0;line-height:1.45;border-bottom:0.5px solid var(--color-border-tertiary)}
+.sp-item{display:flex;gap:7px;font-size:12px;color:var(--color-text-secondary);padding:3px 0;line-height:1.45;border-bottom:0.5px solid var(--color-border-tertiary)}
 .sp-item:last-child{border-bottom:none}
 .sp-letter{font-weight:500;color:var(--color-text-primary);flex-shrink:0;min-width:14px}
 .sp-content{color:var(--color-text-secondary)}
 .sp-ref{font-size:10px;color:var(--color-text-tertiary);display:block;margin-top:1px}
+
+/* Exemples */
 .ex-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:11px 13px;margin-bottom:9px}
 .ex-head{display:flex;align-items:center;gap:7px;margin-bottom:5px}
 .ex-tag{font-size:10px;font-weight:500;padding:2px 8px;border-radius:20px;flex-shrink:0}
 .ex-title{font-size:12px;font-weight:500;color:var(--color-text-primary)}
 .ex-body{font-size:12px;color:var(--color-text-secondary);line-height:1.55}
 .ex-lien{font-size:10px;color:var(--color-text-tertiary);margin-top:4px;font-style:italic}
+
+/* Liens + diss */
 .liens-row{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:14px}
-.lpill{font-size:11px;padding:4px 10px;border-radius:20px;cursor:pointer;border:0.5px solid;background:transparent;transition:opacity .15s}
+.lpill{font-size:11px;padding:4px 10px;border-radius:20px;cursor:pointer;border:0.5px solid;color:inherit;background:transparent;transition:opacity .15s}
 .lpill:hover{opacity:.7}
+.diss-list{margin-bottom:4px}
 .dq{font-size:12px;color:var(--color-text-secondary);padding:5px 0 5px 12px;position:relative;line-height:1.4;border-bottom:0.5px solid var(--color-border-tertiary)}
 .dq:last-child{border-bottom:none}
 .dq::before{content:"?";position:absolute;left:0;color:var(--color-text-tertiary);font-size:11px;top:6px}
-.plan-box{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:12px 14px;margin-bottom:14px}
-.plan-title{font-size:12px;font-weight:500;color:var(--color-text-primary);margin-bottom:6px}
-.plan-part{font-size:12px;color:var(--color-text-secondary);padding:3px 0 3px 10px;border-left:2px solid var(--color-border-secondary);margin-bottom:3px;line-height:1.45}
-.plan-sub{font-size:11px;color:var(--color-text-tertiary);padding-left:14px;margin-bottom:2px}
-.ethique-box{background:var(--color-background-info);border:0.5px solid var(--color-border-info);border-radius:var(--border-radius-md);padding:10px 13px;margin-bottom:14px;font-size:12px;color:var(--color-text-secondary);line-height:1.6}
 </style>
-<div class="sr-only">Graphe de révision philosophie v3 — 9 notions enrichies avec nouvelles pages du cours</div>
+
+<div class="sr-only">Graphe de révision philosophie — 9 notions avec auteurs, exemples, axes développés et questions de dissertation</div>
 <div class="wrap">
-<div class="sidebar" id="sb"></div>
-<div class="main" id="main"></div>
+<div class="sidebar" id="sb"><div class="stitle">Notions</div><div class="nb"><span class="dot" style="background:#534AB7"></span>Conscience</div><div class="nb"><span class="dot" style="background:#1D9E75"></span>Nature</div><div class="nb"><span class="dot" style="background:#EF9F27"></span>Bonheur</div><div class="nb"><span class="dot" style="background:#D85A30"></span>Justice</div><div class="nb"><span class="dot" style="background:#993556"></span>Devoir</div><div class="nb"><span class="dot" style="background:#3B6D11"></span>Travail</div><div class="nb"><span class="dot" style="background:#185FA5"></span>Technique</div><div class="nb active"><span class="dot" style="background:#5F5E5A"></span>État</div><div class="nb"><span class="dot" style="background:#D4537E"></span>Liberté</div></div>
+<div class="main" id="main">
+<div class="notion-head">
+  <div class="nbadge" style="background:#5F5E5A"></div>
+  <div><div class="ntitle">État</div><div class="nsub">L'État est-il nécessaire ?</div></div>
 </div>
+<div class="def-box">L'<span class="kw">État</span> est une forme d'organisation politique qui détient le <span class="kw">monopole de la violence légitime</span> (Weber) sur un territoire. Il naît d'un contrat social ou d'un rapport de force. Question centrale : l'État est-il garant de la liberté ou menace contre elle ?</div>
+<div class="tabs">
+  <div class="tab active" onclick="tab('auteurs')">Auteurs</div><div class="tab" onclick="tab('textes')">Textes du cours</div><div class="tab" onclick="tab('axes')">Axes &amp; sous-parties</div><div class="tab" onclick="tab('exemples')">Exemples</div><div class="tab" onclick="tab('diss')">Dissertations</div>
+</div><div class="slabel">Auteurs et idées clés (6 auteurs)</div><div class="ag"><div class="ac"><div class="an" style="color:#5F5E5A">Hobbes</div><div class="aw">Léviathan, 1651</div><div class="ai">Sans État : état de nature = guerre de tous contre tous, vie 'solitaire, misérable, bestiale et brève'. Le contrat cède tous les droits à un souverain absolu (Léviathan) en échange de la sécurité. La justice naît du contrat.</div><div class="aq">'L'homme est un loup pour l'homme' (à l'état de nature)</div></div><div class="ac"><div class="an" style="color:#5F5E5A">Locke</div><div class="aw">Traité du gouvernement civil, 1690</div><div class="ai">L'état de nature est pacifique mais fragile (sans juge impartial). L'État protège les droits naturels (vie, liberté, propriété). Le contrat est révocable : si le gouvernement viole les droits, la révolution est légitime.</div><div class="aq">L'État = protecteur des droits naturels, contrat révocable</div></div><div class="ac"><div class="an" style="color:#5F5E5A">Rousseau</div><div class="aw">Du Contrat social, 1762</div><div class="ai">Volonté générale : la souveraineté appartient au peuple, inaliénable et indivisible. Le contrat transforme la liberté naturelle en liberté civile. L'État juste = expression de la volonté générale, pas de la volonté de tous.</div><div class="aq">'L'obéissance à la loi qu'on s'est prescrite est liberté'</div></div><div class="ac"><div class="an" style="color:#5F5E5A">Hegel</div><div class="aw">Principes de la philosophie du droit, 1820</div><div class="ai">L'État est la réalité effective de la liberté objective. Il n'est pas seulement instrument mais fin en soi : la vie éthique concrète. La famille (amour) → la société civile (intérêts) → l'État (universalité).</div><div class="aq">'L'État est la réalité effective de la liberté concrète'</div></div><div class="ac"><div class="an" style="color:#5F5E5A">Marx</div><div class="aw">L'Idéologie allemande / Le Manifeste, 1848</div><div class="ai">L'État est l'instrument de la classe dominante. Infrastructure économique → superstructure (État, droit, idéologie). L'État bourgeois protège les intérêts du capital. Objectif : dépérissement de l'État dans la société communiste.</div><div class="aq">'L'État n'est que le comité d'affaires de la bourgeoisie'</div></div><div class="ac"><div class="an" style="color:#5F5E5A">Weber</div><div class="aw">Le Savant et le politique, 1919</div><div class="ai">L'État = monopole de la violence physique légitime sur un territoire. 3 types de légitimité : traditionnelle, charismatique, légale-rationnelle. L'État moderne repose sur la légitimité légale-rationnelle.</div><div class="aq">'L'État revendique le monopole de la violence physique légitime'</div></div></div></div>
+</div>
+
 <script>
 const D={
 conscience:{c:"#534AB7",l:"Conscience",s:"Qu'est-ce que la conscience ?",
-def:"La <span class='kw'>conscience</span> est la présence à soi et au monde. On distingue la <span class='kw'>conscience immédiate</span> et la <span class='kw'>conscience réflexive</span>. La psychanalyse (Freud) remet en cause sa transparence. La biologie (Frans de Waal) montre que des formes primitives de conscience existent chez l'animal.",
+def:"La <span class='kw'>conscience</span> est la présence à soi et au monde. On distingue la <span class='kw'>conscience immédiate</span> (perception du monde) et la <span class='kw'>conscience réflexive</span> (retour sur soi). Mais la psychanalyse (Freud) remet en cause sa transparence : une grande part de la vie psychique nous échappe.",
 auteurs:[
-{n:"Descartes",w:"Méditations métaphysiques, 1641",i:"Cogito : 'Je pense donc je suis'. Dualisme âme/corps. La conscience est le seul fondement indubituble.",q:"'Je pense, donc je suis'"},
-{n:"Freud",w:"Introduction à la psychanalyse, 1916",i:"L'inconscient : le moi n'est pas maître en sa propre maison. Ça / Moi / Surmoi. Rêves, lapsus, actes manqués révèlent l'inconscient.",q:"'Le moi n'est pas maître dans sa propre maison'"},
-{n:"Sartre",w:"L'Être et le Néant, 1943",i:"Conscience = néant, toujours intentionnelle. Mauvaise foi = se croire une chose déterminée pour fuir l'angoisse de la liberté.",q:"'La conscience est ce qu'elle n'est pas et n'est pas ce qu'elle est'"},
-{n:"Hegel",w:"Phénoménologie de l'Esprit, 1807",i:"Dialectique maître/esclave : la conscience de soi naît dans le conflit et la reconnaissance par autrui.",q:"'La conscience de soi n'existe que reconnue'"},
-{n:"Bergson",w:"Matière et mémoire, 1896",i:"Conscience = durée vécue, flux continu irréductible au cerveau. La mémoire est la substance du moi.",q:"La conscience = durée intérieure, non espace mesurable"},
-{n:"Frans de Waal",w:"L'Âge de l'empathie, 2009",i:"Le comportement moral des animaux prouve un substrat biologique de la conscience morale. Les neurones miroirs et l'empathie existent chez les primates. La conscience n'est pas une exclusivité humaine.",q:"'On a tous un sens moral' — origine naturelle de la conscience morale",isNew:true},
+{n:"Descartes",w:"Méditations métaphysiques, 1641",i:"Cogito : 'Je pense donc je suis'. La conscience est le seul fondement indubituble. Dualisme : l'âme (pensée) et le corps (étendue) sont deux substances distinctes.",q:"'Je pense, donc je suis'"},
+{n:"Freud",w:"Introduction à la psychanalyse, 1916",i:"L'inconscient comme iceberg : le moi n'est pas maître en sa propre maison. Ça / Moi / Surmoi. Les pulsions refoulées agissent à notre insu (rêves, lapsus, actes manqués).",q:"'Le moi n'est pas maître dans sa propre maison'"},
+{n:"Sartre",w:"L'Être et le Néant, 1943",i:"La conscience est néant : elle n'est jamais chose. Elle est toujours intentionnelle (dirigée vers autre chose). La mauvaise foi = se croire une chose déterminée.",q:"'La conscience est ce qu'elle n'est pas et n'est pas ce qu'elle est'"},
+{n:"Hegel",w:"Phénoménologie de l'Esprit, 1807",i:"Dialectique maître/esclave : la conscience de soi naît dans le conflit. Je me reconnais dans le regard de l'autre. L'autoconsicence est médiatisée par autrui.",q:"'La conscience de soi n'existe que reconnue'"},
+{n:"Bergson",w:"Matière et mémoire, 1896",i:"La conscience est durée vécue, flux continu. Elle n'est pas réductible au cerveau. La mémoire est la substance du moi.",q:"La conscience = durée intérieure, non espace mesurable"},
+{n:"Locke",w:"Essai sur l'entendement humain, 1690",i:"L'identité personnelle repose sur la conscience mémorielle : je suis la même personne par continuité de mes souvenirs.",q:"La mémoire = fondement de l'identité personnelle"},
 ],
 textes:[
-{n:"Descartes — le cogito",t:"Même si je me trompe, c'est moi qui me trompe. La pensée ne peut être mise en doute. Certitude irréductible du sujet pensant."},
-{n:"Freud — inconscient et rêve",t:"Le rêve est la 'voie royale' vers l'inconscient. Actes manqués, lapsus révèlent les désirs refoulés."},
-{n:"Cours p.24 — corps et conscience",t:"'Être un corps' vs 'avoir un corps'. Don d'organes : ambivalence culturelle. Le corps est constitutif de l'identité du sujet. Rapport Agence Biomédecine."},
-{n:"Frans de Waal — neurones miroirs",t:"L'inscription de l'empathie dans un canal corporel. Substrat biologique de l'empathie. 'ON A TOUS UN SENS MORAL' — se pose-t-on des devoirs moraux spécifiques ?",isNew:true},
+{n:"Descartes — le cogito",t:"Même si je me trompe, c'est moi qui me trompe : la pensée ne peut être mise en doute. Certitude irréductible du sujet pensant."},
+{n:"Freud — inconscient et rêve",t:"Le rêve est la 'voie royale' vers l'inconscient. Les actes manqués, lapsus révèlent les désirs refoulés qui agissent à notre insu."},
+{n:"Cours p.24 — corps et conscience",t:"Concept religieux du corps : âme/corps séparés (Platon, Descartes). Concept biologique : corps objet d'études (dissections, greffes). Le corps est constitutif de l'identité du sujet."},
+{n:"Agence Biomédecine (doc cours)",t:"'Être un corps' vs 'avoir un corps' : ambivalence culturelle. Le don d'organes pose la question de l'identité corporelle et de la conscience de soi en tant que personne."},
 ],
 axes:[
-{n:"Axe 1",t:"La conscience comme certitude et fondement",pb:"La conscience peut-elle être notre seul point d'appui ?",
+{n:"Axe 1",t:"La conscience comme certitude et fondement du sujet",pb:"La conscience peut-elle être notre seul point d'appui pour connaître ?",
 sps:[
-{l:"A",c:"Oui : le cogito cartésien fonde la certitude absolue. 'Je pense donc je suis' : seule vérité indubituble après le doute hyperbolique.",r:"Descartes, Méditations I"},
-{l:"B",c:"Mais la conscience immédiate peut être trompeuse : illusions, hallucinations. Le cogito ne garantit pas la vérité du monde extérieur.",r:"Descartes lui-même (malin génie)"},
-{l:"C",c:"La conscience réflexive est un effort : elle implique un retour actif sur ses actes et jugements, non un simple miroir.",r:"Alain : 'La conscience n'est pas un miroir'"},
+{l:"A",c:"Oui : le cogito cartésien fonde la certitude absolue. Le doute hyperbolique aboutit à la seule vérité indubituble : 'Je pense, donc je suis'.",r:"Descartes, Méditations I"},
+{l:"B",c:"Mais la conscience immédiate peut être trompeuse : illusions, hallucinations. La certitude du cogito ne garantit pas la vérité du monde extérieur.",r:"Descartes lui-même le reconnaît (malin génie)"},
+{l:"C",c:"La conscience réflexive enrichit le cogito : connaissance de soi, non simple sentiment d'exister. Elle implique un effort de retour sur ses actes et jugements.",r:"Alain : 'La conscience n'est pas un miroir'"},
 ]},
 {n:"Axe 2",t:"Les limites de la conscience : l'inconscient",pb:"Sommes-nous vraiment transparents à nous-mêmes ?",
 sps:[
-{l:"A",c:"Non : Freud. La conscience est la partie émergée de l'iceberg. Les pulsions refoulées (Ça) orientent nos comportements à notre insu.",r:"Freud, Introduction à la psychanalyse"},
-{l:"B",c:"La mauvaise foi (Sartre) n'est pas l'inconscient : c'est une fuite consciente-mais-niée de notre liberté. L'homme se ment volontairement.",r:"Sartre, L'Être et le Néant"},
-{l:"C",c:"Nuance : la cure psychanalytique vise à élargir la conscience sur l'inconscient. 'Là où était le Ça, le Moi doit advenir.'",r:"Freud : objectif thérapeutique"},
+{l:"A",c:"Non : Freud montre que la conscience est la partie émergée de l'iceberg. Ça, Moi, Surmoi. Les pulsions refoulées orientent nos comportements à notre insu.",r:"Freud, Introduction à la psychanalyse"},
+{l:"B",c:"La mauvaise foi (Sartre) n'est pas l'inconscient : c'est une fuite consciente-mais-niée de notre liberté. L'homme se ment à lui-même volontairement.",r:"Sartre, L'Être et le Néant"},
+{l:"C",c:"Nuance : même si l'inconscient existe, la psychanalyse vise à ramener les conflits à la conscience. La cure = élargissement de la conscience sur l'inconscient.",r:"Freud : 'Là où était le ça, le moi doit advenir'"},
 ]},
-{n:"Axe 3",t:"La conscience morale : naturelle ou construite ?",pb:"Le sens moral est-il inné ou acquis ?",
+{n:"Axe 3",t:"Conscience de soi et reconnaissance par autrui",pb:"La conscience de soi naît-elle du rapport à l'autre ?",
 sps:[
-{l:"A",c:"Rousseau : le sens moral a une origine naturelle. La pitié et la bonté naturelle précèdent la réflexion. Primauté chronologique du sentiment moral.",r:"Rousseau, Discours sur l'inégalité ; cours p.68"},
-{l:"B",c:"Frans de Waal : les animaux montrent des comportements moraux (empathie, réciprocité, sens de l'équité). Les neurones miroirs = substrat biologique de la conscience morale.",r:"Frans de Waal, cours p.70"},
-{l:"C",c:"Mais Kant : la conscience morale est une construction rationnelle, non un sentiment. L'impératif catégorique est universel précisément parce qu'il dépasse les émotions contingentes.",r:"Kant, Fondements de la métaphysique des mœurs"},
+{l:"A",c:"Oui : pour Hegel, la conscience ne peut se reconnaître qu'en rencontrant une autre conscience. Le conflit maître/esclave révèle que l'autoconsicence a besoin d'être reconnue.",r:"Hegel, Phénoménologie de l'Esprit"},
+{l:"B",c:"Sartre : le regard d'autrui peut aussi être aliénant ('l'enfer c'est les autres'). Le regard objectivant me transforme en chose.",r:"Sartre, Huis clos"},
+{l:"C",c:"Synthèse : la conscience de soi se construit dans et par le rapport à autrui, mais cette construction peut être aliénante ou libératrice selon la qualité de la reconnaissance.",r:"Honneth : la lutte pour la reconnaissance"},
 ]},
 ],
 exemples:[
-{tag:"Biologie",tit:"Frans de Waal — empathie chez les primates",body:"Les chimpanzés consolent les individus en détresse, les éléphants s'entraident, les corbeaux vengent leurs morts. Ces comportements suggèrent une forme de conscience morale animale. De Waal : 'le comportement moral ou non dépend du changement des circonstances.'",lien:"→ Conscience morale, devoir, nature"},
-{tag:"Science",tit:"Expérience de Libet (1983)",body:"Le cerveau prépare le mouvement 300ms avant que le sujet ait conscience de sa décision. La conscience serait 'en retard' sur le cerveau — notre sentiment de décision consciente serait une illusion rétrospective.",lien:"→ Libre arbitre, Freud, déterminisme"},
-{tag:"Littérature",tit:"Proust — la mémoire involontaire",body:"La madeleine ressuscite une époque entière à l'insu de Marcel. Illustre que la conscience n'est pas maîtresse de ses propres contenus (Bergson : durée, Freud : inconscient).",lien:"→ Bergson, Freud, identité"},
-{tag:"Société",tit:"Don d'organes — Agence Biomédecine",body:"'Être un corps ou avoir un corps ?' : 32% des jeunes pensent qu'entrer en entier dans l'au-delà est important. Le don d'organes interroge l'identité corporelle et la conscience de soi en tant que personne.",lien:"→ Corps, technique, identité"},
+{tag:"Littérature",tit:"Proust — À la recherche du temps perdu",body:"La mémoire involontaire (madeleine de Proust) révèle que la conscience n'est pas maîtresse de ses propres contenus. Un goût ressuscite toute une époque : le passé 'habite' en nous à notre insu.",lien:"→ Bergson (durée), inconscient (Freud)"},
+{tag:"Cas clinique",tit:"Cas de dédoublement de personnalité",body:"Certains patients présentent plusieurs états de conscience distincts et amnésiques l'un pour l'autre. Cela interroge l'unité du sujet et l'identité personnelle fondée sur la mémoire.",lien:"→ Locke (identité = mémoire), Freud (ça/moi/surmoi)"},
+{tag:"Science",tit:"Neurosciences — expérience de Libet (1983)",body:"Le cerveau prépare le mouvement 300ms avant que le sujet ait conscience de sa décision. Cela suggère que la conscience serait 'en retard' sur le cerveau : notre sentiment de décision consciente serait une illusion rétrospective.",lien:"→ Remet en cause le libre arbitre, le cogito"},
+{tag:"Société",tit:"Don d'organes (cours — Agence Biomédecine)",body:"La question 'ai-je un corps ou suis-je un corps ?' divise les Français. 32% des 16-25 ans pensent que s'il y a un au-delà, il faut 'entrer en entier'. Le corps est constitutif de l'identité consciente du sujet.",lien:"→ Corps, technique, identité"},
 ],
 liens:["Liberté","Nature","Devoir"],
-diss:["La conscience de soi est-elle une connaissance de soi ?","Peut-on agir de façon inconsciente ?","L'inconscient remet-il en cause la liberté ?","Le sens moral est-il naturel ou construit ?","Le corps est-il constitutif de l'identité ?"]
+diss:["La conscience de soi est-elle une connaissance de soi ?","Peut-on agir de façon inconsciente ?","L'inconscient remet-il en cause la liberté ?","Suis-je ce que j'ai conscience d'être ?","Le corps est-il constitutif de l'identité ?"]
 },
-
 nature:{c:"#1D9E75",l:"Nature",s:"Qu'est-ce qui est naturel ?",
-def:"La <span class='kw'>nature</span> désigne le monde physique (phusis), l'essence propre d'un être, ou ce qui s'oppose à la culture. Enjeu : y a-t-il une 'bonne nature' à respecter ou à dépasser ? La frontière nature/culture est-elle nette ?",
+def:"La <span class='kw'>nature</span> désigne le monde physique (phusis), l'essence propre d'un être, ou ce qui s'oppose à la culture et à la technique. Enjeu : y a-t-il une 'bonne nature' à respecter ou à dépasser ? La frontière nature/culture est-elle nette ?",
 auteurs:[
-{n:"Aristote",w:"Physique / Parties des animaux (TEXTE 7)",i:"Nature = principe interne de mouvement. La main : 'outil à faire des outils'. L'homme est un animal politique par nature.",q:"'La main semble être non pas un outil, mais plusieurs'"},
-{n:"Descartes",w:"Discours de la méthode, 1637 (TEXTE 9)",i:"'Maîtres et possesseurs de la nature' grâce à la physique pratique. La nature est une machine dominable par la science.",q:"'Nous rendre comme maîtres et possesseurs de la nature'"},
-{n:"Rousseau",w:"Discours sur l'inégalité, 1755",i:"Homme naturellement bon, libre et solitaire. La société et la propriété le corrompent. L'état de nature est un mythe régulateur.",q:"'L'homme est né libre et partout il est dans les fers'"},
-{n:"Hans Jonas",w:"Le Principe responsabilité, 1990 (TEXTE 5)",i:"La technique moderne menace la nature. Heuristique de la peur : anticiper le pire. Devoir envers les générations futures.",q:"'Agis de façon que les effets de ton action soient compatibles avec la permanence d'une vie humaine authentique'"},
-{n:"Darwin",w:"L'Origine des espèces, 1859",i:"Sélection naturelle sans finalité. L'homme issu de la nature animale sans rupture absolue.",q:"L'homme : un primate évolué"},
-{n:"Platon",w:"Protagoras (TEXTE 6)",i:"Mythe de Prométhée : l'homme est nu, sans défenses naturelles. Épiméthée oublie l'homme. Prométhée vole le feu technique.",q:"L'homme : être déficient naturel, compensé par la technique"},
+{n:"Aristote",w:"Physique / Parties des animaux",i:"La nature est un principe interne de mouvement. La main : 'outil à faire des outils'. L'homme est un animal politique par nature. La nature ne fait rien en vain.",q:"'La main semble être non pas un outil, mais plusieurs'"},
+{n:"Descartes",w:"Discours de la méthode, 1637 (TEXTE 9)",i:"Nous rendre 'maîtres et possesseurs de la nature' grâce à la physique pratique. La nature est une machine que la science peut dominer pour améliorer nos conditions de vie.",q:"'Nous rendre comme maîtres et possesseurs de la nature'"},
+{n:"Rousseau",w:"Discours sur l'inégalité, 1755",i:"Homme naturellement bon, libre et solitaire. La société et la propriété le corrompent. L'état de nature est un mythe régulateur qui sert à critiquer la société présente.",q:"'L'homme est né libre et partout il est dans les fers'"},
+{n:"Hans Jonas",w:"Le Principe responsabilité, 1990 (TEXTE 5)",i:"La technique moderne menace la nature et les générations futures. 'Heuristique de la peur' : anticiper le pire pour agir responsablement. Nouveau devoir envers la nature.",q:"'Agis de façon que les effets de ton action soient compatibles avec la permanence d'une vie humaine authentique'"},
+{n:"Darwin",w:"L'Origine des espèces, 1859",i:"Sélection naturelle : la nature ne poursuit aucune finalité. L'homme est issu de la nature animale sans rupture absolue. La 'nature humaine' est une construction évolutive.",q:"L'homme : un primate évolué, sans rupture fondamentale avec l'animal"},
+{n:"Platon",w:"Protagoras (TEXTE 6 du cours)",i:"Mythe de Prométhée : l'homme est 'nu, sans chaussures, sans armes'. Épiméthée a tout distribué aux animaux. Prométhée vole le feu technique pour compenser la nudité naturelle de l'homme.",q:"L'homme : être déficient naturel, compensé par la technique"},
 ],
 textes:[
-{n:"TEXTE 9 — Descartes",t:"Maîtres et possesseurs de la nature. La physique pratique pour connaître feu, eau, air. Le premier bien est la santé."},
-{n:"TEXTE 5 — Jonas",t:"Prométhée déchaîné par la science. La promesse s'est inversée en menace. Heuristique de la peur."},
-{n:"TEXTE 6 — Platon, Protagoras",t:"Épiméthée répartit les qualités aux animaux, oublie l'homme. Prométhée vole le feu. Zeus envoie justice et pudeur à tous."},
-{n:"TEXTE 7 — Aristote",t:"La main comme outil polymorphe : griffe, serre, corne, lance. L'homme peut acquérir toutes les techniques."},
+{n:"TEXTE 9 — Descartes, Discours de la méthode",t:"La physique pratique permet de connaître force du feu, eau, air. Maîtres et possesseurs de la nature : le premier bien est la santé."},
+{n:"TEXTE 5 — Jonas, Le Principe responsabilité",t:"Prométhée déchaîné par la science. La promesse de la technique s'est inversée en menace. Heuristique de la peur comme boussole."},
+{n:"TEXTE 6 — Platon, Protagoras",t:"Mythe de Prométhée : Épiméthée distribue les qualités aux animaux, oublie l'homme. Prométhée vole le feu à Héphaïstos. Zeus envoie justice et pudeur à tous les hommes."},
+{n:"TEXTE 7 — Aristote, Parties des animaux",t:"La main comme outil polymorphe : griffe, serre, corne, lance. L'homme peut acquérir le plus grand nombre de techniques grâce à la main."},
 ],
 axes:[
 {n:"Axe 1",t:"La nature comme norme et modèle",pb:"Ce qui est naturel est-il nécessairement bon ?",
 sps:[
-{l:"A",c:"Rousseau : la nature est bonne, la société corrompt. L'homme naturel est libre et bon. Critique de la civilisation.",r:"Rousseau, Discours sur l'inégalité"},
-{l:"B",c:"Sophisme naturaliste (Hume) : ce qui est naturel n'est pas automatiquement bon — maladies, prédation, mort sont naturelles aussi.",r:"Hume : 'le fait n'implique pas le droit'"},
-{l:"C",c:"Aristote : la nature fixe des fins. La technique doit s'y conformer (médecine curative) sans les transgresser (transhumanisme).",r:"Aristote, Physique II"},
+{l:"A",c:"Rousseau : la nature est bonne, la société corrompt. L'homme naturel est libre, égal, bon. Le 'retour à la nature' comme critique de la civilisation.",r:"Rousseau, Discours sur l'inégalité"},
+{l:"B",c:"Mais l'appel à la nature peut être un argument fallacieux (sophisme naturaliste) : ce qui est naturel n'est pas automatiquement bon (maladies, prédation, mort sont naturelles).",r:"Hume : 'Le fait n'implique pas le droit'"},
+{l:"C",c:"Aristote propose un juste milieu : la nature fixe des limites et des fins. La technique doit s'y conformer (médecine curative) sans les transgresser (médecine transhumaniste).",r:"Aristote, Physique II"},
 ]},
 {n:"Axe 2",t:"La domination de la nature par la technique",pb:"Devons-nous maîtriser la nature ou la respecter ?",
 sps:[
-{l:"A",c:"Descartes : la physique pratique pour améliorer notre vie. La domination de la nature est le projet cartésien.",r:"TEXTE 9"},
-{l:"B",c:"Dérèglement climatique : destructions écologiques prouvent les limites de ce projet. La domination a des effets irréversibles.",r:"GIEC ; données contemporaines"},
-{l:"C",c:"Jonas : la nature a une valeur intrinsèque. Heuristique de la peur, principe de précaution.",r:"TEXTE 5 — Jonas"},
+{l:"A",c:"Descartes : la physique pratique nous permet de dominer la nature pour notre bien-être (santé, confort). La technique est la réalisation du projet cartésien de domination.",r:"TEXTE 9 — Discours de la méthode"},
+{l:"B",c:"Mais la domination a des limites : destructions écologiques, dérèglement climatique. La technique peut détruire les conditions de vie sur Terre.",r:"GIEC, données climatiques actuelles"},
+{l:"C",c:"Jonas : face à la puissance technique, nouveau devoir. La nature a une valeur intrinsèque. 'Heuristique de la peur' : agir selon le principe de précaution.",r:"TEXTE 5 — Jonas"},
 ]},
 {n:"Axe 3",t:"Y a-t-il une 'nature humaine' ?",pb:"L'homme a-t-il une essence naturelle fixe ?",
 sps:[
-{l:"A",c:"Oui : Aristote (animal politique), biologie évolutive, religions. Des tendances naturelles (langage, sociabilité, outil) définissent l'homme.",r:"Aristote, Politique ; Frans de Waal"},
-{l:"B",c:"Non : Sartre ('l'existence précède l'essence'). L'homme se définit par ses actes. Beauvoir : 'On ne naît pas femme, on le devient.'",r:"Sartre ; Beauvoir"},
-{l:"C",c:"Nuance : il y a des tendances naturelles plastiques. La culture transforme la nature sans la supprimer. Lévi-Strauss : il n'y a pas de société purement naturelle.",r:"Darwin ; Lévi-Strauss"},
+{l:"A",c:"Oui : Aristote (animal politique), les religions (créé à l'image de Dieu), la sociobiologie. L'homme a une nature qui le prédispose à certains comportements.",r:"Aristote, Politique I"},
+{l:"B",c:"Non : Sartre ('l'existence précède l'essence'). L'homme n'a pas de nature préalable, il se définit par ses choix. Beauvoir : même chose pour les femmes ('on ne naît pas femme').",r:"Sartre, L'existentialisme est un humanisme"},
+{l:"C",c:"Nuance évolutive : il y a des tendances naturelles (sociabilité, langage, outil) mais elles sont plastiques. La culture transforme et dépasse la nature sans la supprimer totalement.",r:"Darwin, Lévi-Strauss"},
 ]},
 ],
 exemples:[
-{tag:"Écologie",tit:"Le dérèglement climatique",body:"Hausse des températures +1,5°C depuis l'ère pré-industrielle — conséquence directe de la domination technico-industrielle de la nature. Illustration de l'avertissement de Jonas sur les effets irréversibles.",lien:"→ Jonas, Descartes, technique"},
-{tag:"Mythe — Cours",tit:"Mythe de Prométhée (TEXTE 6)",body:"L'homme = animal déficient : nu, sans griffes, sans fourrure. Il compense par la technique (feu volé) et la vie politique (justice et pudeur données par Zeus à tous).",lien:"→ Technique, justice, État"},
-{tag:"Anthropologie",tit:"Lévi-Strauss — prohibition de l'inceste",body:"Universelle mais de contenu variable selon les cultures : elle est à la fois un fait naturel (universalité) et culturel (contenu variable). Frontière nature/culture toujours déjà franchie.",lien:"→ Culture, nature humaine"},
-{tag:"Science",tit:"OGM et transgénèse",body:"Modification du génome des plantes : projet cartésien poussé à l'extrême. Pose la question des limites éthiques de la domination de la nature.",lien:"→ Devoir, Jonas, technique"},
+{tag:"Écologie",tit:"Le dérèglement climatique",body:"La hausse des températures mondiales (+1,5°C depuis l'ère pré-industrielle) est la conséquence directe de la domination technico-industrielle de la nature. C'est l'illustration concrète de l'avertissement de Jonas sur les effets irréversibles de la technique.",lien:"→ Jonas (principe responsabilité), Descartes (domination nature)"},
+{tag:"Anthropologie",tit:"Claude Lévi-Strauss — l'universalité de la culture",body:"L'opposition nature/culture se retrouve dans toutes les sociétés : la prohibition de l'inceste est universelle mais son contenu varie. Il n'y a pas de société 'purement naturelle' : l'homme est toujours déjà culturel.",lien:"→ Rousseau, question de la nature humaine"},
+{tag:"Mythe — Cours",tit:"Mythe de Prométhée (Platon, Protagoras — TEXTE 6)",body:"L'homme est l'animal déficient par excellence : nu, sans griffes, sans fourrure, sans vitesse. Il compense par la technique (feu volé à Héphaïstos) et par la vie politique (justice et pudeur données par Zeus à tous les hommes).",lien:"→ Technique, Justice, État"},
+{tag:"Science",tit:"OGM et transgénèse",body:"Les OGM illustrent le projet cartésien poussé à l'extrême : modifier le génome des plantes pour les adapter à nos besoins. Mais ils posent la question des limites éthiques : jusqu'où peut-on 'corriger' la nature ?",lien:"→ Devoir, technique, Jonas"},
 ],
 liens:["Technique","Liberté","Devoir","État"],
-diss:["L'être humain est-il un être naturel ?","Faut-il respecter la nature ?","Y a-t-il une nature humaine ?","La technique nous éloigne-t-elle de la nature ?","L'homme a-t-il des devoirs envers la nature ?"]
+diss:["L'être humain est-il un être naturel ?","Faut-il respecter la nature ?","La technique nous éloigne-t-elle de la nature ?","Y a-t-il une nature humaine ?","L'homme a-t-il des devoirs envers la nature ?"]
 },
-
 bonheur:{c:"#EF9F27",l:"Bonheur",s:"En quoi consiste le bonheur ?",
-def:"Le <span class='kw'>bonheur</span> est un état durable de satisfaction complète. Question centrale : le bonheur est-il accessible ? Le désir est-il obstacle ou condition ? Doit-il guider la morale ? Le cours contient une <span class='kw'>dissertation modèle complète</span> sur 'Satisfaire ses désirs, est-ce être heureux ?'",
+def:"Le <span class='kw'>bonheur</span> est un état durable de satisfaction complète, distinct du plaisir (fugace) et du contentement passager. Question centrale : le bonheur est-il accessible ? Doit-il guider la morale ? Le désir est-il obstacle ou chemin vers lui ?",
 auteurs:[
-{n:"Épicure",w:"Lettre à Ménécée, ~300 av. J.-C.",i:"Ataraxie + aponie. 3 types de désirs : naturels nécessaires / naturels non nécessaires / vains. La sagesse = bien trier ses désirs.",q:"'Il n'y a pas de vie heureuse sans prudence, beauté morale et justice'"},
-{n:"Aristote",w:"Éthique à Nicomaque, -335",i:"Eudaimonia = activité de l'âme conforme à la vertu. Fin ultime, non un moyen. Exige vertu ET biens extérieurs.",q:"'Le bonheur est une activité de l'âme conforme à la vertu'"},
-{n:"Kant",w:"Fondements de la métaphysique des mœurs, 1785",i:"Le bonheur ne fonde pas la morale : empirique et variable. Le devoir est inconditionné.",q:"'Sois digne d'être heureux' — mais le bonheur n'est pas le but de la morale"},
-{n:"Mill",w:"L'Utilitarisme, 1863",i:"Le bonheur = fondement de la morale. 'Plus grand bonheur du plus grand nombre.' Distinction plaisirs inférieurs/supérieurs.",q:"'Il vaut mieux être Socrate insatisfait qu'un idiot satisfait'"},
-{n:"Schopenhauer",w:"Le Monde comme volonté, 1818",i:"Le bonheur est illusion. Oscillation entre douleur (désir insatisfait) et ennui (désir comblé).",q:"'La vie oscille comme un pendule entre la douleur et l'ennui'"},
-{n:"Nietzsche",w:"Aurores, 1881 ",i:"Critique du travail comme instrument de contrôle social. La 'glorification du travail' cache la peur de l'individu libre. Le bonheur authentique nécessite la maîtrise de soi et l'oisiveté.",q:"'Un tel travail constitue la meilleure des polices'"},
-{n:"Marc-Aurèle",w:"Pensées pour moi-même",i:"Stoïcisme : conjurer ses craintes, accepter ce qui ne dépend pas de nous. Substituer une appréhension lucide du réel à la croyance fausse. Ataraxie dans l'accord de soi au monde.",q:"'Accepter ce qui ne dépend pas de nous' — voie stoïcienne vers l'ataraxie",isNew:true},
+{n:"Épicure",w:"Lettre à Ménécée, ~300 av. J.-C.",i:"Ataraxie (absence de trouble de l'âme) + aponie (absence de douleur). 3 types de désirs : naturels et nécessaires / naturels non nécessaires / vains et vides. La sagesse = bien choisir ses désirs.",q:"'Il n'y a pas de vie heureuse sans prudence, beauté morale et justice'"},
+{n:"Aristote",w:"Éthique à Nicomaque, -335",i:"Eudaimonia = activité de l'âme conforme à la vertu. Le bonheur est la fin ultime (souverain bien). Il exige vertu ET biens extérieurs (santé, amis, fortune). Ce n'est pas un état mais une activité.",q:"'Le bonheur est une activité de l'âme conforme à la vertu'"},
+{n:"Kant",w:"Fondements de la métaphysique des mœurs, 1785",i:"Le bonheur ne peut fonder la morale : il est empirique et variable. Le devoir est inconditionné. Un homme vertueux mérite d'être heureux mais le bonheur n'est pas le critère de l'action morale.",q:"'Sois digne d'être heureux' — mais le bonheur n'est pas le but de la morale"},
+{n:"J.-S. Mill",w:"L'Utilitarisme, 1863",i:"Le bonheur (plaisir, absence de douleur) est le fondement de la morale. 'Le plus grand bonheur du plus grand nombre.' Distinction plaisirs inférieurs/supérieurs.",q:"'Il vaut mieux être Socrate insatisfait qu'un idiot satisfait'"},
+{n:"Schopenhauer",w:"Le Monde comme volonté, 1818",i:"Le bonheur est illusion : le désir est infini et la satisfaction toujours provisoire. Oscillation entre douleur (désir) et ennui (satisfaction). Voie du salut : ascèse, art, compassion.",q:"'La vie oscille comme un pendule entre la douleur et l'ennui'"},
+{n:"Nietzsche",w:"Aurores, 1881 (texte cours)",i:"La glorification du travail cache la peur de la liberté (divertissement pascalien). Le travail constitue 'la meilleure des polices' car il occupe les individus et empêche la réflexion. Le bonheur authentique nécessite l'oisiveté.",q:"'Un tel travail constitue la meilleure des polices'"},
 ],
 textes:[
-{n:"Épicure — classification des désirs",t:"Naturels nécessaires (manger) : à satisfaire. Naturels non nécessaires (luxe) : indifférents. Vains (gloire, richesse) : à rejeter. La sagesse réside dans ce discernement."},
-{n:"Nietzsche, Aurores ",t:"Le travail comme 'meilleure des polices' : occupe les individus, les détourne de la réflexion et de la maîtrise de soi."},
-{n:"Cours p.55 — schéma désir/bonheur",t:"B1 (contrainte) → B2 (consommation) → B3 (plaisir). Le bonheur n'est pas au bout du désir immédiat. Le désir peut être obstacle ou condition selon son type."},
-{n:"Dissertation modèle — 'Satisfaire ses désirs, est-ce être heureux ?'",t:"I. Le désir insatiable empêche le bonheur (Schopenhauer). II. Le désir comme force vitale (Rousseau). III. Maîtrise des désirs = voie vers l'ataraxie (Épicure, Stoïciens). Ouverture : dépendance inhérente à la condition humaine.",isNew:true},
-{n:"Peter Singer — famine, richesse et moralité",t:"Souffrance des Bengalis : si nos actions peuvent empêcher des souffrances graves sans sacrifier quoi que ce soit d'importance morale comparable, nous devons moralement le faire. Conséquentialisme : impartialité totale.",isNew:true},
+{n:"Épicure — classification des désirs",t:"Naturels et nécessaires (manger) : à satisfaire. Naturels non nécessaires (luxe) : indifférents. Vains (gloire, richesse) : à rejeter. La sagesse réside dans ce discernement."},
+{n:"Aristote — eudaimonia",t:"Le bonheur n'est pas une sensation mais une activité. Il exige les vertus morales (courage, justice) et intellectuelles (phronesis). Les biens extérieurs sont aussi nécessaires."},
+{n:"Nietzsche, Aurores (cours p.25/18)",t:"Le travail comme 'meilleure des polices' : occupe les individus, les détourne de la réflexion, crée sécurité sociale. Le bonheur authentique nécessite l'oisiveté et la maîtrise de soi."},
+{n:"Cours p.55 — le désir et le bonheur",t:"Le désir peut être obstacle (Schopenhauer : désir insatiable) ou condition (Aristote : désir de vivre conforme à la vertu). B1 (contrainte) → B2 (consommation) → B3 (plaisir) : le bonheur n'est pas au bout du désir immédiat."},
 ],
 axes:[
-{n:"Axe 1",t:"Le désir est-il obstacle au bonheur ?",pb:"Satisfaire ses désirs, est-ce être heureux ?",
+{n:"Axe 1",t:"Le bonheur comme fin ultime de l'existence",pb:"Le bonheur est-il le souverain bien ?",
 sps:[
-{l:"I",c:"Oui : le désir insatiable est source de souffrance. Schopenhauer : oscillation douleur/ennui. L'homme ne peut jamais être pleinement satisfait.",r:"Schopenhauer ; Épicure (désirs vains)"},
-{l:"II",c:"Non : le désir est une force vitale (Rousseau : désir magnifie l'objet). Spinoza : 'le désir est l'essence de l'homme'. Sans désir, vie malheureuse.",r:"Rousseau ; Spinoza, Éthique III"},
-{l:"III",c:"Synthèse : le bonheur ne peut s'atteindre que dans la maîtrise des désirs. Épicure : trier les désirs. Stoïciens (Marc-Aurèle) : accepter ce qui ne dépend pas de nous.",r:"Épicure, Lettre à Ménécée ; cours p.69"},
+{l:"A",c:"Oui, pour Aristote : toutes nos actions visent une fin, et cette fin ultime est le bonheur (eudaimonia). Il n'est pas moyen mais fin. C'est l'activité conforme à notre nature d'être rationnel.",r:"Aristote, Éthique à Nicomaque I"},
+{l:"B",c:"Oui aussi pour l'utilitarisme : Mill fait du bonheur le fondement de toute la morale. L'action juste est celle qui maximise le bonheur global ('greatest happiness principle').",r:"Mill, L'Utilitarisme"},
+{l:"C",c:"Mais Schopenhauer : la volonté de vivre est insatiable, le bonheur parfait est impossible. Toute satisfaction n'est que suppression provisoire d'une douleur. L'aspiration au bonheur est source de souffrance.",r:"Schopenhauer, Le Monde comme volonté"},
 ]},
-{n:"Axe 2",t:"Bonheur et morale : conflit ou accord ?",pb:"Doit-on sacrifier le bonheur à la vertu ?",
+{n:"Axe 2",t:"Bonheur et morale : conflit ou accord ?",pb:"Doit-on sacrifier le bonheur à la vertu, ou vice-versa ?",
 sps:[
-{l:"A",c:"Kant : opposition nette. Le bonheur est empirique, le devoir rationnel. Agir par recherche du bonheur n'est pas moral.",r:"Kant, Fondements"},
-{l:"B",c:"Mill/Singer : pas d'opposition. L'utilitarisme fait coïncider bonheur et morale. Agir moralement = contribuer au bonheur collectif.",r:"Mill, L'Utilitarisme ; Singer"},
-{l:"C",c:"Aristote : synthèse. Le bonheur exige la vertu. Mais la vertu seule ne suffit pas : il faut aussi des biens extérieurs. Bonheur et vertu se conditionnent.",r:"Aristote, Éthique à Nicomaque X"},
+{l:"A",c:"Kant : opposition nette. Le bonheur est empirique, le devoir est rationnel. Agir par recherche du bonheur n'est pas moral. Seul compte le respect de la loi morale.",r:"Kant, Fondements de la métaphysique des mœurs"},
+{l:"B",c:"Mill : pas d'opposition. L'utilitarisme fait coïncider bonheur et morale. Agir moralement, c'est contribuer au bonheur collectif. La vertu est instrumentale au bonheur.",r:"Mill, L'Utilitarisme"},
+{l:"C",c:"Aristote : synthèse. Le bonheur exige la vertu (on ne peut être heureux sans être vertueux). Mais la vertu seule ne suffit pas : il faut aussi des biens extérieurs. Bonheur et vertu se conditionnent mutuellement.",r:"Aristote, Éthique à Nicomaque X"},
 ]},
-{n:"Axe 3",t:"Le bonheur est-il accessible ?",pb:"Peut-on être vraiment heureux ?",
+{n:"Axe 3",t:"Le désir est-il obstacle ou chemin vers le bonheur ?",pb:"Faut-il satisfaire ses désirs ou apprendre à les maîtriser ?",
 sps:[
-{l:"A",c:"Non : Schopenhauer (désir infini), Freud (malaise dans la civilisation). La civilisation réprime les pulsions, source d'un malaise irréductible.",r:"Schopenhauer ; Freud, Malaise dans la civilisation"},
-{l:"B",c:"Critères de mesure : IDH / BNB (indicateur de bonheur/bien-être) — cours p.67. 4 critères : taille de la population, degré d'engagement, utilité marginale décroissante, IDH/BNB. Difficultés d'un calcul global et impartial.",r:"Cours p.67 — critères utilitaristes",isNew:true},
-{l:"C",c:"Épicure / Stoïcisme : oui, si on maîtrise ses désirs et ses craintes. L'ataraxie est accessible à tous par la philosophie pratique.",r:"Épicure, Lettre à Ménécée ; Marc-Aurèle"},
+{l:"A",c:"Le désir comme obstacle : Épicure (les désirs vains nous torturent), Schopenhauer (le désir est souffrance), Bouddhisme (l'attachement est source de douleur). Maîtriser ses désirs = voie vers l'ataraxie.",r:"Épicure, Lettre à Ménécée"},
+{l:"B",c:"Le désir comme condition : sans désir, pas d'élan vital. Spinoza : 'Le désir est l'essence de l'homme.' Nietzsche : la volonté de puissance comme désir d'expansion.",r:"Spinoza, Éthique III ; Nietzsche"},
+{l:"C",c:"Synthèse : tout dépend du type de désir (Épicure : naturels/nécessaires vs vains). La sagesse consiste à hiérarchiser ses désirs, non à les supprimer tous.",r:"Cours p.55 — schéma B1/B2/B3"},
 ]},
 ],
 exemples:[
-{tag:"Cours — dissertation",tit:"Plan modèle : 'Satisfaire ses désirs, est-ce être heureux ?'",body:"I. Non : le désir insatiable empêche le bonheur (Schopenhauer, désirs vains d'Épicure). II. Mais le désir est force vitale (Rousseau magnifie l'objet, Spinoza : essence de l'homme). III. Synthèse : maîtrise des désirs = voie vers l'ataraxie (Épicure trier, Stoïciens accepter). Ouverture : la dépendance est inhérente à la condition humaine.",lien:"→ Cours p.66-69, plan complet avec références"},
-{tag:"Psychologie",tit:"Paradoxe d'Easterlin",body:"Au-delà d'un certain seuil de revenu, la richesse supplémentaire n'augmente plus le bonheur. Illustre la thèse épicurienne : les désirs vains ne rendent pas heureux.",lien:"→ Épicure (désirs vains), Mill (qualité vs quantité)"},
-{tag:"Philosophie",tit:"Divertissement pascalien",body:"Pascal : l'homme fuit la conscience de sa misère dans le divertissement (chasse, jeu). Il ne cherche pas tant le bonheur que l'oubli de son malheur. Nietzsche reprend cette idée pour le travail.",lien:"→ Nietzsche Aurores, cours p.19"},
-{tag:"Littérature",tit:"Camus — Le Mythe de Sisyphe",body:"Sisyphe, condamné à recommencer éternellement, est déclaré 'heureux' par Camus : accepter l'absurde sans se mentir est la seule forme de bonheur authentique.",lien:"→ Schopenhauer (absurde), Sartre"},
+{tag:"Littérature",tit:"Camus — L'Étranger / Le Mythe de Sisyphe",body:"Meursault vit dans l'instant sans projet de bonheur. Sisyphe, condamné à recommencer éternellement, est déclaré 'heureux' par Camus : accepter l'absurde sans se mentir est la seule forme de bonheur authentique.",lien:"→ Schopenhauer (absurde), Sartre (existence)"},
+{tag:"Psychologie",tit:"'Bullshit Jobs' — David Graeber (cours)",body:"Graeber distingue les jobs pénibles mais utiles des 'bullshit jobs' (bien payés mais inutiles). Ces derniers créent un malaise profond car ils privent le travailleur de sens. Le bonheur ne se réduit pas au confort matériel.",lien:"→ Travail, aliénation, sens"},
+{tag:"Philosophie",tit:"Divertissement pascalien",body:"Pascal : l'homme fuit la conscience de sa misère dans le divertissement (chasse, jeu, fêtes). Il ne cherche pas tant le bonheur que l'oubli de son malheur. Nietzsche reprend cette idée pour le travail (cours p.19).",lien:"→ Cours p.19, Nietzsche Aurores"},
+{tag:"Société",tit:"Le paradoxe d'Easterlin",body:"Dans les pays riches, au-delà d'un certain seuil de revenu, la richesse supplémentaire n'augmente plus le bonheur. Ce paradoxe empirique illustre la thèse épicurienne : les désirs vains (luxe, status) ne rendent pas heureux.",lien:"→ Épicure (désirs vains), Mill (qualité vs quantité)"},
 ],
 liens:["Liberté","Devoir","Conscience","Justice"],
-diss:["Satisfaire ses désirs, est-ce être heureux ?","Le bonheur est-il affaire privée ?","Le désir est-il obstacle au bonheur ?","Le bonheur est-il compatible avec le devoir moral ?","Peut-on enseigner le bonheur ?"]
+diss:["Le bonheur est-il affaire privée ?","Le désir est-il obstacle au bonheur ?","Le bonheur est-il compatible avec le devoir moral ?","Peut-on enseigner le bonheur ?","Faut-il tout faire pour être heureux ?"]
 },
-
 justice:{c:"#D85A30",l:"Justice",s:"Qu'est-ce qu'une société juste ?",
-def:"La <span class='kw'>justice</span> est une vertu morale et un principe politique. Elle implique l'égalité — arithmétique ou proportionnelle ? <span class='kw'>Nancy Fraser</span> (nouveau) distingue trois dimensions : redistribution, reconnaissance, représentation.",
+def:"La <span class='kw'>justice</span> est une vertu morale (rendre à chacun ce qui lui est dû) et un principe politique (organisation équitable de la société). Elle implique l'égalité — mais laquelle, arithmétique ou proportionnelle ? Elle pose aussi la question de la <span class='kw'>légitimité des lois</span>.",
 auteurs:[
-{n:"Platon",w:"La République / Protagoras (TEXTE 6)",i:"Justice = harmonie de la cité. Zeus donne justice et pudeur à TOUS les hommes comme condition de la vie en société.",q:"'Tout homme incapable de pudeur et de justice sera exterminé comme un fléau de la société'"},
-{n:"Aristote",w:"Éthique à Nicomaque, Liv. V",i:"Justice distributive (mérite) et corrective (égalité arithmétique). La justice = juste milieu.",q:"'La justice distributive : à chacun selon son mérite'"},
-{n:"Rawls",w:"Théorie de la justice, 1971",i:"Voile d'ignorance. 2 principes : égale liberté + principe de différence. La répartition des atouts naturels est un 'fait moral arbitraire'.",q:"'Les inégalités sont justifiées si elles profitent aux plus défavorisés'"},
-{n:"Marx",w:"Critique du programme de Gotha, 1875",i:"Le droit proportionnel au travail est toujours un droit bourgeois. Stade supérieur : 'De chacun selon ses capacités, à chacun selon ses besoins.'",q:"'De chacun selon ses capacités, à chacun selon ses besoins'"},
-{n:"Nancy Fraser",w:"Redistribution ou reconnaissance ?, 2004",i:"La justice sociale a 3 dimensions : redistribution économique, reconnaissance culturelle/identitaire, représentation politique. Une injustice peut toucher ces 3 niveaux simultanément.",q:"Justice = redistribution + reconnaissance + représentation",isNew:true},
-{n:"Axel Honneth",w:"La Lutte pour la reconnaissance, 1992",i:"La justice passe par la lutte pour la reconnaissance : affective (famille), juridique (État), sociale (estime de soi). L'injustice = mépris, déni de reconnaissance.",q:"L'injustice = déni de reconnaissance à l'un des trois niveaux",isNew:true},
-{n:"Hobbes",w:"Léviathan, 1651",i:"Sans État, pas de justice. État de nature = guerre de tous contre tous.",q:"'L'homme est un loup pour l'homme' à l'état de nature"},
+{n:"Platon",w:"La République / Protagoras (TEXTE 6)",i:"Justice = harmonie de l'âme et de la cité. Mythe de Prométhée : Zeus envoie justice (diké) et pudeur (aidôs) à TOUS les hommes (pas seulement aux spécialistes) comme condition de la vie en société.",q:"'Tout homme incapable de pudeur et de justice sera exterminé comme un fléau de la société'"},
+{n:"Aristote",w:"Éthique à Nicomaque, Liv. V",i:"Justice distributive : à chacun selon son mérite (inégalité proportionnelle). Justice corrective : rétablir l'égalité après un tort (arithmétique). La justice = juste milieu.",q:"'La justice distributive : à chacun selon son mérite'"},
+{n:"Rawls",w:"Théorie de la justice, 1971",i:"Voile d'ignorance : imaginons que nous ne savons pas quelle place nous occuperons. 2 principes : égale liberté pour tous + principe de différence (les inégalités ne sont justes que si elles profitent aux plus défavorisés).",q:"'Les inégalités sont justifiées si elles profitent aux plus défavorisés'"},
+{n:"Marx",w:"Le Capital, 1867",i:"La justice bourgeoise masque l'exploitation. La plus-value : le travailleur crée plus de valeur qu'il n'en reçoit. La vraie justice = abolir la propriété privée des moyens de production.",q:"'De chacun selon ses capacités, à chacun selon ses besoins'"},
+{n:"Hobbes",w:"Léviathan, 1651",i:"Sans État, pas de justice possible : état de nature = guerre de tous contre tous. La justice naît du contrat : est juste ce que le souverain déclare juste.",q:"'L'homme est un loup pour l'homme' à l'état de nature"},
+{n:"Rousseau",w:"Discours sur l'inégalité, 1755",i:"Les inégalités naturelles sont légitimes. Les inégalités sociales sont artificielles et injustes. La propriété est la source de l'injustice sociale.",q:"'Le premier qui clôtura un terrain... fut le vrai fondateur de la société civile'"},
 ],
 textes:[
-{n:"TEXTE 6 — Platon, Protagoras",t:"Zeus distribue justice et pudeur à tous (pas seulement aux spécialistes). Sans vertu civique partagée, pas de cité."},
-{n:"Rawls — Théorie de la justice",t:"La répartition actuelle est le résultat cumulatif de répartitions antérieures d'atouts naturels. Ces contingences sont moralement arbitraires. Principe de différence : les inégalités ne sont justifiées que si elles profitent aux plus défavorisés.",isNew:true},
-{n:"Marx — Critique du programme de Gotha",t:"Le travail individuel de chaque producteur = sa part de la journée sociale de travail. Le droit égal est donc toujours un droit bourgeois. Stade supérieur : à chacun selon ses besoins.",isNew:true},
-{n:"Nancy Fraser — justice sociale",t:"Deux paradigmes : redistribution (économique) et reconnaissance (culturelle). Au-delà, représentation (politique). Ces paradigmes divergent dans leur implémentation mais tous deux visent la justice.",isNew:true},
-{n:"Exercice de la flûte",t:"Pierre (a fabriqué la flûte) → libertarianisme : droit de propriété. Paul (le seul qui ne sait pas jouer) → égalitarisme économique. Jacqueline (la seule qui sait bien jouer) → utilitarisme : maximiser. Qui doit avoir la flûte ? 3 conceptions de justice.",isNew:true},
+{n:"TEXTE 6 — Platon, Protagoras",t:"Zeus donne justice et pudeur à tous les hommes (contrairement aux techniques réservées aux spécialistes). Sans ces vertus civiques, pas de cité possible."},
+{n:"Aristote — justice distributive vs corrective",t:"Distributive : inégalité proportionnelle au mérite (5€ donnés → 5€ reçus, mais selon un rapport). Corrective : égalité arithmétique stricte (rembourser exactement)."},
+{n:"Rawls — voile d'ignorance",t:"Expérience de pensée : derrière le voile, on ignore sa position sociale, ses talents, sa conception du bien. On choisira des principes justes par intérêt bien compris."},
+{n:"Marx — infrastructure et superstructure",t:"L'État et le droit (superstructure) reflètent les intérêts de la classe dominante (infrastructure économique). La justice bourgeoise légalise l'exploitation."},
 ],
 axes:[
 {n:"Axe 1",t:"Justice = égalité arithmétique ou proportionnelle ?",pb:"Traiter tout le monde pareil, est-ce juste ?",
 sps:[
-{l:"A",c:"Égalité arithmétique (corrective, Aristote) : même traitement pour tous. 'La loi est la même pour tous.' Modèle de la justice devant la loi.",r:"Aristote, Éthique à Nicomaque V"},
-{l:"B",c:"Mais l'égalité formelle peut masquer les inégalités réelles. Anatole France : 'La loi interdit également aux riches et aux pauvres de coucher sous les ponts.'",r:"Rawls : principe de différence"},
-{l:"C",c:"Rawls : les inégalités sont justes seulement si elles profitent aux plus défavorisés. La discrimination positive comme application possible.",r:"Rawls, Théorie de la justice"},
+{l:"A",c:"L'égalité arithmétique (corrective, Aristote) : même traitement pour tous. Chacun reçoit exactement la même chose. Modèle de la justice devant la loi : 'la loi est la même pour tous'.",r:"Aristote, Éthique à Nicomaque V"},
+{l:"B",c:"Mais l'égalité formelle peut masquer des inégalités réelles. Anatole France : 'La loi interdit également aux riches et aux pauvres de coucher sous les ponts.' L'égalité de droit peut être injuste en fait.",r:"Rawls : principe de différence"},
+{l:"C",c:"Justice proportionnelle (Aristote) ou principe de différence (Rawls) : traiter différemment les différents pour obtenir une égalité réelle. La discrimination positive comme application.",r:"Rawls, Théorie de la justice"},
 ]},
-{n:"Axe 2",t:"Les 3 dimensions de la justice sociale",pb:"La justice se réduit-elle à la redistribution économique ?",
+{n:"Axe 2",t:"La justice : naturelle ou conventionnelle ?",pb:"La justice est-elle inscrite dans la nature ou dans nos conventions ?",
 sps:[
-{l:"A",c:"Non, selon Nancy Fraser : la justice a 3 dimensions — redistribution (égalité économique), reconnaissance (respect des identités culturelles), représentation (égalité de voix politique).",r:"Nancy Fraser, cours p.75",isNew:true},
-{l:"B",c:"Honneth : la justice passe par la lutte pour la reconnaissance à 3 niveaux : affectif (famille/amour), juridique (droits), social (estime professionnelle). L'injustice = mépris à l'un de ces niveaux.",r:"Honneth, cours p.75",isNew:true},
-{l:"C",c:"Rawls intègre partiellement ces dimensions : le principe d'égale liberté couvre la représentation, le principe de différence la redistribution. Mais la reconnaissance culturelle reste absente.",r:"Rawls vs Fraser : débat contemporain"},
+{l:"A",c:"Justice naturelle : pour les Stoïciens, Platon, il existe un droit naturel universel antérieur aux lois humaines. Les Droits de l'Homme en sont l'expression moderne.",r:"Platon, La République ; Déclaration 1789"},
+{l:"B",c:"Justice conventionnelle : pour Hobbes, la justice naît du contrat social. Sans État, il n'y a ni juste ni injuste. Les lois sont arbitraires mais nécessaires.",r:"Hobbes, Léviathan ; Pascal : 'la coutume fait toute l'équité'"},
+{l:"C",c:"Nuance : même si les lois sont conventionnelles, certains principes semblent universels (interdiction du meurtre, de la torture). La question du droit naturel reste ouverte.",r:"Rawls : principes universels via le voile d'ignorance"},
 ]},
 {n:"Axe 3",t:"Peut-on légitimement désobéir aux lois injustes ?",pb:"L'obligation d'obéir aux lois est-elle absolue ?",
 sps:[
-{l:"A",c:"Non (Hobbes, Hegel) : la légitimité de l'État repose sur l'obéissance. La désobéissance menace l'ordre social.",r:"Hobbes, Léviathan"},
-{l:"B",c:"Oui : désobéissance civile (Thoreau, Gandhi, MLK). Face à des lois injustes, la conscience morale peut exiger la résistance.",r:"Martin Luther King, Lettre de Birmingham"},
-{l:"C",c:"Rawls : la désobéissance civile est légitime si elle est non-violente, publique, et accepte ses conséquences légales. Elle vise à changer la loi, non à la supprimer.",r:"Rawls, Théorie de la justice"},
+{l:"A",c:"Non : Hobbes, Hegel. La légitimité de l'État repose sur l'obéissance aux lois. La désobéissance menace l'ordre social qui rend possible la justice elle-même.",r:"Hobbes, Léviathan ; Hegel, Philo du droit"},
+{l:"B",c:"Oui : désobéissance civile (Thoreau, Gandhi, MLK). Face à des lois injustes, la conscience morale peut exiger la résistance. La loi juste est celle conforme à la loi morale.",r:"Martin Luther King, Lettre de Birmingham"},
+{l:"C",c:"Nuance : la désobéissance civile est légitime si elle est non-violente, publique, et accepte ses conséquences légales. Elle vise à changer la loi, non à la supprimer.",r:"Rawls : la désobéissance civile dans une société presque juste"},
 ]},
 ],
 exemples:[
-{tag:"Cours — exercice",tit:"La flûte de Pierre, Paul et Jacqueline",body:"Exercice du cours : qui mérite la flûte ? Pierre (l'a fabriquée) → libertarianisme / droit de propriété. Paul (ne sait pas jouer) → égalitarisme. Jacqueline (sait jouer) → utilitarisme. Illustre les 3 grandes conceptions de la justice.",lien:"→ Rawls, Mill, libertarianisme",isNew:true},
-{tag:"Actualité",tit:"Nancy Fraser — reconnaissance des minorités",body:"Les luttes LGBTQ+, féministes, antiracistes réclament à la fois redistribution économique (égalité salariale), reconnaissance culturelle (visibilité, dignité) et représentation politique. Fraser : aucune de ces dimensions ne peut être sacrifiée aux autres.",lien:"→ Fraser, Honneth, justice sociale",isNew:true},
-{tag:"Histoire",tit:"Rosa Parks (1955) — désobéissance civile",body:"Refuse de céder sa place dans un bus à un blanc en Alabama. Déclenche le boycott des bus de Montgomery. Résistance à une loi formellement valide mais moralement injuste.",lien:"→ Rawls, Thoreau, désobéissance civile"},
-{tag:"Philosophie",tit:"Le voile d'ignorance de Rawls",body:"Si vous choisissiez les règles de la société sans savoir si vous serez riche ou pauvre, homme ou femme, vous choisiriez des règles justes. Le voile d'ignorance simule l'impartialité.",lien:"→ Rawls, contrat social"},
+{tag:"Histoire",tit:"Rosa Parks (1955) — désobéissance civile",body:"Rosa Parks refuse de céder sa place dans un bus à un blanc en Alabama. Acte de désobéissance civile qui déclenche le boycott des bus de Montgomery. Exemple de résistance à une loi formellement valide mais moralement injuste.",lien:"→ Rawls, Thoreau, désobéissance civile"},
+{tag:"Actualité",tit:"Impôt progressif vs flat tax",body:"Le débat entre impôt proportionnel (taux unique) et progressif (qui augmente avec le revenu) illustre l'opposition entre justice arithmétique et principe de différence de Rawls.",lien:"→ Rawls (principe différence), Aristote (distributive)"},
+{tag:"Mythe — Cours",tit:"Mythe de Prométhée (Platon, TEXTE 6)",body:"Zeus distribue justice et pudeur à TOUS les hommes (pas seulement aux spécialistes). Sans vertu civique partagée, pas de cité possible. La justice est condition d'existence de la société.",lien:"→ État, technique, nature"},
+{tag:"Philosophie",tit:"L'expérience du voile d'ignorance (Rawls)",body:"Expérience de pensée : si vous deviez choisir les règles de la société sans savoir si vous serez riche ou pauvre, homme ou femme, vous choisiriez des règles justes. Le voile d'ignorance simule l'impartialité.",lien:"→ Rawls, contrat social"},
 ],
 liens:["État","Liberté","Devoir","Bonheur"],
-diss:["La justice exige-t-elle l'égalité ?","Peut-on légitimement désobéir aux lois ?","La justice sociale se réduit-elle à la redistribution ?","Justice et vengeance sont-elles compatibles ?","Peut-on être juste sans l'État ?"]
+diss:["La justice exige-t-elle l'égalité ?","Peut-on légitimement désobéir aux lois ?","La justice est-elle une affaire de convention ?","Justice et vengeance sont-elles compatibles ?","Peut-on être juste sans l'État ?"]
 },
-
 devoir:{c:"#993556",l:"Devoir",s:"Sommes-nous obligés d'agir moralement ?",
-def:"Le <span class='kw'>devoir moral</span> est une obligation inconditionnelle de la raison (Kant). Mais le cours distingue <span class='kw'>éthique</span> (ethos = manière d'être, questionnement sur la vie bonne) et <span class='kw'>morale</span> (mores = coutumes, normes et valeurs). Deux grandes approches : <span class='kw'>déontologisme</span> (Kant) et <span class='kw'>conséquentialisme</span> (Singer, Bentham).",
+def:"Le <span class='kw'>devoir moral</span> est une obligation inconditionnelle de la raison (Kant), distincte de l'intérêt ou de l'inclination. Pour Kant, le devoir est <span class='kw'>catégorique</span> — il s'impose à tous, indépendamment des conséquences. Mais le devoir peut aussi être compris comme fait social (Durkheim) ou création existentielle (Sartre).",
 auteurs:[
-{n:"Kant",w:"Fondements de la métaphysique des mœurs, 1785",i:"Impératif catégorique : agir par devoir, non conformément au devoir. Deux formulations : universalisation + humanité comme fin. Déontologisme : la morale ne peut se baser sur les conséquences.",q:"'Agis de telle sorte que tu traites l'humanité toujours comme une fin, jamais seulement comme un moyen'"},
-{n:"Peter Singer",w:"Famine, richesse et moralité, 1972",i:"Conséquentialisme : si nos actions peuvent empêcher des souffrances graves sans rien sacrifier d'importance morale comparable, nous devons moralement le faire. Impartialité totale : un Bengali compte autant qu'un voisin.",q:"'Prévenir quelque chose de mauvais est bien, sans pour autant sacrifier quelque chose d'importance morale comparable'",isNew:true},
-{n:"Bentham",w:"Introduction aux principes de la morale, 1789",i:"Calcul hédoniste : additionner plaisirs et peines de tous les individus affectés. La bonne action = celle qui produit le plus de bonheur global. Calcul global ET impartial des conséquences.",q:"'Le plus grand bonheur du plus grand nombre'",isNew:true},
-{n:"Hans Jonas",w:"Le Principe responsabilité, 1990 (TEXTE 5)",i:"Nouveau devoir face à la technique : responsabilité envers les générations futures. Heuristique de la peur.",q:"'Agis de façon que les effets de ton action soient compatibles avec la permanence d'une vie humaine authentique'"},
-{n:"Sartre",w:"L'existentialisme est un humanisme, 1945",i:"Condamnés à être libres. Le devoir vient de notre liberté radicale. Mauvaise foi = fuir cette responsabilité.",q:"'Condamné à être libre'"},
-{n:"Durkheim",w:"De la division du travail social, 1893",i:"Le devoir moral est un fait social : la morale = conscience collective intériorisée.",q:"La morale = 'manière d'agir obligatoire' issue du social"},
-{n:"Simone Weil",w:"L'Enracinement, 1943 (TEXTE 10)",i:"Devoir de l'ingénieur envers les travailleurs. La technique doit servir l'homme.",q:"'Poser en termes techniques les problèmes des répercussions des machines sur le bien-être moral des ouvriers'"},
+{n:"Kant",w:"Fondements de la métaphysique des mœurs, 1785",i:"Impératif catégorique : 'Agis uniquement d'après la maxime que tu peux vouloir voir devenir une loi universelle.' Agir par devoir (non conformément au devoir par intérêt). Autrui comme fin, jamais seulement comme moyen.",q:"'Agis de telle sorte que tu traites l'humanité toujours comme une fin, jamais seulement comme un moyen'"},
+{n:"Hans Jonas",w:"Le Principe responsabilité, 1990 (TEXTE 5)",i:"Nouveau devoir face à la puissance technique : responsabilité envers les générations futures et la nature. Heuristique de la peur : anticiper les risques pour agir prudemment. Devoir de non-nuisance au futur.",q:"'Agis de façon que les effets de ton action soient compatibles avec la permanence d'une vie humaine authentique'"},
+{n:"Sartre",w:"L'existentialisme est un humanisme, 1945",i:"Condamnés à être libres, nous sommes responsables de tout. Pas de nature humaine préalable, pas de Dieu pour dicter le devoir. Le devoir vient de notre liberté radicale. Mauvaise foi = fuir cette responsabilité.",q:"'Condamné à être libre' — le devoir vient de notre liberté, non d'une loi donnée"},
+{n:"Durkheim",w:"De la division du travail social, 1893",i:"Le devoir moral est un fait social : la morale est la conscience collective intériorisée. L'obligation morale vient de la société, non d'une raison pure.",q:"La morale = 'manière d'agir obligatoire' issue du social"},
+{n:"Simone Weil",w:"L'Enracinement, 1943 (TEXTE 10)",i:"L'ingénieur a un devoir moral envers les travailleurs : intégrer leur bien-être dans la conception des machines. Le devoir professionnel dépasse le contrat. La technique doit être au service de l'homme.",q:"'Poser en termes techniques les problèmes des répercussions des machines sur le bien-être moral des ouvriers'"},
+{n:"Nietzsche",w:"Généalogie de la morale, 1887",i:"Critique de la morale du devoir : elle est issue du ressentiment des faibles. La 'morale des esclaves' (christianisme, Kant) valorise la soumission. Le devoir est une forme de culpabilité institutionnalisée.",q:"La mauvaise conscience = intériorisation de la cruauté contre soi-même"},
 ],
 textes:[
-{n:"Cours p.64 — Éthique et morale (NOUVEAU)",t:"Éthique (ethos = manière d'être) : s'interroger sur nos manières de vivre, la vie bonne, heureuse, vertueuse. Morale (mores = coutumes) : ensemble de normes et valeurs. Distinction fondamentale.",isNew:true},
-{n:"Cours p.65 — Dilemme moral : mentir ou non ?",t:"Kant : 'Il ne faut jamais mentir sous peine de détruire la confiance.' Dilemme moral = tension entre plusieurs règles morales. Nécessité de les hiérarchiser / prioriser.",isNew:true},
-{n:"Peter Singer — corpus déontologie/conséquentialisme",t:"Option 1 : conséquentialisme (Bentham, Singer) — calcul global et impartial des conséquences. Option 2 : déontologisme (Kant) — impératif catégorique, fondé sur la raison, universel.",isNew:true},
-{n:"Kant — 3 formulations de l'impératif catégorique",t:"(1) Universalisation. (2) Humanité comme fin. (3) Législation universelle. Distinction devoir/inclination."},
-{n:"TEXTE 5 — Jonas",t:"Heuristique de la peur comme boussole. Loi de Gabor. Anticiper la catastrophe."},
-{n:"TEXTE 10 — Simone Weil",t:"Les ingénieurs doivent intégrer le bien-être moral des ouvriers. Devoir professionnel élargi."},
+{n:"Kant — 3 formulations de l'impératif catégorique",t:"(1) Universalisation : 'Agis comme si ta maxime devait devenir loi universelle.' (2) Humanité comme fin : 'Traite l'humanité toujours comme fin.' (3) Législation universelle : 'Agis comme membre d'un règne des fins.'"},
+{n:"TEXTE 5 — Jonas (cours)",t:"Prométhée déchaîné par la science. Face à l'irréversible et au planétaire, anticipation de la catastrophe comme guide éthique. 'Heuristique de la peur.'"},
+{n:"TEXTE 10 — Simone Weil (cours)",t:"Les ingénieurs ont jusqu'ici eu en vue seulement les besoins de la fabrication. La technique entière de la production devrait être transformée. Le bien-être moral des ouvriers doit devenir matière d'enseignement."},
+{n:"Sartre — liberté et responsabilité",t:"En choisissant pour moi-même, je choisis pour tous les hommes. L'angoisse est la marque de la liberté. La mauvaise foi = se croire déterminé, nier sa liberté pour fuir la responsabilité."},
 ],
 axes:[
-{n:"Axe 1",t:"Déontologisme vs conséquentialisme",pb:"La morale doit-elle se fonder sur les principes ou sur les conséquences ?",
+{n:"Axe 1",t:"Le devoir comme impératif rationnel universel",pb:"Le devoir est-il une loi que la raison se donne à elle-même ?",
 sps:[
-{l:"A",c:"Déontologisme (Kant) : la valeur morale d'un acte ne dépend pas de ses conséquences mais de sa conformité à la loi morale. L'impératif catégorique est universel et inconditionnel.",r:"Kant, Fondements ; cours p.71"},
-{l:"B",c:"Conséquentialisme (Bentham, Singer) : la bonne action = celle qui produit le plus de bonheur global. Calcul impartial. Un Bengali souffrant compte autant qu'un voisin.",r:"Singer, cours p.71 ; Bentham"},
-{l:"C",c:"Dilemme : le conséquentialisme peut justifier des actes injustes (torturer un innocent pour sauver dix). Le déontologisme peut conduire à des absurdités (mentir à l'assassin — Kant). Les deux approches ont des limites.",r:"Dilemme cours p.65"},
+{l:"A",c:"Oui (Kant) : l'autonomie morale consiste à se donner sa propre loi. L'hétéronomie (obéir au bonheur, aux désirs, à l'autorité) n'est pas morale. Seul le devoir accompli par respect de la loi morale a une valeur morale.",r:"Kant, Fondements, I"},
+{l:"B",c:"L'universalité de l'impératif catégorique garantit son objectivité : une maxime est morale si elle peut être universalisée sans contradiction. Exemple : le mensonge ne peut être universalisé (si tout le monde mentait, la notion de vérité disparaîtrait).",r:"Kant, Fondements, II"},
+{l:"C",c:"Critique : peut-on toujours universaliser ? Cas limites (mentir à un assassin pour protéger sa victime). Kant répond qu'on doit toujours dire la vérité. Mais cette rigidité est contestée.",r:"Schiller, Constant : critique du kantisme"},
 ]},
-{n:"Axe 2",t:"Éthique vs morale : vie bonne vs normes",pb:"Doit-on chercher la vie bonne ou obéir à des règles ?",
+{n:"Axe 2",t:"Les limites du devoir formel : cas de conscience",pb:"A-t-on toujours le devoir d'obéir ?",
 sps:[
-{l:"A",c:"Éthique : questionnement sur nos manières de vivre. S'interroger sur la vie bonne, heureuse, vertueuse. Aristote : la vertu comme habitude, la prudence (phronesis) comme guide.",r:"Aristote ; cours p.64"},
-{l:"B",c:"Morale : ensemble de normes et valeurs héritées de la société et de la culture (mores = coutumes). Durkheim : la morale est un fait social, intériorisation de la conscience collective.",r:"Durkheim ; cours p.64"},
-{l:"C",c:"Tension : l'éthique personnelle peut entrer en conflit avec les normes morales collectives. La désobéissance civile, l'objection de conscience : cas où l'éthique personnelle prime sur la morale sociale.",r:"Thoreau ; Antigone (Sophocle)"},
+{l:"A",c:"Désobéissance civile : face à une loi injuste, la conscience morale peut primer. Martin Luther King : 'On a le devoir moral de désobéir aux lois injustes.' Le devoir moral peut entrer en conflit avec le devoir légal.",r:"King, Lettre de Birmingham"},
+{l:"B",c:"Objection de conscience (soldats, médecins) : certains professionnels refusent d'exécuter des ordres contraires à leur conscience. La notion de 'crimes contre l'humanité' reconnaît ce droit.",r:"Procès de Nuremberg : 'j'obéissais aux ordres' refusé"},
+{l:"C",c:"Mais qui décide de ce qui est 'injuste' ? Le risque de l'anarchie morale. Rawls : la désobéissance civile est légitime si elle est non-violente, publique et accepte ses conséquences.",r:"Rawls, Théorie de la justice"},
 ]},
 {n:"Axe 3",t:"De nouveaux devoirs : la responsabilité envers l'avenir",pb:"Avons-nous des devoirs envers ce qui n'existe pas encore ?",
 sps:[
-{l:"A",c:"Jonas : la technique crée des effets irréversibles. Les générations futures ne peuvent pas défendre leurs droits. Devoir de les protéger : 'heuristique de la peur'.",r:"Jonas, cours TEXTE 5"},
-{l:"B",c:"Singer élargit aussi le devoir : si nous pouvons empêcher une souffrance grave sans grand sacrifice, nous le devons — peu importe la distance géographique ou temporelle.",r:"Singer, cours p.71"},
-{l:"C",c:"Weil : devoir de l'ingénieur envers les travailleurs. Devoir professionnel élargi à la dimension humaine. La technique doit servir l'homme, pas le capital.",r:"TEXTE 10 — Simone Weil"},
+{l:"A",c:"Oui (Jonas) : la technique crée des effets irréversibles à l'échelle planétaire. Les générations futures ne peuvent pas encore défendre leurs droits. Nous avons donc le devoir de les protéger.",r:"Jonas, Le Principe responsabilité"},
+{l:"B",c:"Ce devoir implique un principe de précaution : en cas de doute sur un risque grave et irréversible, agir comme si la catastrophe était probable. 'L'heuristique de la peur' guide l'action.",r:"Jonas — développé dans le cours TEXTE 5"},
+{l:"C",c:"Application concrète : devoir de Simone Weil envers les travailleurs. Les ingénieurs et concepteurs de machines ont le devoir de penser aux conditions de travail. Le devoir s'étend à tous les acteurs techniques.",r:"TEXTE 10 — Simone Weil"},
 ]},
 ],
 exemples:[
-{tag:"Cours — corpus",tit:"Déontologisme vs conséquentialisme",body:"Situation : des gens meurent de faim au Bengale. Singer : nous avons le devoir moral d'aider car nous pouvons le faire sans grand sacrifice (conséquentialisme). Kant : notre devoir est défini par la loi morale universelle, non par le calcul des conséquences (déontologisme).",lien:"→ Singer, Kant, Bentham — cours p.71",isNew:true},
-{tag:"Philosophie",tit:"Le dilemme du menteur",body:"Kant : 'Il ne faut jamais mentir, même pour protéger quelqu'un.' Un assassin demande où est sa victime — faut-il mentir ? Kant dit non. C'est l'exemple classique de la rigidité du déontologisme.",lien:"→ Kant, déontologisme, dilemme moral",isNew:true},
-{tag:"Histoire",tit:"Procès de Nuremberg (1945-46)",body:"Les officiers nazis invoquent le devoir d'obéissance. Le tribunal reconnaît que certains actes sont criminels même si légaux. Le devoir moral prime sur le devoir légal.",lien:"→ Kant (humanité comme fin), désobéissance"},
-{tag:"Littérature",tit:"Antigone (Sophocle)",body:"Antigone doit choisir entre obéir à la loi de Créon (ne pas enterrer son frère) et obéir à la loi divine. Elle choisit le devoir moral contre le devoir légal et en meurt.",lien:"→ Désobéissance civile, justice naturelle"},
+{tag:"Histoire",tit:"Le procès de Nuremberg (1945-46)",body:"Les officiers nazis invoquent le devoir d'obéissance ('Befehl ist Befehl' = un ordre est un ordre). Mais le tribunal reconnaît que certains actes sont criminels même si légaux. Le devoir moral prime sur le devoir légal.",lien:"→ Kant (humanité comme fin), Jonas"},
+{tag:"Littérature",tit:"Antigone (Sophocle)",body:"Antigone doit choisir entre obéir à la loi de Créon (ne pas enterrer son frère) et obéir à la loi divine (enterrer les morts). Elle choisit le devoir moral contre le devoir légal et en meurt.",lien:"→ Désobéissance civile, justice naturelle"},
+{tag:"Actualité",tit:"Lanceurs d'alerte (Snowden, Assange)",body:"Ces individus ont révélé des pratiques illégales au nom d'un devoir moral envers les citoyens. Ils ont violé leur devoir légal (secret défense) par devoir moral envers la vérité et la démocratie.",lien:"→ Rawls (désobéissance civile), Kant"},
+{tag:"Philosophie — Cours",tit:"Simone Weil et le devoir de l'ingénieur (TEXTE 10)",body:"Weil décrit des ingénieurs qui conçoivent des machines en ne pensant qu'aux bénéfices et à la production, jamais au bien-être moral des ouvriers. Elle appelle à un devoir professionnel élargi intégrant la dimension humaine.",lien:"→ Technique, travail, Jonas"},
 ],
 liens:["Liberté","Justice","Conscience","Nature","Technique"],
-diss:["Le devoir est-il toujours rationnel ?","Déontologisme ou conséquentialisme — quelle approche est préférable ?","Éthique et morale sont-elles la même chose ?","L'homme a-t-il des devoirs envers la nature ?","Le devoir est-il une contrainte ou une liberté ?"]
+diss:["Le devoir est-il toujours rationnel ?","A-t-on le droit de désobéir à la loi ?","Agir moralement, est-ce agir contre ses intérêts ?","L'homme a-t-il des devoirs envers la nature ?","Le devoir est-il une contrainte ou une liberté ?"]
 },
-
 travail:{c:"#3B6D11",l:"Travail",s:"Le travail libère-t-il ou aliène-t-il ?",
-def:"Le <span class='kw'>travail</span> transforme la nature par l'activité humaine. Il est potentiellement <span class='kw'>aliénant</span> (pénible, marchandisé) et <span class='kw'>libérateur</span> (réalisation de soi). Arendt distingue labor/work/action. Nietzsche critique le culte du travail. Weil appelle à un travail non servile.",
+def:"Le <span class='kw'>travail</span> est la transformation de la nature par l'activité humaine. Il est à la fois <span class='kw'>aliénant</span> (pénible, asservissant, marchandisé) et potentiellement <span class='kw'>libérateur</span> (réalisation de soi, humanisation). Arendt distingue labor/work/action. Nietzsche le critique comme instrument de contrôle social.",
 auteurs:[
-{n:"Hegel",w:"Phénoménologie de l'Esprit, 1807",i:"Dialectique maître/esclave : l'esclave se libère par le travail. Le travail = médiation entre l'homme et le monde.",q:"'C'est dans le travail que l'esclave se retrouve lui-même'"},
-{n:"Marx",w:"Manuscrits de 1844 / Le Capital, 1867",i:"4 formes d'aliénation : produit, activité, espèce, autrui. Plus-value = exploitation. Mais le travail libre est l'essence de l'homme.",q:"'Le travail aliéné arrache à l'homme son activité vitale'"},
-{n:"Arendt",w:"Condition de l'homme moderne, 1958 (extraits cours p.35)",i:"Labor (nécessité biologique) vs Work/Œuvre (fabrique monde durable) vs Action (politique, libre). Le labor seul ne réalise pas l'homme.",q:"Travail (répétitif) ≠ Œuvre (durable) ≠ Action (politique)"},
-{n:"Nietzsche",w:"Aurores, 1881",i:"Le travail comme 'meilleure des polices' : occupe les individus, les détourne de la réflexion, crée sécurité sociale. La glorification du travail cache la peur de l'individu libre.",q:"'Un tel travail constitue la meilleure des polices'"},
-{n:"Simone Weil",w:"Condition ouvrière / Enracinement, 1943 (TEXTE 10)",i:"Le travail servile = gouverné par la nécessité. Condition d'un travail non servile : que le travailleur comprenne la finalité de son geste. Devoir de l'ingénieur envers les travailleurs.",q:"'La matière sort ennoblie de la fabrique, les travailleurs en sortent avilis'"},
-{n:"Lafargue",w:"Le Droit à la paresse, 1880",i:"Pamphlet contre le culte du travail. Revendication du temps libre comme droit fondamental.",q:"'Une étrange folie possède les classes ouvrières : la passion du travail'"},
+{n:"Hegel",w:"Phénoménologie de l'Esprit, 1807",i:"Dialectique maître/esclave : le maître jouit sans travailler mais reste dépendant. L'esclave, en travaillant la matière, se forme lui-même et découvre sa liberté. Le travail = médiation entre l'homme et le monde.",q:"'C'est dans le travail que l'esclave se retrouve lui-même'"},
+{n:"Marx",w:"Manuscrits de 1844 / Le Capital, 1867",i:"4 formes d'aliénation : par rapport au produit (qui lui échappe), à l'activité (mécanique), à l'espèce (déshumanisation), aux autres (concurrence). Plus-value : exploitation du travail. Mais le travail libre est l'essence de l'homme.",q:"'Le travail aliéné arrache à l'homme son activité vitale'"},
+{n:"Arendt",w:"Condition de l'homme moderne, 1958 (extraits cours)",i:"Labor (nécessité biologique, cycle sans fin : Extraits 1-4) vs Work/Œuvre (fabrique un monde durable, transforme la nature : Extrait 3) vs Action (activité politique libre). Le labor seul ne réalise pas l'homme.",q:"Travail (répétitif, nécessaire) ≠ Œuvre (durable) ≠ Action (politique, libre)"},
+{n:"Nietzsche",w:"Aurores, 1881 (cours p.18-25)",i:"Le travail comme 'meilleure des polices' : il tient les individus occupés, les détourne de la réflexion. La glorification du travail cache la peur de la liberté individuelle. Danger du 'travailleur' qui s'oublie lui-même.",q:"'Un tel travail constitue la meilleure des polices'"},
+{n:"Simone Weil",w:"Condition ouvrière / Enracinement, 1943 (TEXTE 10)",i:"Expérience vécue des usines. Le travail en usine est écrasant mais peut être libérateur si le travailleur comprend ce qu'il fait. Devoir de l'ingénieur : concevoir des machines qui ennobling les travailleurs.",q:"'La matière sort ennoblie de la fabrique, les travailleurs en sortent avilis' (Marx cité par Weil)"},
+{n:"Lafargue",w:"Le Droit à la paresse, 1880",i:"Pamphlet contre le culte du travail. La classe ouvrière s'est laissé intoxiquer par la passion du travail, instrument de sa propre exploitation. Revendiquer le temps libre comme droit fondamental.",q:"'Une étrange folie possède les classes ouvrières : la passion du travail'"},
 ],
 textes:[
-{n:"Arendt — Extraits 1-4",t:"Extrait 1 : dans l'Antiquité, travailler = être asservi. Extrait 2 : le labor reproduit la vie biologique (cycle). Extrait 3 : la productivité = surplus au-delà des besoins. Extrait 4 : le travail conserve le monde commun."},
-{n:"Nietzsche — Aurores",t:"'Un tel travail constitue la meilleure des polices.' La glorification du travail cache la peur de l'individu. Le travailleur dur est 'dangereux' : il n'a plus de maîtrise de lui-même."},
-{n:"Weil — Condition première d'un travail non servile",t:"Le travail servile est gouverné par la nécessité, non la finalité. Exécuté à cause d'un besoin, non en vue d'un bien. Seule une 'lumière d'éternité' rend le travail supportable."},
-{n:"Cours p.30-31 — Plan dissertation aliénation",t:"I. Le travail peut être aliénation (peine, servile, déshumanisant). II. Le travail constitue une condition nécessaire à l'émancipation (transforme la nature, crée surplus, garantit temps libre)."},
+{n:"Hegel — dialectique maître/esclave",t:"Maître : jouit sans travailler, mais reste dépendant de l'esclave et de la nature. Esclave : travaille, transforme le monde, se forme. Inversion dialectique : le vrai maître de lui-même devient l'esclave."},
+{n:"Arendt — Extraits 1-4 (cours p.35)",t:"Extrait 1 : dans l'Antiquité, travailler = être asservi aux nécessités. Extrait 2 : le labor reproduit la vie biologique (cycle consommation/production). Extrait 3 : productivité = surplus au-delà des besoins vitaux. Extrait 4 : le travail comme conservation du monde commun."},
+{n:"Nietzsche — Aurores (cours p.18)",t:"La glorification du travail cache 'la peur de tout ce qui est individuel'. Le travailleur dur est présenté comme 'dangereux'. La sécurité sociale repose sur l'occupation permanente des individus."},
+{n:"Weil — Condition première d'un travail non servile (cours p.40)",t:"Le travail servile est gouverné par la nécessité, non la finalité. Il est exécuté à cause d'un besoin, non en vue d'un bien. Exister n'est pas une fin : il faut une 'lumière d'éternité' pour rendre le travail supportable."},
+{n:"Cours p.30 — plan dissertation sur l'aliénation",t:"I. Le travail peut être aliénation (peine, servile, déshumanisant). II. Le travail constitue cependant une condition nécessaire à l'émancipation (transforme la nature, crée un surplus, garantit le temps libre)."},
 ],
 axes:[
 {n:"Axe 1",t:"Le travail comme aliénation",pb:"Le travail prive-t-il l'homme de sa liberté ?",
 sps:[
-{l:"A",c:"Le travail comme peine : étym. tripalium. Dans l'Antiquité, réservé aux esclaves. Labor d'Arendt : asservissement à la nécessité biologique, cycle sans fin.",r:"Arendt, Extrait 1 ; cours p.35"},
-{l:"B",c:"Marx : 4 formes d'aliénation du travail salarié. La plus-value = vol légalisé. Le travailleur est étranger à son produit, son activité, son espèce, ses semblables.",r:"Marx, Manuscrits de 1844"},
-{l:"C",c:"Nietzsche : culte du travail = instrument de contrôle social. 'Bullshit jobs' (Graeber) : emplois inutiles mais bien payés, source de malaise. Burn-out/bore-out comme pathologies.",r:"Nietzsche, Aurores ; Graeber, cours p.19"},
+{l:"A",c:"Le travail comme peine (étym. tripalium = instrument de torture). Dans l'Antiquité, réservé aux esclaves car asservissement à la nécessité. Le travail force biologique, répétitif et sans fin (labor d'Arendt).",r:"Arendt, Condition moderne, Extrait 1 ; cours p.35"},
+{l:"B",c:"Marx : aliénation du travail salarié. 4 formes : rapport au produit (qui appartient au patron), à l'activité (mécanique, imposée), à l'espèce (déshumanisation), aux autres (concurrence). La plus-value = vol légalisé.",r:"Marx, Manuscrits de 1844"},
+{l:"C",c:"Nietzsche : la glorification du travail sert le contrôle social. 'Bullshit jobs' (Graeber, cours) : des millions de travailleurs occupent des postes inutiles mais bien payés, source de malaise. Le burn-out comme pathologie du culte du travail.",r:"Cours p.19 — Nietzsche ; Graeber cité cours"},
 ]},
-{n:"Axe 2",t:"Le travail comme condition de l'émancipation",pb:"Le travail peut-il libérer l'homme ?",
+{n:"Axe 2",t:"Le travail comme condition de l'émancipation humaine",pb:"Le travail peut-il libérer l'homme ?",
 sps:[
-{l:"A",c:"Hegel : l'esclave se libère par le travail. En transformant la matière, il se forme lui-même et s'y retrouve.",r:"Hegel, Phénoménologie"},
-{l:"B",c:"L'œuvre (Arendt) : fabrique un monde durable et commun. Ce que je crée me survit. Différence fondamentale avec le labor.",r:"Arendt, Extrait 3 ; cours p.31"},
-{l:"C",c:"Le surplus créé par le travail (Marx/Arendt) garantit un temps libre. Ce temps libre est la condition de la vie politique et culturelle.",r:"Cours p.31"},
+{l:"A",c:"Hegel : l'esclave se libère par le travail. En transformant la matière, il s'y retrouve lui-même. Le travail forme la conscience de soi. Marx dans les 1844 : le travail libre est 'l'expression de la vie'.",r:"Hegel, Phénoménologie ; cours p.30 axe II"},
+{l:"B",c:"L'œuvre (Arendt) permet de créer un monde durable et commun. L'artisan, l'artiste réalisent leur humanité dans leur production. Ce que je fabrique me survit et dit qui je suis.",r:"Arendt, Condition moderne, Extrait 3 ; cours p.31"},
+{l:"C",c:"Le surplus créé par le travail (Arendt/Marx) garantit un temps libre ('temps hors-travail'). Ce temps libre est la condition de la vie politique, culturelle, de l'action (3e catégorie d'Arendt).",r:"Cours p.31 — le surplus et le temps libre"},
 ]},
 {n:"Axe 3",t:"Quel sens donner au travail aujourd'hui ?",pb:"Le travail est-il encore une valeur ?",
 sps:[
-{l:"A",c:"Weil : condition première d'un travail non servile. Le travail doit être gouverné par la finalité, non la nécessité. La 'lumière d'éternité' comme condition de sens.",r:"Weil, cours p.40"},
-{l:"B",c:"Graeber — 'Bullshit jobs' : des millions d'emplois modernes sont perçus comme inutiles. Le travail bien payé mais vide de sens cause autant de souffrance que le travail pénible.",r:"Graeber, cours p.19"},
-{l:"C",c:"Pascal / Nietzsche : le travail détourne du néant et de la mort. Divertissement pascalien. Mais il peut aussi 'fortifier le corps et ruiner l'esprit'. La valeur du travail dépend de ses conditions.",r:"Cours p.19 — Pascal, Nietzsche"},
+{l:"A",c:"La question du sens : Weil dénonce le travail servile (gouverné par la nécessité). Elle cherche une 'condition première d'un travail non servile' : que le travailleur comprenne le lien entre son geste et la finalité du produit.",r:"Weil, Condition ouvrière ; cours p.40"},
+{l:"B",c:"Graeber et les 'bullshit jobs' : de nombreux emplois modernes sont perçus comme inutiles par ceux qui les exercent. Le travail bien payé mais vide de sens cause autant de souffrance que le travail pénible.",r:"Cours p.19 — Graeber"},
+{l:"C",c:"Pascal et le divertissement : le travail nous détourne du néant et de la mort (cours p.19). Il est à la fois nécessaire (survie), potentiellement aliénant (Nietzsche) et potentiellement réalisateur (Hegel). La valeur du travail dépend de ses conditions.",r:"Cours p.19 — Pascal, Nietzsche"},
 ]},
 ],
 exemples:[
-{tag:"Cinéma",tit:"Chaplin — Les Temps modernes (1936)",body:"Charlot sur la chaîne fordiste répète indéfiniment le même geste. Image parfaite de l'aliénation : le corps s'adapte à la machine, l'homme perd son humanité.",lien:"→ Marx (aliénation), Arendt (labor)"},
-{tag:"Cours — texte",tit:"Weil — Condition première d'un travail non servile",body:"'Il y a dans le travail un élément irréductible de servitude [...] On l'exécute à cause d'un besoin, non en vue d'un bien.' La seule chose qui rend le travail supportable : 'une lumière d'éternité'.",lien:"→ Aliénation, bonheur, sens"},
-{tag:"Contemporain",tit:"Burn-out et bore-out",body:"Deux pathologies inverses : le burn-out (excès de travail) et le bore-out (ennui au travail). Illustrent que le travail peut 'fortifier le corps et ruiner l'esprit'.",lien:"→ Nietzsche, Graeber, aliénation"},
-{tag:"Histoire",tit:"La révolution industrielle (XIXe s.)",body:"Le passage à l'usine transforme le rapport au travail : le paysan qui maîtrisait son cycle devient ouvrier parcellaire. Marx analyse cette transformation comme source d'aliénation.",lien:"→ Marx, Arendt, cours p.30"},
+{tag:"Cinéma",tit:"Charlie Chaplin — Les Temps modernes (1936)",body:"Charlot sur la chaîne de montage fordiste : il répète indéfiniment le même geste (serrer des boulons), finit par visser tout ce qui ressemble à un boulon. Image parfaite de l'aliénation par le travail industriel et de la 'déshumanisation' décrite par Marx.",lien:"→ Marx (aliénation), Arendt (labor), cours p.30"},
+{tag:"Histoire",tit:"La révolution industrielle (XIXe s.)",body:"Le passage à la manufacture et à l'usine transforme le rapport au travail : le paysan qui maîtrisait son cycle de production devient ouvrier parcellaire, asservi au rythme de la machine. Marx analyse cette transformation comme source d'aliénation.",lien:"→ Marx, Arendt, cours p.30"},
+{tag:"Cours — texte",tit:"Weil — Condition première d'un travail non servile (cours p.40)",body:"Weil décrit le travail servile comme gouverné par la nécessité pure : on travaille pour survivre, pour pouvoir manger, pour pouvoir retravailler. La seule chose qui rende le travail supportable est 'une lumière d'éternité' — une signification transcendant l'immédiateté.",lien:"→ Aliénation, bonheur, sens"},
+{tag:"Contemporain",tit:"Burn-out et bore-out (cours p.19)",body:"Le burn-out (épuisement par excès de travail) et le bore-out (ennui au travail) sont deux pathologies du rapport au travail. Elles illustrent que le travail peut 'fortifier son corps et ruiner son esprit' (cours). Le travail forcé sur le corps devient accident du travail intérieur.",lien:"→ Nietzsche, Graeber, aliénation"},
 ],
 liens:["Technique","Liberté","Justice","État"],
-diss:["Le travail est-il 'la meilleure des polices' ?","Le travail humanise-t-il l'homme ?","Peut-on se réaliser dans le travail ?","Travailler, est-ce perdre sa liberté ?","Le travail a-t-il encore du sens ?"]
+diss:["Le travail est-il une valeur ?","Travailler, est-ce perdre sa liberté ?","Le travail humanise-t-il l'homme ?","Peut-on se réaliser dans le travail ?","Le travail est-il 'la meilleure des polices' ?"]
 },
-
 technique:{c:"#185FA5",l:"Technique",s:"La technique nous libère-t-elle ou nous aliène-t-elle ?",
-def:"La <span class='kw'>technique</span> est l'ensemble des procédés rationnels visant à transformer la nature. Elle pose la question de la <span class='kw'>maîtrise</span>. Simondon propose une troisième voie : développer une <span class='kw'>culture technique</span> pour dépasser la technophobie.",
+def:"La <span class='kw'>technique</span> est l'ensemble des procédés rationnels visant à transformer la nature. Elle pose la question de la <span class='kw'>maîtrise</span> : maîtrisons-nous la technique ou est-ce elle qui nous maîtrise ? Simondon propose une troisième voie : développer une culture technique.",
 auteurs:[
-{n:"Aristote",w:"Les Parties des animaux (TEXTE 7)",i:"La main = 'outil à faire des outils'. Ce n'est pas parce que l'homme a des mains qu'il est intelligent — c'est parce qu'il est intelligent qu'il a des mains.",q:"'La main semble être non pas un outil, mais plusieurs'"},
-{n:"Bergson",w:"L'Évolution créatrice, 1907 (TEXTE 8)",i:"Homo faber : l'intelligence est d'abord faculté de fabriquer. Notre vie sociale gravite autour des outils.",q:"'L'intelligence est la faculté de fabriquer des objets artificiels, en particulier des outils à faire des outils'"},
-{n:"Descartes",w:"Discours de la méthode, 1637 (TEXTE 9)",i:"'Maîtres et possesseurs de la nature'. La physique pratique pour améliorer nos conditions de vie.",q:"'Nous rendre comme maîtres et possesseurs de la nature'"},
-{n:"Simondon",w:"Du Mode d'existence des objets techniques, 1958 (TEXTES 11-15)",i:"La méconnaissance de la machine = principale cause d'aliénation. L'homme comme 'organisateur permanent' (chef d'orchestre). Machine ouverte (haute technicité) vs automatique (bas degré).",q:"'La plus forte cause d'aliénation réside dans la méconnaissance de la machine'"},
-{n:"Jonas",w:"Le Principe responsabilité, 1990 (TEXTE 5)",i:"Loi de Gabor : tout ce qui est possible sera réalisé. Heuristique de la peur. Encadrement éthique de la technique.",q:"'Le Prométhée définitivement déchaîné réclame une éthique'"},
-{n:"Ellul",w:"Le Système technicien, 1977",i:"La technique est notre milieu naturel actuel. Système autonome qui conditionne toute la société.",q:"La technique comme milieu total"},
-{n:"Simone Weil",w:"L'Enracinement, 1943 (TEXTE 10)",i:"Devoir moral de l'ingénieur envers les travailleurs. La technique doit servir l'homme, pas le capital.",q:"'Poser en termes techniques les problèmes du bien-être moral des ouvriers'"},
+{n:"Aristote",w:"Les Parties des animaux (TEXTE 7)",i:"La main humaine est 'l'outil à faire des outils' (outil polymorphe). Ce n'est pas parce que l'homme a des mains qu'il est intelligent — c'est parce qu'il est intelligent qu'il a des mains. La technique est dans la nature de l'homme.",q:"'La main semble être non pas un outil, mais plusieurs : elle tient lieu des autres'"},
+{n:"Bergson",w:"L'Évolution créatrice, 1907 (TEXTE 8)",i:"Homo faber : l'intelligence est d'abord faculté de fabriquer des objets artificiels (outils à faire des outils). Notre vie sociale gravite autour de la fabrication. La technique modèle l'individu et la société.",q:"'L'intelligence est la faculté de fabriquer des objets artificiels, en particulier des outils à faire des outils'"},
+{n:"Descartes",w:"Discours de la méthode, 1637 (TEXTE 9)",i:"La technique permet de 'nous rendre comme maîtres et possesseurs de la nature'. La physique pratique : connaître feu, eau, air pour les utiliser. But : améliorer la santé, 'premier bien et fondement de tous les autres biens'.",q:"'Nous rendre comme maîtres et possesseurs de la nature'"},
+{n:"Simondon",w:"Du Mode d'existence des objets techniques, 1958 (TEXTES 11-15)",i:"La plus forte aliénation vient de la méconnaissance de la machine. Pour dépasser la technophobie, il faut une culture technique. L'homme est 'organisateur permanent' des machines (chef d'orchestre, pas surveillant). Machine automatique (bas degré) vs machine ouverte (haute technicité).",q:"'La plus forte cause d'aliénation réside dans la méconnaissance de la machine'"},
+{n:"Hans Jonas",w:"Le Principe responsabilité, 1990 (TEXTE 5)",i:"Prométhée déchaîné par la science. Loi de Gabor : tout ce qui est possible sera réalisé. Face à l'irréversible, heuristique de la peur. Nécessité d'un encadrement légal et moral de la technique.",q:"'Le Prométhée définitivement déchaîné réclame une éthique qui empêche le pouvoir de l'homme de devenir une malédiction pour lui'"},
+{n:"Ellul",w:"Le Système technicien, 1977",i:"La technique est notre milieu naturel actuel. Elle n'est pas un simple outil mais un système autonome qui conditionne toute la société. Loi de Gabor. L'homme n'en est plus maître : il est dans le 'système technicien'.",q:"La technique comme milieu total : nous y vivons comme dans la nature"},
+{n:"Simone Weil",w:"L'Enracinement, 1943 (TEXTE 10)",i:"Les ingénieurs n'ont eu que les besoins de la fabrication en vue. Devoir moral : intégrer le bien-être des ouvriers dans la conception des machines. La technique doit servir l'homme, pas le capital.",q:"'Poser en termes techniques les problèmes des répercussions des machines sur le bien-être moral des ouvriers'"},
 ],
 textes:[
-{n:"TEXTE 7 — Aristote",t:"La main comme outil polymorphe : griffe, serre, corne, lance. L'homme peut acquérir toutes les techniques."},
-{n:"TEXTE 8 — Bergson, Homo faber",t:"L'invention mécanique est la démarche essentielle de l'intelligence. La machine à vapeur définira notre âge."},
-{n:"TEXTE 9 — Descartes",t:"Maîtres et possesseurs de la nature. La santé = 'premier bien et fondement de tous les autres biens'."},
-{n:"TEXTE 10 — Simone Weil",t:"Les ingénieurs ne pensent qu'aux bénéfices et à la production, jamais aux ouvriers. Devoir d'intégrer le bien-être moral."},
-{n:"TEXTES 11-15 — Simondon",t:"11: culture ignore réalité humaine de la technique. 12: aliénation de l'utilisateur ignorant. 13: puissance de l'homme habile. 14: machine automatique vs ouverte. 15: l'homme comme organisateur permanent."},
-{n:"TEXTE 5 — Jonas",t:"Heuristique de la peur. Loi de Gabor : tout ce qui est possible sera exhaustivement tenté."},
+{n:"TEXTE 7 — Aristote",t:"La main comme outil polymorphe : griffe, serre, lance ou épée. Elle peut tout saisir et tenir. L'homme n'est pas moins bien pourvu que les animaux : il a la main."},
+{n:"TEXTE 8 — Bergson, Homo faber",t:"L'invention mécanique est la démarche essentielle de l'intelligence. Notre vie sociale gravite autour de la fabrication et de l'utilisation d'instruments artificiels. La machine à vapeur définira notre âge."},
+{n:"TEXTE 9 — Descartes",t:"La physique pratique pour maîtriser feu, eau, air, astres. Améliorer la santé : 'premier bien et fondement de tous les autres biens de cette vie'."},
+{n:"TEXTE 10 — Simone Weil",t:"Les ingénieurs pensent aux bénéfices et à la production, jamais aux ouvriers. La technique entière doit être transformée. Devoir d'inclure le bien-être moral dans le 'cahier des charges des ingénieurs'."},
+{n:"TEXTES 11-15 — Simondon",t:"11: la culture ignore la réalité humaine de la technique. 12: aliénation de l'utilisateur ignorant. 13: puissance de l'homme habile (relation de causalité récurrente avec la matière). 14: machine automatique (bas degré) vs ouverte (haute technicité). 15: l'individu technique — l'homme comme organisateur permanent."},
+{n:"TEXTE 5 — Jonas",t:"Heuristique de la peur : l'anticipation de la menace elle-même est ce qui peut nous aider à découvrir les nouveaux devoirs. La loi de Gabor : tout ce qui est possible sera exhaustivement tenté."},
 ],
 axes:[
 {n:"Axe 1",t:"La technique libère et prolonge la puissance humaine",pb:"La technique est-elle l'expression de la liberté humaine ?",
 sps:[
-{l:"A",c:"La technique prolonge les capacités naturelles. Aristote : la main est 'outil à faire des outils'. Bergson : l'homo faber précède l'homo sapiens.",r:"TEXTES 7 et 8"},
-{l:"B",c:"Descartes : la maîtrise de la nature améliore nos conditions de vie. La médecine, l'agriculture, les transports libèrent des contraintes naturelles.",r:"TEXTE 9"},
-{l:"C",c:"Simondon (TEXTE 13) : l'homme habile entretient une 'relation de causalité récurrente' avec la matière. La technique au service de la créativité.",r:"TEXTE 13"},
+{l:"A",c:"La technique prolonge les capacités naturelles de l'homme. Aristote : la main est déjà 'outil à faire des outils'. Bergson : l'homo faber précède l'homo sapiens. La technique est constitutive de l'humanité.",r:"TEXTE 7 (Aristote), TEXTE 8 (Bergson)"},
+{l:"B",c:"Descartes : la maîtrise de la nature par la technique améliore nos conditions de vie. La médecine, l'agriculture, les transports libèrent l'homme des contraintes naturelles (faim, maladie, distance).",r:"TEXTE 9 (Descartes)"},
+{l:"C",c:"Simondon : l'homme habile (TEXTE 13) entretient une 'relation de causalité récurrente' avec la matière. Il n'impose pas sa volonté mais compose avec les propriétés de la matière. La technique au service de la créativité.",r:"TEXTE 13 (Simondon)"},
 ]},
 {n:"Axe 2",t:"La technique aliène et échappe à la maîtrise",pb:"L'homme maîtrise-t-il encore la technique ?",
 sps:[
-{l:"A",c:"Ellul : la technique est notre milieu naturel actuel. Elle n'est plus un outil mais un système autonome. La loi de Gabor : tout ce qui est possible sera réalisé.",r:"Ellul ; Jonas, cours p.2"},
-{l:"B",c:"Simondon (TEXTE 12) : aliénation de l'utilisateur ignorant. L'homme connaît ce qui entre et sort de la machine mais pas ce qui s'y passe.",r:"TEXTE 12"},
-{l:"C",c:"Jonas : effets irréversibles à l'échelle planétaire (nucléaire, OGM, IA). Nous ne pouvons plus maîtriser le développement technique dans sa logique d'auto-accroissement.",r:"TEXTE 5"},
+{l:"A",c:"La technique est devenue notre milieu naturel (Ellul). Elle n'est plus un outil utilisé par l'homme mais un système qui nous conditionne. La loi de Gabor : tout ce qui est techniquement possible sera réalisé.",r:"Ellul, Le Système technicien ; cours"},
+{l:"B",c:"Simondon (TEXTE 12) : aliénation de l'utilisateur ignorant. L'homme connaît ce qui entre et sort de la machine mais pas ce qui s'y passe. Cette méconnaissance est la vraie cause d'aliénation, plus que la machine elle-même.",r:"TEXTE 12 (Simondon)"},
+{l:"C",c:"Jonas : la technique crée des effets irréversibles que nous ne maîtrisons plus (nucléaire, OGM, IA). La 'loi de Gabor' signifie que nous ne pouvons pas maîtriser le développement technique pris dans une logique d'auto-accroissement.",r:"TEXTE 5 (Jonas) ; cours p.2"},
 ]},
 {n:"Axe 3",t:"La culture technique comme réponse",pb:"Comment vivre avec la technique sans être dominé par elle ?",
 sps:[
-{l:"A",c:"Simondon (TEXTE 11) : la technophobie vient de la méconnaissance. La culture s'est défendue contre les techniques à tort. Les objets techniques contiennent une réalité humaine.",r:"TEXTE 11"},
-{l:"B",c:"L'homme doit devenir 'organisateur permanent' des machines (TEXTE 15), comme chef d'orchestre. Non les surveiller mais les coordonner.",r:"TEXTE 15"},
-{l:"C",c:"Jonas + Weil convergent : encadrement éthique et légal. Devoir de l'ingénieur (Weil), principe de précaution (Jonas).",r:"TEXTE 10 + TEXTE 5"},
+{l:"A",c:"Simondon (TEXTE 11) : la technophobie est une réaction de méconnaissance. La culture s'est constituée en défense contre les techniques, mais cette opposition est fausse. Les objets techniques contiennent une réalité humaine.",r:"TEXTE 11 (Simondon)"},
+{l:"B",c:"L'homme doit devenir 'organisateur permanent' des machines (TEXTE 15), comme un chef d'orchestre. Pas les surveiller (esclave/maître) mais les coordonner en comprenant leur fonctionnement.",r:"TEXTE 15 (Simondon)"},
+{l:"C",c:"Jonas et Weil convergent : la technique exige un encadrement éthique et légal. Weil : devoir de l'ingénieur envers les travailleurs. Jonas : principe de précaution. La technique doit être mise au service de valeurs humaines.",r:"TEXTE 10 (Weil), TEXTE 5 (Jonas)"},
 ]},
 ],
 exemples:[
-{tag:"Contemporain",tit:"Intelligence artificielle générative",body:"L'IA illustre la loi de Gabor : ce qui est techniquement possible (générer des images, des textes, des voix) sera réalisé, sans qu'aucun acteur ne décide globalement. Pose les questions de Simondon (aliénation de l'utilisateur ignorant) et de Jonas (effets irréversibles).",lien:"→ Loi Gabor, Simondon TEXTE 12, Jonas"},
-{tag:"Mythe — Cours",tit:"Mythe de Prométhée (TEXTE 6)",body:"Prométhée vole le feu à Héphaïstos pour compenser la nudité naturelle de l'homme. Mais son châtiment (enchaîné, foie dévoré) symbolise le danger de la démesure technique (hybris).",lien:"→ Nature, devoir, Jonas"},
-{tag:"Philosophie",tit:"Greffes d'organes — conférence cours",body:"Les greffes illustrent la puissance et les limites éthiques de la technique médicale. Greffe du cœur : symbolique de l'organe. Greffe de visage : limites de la transformation du corps humain. Lien avec la notion de nature humaine.",lien:"→ Corps, conscience, nature, devoir"},
-{tag:"Histoire",tit:"Machine à vapeur — révolution industrielle",body:"Illustre Bergson : la machine à vapeur 'tracera la route du progrès'. Elle modifie les habitudes sociales, les conditions de travail, la structure des villes. L'homo faber transforme son propre milieu.",lien:"→ TEXTE 8 (Bergson), Marx, travail"},
+{tag:"Histoire",tit:"La machine à vapeur et la révolution industrielle",body:"La machine à vapeur (Watt, 1769) illustre Bergson : elle 'tracera la route du progrès'. Elle modifie en profondeur les habitudes sociales, les conditions de travail, la structure des villes. L'homo faber transforme son propre milieu de vie.",lien:"→ TEXTE 8 (Bergson), Marx, travail"},
+{tag:"Contemporain",tit:"Intelligence artificielle générative",body:"L'IA (ChatGPT, etc.) illustre la loi de Gabor : ce qui est possible sera réalisé, sans qu'aucun acteur ne décide globalement. Elle pose la question de Simondon (aliénation de l'utilisateur ignorant) et de Jonas (effets irréversibles sur l'emploi, la culture, la vérité).",lien:"→ Loi Gabor, Simondon (TEXTE 12), Jonas"},
+{tag:"Mythe — Cours",tit:"Mythe de Prométhée (TEXTE 6)",body:"Prométhée vole le feu (technique) à Héphaïstos pour compenser la nudité naturelle de l'homme. C'est le mythe fondateur de la technique comme supplément à la nature. Mais le châtiment de Prométhée (enchaîné, foie dévoré) symbolise aussi le danger de la démesure technique.",lien:"→ Nature, devoir, Jonas"},
+{tag:"Philosophie",tit:"L'histoire des greffes d'organes (cours — conférence)",body:"Les greffes d'organes illustrent la puissance et les limites éthiques de la technique médicale. La greffe du cœur pose la question de l'identité (symbolique de l'organe) ; les greffes de visage celle des limites de la transformation du corps humain. Lien direct avec la notion de nature humaine.",lien:"→ Corps, conscience, nature, devoir"},
 ],
 liens:["Nature","Travail","Liberté","Devoir","État"],
 diss:["La technique est-elle libératrice ?","L'homme maîtrise-t-il la technique ?","La technique peut-elle résoudre tous les problèmes ?","Faut-il craindre la technique ?","La culture technique est-elle possible ?"]
 },
-
 etat:{c:"#5F5E5A",l:"État",s:"L'État est-il nécessaire ?",
-def:"L'<span class='kw'>État</span> détient le monopole de la violence légitime (Weber) sur un territoire. Il naît d'un contrat social ou d'un rapport de force. Question centrale : l'État est-il garant de la liberté ou menace contre elle ?",
+def:"L'<span class='kw'>État</span> est une forme d'organisation politique qui détient le <span class='kw'>monopole de la violence légitime</span> (Weber) sur un territoire. Il naît d'un contrat social ou d'un rapport de force. Question centrale : l'État est-il garant de la liberté ou menace contre elle ?",
 auteurs:[
-{n:"Hobbes",w:"Léviathan, 1651",i:"Sans État : état de nature = guerre de tous contre tous. Le Léviathan garantit la paix par sa puissance absolue.",q:"'L'homme est un loup pour l'homme'"},
-{n:"Locke",w:"Traité du gouvernement civil, 1690",i:"L'état de nature est pacifique mais fragile. L'État protège les droits naturels. Contrat révocable.",q:"L'État = protecteur des droits naturels, révocable"},
-{n:"Rousseau",w:"Du Contrat social, 1762",i:"Volonté générale : souveraineté du peuple. Le contrat transforme la liberté naturelle en liberté civile.",q:"'L'obéissance à la loi qu'on s'est prescrite est liberté'"},
-{n:"Hegel",w:"Principes de la philosophie du droit, 1820",i:"L'État est la réalité effective de la liberté objective. Famille → société civile → État.",q:"'L'État est la réalité effective de la liberté concrète'"},
-{n:"Marx",w:"L'Idéologie allemande / Le Manifeste, 1848",i:"L'État = instrument de la classe dominante. Infrastructure économique → superstructure (État, droit). Objectif : dépérissement de l'État.",q:"'L'État n'est que le comité d'affaires de la bourgeoisie'"},
-{n:"Weber",w:"Le Savant et le politique, 1919",i:"L'État = monopole de la violence physique légitime. 3 légitimités : traditionnelle, charismatique, légale-rationnelle.",q:"'L'État revendique le monopole de la violence physique légitime'"},
+{n:"Hobbes",w:"Léviathan, 1651",i:"Sans État : état de nature = guerre de tous contre tous, vie 'solitaire, misérable, bestiale et brève'. Le contrat cède tous les droits à un souverain absolu (Léviathan) en échange de la sécurité. La justice naît du contrat.",q:"'L'homme est un loup pour l'homme' (à l'état de nature)"},
+{n:"Locke",w:"Traité du gouvernement civil, 1690",i:"L'état de nature est pacifique mais fragile (sans juge impartial). L'État protège les droits naturels (vie, liberté, propriété). Le contrat est révocable : si le gouvernement viole les droits, la révolution est légitime.",q:"L'État = protecteur des droits naturels, contrat révocable"},
+{n:"Rousseau",w:"Du Contrat social, 1762",i:"Volonté générale : la souveraineté appartient au peuple, inaliénable et indivisible. Le contrat transforme la liberté naturelle en liberté civile. L'État juste = expression de la volonté générale, pas de la volonté de tous.",q:"'L'obéissance à la loi qu'on s'est prescrite est liberté'"},
+{n:"Hegel",w:"Principes de la philosophie du droit, 1820",i:"L'État est la réalité effective de la liberté objective. Il n'est pas seulement instrument mais fin en soi : la vie éthique concrète. La famille (amour) → la société civile (intérêts) → l'État (universalité).",q:"'L'État est la réalité effective de la liberté concrète'"},
+{n:"Marx",w:"L'Idéologie allemande / Le Manifeste, 1848",i:"L'État est l'instrument de la classe dominante. Infrastructure économique → superstructure (État, droit, idéologie). L'État bourgeois protège les intérêts du capital. Objectif : dépérissement de l'État dans la société communiste.",q:"'L'État n'est que le comité d'affaires de la bourgeoisie'"},
+{n:"Weber",w:"Le Savant et le politique, 1919",i:"L'État = monopole de la violence physique légitime sur un territoire. 3 types de légitimité : traditionnelle, charismatique, légale-rationnelle. L'État moderne repose sur la légitimité légale-rationnelle.",q:"'L'État revendique le monopole de la violence physique légitime'"},
 ],
 textes:[
-{n:"Hobbes — état de nature",t:"Sans loi : pas de justice, ni propriété. 'La force et la ruse sont les deux vertus cardinales.'"},
-{n:"Rousseau — contrat social",t:"Aliéner la liberté naturelle pour gagner la liberté civile. Loi = volonté générale ≠ volonté de tous."},
-{n:"Marx — infrastructure/superstructure",t:"Infrastructure économique détermine la superstructure. L'État bourgeois protège les intérêts du capital."},
-{n:"TEXTE 6 — Platon",t:"Zeus donne justice et pudeur à tous pour que la cité soit possible. L'État repose sur une éducation morale des citoyens."},
+{n:"Hobbes — état de nature",t:"Sans loi : pas de justice, ni propriété, ni industrie. 'La force et la ruse sont les deux vertus cardinales.' Le Léviathan : l'État-monstre qui garantit la paix par sa puissance absolue."},
+{n:"Rousseau — contrat social",t:"Aliéner la liberté naturelle pour gagner la liberté civile. La loi = volonté générale (ce que le peuple veut pour le bien commun), différente de la volonté de tous (somme des intérêts particuliers)."},
+{n:"Marx — infrastructure et superstructure (cours)",t:"Infrastructure économique détermine la superstructure (État, droit, idéologie). L'État semble neutre et universel mais défend les intérêts de la bourgeoisie. Engels développe cette analyse dans le contexte du cours."},
+{n:"Platon — justice dans la cité (TEXTE 6)",t:"Zeus donne justice et pudeur à tous pour que la cité soit possible. Sans vertu civique partagée, pas de société. L'État repose sur une éducation morale des citoyens."},
 ],
 axes:[
-{n:"Axe 1",t:"L'État comme nécessité",pb:"Peut-on se passer de l'État ?",
+{n:"Axe 1",t:"L'État comme nécessité face à la violence naturelle",pb:"Peut-on se passer de l'État ?",
 sps:[
-{l:"A",c:"Hobbes : sans État, guerre de tous contre tous. Vie 'solitaire, misérable, bestiale et brève'. L'État est la condition de toute vie sociale stable.",r:"Hobbes, Léviathan XIII"},
-{l:"B",c:"Locke : l'état de nature est pacifique, gouverné par la loi naturelle. L'État n'est pas nécessaire pour éviter la guerre, mais pour trancher les conflits.",r:"Locke, Traité du gouvernement civil"},
-{l:"C",c:"Anarchisme (Proudhon) : l'État est lui-même source de violence. Les associations libres peuvent organiser la vie collective. Mais cette thèse reste très exigeante.",r:"Proudhon : 'l'anarchie c'est l'ordre sans le pouvoir'"},
+{l:"A",c:"Hobbes : sans État, état de guerre. La violence est le seul régulateur des conflits. La vie est 'solitaire, misérable, bestiale et brève'. L'État est la condition de toute vie sociale stable.",r:"Hobbes, Léviathan XIII"},
+{l:"B",c:"Mais tous ne partagent pas ce pessimisme. Locke : l'état de nature est pacifique, gouverné par la loi naturelle et la raison. L'État n'est pas nécessaire pour éviter la guerre, mais pour trancher les conflits.",r:"Locke, Traité du gouvernement civil"},
+{l:"C",c:"Anarchisme (Proudhon, Bakounine) : l'État est lui-même source de violence et d'oppression. Les associations libres et la coopération peuvent organiser la vie collective sans État. Mais cette thèse reste utopique ou très exigeante.",r:"Proudhon : 'l'anarchie c'est l'ordre sans le pouvoir'"},
 ]},
-{n:"Axe 2",t:"L'État et la liberté",pb:"L'État garantit-il la liberté ou la menace-t-il ?",
+{n:"Axe 2",t:"L'État et la liberté : protecteur ou oppresseur ?",pb:"L'État garantit-il la liberté ou la menace-t-il ?",
 sps:[
-{l:"A",c:"L'État protège la liberté (Locke, Rousseau) : sans État, la liberté du plus faible est nulle. La liberté civile est supérieure à la liberté naturelle.",r:"Locke, Rousseau Du Contrat social"},
-{l:"B",c:"Mais l'État peut devenir tyrannie. Tocqueville : 'tyrannie de la majorité', despotisme doux. L'État providence peut conduire à une 'douce servitude'.",r:"Tocqueville, De la démocratie en Amérique"},
-{l:"C",c:"Marx : l'État bourgeois est structurellement oppresseur. Il protège la liberté formelle mais maintient l'inégalité réelle.",r:"Marx, Le Capital ; La Question juive"},
+{l:"A",c:"L'État protège la liberté (Locke, Rousseau) : sans État, la liberté du plus faible est nulle. L'État garantit les droits individuels et l'égalité devant la loi. La liberté civile est supérieure à la liberté naturelle.",r:"Locke, Rousseau Du Contrat social"},
+{l:"B",c:"Mais l'État peut devenir tyrannie. Tocqueville : le despotisme démocratique menace les libertés par le biais de la 'tyrannie de la majorité'. L'État providence peut conduire à une 'douce servitude'.",r:"Tocqueville, De la démocratie en Amérique"},
+{l:"C",c:"Marx : l'État bourgeois est structurellement oppresseur. Il protège la liberté formelle (égalité devant la loi) mais maintient l'inégalité réelle. La liberté réelle exige la transformation de l'économie, pas seulement de l'État.",r:"Marx, Le Capital ; La Question juive"},
 ]},
-{n:"Axe 3",t:"La légitimité de l'État",pb:"Pourquoi obéit-on à l'État ?",
+{n:"Axe 3",t:"La légitimité de l'État : d'où vient l'autorité ?",pb:"Pourquoi obéit-on à l'État ?",
 sps:[
-{l:"A",c:"Consentement (Locke, Rousseau) : l'État est légitime si les citoyens y ont consenti. La démocratie = forme la plus légitime.",r:"Rousseau, Du Contrat social III"},
-{l:"B",c:"Weber : 3 types de légitimité — traditionnelle, charismatique, légale-rationnelle. L'État moderne repose sur la loi, non la personne du gouvernant.",r:"Weber, Le Savant et le politique"},
-{l:"C",c:"Rawls : l'État est légitime s'il respecte les principes de justice que les citoyens auraient choisis derrière le voile d'ignorance.",r:"Rawls, Théorie de la justice"},
+{l:"A",c:"Consentement (Locke, Rousseau) : l'État est légitime si les citoyens y ont consenti (contrat social). La démocratie est la forme d'État la plus légitime car la loi y est l'expression de la volonté du peuple.",r:"Rousseau, Du Contrat social III"},
+{l:"B",c:"Weber : la légitimité peut être traditionnelle (roi de droit divin), charismatique (leader charismatique) ou légale-rationnelle (État de droit). L'État moderne repose sur la loi, non sur la personne du gouvernant.",r:"Weber, Le Savant et le politique"},
+{l:"C",c:"Rawls : l'État est légitime s'il respecte les principes de justice que les citoyens auraient choisis derrière le voile d'ignorance. La légitimité se fonde sur la justice, pas seulement sur le consentement.",r:"Rawls, Théorie de la justice"},
 ]},
 ],
 exemples:[
-{tag:"Histoire",tit:"La Révolution française (1789)",body:"Passage de la légitimité traditionnelle (roi de droit divin) à la légitimité légale-rationnelle (souveraineté nationale). La Déclaration des droits = idée lockéenne que l'État protège les droits naturels.",lien:"→ Locke, Rousseau, légitimité"},
-{tag:"Philosophie",tit:"Le Léviathan de Hobbes",body:"La couverture (1651) : un souverain géant dont le corps est fait de milliers de sujets. L'État = la somme des volontés individuelles qui lui ont cédé leur force en échange de la sécurité.",lien:"→ Hobbes, contrat social"},
-{tag:"Actualité",tit:"États faillis (Somalie, Libye post-2011)",body:"Quand l'État s'effondre, c'est l'état de nature (guerre civile, milices, insécurité totale) qui revient. Preuve a contrario de la nécessité de l'État.",lien:"→ Hobbes, Weber"},
-{tag:"Contemporain",tit:"Évasion fiscale et justice sociale",body:"Le débat sur l'évasion fiscale des multinationales illustre Marx : l'État protège les intérêts du capital. Rawls demanderait si cette situation profite aux plus défavorisés.",lien:"→ Marx, Rawls"},
+{tag:"Histoire",tit:"La Révolution française (1789)",body:"La Révolution française illustre le passage de la légitimité traditionnelle (roi de droit divin) à la légitimité légale-rationnelle (souveraineté nationale). La Déclaration des droits de l'homme incarne l'idée lockéenne que l'État doit protéger les droits naturels.",lien:"→ Locke, Rousseau, légitimité"},
+{tag:"Philosophie",tit:"Le Léviathan de Hobbes",body:"La couverture du Léviathan (1651) montre un souverain géant dont le corps est fait de milliers de sujets. Métaphore parfaite : l'État est la somme des volontés individuelles qui lui ont cédé leur force en échange de la sécurité.",lien:"→ Hobbes, contrat social"},
+{tag:"Actualité",tit:"États faillis (Somalie, Libye post-2011)",body:"Les 'États faillis' illustrent la thèse de Hobbes : quand l'État s'effondre, c'est bien l'état de nature (guerre civile, milices, insécurité totale) qui revient. Preuve a contrario de la nécessité de l'État.",lien:"→ Hobbes (état de nature), Weber (monopole violence)"},
+{tag:"Contemporain",tit:"Désobéissance fiscale et justice",body:"Le débat sur l'évasion fiscale des multinationales illustre la tension entre l'État et les intérêts économiques. Marx dirait que l'État défend les intérêts du capital ; Rawls demanderait si cette situation profite aux plus défavorisés.",lien:"→ Marx (État bourgeois), Rawls (principe différence)"},
 ],
 liens:["Justice","Liberté","Travail","Devoir","Nature"],
-diss:["Peut-on se passer de l'État ?","L'État est-il garant de la liberté ?","D'où vient la légitimité de l'État ?","Obéir à l'État, est-ce renoncer à sa liberté ?","L'État peut-il être injuste ?"]
+diss:["Peut-on se passer de l'État ?","L'État est-il garant de la liberté ?","L'État doit-il tout réguler ?","Obéir à l'État, est-ce renoncer à sa liberté ?","D'où vient la légitimité de l'État ?"]
 },
-
 liberte:{c:"#D4537E",l:"Liberté",s:"Sommes-nous vraiment libres ?",
-def:"La <span class='kw'>liberté</span> peut être négative (absence de contraintes), positive (capacité d'agir selon sa raison) ou politique (participation à la loi commune). Enjeu : compatible avec le déterminisme ? Avec la morale ? Avec l'État ? Est-elle donnée ou conquise ?",
+def:"La <span class='kw'>liberté</span> peut être négative (absence de contraintes), positive (capacité d'agir selon sa raison) ou politique (participation à la loi commune). Enjeu : la liberté est-elle compatible avec le déterminisme ? Avec la morale ? Avec l'État ? Est-elle donnée ou conquise ?",
 auteurs:[
-{n:"Kant",w:"Fondements de la métaphysique des mœurs, 1785",i:"Liberté = autonomie. L'hétéronomie n'est pas la vraie liberté. L'homme libre dans l'ordre noumènal (raison), déterminé dans le phénoménal (nature).",q:"'L'autonomie de la volonté est le principe suprême de la moralité'"},
-{n:"Sartre",w:"L'Être et le Néant, 1943",i:"Condamné à être libre. L'existence précède l'essence. Mauvaise foi = se prendre pour une chose déterminée.",q:"'Je suis condamné à être libre'"},
-{n:"Spinoza",w:"Éthique, 1677",i:"La liberté n'est pas le libre arbitre mais la nécessité comprise. Agir librement = agir selon sa propre nature rationnelle.",q:"'Est libre la chose qui existe par la seule nécessité de sa nature'"},
-{n:"Rousseau",w:"Du Contrat social, 1762",i:"Liberté naturelle vs liberté civile. 'L'obéissance à la loi qu'on s'est prescrite est liberté.' La liberté civile est supérieure.",q:"'L'obéissance à la loi qu'on s'est prescrite est liberté'"},
-{n:"Mill",w:"De la liberté, 1859",i:"Principe de non-nuisance. Liberté d'expression absolue. Critique du despotisme de la majorité.",q:"'Le seul but légitime pour restreindre la liberté, c'est la protection d'autrui'"},
-{n:"Freud",w:"Malaise dans la civilisation, 1930",i:"La liberté est limitée par les pulsions inconscientes. Le sentiment de liberté est en partie illusoire.",q:"L'inconscient limite notre sentiment de liberté"},
+{n:"Kant",w:"Fondements de la métaphysique des mœurs, 1785",i:"Liberté = autonomie : se donner sa propre loi. L'hétéronomie (obéir aux désirs, au bonheur, à une autorité) n'est pas la vraie liberté. L'homme est libre dans l'ordre noumènal (raison), déterminé dans le phénoménal (nature).",q:"'L'autonomie de la volonté est le principe suprême de la moralité'"},
+{n:"Sartre",w:"L'Être et le Néant, 1943",i:"Condamné à être libre : l'homme n'a pas de nature préalable, il se définit par ses actes. La mauvaise foi = se prendre pour une chose déterminée pour fuir l'angoisse de la liberté. L'existence précède l'essence.",q:"'Je suis condamné à être libre'"},
+{n:"Spinoza",w:"Éthique, 1677",i:"La liberté n'est pas le libre arbitre mais la nécessité comprise. L'homme libre agit selon sa nature propre (raison), non par contrainte externe. Pas de liberté contre la nécessité, mais dans la nécessité.",q:"'Est libre la chose qui existe par la seule nécessité de sa nature'"},
+{n:"Rousseau",w:"Du Contrat social, 1762",i:"Liberté naturelle (illimitée mais solitaire) vs liberté civile (limitée mais garantie par la loi). 'L'obéissance à la loi qu'on s'est prescrite est liberté.' La liberté civile est plus haute que la liberté naturelle.",q:"'L'obéissance à la loi qu'on s'est prescrite est liberté'"},
+{n:"Mill",w:"De la liberté, 1859",i:"Principe de non-nuisance : la seule limite légitime à la liberté individuelle est la nuisance à autrui. Liberté d'expression, de pensée, d'association sont absolues. Critique du despotisme de la majorité.",q:"'Le seul but légitime pour lequel on peut restreindre la liberté, c'est la protection d'autrui'"},
+{n:"Freud",w:"Malaise dans la civilisation, 1930",i:"La liberté est limitée par les pulsions inconscientes et les contraintes de la civilisation. Le sentiment de liberté est en partie illusoire : des forces inconscientes orientent nos choix à notre insu.",q:"L'inconscient limite notre sentiment de liberté"},
 ],
 textes:[
-{n:"Kant — autonomie vs hétéronomie",t:"Hétéronomie : obéir à ses désirs, au bonheur, à l'autorité. Autonomie : obéir à la loi que la raison se donne. Seule l'autonomie est vraie liberté morale."},
-{n:"Sartre — mauvaise foi",t:"Le garçon de café joue à être garçon de café : en adoptant parfaitement son rôle, il nie sa liberté. La mauvaise foi = fuite de l'angoisse de la liberté."},
-{n:"Rousseau — liberté civile et loi",t:"Aliéner la liberté naturelle pour gagner la liberté civile et morale. La loi juste = celle qu'on s'est donnée soi-même."},
-{n:"Spinoza — nécessité et liberté",t:"Agir librement ≠ agir sans cause. Agir librement = agir selon sa nature propre (raison), non sous contrainte externe."},
+{n:"Kant — autonomie vs hétéronomie",t:"Hétéronomie : obéir à ses désirs, à la recherche du bonheur, à une autorité externe. Autonomie : obéir à la loi que la raison se donne à elle-même. Seule l'autonomie est vraie liberté morale."},
+{n:"Sartre — mauvaise foi",t:"Le garçon de café joue à être garçon de café : en adoptant parfaitement son rôle, il nie sa liberté (être-en-soi). La mauvaise foi est une fuite de l'angoisse de la liberté."},
+{n:"Rousseau — liberté civile et loi",t:"En entrant dans la société, on aliène la liberté naturelle mais on gagne la liberté civile et morale. La loi juste est celle qu'on s'est donnée à soi-même (volonté générale). 'L'obéissance à la loi qu'on s'est prescrite est liberté.'"},
+{n:"Spinoza — nécessité et liberté",t:"Le libre arbitre est une illusion : tout a une cause. Mais agir librement = agir selon sa nature propre (raison), non sous contrainte externe. La connaissance des causes libère."},
 ],
 axes:[
 {n:"Axe 1",t:"La liberté et le déterminisme",pb:"Le déterminisme est-il compatible avec la liberté ?",
 sps:[
-{l:"A",c:"Déterminisme radical : tout est causé (Spinoza, neurosciences, Freud). Le libre arbitre est une illusion due à notre ignorance des causes.",r:"Spinoza, Éthique II ; Freud ; Libet"},
-{l:"B",c:"Liberté comme nécessité comprise (Spinoza) : la vraie liberté = agir selon sa propre nature rationnelle. Le sage est libre non parce qu'il échappe aux causes mais parce qu'il les comprend.",r:"Spinoza, Éthique IV-V"},
-{l:"C",c:"Sartre : même en situation, nous avons toujours une liberté de conscience irréductible. La mauvaise foi = nier cette liberté.",r:"Sartre, L'Être et le Néant"},
+{l:"A",c:"Déterminisme radical : tout est causé (Spinoza, sciences naturelles). Le libre arbitre est une illusion qui vient de notre ignorance des causes. Nous croyons choisir mais nous sommes déterminés (biologie, inconscient, éducation, société).",r:"Spinoza, Éthique II ; Freud"},
+{l:"B",c:"Liberté comme nécessité comprise (Spinoza) : la vraie liberté n'est pas d'agir sans cause mais d'agir selon sa propre nature rationnelle. Le sage est libre non parce qu'il échappe aux causes mais parce qu'il les comprend et agit selon la raison.",r:"Spinoza, Éthique IV-V"},
+{l:"C",c:"Sartre : l'homme est 'condamné à être libre'. Même si nous sommes en situation (corps, passé, société), nous avons toujours une liberté de conscience. La mauvaise foi consiste à nier cette liberté irréductible.",r:"Sartre, L'Être et le Néant"},
 ]},
 {n:"Axe 2",t:"Liberté et morale : autonomie vs contrainte",pb:"Obéir à une règle, est-ce être libre ?",
 sps:[
-{l:"A",c:"Kant : la vraie liberté = autonomie morale. Obéir à la loi morale que la raison se donne = être vraiment libre. Obéir à ses désirs = hétéronomie = esclavage.",r:"Kant, Fondements"},
-{l:"B",c:"Rousseau : la liberté civile > liberté naturelle. Obéir à la loi commune qu'on s'est donnée = s'obéir à soi-même.",r:"Rousseau, Du Contrat social"},
-{l:"C",c:"Mill : la liberté individuelle doit être protégée contre l'État et la société. Seule limite : nuire à autrui.",r:"Mill, De la liberté"},
+{l:"A",c:"Kant : la vraie liberté est l'autonomie morale. Obéir à la loi morale que la raison se donne = être vraiment libre. À l'inverse, obéir à ses désirs (hétéronomie) = être esclave de ses penchants.",r:"Kant, Fondements de la métaphysique des mœurs"},
+{l:"B",c:"Rousseau : la liberté civile est supérieure à la liberté naturelle. Obéir à la loi commune qu'on s'est donnée = s'obéir à soi-même. C'est la condition de la liberté politique.",r:"Rousseau, Du Contrat social"},
+{l:"C",c:"Mill : la liberté doit être protégée contre l'État et la société (tyrannie de la majorité). La liberté d'expression et de conscience sont absolues. Limite : nuire à autrui. La liberté individuelle est un bien en soi.",r:"Mill, De la liberté"},
 ]},
 {n:"Axe 3",t:"La liberté est-elle possible dans la société ?",pb:"La vie sociale est-elle un obstacle à la liberté ?",
 sps:[
-{l:"A",c:"La société comme obstacle : Rousseau (l'homme est né libre mais partout il est dans les fers). La propriété et les inégalités enchaînent l'homme.",r:"Rousseau, Discours sur l'inégalité"},
-{l:"B",c:"La société comme condition : Hegel, Aristote. L'homme est un animal politique ; hors de la cité, il serait 'dieu ou bête'. La liberté réelle se réalise dans les institutions.",r:"Aristote, Politique ; Hegel"},
-{l:"C",c:"Synthèse : la liberté civile n'est pas la destruction de la liberté naturelle mais son dépassement. On perd la liberté brute mais on gagne une liberté plus haute, garantie et raisonnée.",r:"Rousseau, Du Contrat social I"},
+{l:"A",c:"La société comme obstacle : Rousseau (l'homme est né libre mais partout il est dans les fers). Les institutions, la propriété, l'inégalité enchaînent l'homme. La liberté naturelle est perdue dans la société civile.",r:"Rousseau, Discours sur l'inégalité"},
+{l:"B",c:"La société comme condition : Hegel, Aristote. L'homme est un animal politique ; hors de la cité, il serait 'dieu ou bête'. La liberté réelle se réalise dans les institutions (famille, société, État).",r:"Aristote, Politique ; Hegel, Principes du droit"},
+{l:"C",c:"Synthèse (Rousseau, Contrat social) : la liberté civile n'est pas la destruction de la liberté naturelle mais son dépassement dialectique. On perd la liberté brute mais on gagne une liberté plus haute, garantie et raisonnée.",r:"Rousseau, Du Contrat social I"},
 ]},
 ],
 exemples:[
-{tag:"Philosophie",tit:"Le garçon de café de Sartre",body:"Sartre décrit un garçon de café qui joue parfaitement son rôle : mouvements trop précis, trop vifs. Il est de mauvaise foi car il se traite comme une chose (être-en-soi) pour fuir l'angoisse de sa liberté.",lien:"→ Sartre (mauvaise foi), conscience"},
-{tag:"Cinéma",tit:"Matrix (1999)",body:"Les humains vivent dans une simulation en croyant être libres. Néo découvre qu'il est déterminé par un programme. La pilule rouge = choix de la vérité et de la vraie liberté.",lien:"→ Spinoza (illusion libre arbitre), Sartre"},
-{tag:"Droit",tit:"DDHC 1789",body:"'La liberté consiste à pouvoir faire tout ce qui ne nuit pas à autrui.' Reprise du principe de non-nuisance de Locke et Mill.",lien:"→ Mill, Locke, État, justice"},
-{tag:"Histoire",tit:"L'esclavage antique et moderne",body:"L'esclave : exemple limite de la privation de liberté. Pour Arendt, l'esclavage était légitimé car le labor abaissait l'homme au rang d'animal. Pour Marx, le salariat est une forme moderne d'esclavage.",lien:"→ Arendt, Marx, Hegel (maître/esclave)"},
+{tag:"Cinéma",tit:"Matrix (1999)",body:"Les humains vivent dans une simulation en croyant être libres. Néo découvre qu'il est déterminé par un programme. La pilule rouge = choix de la vérité et de la vraie liberté vs confort de l'illusion. Illustration de l'opposition Spinoza/Sartre sur le libre arbitre.",lien:"→ Spinoza (illusion libre arbitre), Sartre (choix radical)"},
+{tag:"Histoire",tit:"L'esclavage antique et moderne",body:"L'esclave est l'exemple limite de la privation de liberté. Pour Arendt, les Anciens légitimaient l'esclavage car le travail servile abaissait l'homme au rang d'animal. Pour Marx, le salariat est une forme moderne d'esclavage.",lien:"→ Arendt (labor), Marx, Hegel (maître/esclave)"},
+{tag:"Philosophie",tit:"Le garçon de café de Sartre",body:"Sartre décrit un garçon de café qui joue parfaitement son rôle : mouvements trop précis, trop vifs, trop certains. Il est de mauvaise foi car il se traite comme une chose (être-en-soi) pour fuir l'angoisse de sa liberté.",lien:"→ Sartre (mauvaise foi), conscience"},
+{tag:"Droit",tit:"Droits et libertés fondamentaux (DDHC 1789)",body:"La Déclaration des droits de l'homme pose que la liberté est le droit naturel de l'homme : 'La liberté consiste à pouvoir faire tout ce qui ne nuit pas à autrui.' Reprise du principe de non-nuisance de Locke et Mill.",lien:"→ Mill, Locke, État, justice"},
 ],
 liens:["Conscience","Devoir","État","Justice","Nature"],
-diss:["Sommes-nous libres ?","La liberté est-elle une illusion ?","Être libre, est-ce faire ce qu'on veut ?","La liberté est-elle compatible avec l'obéissance aux lois ?","Peut-on être libre seul ?"]
+diss:["Sommes-nous libres ?","La liberté est-elle une illusion ?","La liberté est-elle compatible avec l'obéissance aux lois ?","Être libre, est-ce faire ce qu'on veut ?","Peut-on être libre seul ?"]
 }
 };
 
 const KEYS=Object.keys(D);
-let cur=KEYS[0], curTab='auteurs';
-const TABS=['auteurs','textes','axes','exemples','diss'];
-const TLABELS={'auteurs':'Auteurs','textes':'Textes','axes':'Axes & sous-parties','exemples':'Exemples','diss':'Dissertations'};
+let cur=KEYS[0];
+let curTab='auteurs';
 
 function renderSB(){
   const sb=document.getElementById('sb');
@@ -538,58 +540,86 @@ function renderSB(){
 function tab(id){curTab=id;renderContent()}
 
 function renderContent(){
-  const n=D[cur], c=n.c;
+  const n=D[cur];
+  const c=n.c;
+  const tabs2=['auteurs','textes','axes','exemples','diss'];
+  const tabLabels={'auteurs':'Auteurs','textes':'Textes du cours','axes':'Axes & sous-parties','exemples':'Exemples','diss':'Dissertations'};
+  
   let html=`
 <div class="notion-head">
   <div class="nbadge" style="background:${c}"></div>
   <div><div class="ntitle">${n.l}</div><div class="nsub">${n.s}</div></div>
 </div>
 <div class="def-box">${n.def}</div>
-<div class="tabs">${TABS.map(t=>`<div class="tab${curTab===t?' active':''}" onclick="tab('${t}')">${TLABELS[t]}</div>`).join('')}</div>`;
+<div class="tabs">
+  ${tabs2.map(t=>`<div class="tab${curTab===t?' active':''}" onclick="tab('${t}')">${tabLabels[t]}</div>`).join('')}
+</div>`;
 
   if(curTab==='auteurs'){
-    html+=`<div class="slabel">Auteurs et idées clés</div><div class="ag">`;
+    html+=`<div class="slabel">Auteurs et idées clés (${n.auteurs.length} auteurs)</div><div class="ag">`;
     n.auteurs.forEach(a=>{
-      const isNew=a.isNew;
-      html+=`<div class="ac${isNew?' anew':''}"><div class="an" style="color:${c}">${a.n}${isNew?`<span class="new-badge">NOUVEAU</span>`:''}</div><div class="aw">${a.w}</div><div class="ai">${a.i}</div>${a.q?`<div class="aq">${a.q}</div>`:''}</div>`;
+      html+=`<div class="ac"><div class="an" style="color:${c}">${a.n}</div><div class="aw">${a.w}</div><div class="ai">${a.i}</div>${a.q?`<div class="aq">${a.q}</div>`:''}</div>`;
     });
     html+=`</div>`;
   }
   else if(curTab==='textes'){
     html+=`<div class="slabel">Textes étudiés en cours</div><div class="tbox">`;
     n.textes.forEach(t=>{
-      html+=`<div class="ti2"${t.isNew?' style="background:var(--color-background-info);border-radius:4px;padding:6px 8px;"':''}><span class="tinum">${t.n}${t.isNew?` <span class="new-badge">NOUVEAU</span>`:''}</span><span class="titxt">${t.t}</span></div>`;
+      html+=`<div class="ti2"><span class="tinum">${t.n}</span><span class="titxt">${t.t}</span></div>`;
     });
     html+=`</div>`;
   }
   else if(curTab==='axes'){
-    html+=`<div class="slabel">Axes de dissertation avec sous-parties</div>`;
+    html+=`<div class="slabel">3 axes de dissertation avec sous-parties détaillées</div>`;
     n.axes.forEach(a=>{
-      html+=`<div class="axe-card"><div class="axe-head"><span class="axe-num">${a.n}</span><span class="axe-title">${a.t}</span></div><div class="axe-pb">Problématique : ${a.pb}</div><div class="sp">`;
+      html+=`<div class="axe-card">
+        <div class="axe-head"><span class="axe-num">${a.n}</span><span class="axe-title">${a.t}</span></div>
+        <div class="axe-pb">Problématique : ${a.pb}</div>
+        <div class="sp">`;
       a.sps.forEach(sp=>{
-        html+=`<div class="sp-item"><span class="sp-letter">${sp.l}.</span><span class="sp-content">${sp.c}${sp.isNew?` <span class="new-badge">NOUVEAU</span>`:''}<span class="sp-ref">${sp.r}</span></span></div>`;
+        html+=`<div class="sp-item"><span class="sp-letter">${sp.l}.</span><span class="sp-content">${sp.c}<span class="sp-ref">${sp.r}</span></span></div>`;
       });
       html+=`</div></div>`;
     });
   }
   else if(curTab==='exemples'){
-    const tagColors={'Littérature':'#534AB7','Science':'#1D9E75','Société':'#5F5E5A','Écologie':'#1D9E75','Anthropologie':'#3B6D11','Mythe — Cours':'#EF9F27','Psychologie':'#534AB7','Philosophie':'#185FA5','Cinéma':'#D4537E','Histoire':'#993556','Contemporain':'#185FA5','Actualité':'#D85A30','Droit':'#5F5E5A','Cours — texte':'#EF9F27','Cours — dissertation':'#EF9F27','Cours — corpus':'#EF9F27','Cours — exercice':'#EF9F27','Biologie':'#1D9E75'};
-    html+=`<div class="slabel">Exemples concrets mobilisables</div>`;
+    html+=`<div class="slabel">Exemples concrets mobilisables en dissertation</div>`;
     n.exemples.forEach(e=>{
+      const tagColors={
+        'Littérature':'#534AB7','Cas clinique':'#D85A30','Science':'#1D9E75','Société':'#5F5E5A',
+        'Écologie':'#1D9E75','Anthropologie':'#3B6D11','Mythe — Cours':'#EF9F27','Mythe':'#EF9F27',
+        'Psychologie':'#534AB7','Philosophie':'#185FA5','Cinéma':'#D4537E','Histoire':'#993556',
+        'Contemporain':'#185FA5','Actualité':'#D85A30','Droit':'#5F5E5A','Cours — texte':'#EF9F27',
+        'Philosophie — Cours':'#185FA5'
+      };
       const tc=tagColors[e.tag]||c;
-      html+=`<div class="ex-card${e.isNew?' anew':''}"><div class="ex-head"><span class="ex-tag" style="background:${tc}18;color:${tc};border:0.5px solid ${tc}40">${e.tag}</span><span class="ex-title">${e.tit}${e.isNew?` <span class="new-badge">NOUVEAU</span>`:''}</span></div><div class="ex-body">${e.body}</div><div class="ex-lien">${e.lien}</div></div>`;
+      html+=`<div class="ex-card">
+        <div class="ex-head">
+          <span class="ex-tag" style="background:${tc}18;color:${tc};border:0.5px solid ${tc}40">${e.tag}</span>
+          <span class="ex-title">${e.tit}</span>
+        </div>
+        <div class="ex-body">${e.body}</div>
+        <div class="ex-lien">${e.lien}</div>
+      </div>`;
     });
   }
   else if(curTab==='diss'){
-    html+=`<div class="slabel">Liens avec d'autres notions</div><div class="liens-row">${(n.liens||[]).map(l=>{const k=KEYS.find(k=>D[k].l===l);return k?`<div class="lpill" style="border-color:${D[k].c};color:${D[k].c}" onclick="cur='${k}';curTab='auteurs';renderSB();renderContent()">${l}</div>`:''}).join('')}</div>`;
-    html+=`<div class="slabel">Questions de dissertation typiques</div><div>`;
+    const liens=n.liens||[];
+    html+=`<div class="slabel">Liens avec d'autres notions</div>
+    <div class="liens-row">
+      ${liens.map(l=>{const k=KEYS.find(k=>D[k].l===l);return k?`<div class="lpill" style="border-color:${D[k].c};color:${D[k].c}" onclick="cur='${k}';curTab='auteurs';renderSB();renderContent()">${l}</div>`:''}).join('')}
+    </div>
+    <div class="slabel">Questions de dissertation typiques</div>
+    <div class="diss-list">`;
     n.diss.forEach(q=>{html+=`<div class="dq">${q}</div>`});
     html+=`</div>`;
   }
+
   document.getElementById('main').innerHTML=html;
 }
 
 renderSB();renderContent();
 </script>
-</body>
-</html>
+
+
+</body></html>
