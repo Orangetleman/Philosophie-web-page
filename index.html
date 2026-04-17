@@ -127,6 +127,66 @@ body{font-family:'Inter',system-ui,sans-serif;background:#121212;min-height:100v
 .def-sec-title{font-size:10px;font-weight:600;color:var(--color-text-primary);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
 .def-sec-body{font-size:12px;color:var(--color-text-secondary);line-height:1.65;padding-left:9px;border-left:2px solid var(--color-border-secondary);margin-bottom:7px}
 .def-sec-body strong{color:var(--color-text-primary);font-weight:500}
+
+/* ── Sidebar tabs Notions / Auteurs ─────────────────────────── */
+.sb-tabs{display:flex;gap:2px;margin-bottom:8px;padding:0 2px}
+.sb-tab{flex:1;padding:5px 4px;font-size:10px;font-weight:500;text-align:center;cursor:pointer;border-radius:var(--border-radius-md);color:var(--color-text-tertiary);border:0.5px solid transparent;transition:all .15s;line-height:1.2}
+.sb-tab:hover{color:var(--color-text-primary)}
+.sb-tab.active{background:var(--color-background-primary);color:var(--color-text-primary);border-color:var(--color-border-tertiary)}
+
+/* ── Author list items ──────────────────────────────────────── */
+.ab{padding:7px 9px;border-radius:var(--border-radius-md);cursor:pointer;font-size:12px;color:var(--color-text-secondary);border:0.5px solid transparent;transition:all .15s}
+.ab:hover{background:var(--color-background-primary);color:var(--color-text-primary)}
+.ab.active{background:var(--color-background-primary);color:var(--color-text-primary);border-color:var(--color-border-secondary);font-weight:500}
+.ab-name{line-height:1.3;margin-bottom:3px}
+.ab-badges{display:flex;flex-wrap:wrap;gap:2px}
+.ab-bdg{width:6px;height:6px;border-radius:50%;flex-shrink:0;display:inline-block}
+
+/* ── Author fiche header ─────────────────────────────────────── */
+.author-title{font-size:17px;font-weight:500;color:var(--color-text-primary)}
+.author-courant{display:inline-flex;align-items:center;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;padding:2px 8px;border-radius:20px;margin-top:2px}
+.author-def-box{background:var(--color-background-secondary);border-left:2.5px solid var(--color-border-secondary);padding:11px 13px;border-radius:0 var(--border-radius-md) var(--border-radius-md) 0;margin-bottom:16px;font-size:13px;color:var(--color-text-secondary);line-height:1.65}
+.author-def-box details{margin-top:10px;border-top:0.5px solid var(--color-border-tertiary);padding-top:8px}
+.author-def-box summary{cursor:pointer;font-size:11px;font-weight:600;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:.07em;list-style:none;display:flex;align-items:center;gap:5px;user-select:none}
+.author-def-box summary::-webkit-details-marker{display:none}
+.author-def-box summary::before{content:'▶';font-size:8px}
+.author-def-box details[open] summary::before{content:'▼'}
+
+/* ── Idea cards ─────────────────────────────────────────────── */
+.idea-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:12px 14px;margin-bottom:10px}
+.idea-card.is-new{border-color:var(--color-new-border);background:var(--color-new-bg)}
+.idea-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:5px}
+.idea-card-work{font-size:11px;color:var(--color-text-tertiary);font-style:italic;flex:1}
+.idea-card-body{font-size:12px;color:var(--color-text-secondary);line-height:1.55}
+.notion-pill{font-size:10px;font-weight:600;padding:2px 9px;border-radius:20px;cursor:pointer;border:0.5px solid;transition:opacity .15s;white-space:nowrap;flex-shrink:0}
+.notion-pill:hover{opacity:.7}
+
+/* ── Citation cards ─────────────────────────────────────────── */
+.cit-card{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:12px 14px;margin-bottom:10px;border-left:3px solid var(--color-border-secondary)}
+.cit-card-text{font-size:13px;color:var(--color-text-primary);line-height:1.6;font-style:italic;margin-bottom:8px}
+.cit-card-footer{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.cit-card-src{font-size:10px;color:var(--color-text-tertiary);flex:1}
+
+/* ── Oeuvre cards ───────────────────────────────────────────── */
+.oeuvre-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:10px 13px;margin-bottom:7px}
+.oeuvre-title{font-size:12px;font-weight:500;color:var(--color-text-primary);margin-bottom:5px}
+.oeuvre-badges{display:flex;flex-wrap:wrap;gap:4px}
+
+/* ── Dialogue cards ─────────────────────────────────────────── */
+.dial-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:11px 13px;margin-bottom:8px;display:flex;gap:10px;align-items:flex-start}
+.dial-dir{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:3px 7px;border-radius:20px;flex-shrink:0;margin-top:1px;white-space:nowrap}
+.dial-oppose{background:#3a1a1a;color:#e05a5a;border:0.5px solid #6a2a2a}
+.dial-prolonge{background:#1a3a1a;color:#5aaa5a;border:0.5px solid #2a5a2a}
+.dial-repond{background:#1a2a3a;color:#5a8ae0;border:0.5px solid #2a4a6a}
+.dial-body{flex:1}
+.dial-auteur{font-size:12px;font-weight:500;color:var(--color-text-primary);cursor:pointer;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:2px}
+.dial-auteur:hover{color:var(--color-text-secondary)}
+.dial-sujet{font-size:10px;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:.05em;margin:2px 0}
+.dial-desc{font-size:12px;color:var(--color-text-secondary);line-height:1.5}
+
+/* ── Author name clickable in notion cards ──────────────────── */
+.an-link{cursor:pointer;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:2px}
+.an-link:hover{opacity:.75}
 </style>
 
 <div class="sr-only">Graphe de révision philosophie — 9 notions avec auteurs, exemples, axes développés et questions de dissertation</div>
@@ -749,27 +809,250 @@ diss:[{new:true,q:"L'artiste travaille-t-il ?"},{new:true,q:"Peut-on apprendre �
 const KEYS=Object.keys(D);
 let cur=KEYS[0];
 let curTab='auteurs';
+let sbMode='notions';
+let curAuthor=null;
+let curAuthorTab='idees';
 
+/* ── Auteurs metadata ──────────────────────────────────────────── */
+const AM={
+"Descartes":{bio:"Philosophe et mathématicien français (1596–1650). Fondateur du rationalisme moderne, il cherche à atteindre des vérités certaines par le doute méthodique.",courant:"Rationalisme",periode:"XVIIe siècle",themes:["cogito","dualisme corps/âme","méthode","maîtrise de la nature","certitude"],dialogues:[{dir:"oppose",auteur:"Hume",sujet:"certitudes de la raison",desc:"Hume montre qu'aucune relation causale n'est nécessaire : ce que Descartes tenait pour certain n'est qu'une habitude psychologique."},{dir:"oppose",auteur:"Freud",sujet:"transparence de la conscience",desc:"Freud renverse le cogito : le moi n'est pas maître en sa propre maison — l'inconscient détermine nos actes à notre insu."},{dir:"prolonge",auteur:"Spinoza",sujet:"rationalisme",desc:"Spinoza radicalise Descartes en éliminant le dualisme corps/âme et en identifiant Dieu, la Nature et la Substance."}]},
+"Freud":{bio:"Neurologue autrichien (1856–1939), fondateur de la psychanalyse. Il découvre l'inconscient comme instance psychique déterminant nos actes à notre insu.",courant:"Psychanalyse",periode:"XIXe–XXe siècle",themes:["inconscient","ça/moi/surmoi","refoulement","rêve","pulsions"],dialogues:[{dir:"oppose",auteur:"Descartes",sujet:"souveraineté du cogito",desc:"Le cogito cartésien suppose que la conscience est transparente à elle-même — Freud montre que ce présupposé est faux."},{dir:"repond",auteur:"Sartre",sujet:"liberté et inconscient",desc:"Sartre refuse l'inconscient freudien : la censure doit avoir conscience de ce qu'elle refoule, ce qui la rend de 'mauvaise foi'."},{dir:"prolonge",auteur:"Nietzsche",sujet:"critique du sujet rationnel",desc:"Nietzsche annonce Freud en montrant que nos motivations réelles sont masquées par des rationalisations."}]},
+"Sartre":{bio:"Philosophe français (1905–1980), chef de file de l'existentialisme. Sa thèse centrale : l'existence précède l'essence — l'homme se définit uniquement par ses actes.",courant:"Existentialisme / Phénoménologie",periode:"XXe siècle",themes:["liberté radicale","mauvaise foi","existence précède l'essence","intersubjectivité","engagement"],dialogues:[{dir:"oppose",auteur:"Freud",sujet:"inconscient et liberté",desc:"Sartre refuse l'inconscient : admettre des forces qui nous déterminent à notre insu, c'est être de mauvaise foi."},{dir:"repond",auteur:"Bourdieu",sujet:"déterminisme social et liberté",desc:"Bourdieu répond à Sartre : la liberté n'est pas pure spontanéité — elle est conditionnée par les structures sociales, mais leur connaissance la rend possible."},{dir:"prolonge",auteur:"Hegel",sujet:"conscience de soi",desc:"Sartre hérite de Hegel la structure de la conscience (pour-soi/en-soi) mais refuse la réconciliation dialectique finale."}]},
+"Hegel":{bio:"Philosophe allemand (1770–1831), figure majeure de l'idéalisme. Sa dialectique (thèse/antithèse/synthèse) est une méthode pour comprendre le devenir de l'Esprit dans l'histoire.",courant:"Idéalisme allemand",periode:"XVIIIe–XIXe siècle",themes:["dialectique","maître/esclave","Esprit","liberté objective","État éthique"],dialogues:[{dir:"oppose",auteur:"Kant",sujet:"liberté et institutions",desc:"Kant place la liberté dans la raison individuelle ; Hegel la situe dans les institutions concrètes (famille, société civile, État)."},{dir:"oppose",auteur:"Marx",sujet:"moteur de l'histoire",desc:"Marx 'retourne' Hegel sur ses pieds : ce n'est pas l'Esprit mais les conditions matérielles qui font l'histoire."},{dir:"repond",auteur:"Rousseau",sujet:"volonté générale",desc:"Hegel reprend la volonté générale de Rousseau mais la réalise dans l'État comme vie éthique concrète, non comme contrat abstrait."}]},
+"Kant":{bio:"Philosophe allemand (1724–1804), auteur des trois Critiques. Sa 'révolution copernicienne' : c'est le sujet qui structure l'expérience possible, non l'inverse.",courant:"Idéalisme transcendantal",periode:"XVIIIe siècle",themes:["impératif catégorique","autonomie morale","beau sans concept","génie","devoir"],dialogues:[{dir:"repond",auteur:"Hume",sujet:"fondements de la connaissance",desc:"Hume réveille Kant de son 'sommeil dogmatique' — en réponse, Kant montre que la causalité est une catégorie a priori de l'entendement."},{dir:"oppose",auteur:"Mill",sujet:"fondements de la morale",desc:"Mill fonde la morale sur le bonheur ; Kant refuse tout fondement empirique — le devoir est inconditionnel, indépendant des conséquences."},{dir:"oppose",auteur:"Aristote",sujet:"bonheur et morale",desc:"Aristote fait du bonheur la fin ultime ; Kant les sépare radicalement — le bonheur ne peut fonder la morale."}]},
+"Marx":{bio:"Philosophe et économiste allemand (1818–1883). Fondateur du matérialisme historique : les rapports de production déterminent la superstructure sociale, juridique et idéologique.",courant:"Matérialisme historique",periode:"XIXe siècle",themes:["aliénation","plus-value","infrastructure/superstructure","lutte des classes","dépérissement de l'État"],dialogues:[{dir:"oppose",auteur:"Hegel",sujet:"moteur de l'histoire",desc:"Marx renverse Hegel : ce n'est pas l'Esprit mais les conditions matérielles qui font l'histoire ('retourner Hegel sur ses pieds')."},{dir:"oppose",auteur:"Nozick",sujet:"justice et propriété",desc:"Nozick défend la propriété individuelle absolue ; Marx voit dans la propriété privée la source même de l'exploitation."},{dir:"prolonge",auteur:"Engels",sujet:"matérialisme dialectique",desc:"Engels co-construit le marxisme avec Marx et développe l'analyse de l'État comme instrument de domination de classe."}]},
+"Rousseau":{bio:"Philosophe genevois (1712–1778). Il théorise le contrat social et la volonté générale, et soutient que l'homme est naturellement bon mais corrompu par la société.",courant:"Lumières / Contractualisme",periode:"XVIIIe siècle",themes:["contrat social","volonté générale","liberté civile","état de nature","inégalité"],dialogues:[{dir:"oppose",auteur:"Hobbes",sujet:"état de nature",desc:"Hobbes voit l'état de nature comme une guerre de tous contre tous ; Rousseau le voit comme un état de bonheur naturel corrompu par la propriété."},{dir:"oppose",auteur:"Locke",sujet:"propriété et contrat",desc:"Locke fonde le contrat pour protéger la propriété naturelle ; Rousseau voit dans la propriété l'origine de l'inégalité."},{dir:"prolonge",auteur:"Kant",sujet:"autonomie et loi",desc:"Kant s'inspire de Rousseau pour penser l'autonomie morale : se donner sa propre loi, c'est obéir à la loi qu'on s'est prescrite."}]},
+"Hobbes":{bio:"Philosophe anglais (1588–1679). Il théorise un État souverain absolu (le Léviathan) comme seul garant de la paix civile contre la violence de l'état de nature.",courant:"Contractualisme / Absolutisme",periode:"XVIIe siècle",themes:["état de nature","Léviathan","contrat social","sécurité","guerre de tous contre tous"],dialogues:[{dir:"oppose",auteur:"Rousseau",sujet:"nature humaine",desc:"Rousseau renverse Hobbes : l'homme n'est pas naturellement violent — c'est la société et la propriété qui le corrompent."},{dir:"oppose",auteur:"Locke",sujet:"étendue du contrat",desc:"Locke limite le contrat aux droits naturels à préserver ; Hobbes exige l'abandon total de la liberté naturelle au souverain."}]},
+"Locke":{bio:"Philosophe anglais (1632–1704). Père du libéralisme politique, il défend les droits naturels inaliénables et la légitimité de la révolution contre un gouvernement tyrannique.",courant:"Empirisme / Libéralisme",periode:"XVIIe siècle",themes:["droits naturels","contrat révocable","propriété","identité mémorielle","tolérance"],dialogues:[{dir:"oppose",auteur:"Hobbes",sujet:"souveraineté",desc:"Hobbes veut un souverain absolu irrévocable ; Locke pose que le contrat est révocable si le gouvernement viole les droits naturels."},{dir:"prolonge",auteur:"Mill",sujet:"libéralisme",desc:"Mill hérite de Locke le souci de protéger les libertés individuelles contre l'État et la tyrannie de la majorité."}]},
+"Nietzsche":{bio:"Philosophe allemand (1844–1900). Critique radical de la morale chrétienne et du rationalisme occidental. Il annonce la 'mort de Dieu' et propose la figure du 'surhomme'.",courant:"Généalogie / Philosophie de la vie",periode:"XIXe siècle",themes:["volonté de puissance","mort de Dieu","éternel retour","généalogie de la morale","travail comme police"],dialogues:[{dir:"oppose",auteur:"Kant",sujet:"morale universelle",desc:"Kant fonde une morale universelle ; Nietzsche la déconstruit par la généalogie : les valeurs morales expriment des rapports de force."},{dir:"prolonge",auteur:"Schopenhauer",sujet:"volonté",desc:"Nietzsche hérite de Schopenhauer la centralité de la volonté, mais la réinterprète positivement comme volonté de puissance."},{dir:"oppose",auteur:"Freud",sujet:"inconscient",desc:"Nietzsche anticipe Freud en montrant les rationalisations masquant nos motivations réelles, mais sans le cadre clinique."}]},
+"Spinoza":{bio:"Philosophe néerlandais (1632–1677). Il développe un panthéisme rationnel : Dieu est identique à la Nature. Sa philosophie vise la libération par la connaissance.",courant:"Rationalisme / Panthéisme",periode:"XVIIe siècle",themes:["Dieu-Nature","liberté comme nécessité comprise","conatus","déterminisme","Éthique"],dialogues:[{dir:"prolonge",auteur:"Descartes",sujet:"rationalisme",desc:"Spinoza radicalise le rationalisme cartésien en éliminant le dualisme et en construisant une éthique more geometrico."},{dir:"oppose",auteur:"Sartre",sujet:"liberté",desc:"Sartre affirme une liberté absolue ; Spinoza montre que le libre arbitre est une illusion née de l'ignorance des causes."},{dir:"prolonge",auteur:"Engels",sujet:"liberté et nécessité",desc:"Engels reprend Spinoza : la liberté consiste dans la connaissance des nécessités naturelles, non dans leur absence."}]},
+"Hannah Arendt":{bio:"Philosophe politique américano-allemande (1906–1975). Elle analyse les régimes totalitaires et la condition humaine moderne. Son concept de 'banalité du mal' est central.",courant:"Phénoménologie / Philosophie politique",periode:"XXe siècle",themes:["banalité du mal","labor/work/action","culture de masse","totalitarisme","permanence de l'œuvre"],dialogues:[{dir:"oppose",auteur:"Marx",sujet:"travail",desc:"Marx voit dans le travail la source de l'émancipation ; Arendt distingue le labor (aliénant, cyclique) du work (créateur) et de l'action (politique)."},{dir:"repond",auteur:"Kant",sujet:"jugement moral",desc:"Arendt reprend Kant pour penser le jugement politique : juger sans règle universelle, comme dans le jugement esthétique."}]},
+"Bourdieu":{bio:"Sociologue français (1930–2002). Il analyse les mécanismes de reproduction sociale et développe les concepts d'habitus, de capital culturel et de violence symbolique.",courant:"Sociologie critique",periode:"XXe siècle",themes:["habitus","capital culturel","violence symbolique","reproduction sociale","goût de classe"],dialogues:[{dir:"oppose",auteur:"Sartre",sujet:"liberté et déterminisme",desc:"Sartre affirme une liberté radicale ; Bourdieu montre que nos choix sont conditionnés par l'habitus — mais la connaissance des déterminismes ouvre un espace de liberté."},{dir:"prolonge",auteur:"Marx",sujet:"domination",desc:"Bourdieu prolonge Marx en ajoutant la dimension symbolique : la domination culturelle reproduit les inégalités de classe."}]},
+"Platon":{bio:"Philosophe grec (v. 428–348 av. J.-C.), disciple de Socrate. Il développe la théorie des Idées : le monde sensible n'est que l'ombre d'un monde intelligible parfait.",courant:"Idéalisme platonicien",periode:"Antiquité grecque",themes:["théorie des Idées","justice","âme","cité idéale","imitation (mimésis)"],dialogues:[{dir:"oppose",auteur:"Aristote",sujet:"nature des Idées",desc:"Aristote refuse les Idées séparées de Platon : la forme est immanente à la matière concrète, non transcendante."},{dir:"repond",auteur:"Rousseau",sujet:"contrat et cité",desc:"Rousseau hérite de Platon l'idée que l'État forme les citoyens, mais en renversant la hiérarchie : c'est le peuple qui est souverain."}]},
+"Aristote":{bio:"Philosophe grec (384–322 av. J.-C.), disciple de Platon. Sa philosophie est empirique et encyclopédique — il fonde la logique, l'éthique et la politique sur l'observation du réel.",courant:"Empirisme antique / Aristotélisme",periode:"Antiquité grecque",themes:["eudaimonia","vertu","forme/matière","animal politique","technê / main"],dialogues:[{dir:"oppose",auteur:"Platon",sujet:"théorie des Idées",desc:"Platon sépare le monde sensible du monde intelligible ; Aristote ancre les formes dans la matière concrète."},{dir:"oppose",auteur:"Kant",sujet:"bonheur et morale",desc:"Aristote fait du bonheur (eudaimonia) la fin ultime ; Kant sépare radicalement bonheur et devoir moral."}]},
+"Mill":{bio:"Philosophe et économiste britannique (1806–1873). Chef de file de l'utilitarisme, il défend aussi les libertés individuelles contre la 'tyrannie de la majorité'.",courant:"Utilitarisme / Libéralisme",periode:"XIXe siècle",themes:["principe de non-nuisance","bonheur du plus grand nombre","liberté d'expression","utilitarisme","plaisirs inférieurs/supérieurs"],dialogues:[{dir:"oppose",auteur:"Kant",sujet:"fondements de la morale",desc:"Kant fonde la morale sur le devoir rationnel ; Mill la fonde sur les conséquences (bonheur produit)."},{dir:"prolonge",auteur:"Locke",sujet:"libertés individuelles",desc:"Mill hérite de Locke et radicalise la défense des libertés individuelles, notamment la liberté d'expression absolue."}]},
+"Jonas":{bio:"Philosophe allemand (1903–1993). Face aux risques de la technique moderne, il propose une éthique de la responsabilité orientée vers la préservation de la vie future.",courant:"Éthique de la responsabilité",periode:"XXe siècle",themes:["principe responsabilité","heuristique de la peur","générations futures","irréversible","technique"],dialogues:[{dir:"repond",auteur:"Kant",sujet:"éthique",desc:"Jonas prolonge Kant mais l'adapte : l'impératif catégorique doit intégrer les effets à long terme sur la biosphère."},{dir:"oppose",auteur:"Descartes",sujet:"maîtrise de la nature",desc:"Descartes veut nous rendre 'maîtres et possesseurs de la nature' ; Jonas montre que cette maîtrise crée des responsabilités nouvelles et inédites."}]},
+"Heidegger":{bio:"Philosophe allemand (1889–1976). Sa question centrale est celle du sens de l'Être. Il analyse la technique moderne comme un mode de dévoilement réduisant le réel à un 'fonds disponible'.",courant:"Ontologie / Phénoménologie existentiale",periode:"XXe siècle",themes:["être-là (Dasein)","technique comme dévoilement","fonds disponible","authenticité","finitude"],dialogues:[{dir:"prolonge",auteur:"Nietzsche",sujet:"nihilisme",desc:"Heidegger voit en Nietzsche l'achèvement de la métaphysique occidentale — le nihilisme que Nietzsche annonce, Heidegger le diagnostique."},{dir:"oppose",auteur:"Descartes",sujet:"rapport à la nature",desc:"Descartes inaugure la domination de la nature ; Heidegger montre que la technique moderne en est l'aboutissement — mise à disposition totale du réel."}]},
+"Simondon":{bio:"Philosophe français (1924–1989). Il développe une philosophie des objets techniques dépassant à la fois la technophobie et l'enthousiasme naïf.",courant:"Philosophie de la technique",periode:"XXe siècle",themes:["individuation","culture technique","aliénation par méconnaissance","objet technique","organisateur permanent"],dialogues:[{dir:"oppose",auteur:"Heidegger",sujet:"rapport à la technique",desc:"Heidegger voit dans la technique une menace ontologique ; Simondon propose une réconciliation par la connaissance du fonctionnement réel des machines."},{dir:"repond",auteur:"Marx",sujet:"aliénation",desc:"Marx voit l'aliénation dans les rapports de production ; Simondon la localise dans la méconnaissance — comprendre les machines, c'est s'émanciper."}]},
+"Weil":{bio:"Philosophe et militante française (1909–1943). Elle combine engagement politique (usines, guerre d'Espagne) et réflexion sur le travail, l'enracinement et la condition ouvrière.",courant:"Philosophie sociale / Mysticisme",periode:"XXe siècle",themes:["condition ouvrière","enracinement","travail non servile","devoir de l'ingénieur","attention"],dialogues:[{dir:"prolonge",auteur:"Marx",sujet:"aliénation ouvrière",desc:"Weil hérite de Marx la critique de l'aliénation ouvrière, mais l'ancre dans une expérience vécue des usines et une dimension spirituelle."},{dir:"repond",auteur:"Nietzsche",sujet:"travail et sens",desc:"Nietzsche critique le culte du travail ; Weil cherche, elle, les conditions d'un travail non servile porteur de sens."}]},
+"Weber":{bio:"Sociologue et économiste allemand (1864–1920). Il analyse les fondements de la légitimité politique et le processus de rationalisation des sociétés modernes.",courant:"Sociologie compréhensive",periode:"XIXe–XXe siècle",themes:["monopole violence légitime","légitimité (3 types)","éthique de conviction/responsabilité","rationalisation","bureaucratie"],dialogues:[{dir:"oppose",auteur:"Marx",sujet:"moteur de l'histoire",desc:"Marx voit l'économie comme déterminant ultime ; Weber montre que les idées (notamment religieuses) peuvent aussi être motrices — cf. L'éthique protestante."}]},
+"Tocqueville":{bio:"Historien et philosophe politique français (1805–1859). Observateur lucide de la démocratie américaine, il met en garde contre le despotisme doux des démocraties modernes.",courant:"Libéralisme politique",periode:"XIXe siècle",themes:["despotisme doux","égalité des conditions","individualisme démocratique","liberté civile","participation citoyenne"],dialogues:[{dir:"prolonge",auteur:"Mill",sujet:"tyrannie de la majorité",desc:"Mill et Tocqueville convergent : la démocratie menace la liberté non seulement par la loi mais par la pression sociale de la majorité."},{dir:"repond",auteur:"Rousseau",sujet:"démocratie réelle",desc:"Rousseau idéalise la volonté générale ; Tocqueville montre les dérives concrètes des démocraties réelles."}]},
+"Schopenhauer":{bio:"Philosophe allemand (1788–1860). Il développe un pessimisme métaphysique fondé sur la 'volonté de vivre' — force aveugle et insatiable à l'origine de toute souffrance.",courant:"Pessimisme / Volontarisme",periode:"XIXe siècle",themes:["volonté de vivre","pessimisme","désir insatiable","art comme salut","ascèse"],dialogues:[{dir:"oppose",auteur:"Aristote",sujet:"bonheur",desc:"Aristote croit au bonheur comme fin accessible ; Schopenhauer montre que la satisfaction est toujours provisoire — le désir est infini."},{dir:"prolonge",auteur:"Nietzsche",sujet:"volonté",desc:"Nietzsche hérite de Schopenhauer la centralité de la volonté, mais la réinterprète positivement comme volonté de puissance."}]},
+"Épicure":{bio:"Philosophe grec (341–270 av. J.-C.), fondateur de l'épicurisme. Sa philosophie vise l'ataraxie (paix de l'âme) par le calcul raisonné des désirs et la retraite dans le jardin.",courant:"Épicurisme",periode:"Antiquité grecque",themes:["ataraxie","aponie","classification des désirs","amitié","mort sans crainte"],dialogues:[{dir:"oppose",auteur:"Aristote",sujet:"vie bonne",desc:"Aristote fait du bonheur une activité vertueuse engagée dans la cité ; Épicure préfère le retrait dans le jardin et l'amitié."},{dir:"oppose",auteur:"Kant",sujet:"morale et bonheur",desc:"Kant refuse que le bonheur fonde la morale ; Épicure en fait au contraire le guide suprême de toute conduite de vie."}]},
+"Rawls":{bio:"Philosophe politique américain (1921–2002). Sa Théorie de la justice propose un modèle fondé sur le 'voile d'ignorance' et le principe de différence.",courant:"Libéralisme égalitaire",periode:"XXe siècle",themes:["voile d'ignorance","principe de différence","équité","désobéissance civile légitime","justice comme équité"],dialogues:[{dir:"oppose",auteur:"Nozick",sujet:"redistribution",desc:"Nozick défend la propriété absolue et refuse toute redistribution ; Rawls admet les inégalités si elles bénéficient aux plus défavorisés."},{dir:"prolonge",auteur:"Kant",sujet:"universalisme moral",desc:"Le voile d'ignorance de Rawls est un dispositif kantien : trouver des principes que tout agent rationnel pourrait universaliser."}]},
+"Nozick":{bio:"Philosophe américain (1938–2002), défenseur du libertarianisme. Il soutient que l'État minimal est le seul légitime et que toute redistribution viole les droits individuels.",courant:"Libertarianisme",periode:"XXe siècle",themes:["État minimal","droits individuels","propriété","anti-redistribution","titres légitimes"],dialogues:[{dir:"oppose",auteur:"Rawls",sujet:"redistribution",desc:"Rawls justifie la redistribution par le voile d'ignorance ; Nozick y voit une violation des droits — on ne peut pas prendre à Pierre pour donner à Paul."},{dir:"oppose",auteur:"Marx",sujet:"propriété",desc:"Marx voit dans la propriété privée la source de l'exploitation ; Nozick en fait au contraire le fondement inviolable de la justice."}]},
+"Bergson":{bio:"Philosophe français (1859–1941). Il développe une philosophie de la durée et de l'élan vital, en opposition au mécanisme et au déterminisme scientiste.",courant:"Vitalisme / Philosophie de la durée",periode:"XIXe–XXe siècle",themes:["durée","élan vital","homo faber","mémoire","intuition"],dialogues:[{dir:"oppose",auteur:"Descartes",sujet:"mécanisme",desc:"Descartes réduit le corps à une machine ; Bergson oppose à ce mécanisme la durée vécue, irréductible à l'espace et au calcul."},{dir:"prolonge",auteur:"Aristote",sujet:"évolution et finalité",desc:"Bergson reprend l'idée d'une finalité dans la nature mais la dynamise : l'élan vital est créateur, imprévisible, non téléologique."}]},
+"Hume":{bio:"Philosophe écossais (1711–1776), figure centrale de l'empirisme. Il montre que nos certitudes rationnelles (causalité, substance, moi) ne sont que des habitudes psychologiques.",courant:"Empirisme / Scepticisme",periode:"XVIIIe siècle",themes:["causalité comme habitude","bundle theory du moi","scepticisme","raison esclave des passions","induction"],dialogues:[{dir:"oppose",auteur:"Descartes",sujet:"certitudes rationnelles",desc:"Descartes fonde des certitudes sur la raison pure ; Hume montre que toute connaissance vient de l'expérience et que la causalité n'est qu'une habitude."},{dir:"prolonge",auteur:"Locke",sujet:"empirisme",desc:"Hume radicalise l'empirisme de Locke en appliquant le même scepticisme à la notion de substance et au moi lui-même."}]},
+"Merleau-Ponty":{bio:"Philosophe français (1908–1961). Il développe une phénoménologie du corps vécu, montrant que la perception est toujours déjà corporelle et engagée dans le monde.",courant:"Phénoménologie du corps",periode:"XXe siècle",themes:["corps vécu","perception","chair du monde","intersubjectivité","art et expression"],dialogues:[{dir:"prolonge",auteur:"Sartre",sujet:"phénoménologie",desc:"Merleau-Ponty partage avec Sartre l'héritage husserlien mais critique son dualisme implicite — le corps n'est pas pure facticité."},{dir:"repond",auteur:"Descartes",sujet:"dualisme corps/âme",desc:"Contre le dualisme cartésien, Merleau-Ponty montre que le corps est le sujet de la perception — être-au-monde est d'abord corporel."}]},
+"Engels":{bio:"Philosophe et économiste allemand (1820–1895). Co-fondateur du marxisme avec Marx, il développe le matérialisme dialectique et l'analyse de l'État comme instrument de domination.",courant:"Matérialisme dialectique",periode:"XIXe siècle",themes:["matérialisme dialectique","État et domination","liberté et nécessité","origine de la famille","anti-Dühring"],dialogues:[{dir:"prolonge",auteur:"Marx",sujet:"matérialisme historique",desc:"Engels co-construit le marxisme avec Marx et l'étend à la dialectique de la nature entière."},{dir:"prolonge",auteur:"Spinoza",sujet:"liberté et nécessité",desc:"Engels reprend Spinoza : la liberté consiste dans la connaissance des nécessités naturelles — 'on commande à la nature en lui obéissant'."}]},
+"Thoreau":{bio:"Écrivain et philosophe américain (1817–1862). Partisan du retour à la nature (Walden) et inventeur du concept de désobéissance civile contre les lois injustes.",courant:"Transcendantalisme / Anarchisme pacifiste",periode:"XIXe siècle",themes:["désobéissance civile","nature","simplicité volontaire","résistance non-violente","conscience morale"],dialogues:[{dir:"prolonge",auteur:"Rawls",sujet:"désobéissance civile",desc:"Rawls formalise en théorie politique ce que Thoreau pratiquait : la désobéissance civile est légitime contre les lois injustes, sous conditions."},{dir:"repond",auteur:"Platon",sujet:"obéissance aux lois",desc:"Platon (Criton) exige d'obéir même à une loi injuste ; Thoreau s'y oppose radicalement : obéir à une loi injuste, c'est en être complice."}]},
+"La Boétie":{bio:"Humaniste français (1530–1563). Son unique grand texte analyse le mécanisme de la servitude volontaire : pourquoi des millions d'hommes obéissent-ils librement à un seul tyran ?",courant:"Humanisme de la Renaissance",periode:"XVIe siècle",themes:["servitude volontaire","tyrannie","résistance passive","habitude","liberté politique"],dialogues:[{dir:"prolonge",auteur:"Thoreau",sujet:"désobéissance",desc:"Thoreau et La Boétie convergent : la résistance ne nécessite pas de combattre — cesser d'obéir suffit à faire tomber la tyrannie."},{dir:"repond",auteur:"Hobbes",sujet:"obéissance politique",desc:"Hobbes légitime l'obéissance absolue au souverain ; La Boétie en dénonce le mystère — pourquoi obéit-on librement à ce qui nous opprime ?"}]},
+"D'Holbach":{bio:"Philosophe français des Lumières (1723–1789). Il défend un matérialisme et un athéisme radical : la nature obéit à des lois mécaniques, et la liberté humaine est une illusion.",courant:"Matérialisme / Athéisme des Lumières",periode:"XVIIIe siècle",themes:["déterminisme physique","matérialisme","athéisme","liberté illusoire","nature mécaniste"],dialogues:[{dir:"oppose",auteur:"Descartes",sujet:"dualisme et liberté",desc:"Descartes maintient la liberté de l'âme ; D'Holbach étend le mécanisme cartésien à l'homme entier — il n'y a plus de place pour le libre arbitre."},{dir:"prolonge",auteur:"Spinoza",sujet:"déterminisme",desc:"D'Holbach radicalise le déterminisme spinoziste en un matérialisme physique sans Dieu ni Substance."}]},
+"Épictète":{bio:"Philosophe stoïcien grec (v. 50–135 ap. J.-C.), ancien esclave. Il enseigne que la liberté intérieure est possible même dans les pires conditions extérieures.",courant:"Stoïcisme",periode:"Antiquité gréco-romaine",themes:["dichotomie du contrôle","liberté intérieure","représentations","indifférents","sagesse stoïcienne"],dialogues:[{dir:"prolonge",auteur:"Kant",sujet:"liberté intérieure",desc:"Kant et Épictète convergent : la vraie liberté est intérieure, réside dans la maîtrise de sa volonté, non dans les circonstances extérieures."},{dir:"oppose",auteur:"Sartre",sujet:"liberté en situation",desc:"Sartre dit qu'on est toujours libre de se projeter autrement ; Épictète est plus radical : la liberté ne concerne que ce qui dépend strictement de nous."}]},
+"Lafargue":{bio:"Journaliste et militant politique franco-cubain (1842–1911), gendre de Marx. Son pamphlet 'Le Droit à la paresse' dénonce le culte du travail.",courant:"Socialisme / Critique du travail",periode:"XIXe siècle",themes:["droit à la paresse","culte du travail","exploitation ouvrière","temps libre","émancipation"],dialogues:[{dir:"prolonge",auteur:"Marx",sujet:"exploitation",desc:"Lafargue pousse la critique marxiste jusqu'au bout : si le travail aliène, c'est le travail lui-même qu'il faut refuser, pas seulement son exploitation."},{dir:"repond",auteur:"Nietzsche",sujet:"travail et contrôle",desc:"Nietzsche voit le travail comme 'meilleure des polices' ; Lafargue converge : le travail est l'instrument d'une exploitation intériorisée."}]},
+"Arendt":{bio:"Voir 'Hannah Arendt'.",courant:"",periode:"",themes:[],dialogues:[]},
+"Anders":{bio:"Philosophe et écrivain autrichien (1902–1992). Il développe une philosophie de la technique fondée sur la 'honte prométhéenne' de l'homme face à ses propres machines.",courant:"Philosophie de la technique / Philosophie de l'existence",periode:"XXe siècle",themes:["honte prométhéenne","genre mortel","Hiroshima","obsolescence de l'homme","technique et puissance"],dialogues:[{dir:"prolonge",auteur:"Jonas",sujet:"responsabilité technique",desc:"Anders et Jonas partagent la même anxiété face à la technique nucléaire — mais Anders va plus loin : l'homme est devenu ontologiquement obsolète face à ses machines."},{dir:"prolonge",auteur:"Heidegger",sujet:"technique et humanité",desc:"Anders hérite de Heidegger la critique de la technique, mais l'ancre dans l'événement concret d'Hiroshima plutôt que dans l'ontologie."}]},
+"Baudrillard":{bio:"Sociologue et philosophe français (1929–2007). Il analyse la société de consommation comme un système de signes qui remplace la réalité par des simulacres.",courant:"Philosophie de la culture / Postmodernisme",periode:"XXe siècle",themes:["simulation","simulacre","société de consommation","hyperréalité","objets et rêves"],dialogues:[{dir:"prolonge",auteur:"Marx",sujet:"critique de la société marchande",desc:"Baudrillard prolonge Marx : la marchandise n'est plus seulement un rapport social — elle est devenue signe, simulation, hyperréalité."},{dir:"repond",auteur:"Simondon",sujet:"objets techniques",desc:"Simondon analyse les objets techniques pour mieux les comprendre ; Baudrillard analyse la société de consommation pour en montrer le caractère illusoire."}]},
+"Ricœur":{bio:"Philosophe français (1913–2005). Il développe une herméneutique de soi et de l'identité narrative, cherchant à réconcilier interprétation et réflexion.",courant:"Herméneutique / Phénoménologie",periode:"XXe siècle",themes:["identité narrative","idem/ipse","herméneutique","récit de soi","mémoire"],dialogues:[{dir:"prolonge",auteur:"Freud",sujet:"récit et inconscient",desc:"Ricœur voit dans la cure analytique une forme d'herméneutique du soi — reconstruire une identité narrative à partir des fragments du passé."},{dir:"repond",auteur:"Hume",sujet:"identité du moi",desc:"Hume dissout le moi en un flux de perceptions ; Ricœur répond : l'identité narrative permet de maintenir une unité sans substance fixe."}]},
+"Alain":{bio:"Philosophe français (1868–1951), professeur emblématique de la Troisième République. Il développe une philosophie de la résistance à la puissance et de la formation du sujet par le travail.",courant:"Rationalisme républicain",periode:"XIXe–XXe siècle",themes:["résistance aux pouvoirs","formation du sujet","travail manuel","bonheur","propos"],dialogues:[{dir:"prolonge",auteur:"Kant",sujet:"autonomie morale",desc:"Alain hérite de Kant le souci de l'autonomie : le citoyen doit résister aux pouvoirs, y compris aux passions et aux émotions."},{dir:"prolonge",auteur:"Hegel",sujet:"conscience de soi et autrui",desc:"Alain prolonge Hegel : c'est des autres que nous tenons la première connaissance de nous-mêmes."}]},
+"Pascal":{bio:"Mathématicien, physicien et philosophe français (1623–1662). Sa pensée oscille entre l'apologétique chrétienne et une lucidité radicale sur la condition humaine ('roseau pensant').",courant:"Augustinisme / Apologétique",periode:"XVIIe siècle",themes:["roseau pensant","divertissement","misère et grandeur de l'homme","pari","cœur et raison"],dialogues:[{dir:"repond",auteur:"Descartes",sujet:"raison et finitude",desc:"Descartes fonde tout sur la raison ; Pascal montre ses limites — le cœur a ses raisons que la raison ne connaît point."},{dir:"prolonge",auteur:"Nietzsche",sujet:"divertissement et travail",desc:"Pascal analyse le divertissement comme fuite de soi ; Nietzsche prolonge cette idée en montrant que le travail est la 'meilleure des polices'."}]}
+};
+
+/* ── Build author index ────────────────────────────────────────── */
+function buildAI(){
+  const idx={};
+  KEYS.forEach(k=>{
+    (D[k].auteurs||[]).forEach(a=>{
+      const name=a.n;
+      if(!idx[name]) idx[name]={notions:[],entries:{}};
+      if(!idx[name].entries[k]){idx[name].notions.push(k);idx[name].entries[k]=a;}
+    });
+  });
+  return idx;
+}
+const AI=buildAI();
+
+function authorsSorted(){
+  return Object.keys(AI).sort((a,b)=>{
+    const d=AI[b].notions.length-AI[a].notions.length;
+    return d!==0?d:a.localeCompare(b,'fr');
+  });
+}
+
+/* ── Courant → color ─────────────────────────────────────────── */
+const CC={
+  'Rationalisme':'#185FA5','Empirisme / Libéralisme':'#3B6D11','Idéalisme allemand':'#534AB7',
+  'Existentialisme / Phénoménologie':'#534AB7','Matérialisme historique':'#D85A30',
+  'Phénoménologie / Philosophie politique':'#993556','Utilitarisme / Libéralisme':'#EF9F27',
+  'Libéralisme égalitaire':'#EF9F27','Libertarianisme':'#5F5E5A','Sociologie critique':'#D4537E',
+  'Épicurisme':'#1D9E75','Contractualisme / Absolutisme':'#D85A30','Empirisme antique / Aristotélisme':'#3B6D11',
+  'Éthique de la responsabilité':'#185FA5','Ontologie / Phénoménologie existentiale':'#534AB7',
+  'Philosophie de la technique':'#185FA5','Philosophie sociale / Mysticisme':'#D4537E',
+  'Sociologie compréhensive':'#5F5E5A','Libéralisme politique':'#EF9F27',
+  'Vitalisme / Philosophie de la durée':'#1D9E75','Empirisme / Scepticisme':'#3B6D11',
+  'Phénoménologie du corps':'#534AB7','Matérialisme dialectique':'#D85A30',
+  'Transcendantalisme / Anarchisme pacifiste':'#1D9E75','Humanisme de la Renaissance':'#EF9F27',
+  'Rationalisme / Panthéisme':'#185FA5','Idéalisme transcendantal':'#534AB7',
+  'Psychanalyse':'#993556','Lumières / Contractualisme':'#1D9E75',
+  'Généalogie / Philosophie de la vie':'#993556','Idéalisme platonicien':'#534AB7',
+  'Matérialisme / Athéisme des Lumières':'#3B6D11','Stoïcisme':'#1D9E75',
+  'Socialisme / Critique du travail':'#D85A30','Philosophie de la culture / Postmodernisme':'#5F5E5A',
+  'Herméneutique / Phénoménologie':'#534AB7','Rationalisme républicain':'#185FA5',
+  'Augustinisme / Apologétique':'#EF9F27','Pessimisme / Volontarisme':'#5F5E5A',
+  'Philosophie de la technique / Philosophie de l\'existence':'#185FA5'
+};
+
+/* ── renderSB ────────────────────────────────────────────────── */
 function renderSB(){
   const sb=document.getElementById('sb');
-  sb.innerHTML='<div class="stitle">Notions</div>';
-  KEYS.forEach(k=>{
-    const el=document.createElement('div');
-    el.className='nb'+(k===cur?' active':'');
-    el.innerHTML=`<span class="dot" style="background:${D[k].c}"></span>${D[k].l}`;
-    el.onclick=()=>{cur=k;curTab='auteurs';renderSB();renderContent()};
-    sb.appendChild(el);
-  });
+  sb.innerHTML=`<div class="sb-tabs">
+    <div class="sb-tab${sbMode==='notions'?' active':''}" onclick="sbMode='notions';renderSB();renderContent()">Notions</div>
+    <div class="sb-tab${sbMode==='auteurs'?' active':''}" onclick="if(sbMode!=='auteurs'){sbMode='auteurs';if(!curAuthor)curAuthor=authorsSorted()[0];curAuthorTab='idees';renderSB();renderAuthorContent();}">Auteurs</div>
+  </div>`;
+  if(sbMode==='notions'){
+    KEYS.forEach(k=>{
+      const el=document.createElement('div');
+      el.className='nb'+(k===cur?' active':'');
+      el.innerHTML=`<span class="dot" style="background:${D[k].c}"></span>${D[k].l}`;
+      el.onclick=()=>{cur=k;curTab='auteurs';sbMode='notions';renderSB();renderContent()};
+      sb.appendChild(el);
+    });
+  } else {
+    authorsSorted().forEach(name=>{
+      const entry=AI[name];
+      const el=document.createElement('div');
+      el.className='ab'+(name===curAuthor?' active':'');
+      const bdgs=entry.notions.map(k=>`<span class="ab-bdg" style="background:${D[k].c}" title="${D[k].l}"></span>`).join('');
+      el.innerHTML=`<div class="ab-name">${name}</div><div class="ab-badges">${bdgs}</div>`;
+      el.onclick=()=>{curAuthor=name;curAuthorTab='idees';renderSB();renderAuthorContent()};
+      sb.appendChild(el);
+    });
+  }
 }
 
 function tab(id){curTab=id;renderContent()}
 
+function openAuthor(name){
+  if(!AI[name]) return;
+  sbMode='auteurs'; curAuthor=name; curAuthorTab='idees';
+  renderSB(); renderAuthorContent();
+}
+
+/* ── renderAuthorContent ─────────────────────────────────────── */
+function renderAuthorContent(){
+  const main=document.getElementById('main');
+  if(!curAuthor||!AI[curAuthor]){main.innerHTML='';return;}
+  const entry=AI[curAuthor];
+  const meta=AM[curAuthor]||{bio:'',courant:'',periode:'',themes:[],dialogues:[]};
+  const cc=CC[meta.courant]||'#888';
+
+  // notion badges row
+  const notionBdgs=entry.notions.map(k=>`<span class="ab-bdg" style="background:${D[k].c};width:8px;height:8px" title="${D[k].l}"></span>`).join('');
+
+  const tabs2=[{id:'idees',l:'Idées'},{id:'citations',l:'Citations'},{id:'oeuvres',l:'Œuvres'},{id:'dialogues',l:'Dialogues'}];
+
+  let html=`
+<div class="notion-head">
+  <div>
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+      <div class="author-title">${curAuthor}</div>
+      ${meta.courant?`<span class="author-courant" style="background:${cc}18;color:${cc};border:0.5px solid ${cc}40">${meta.courant}</span>`:''}
+    </div>
+    <div style="display:flex;gap:3px;align-items:center;margin-top:5px">${notionBdgs}<span style="font-size:10px;color:var(--color-text-tertiary);margin-left:4px">${entry.notions.length} notion${entry.notions.length>1?'s':''}</span></div>
+  </div>
+</div>`;
+
+  if(meta.bio){
+    html+=`<div class="author-def-box">${meta.bio}`;
+    if(meta.periode||meta.themes.length){
+      html+=`<details><summary>Période &amp; thèmes majeurs</summary>`;
+      if(meta.periode) html+=`<div style="margin-top:8px;font-size:12px"><span style="font-weight:500;color:var(--color-text-primary)">Période :</span> ${meta.periode}</div>`;
+      if(meta.themes.length) html+=`<div style="margin-top:4px;font-size:12px"><span style="font-weight:500;color:var(--color-text-primary)">Thèmes :</span> ${meta.themes.join(' · ')}</div>`;
+      html+=`</details>`;
+    }
+    html+=`</div>`;
+  }
+
+  html+=`<div class="tabs">${tabs2.map(t=>`<div class="tab${curAuthorTab===t.id?' active':''}" onclick="curAuthorTab='${t.id}';renderAuthorContent()">${t.l}</div>`).join('')}</div>`;
+
+  if(curAuthorTab==='idees'){
+    html+=`<div class="slabel">Idées de ${curAuthor} par notion</div>`;
+    entry.notions.forEach(k=>{
+      const a=entry.entries[k]; const nc=D[k].c;
+      const nb=a.new?`<span class="new-badge">✦ Nouveau</span>`:'';
+      html+=`<div class="idea-card${a.new?' is-new':''}">
+        <div class="idea-card-head">
+          <div class="idea-card-work">${a.w||''} ${nb}</div>
+          <span class="notion-pill" style="color:${nc};border-color:${nc}40;background:${nc}12"
+            onclick="cur='${k}';curTab='auteurs';sbMode='notions';renderSB();renderContent()">${D[k].l} →</span>
+        </div>
+        <div class="idea-card-body">${a.i}</div>
+      </div>`;
+    });
+  }
+  else if(curAuthorTab==='citations'){
+    const qs=entry.notions.filter(k=>entry.entries[k].q);
+    if(!qs.length){html+=`<div style="color:var(--color-text-tertiary);font-size:12px;padding:10px 0">Aucune citation référencée.</div>`;}
+    else{
+      html+=`<div class="slabel">Citations de ${curAuthor}</div>`;
+      qs.forEach(k=>{
+        const a=entry.entries[k]; const nc=D[k].c;
+        html+=`<div class="cit-card" style="border-left-color:${nc}">
+          <div class="cit-card-text">${a.q}</div>
+          <div class="cit-card-footer">
+            <span class="cit-card-src">${a.w||''}</span>
+            <span class="notion-pill" style="color:${nc};border-color:${nc}40;background:${nc}12"
+              onclick="cur='${k}';curTab='auteurs';sbMode='notions';renderSB();renderContent()">${D[k].l} →</span>
+          </div>
+        </div>`;
+      });
+    }
+  }
+  else if(curAuthorTab==='oeuvres'){
+    const works={};
+    entry.notions.forEach(k=>{const w=entry.entries[k].w;if(w){if(!works[w])works[w]=[];works[w].push(k);}});
+    const wks=Object.keys(works);
+    if(!wks.length){html+=`<div style="color:var(--color-text-tertiary);font-size:12px;padding:10px 0">Aucune œuvre référencée.</div>`;}
+    else{
+      html+=`<div class="slabel">Œuvres de ${curAuthor} citées dans le cours</div>`;
+      wks.forEach(w=>{
+        const bdgs=works[w].map(k=>`<span class="notion-pill" style="color:${D[k].c};border-color:${D[k].c}40;background:${D[k].c}12;font-size:10px;padding:2px 7px"
+          onclick="cur='${k}';curTab='auteurs';sbMode='notions';renderSB();renderContent()">${D[k].l}</span>`).join('');
+        html+=`<div class="oeuvre-card"><div class="oeuvre-title">${w}</div><div class="oeuvre-badges">${bdgs}</div></div>`;
+      });
+    }
+  }
+  else if(curAuthorTab==='dialogues'){
+    const dials=meta.dialogues||[];
+    if(!dials.length){html+=`<div style="color:var(--color-text-tertiary);font-size:12px;padding:10px 0">Aucun dialogue référencé.</div>`;}
+    else{
+      html+=`<div class="slabel">Relations philosophiques de ${curAuthor}</div>`;
+      const DL={'oppose':'S\'oppose à','prolonge':'Prolonge','repond':'Répond à'};
+      dials.forEach(d=>{
+        const can=!!AI[d.auteur];
+        const safeN=d.auteur.replace(/'/g,"\\'");
+        html+=`<div class="dial-card">
+          <span class="dial-dir dial-${d.dir}">${DL[d.dir]||d.dir}</span>
+          <div class="dial-body">
+            <span class="dial-auteur" ${can?`onclick="openAuthor('${safeN}')"`:''}>${d.auteur}</span>
+            <div class="dial-sujet">${d.sujet}</div>
+            <div class="dial-desc">${d.desc}</div>
+          </div>
+        </div>`;
+      });
+    }
+  }
+
+  main.innerHTML=html;
+}
+
+/* ── renderContent (notions) ─────────────────────────────────── */
 function renderContent(){
   const n=D[cur];
   const c=n.c;
   const tabs2=['auteurs','textes','axes','exemples','diss'];
   const tabLabels={'auteurs':'Auteurs','textes':'Textes du cours','axes':'Axes & sous-parties','exemples':'Exemples','diss':'Dissertations'};
-  
+
   let html=`
 <div class="notion-head">
   <div class="nbadge" style="background:${c}"></div>
@@ -784,7 +1067,14 @@ function renderContent(){
     html+=`<div class="slabel">Auteurs et idées clés (${n.auteurs.length} auteurs)</div><div class="ag">`;
     n.auteurs.forEach(a=>{
       const newBadge=a.new?`<span class="new-badge">✦ Nouveau</span>`:'';
-      html+=`<div class="ac${a.new?' is-new':''}"><div class="an" style="color:${a.new?'var(--color-new)':c}">${a.n} ${newBadge}</div><div class="aw">${a.w}</div><div class="ai">${a.i}</div>${a.q?`<div class="aq">${a.q}</div>`:''}</div>`;
+      const nameColor=a.new?'var(--color-new)':c;
+      const safeN=a.n.replace(/'/g,"\\'");
+      html+=`<div class="ac${a.new?' is-new':''}">
+        <div class="an" style="color:${nameColor}">
+          <span class="an-link" style="color:${nameColor}" onclick="openAuthor('${safeN}')">${a.n}</span> ${newBadge}
+        </div>
+        <div class="aw">${a.w}</div><div class="ai">${a.i}</div>${a.q?`<div class="aq">${a.q}</div>`:''}
+      </div>`;
     });
     html+=`</div>`;
   }
@@ -819,8 +1109,9 @@ function renderContent(){
         'Psychologie':'#534AB7','Philosophie':'#185FA5','Cinéma':'#D4537E','Histoire':'#993556',
         'Contemporain':'#185FA5','Actualité':'#D85A30','Droit':'#5F5E5A','Cours — texte':'#EF9F27',
         'Philosophie — Cours':'#185FA5','Histoire — Cours':'#993556','Actualité — Cours':'#D85A30',
-        'Texte — Cours':'#EF9F27',
-        'Droit — Cours':'#5F5E5A','Art contemporain':'#8B5E3C','Musique':'#8B5E3C'
+        'Texte — Cours':'#EF9F27','Droit — Cours':'#5F5E5A','Art contemporain':'#8B5E3C',
+        'Musique':'#8B5E3C','Psychanalyse — Cours':'#993556','Littérature — Cours':'#534AB7',
+        'Science — Cours':'#1D9E75','Psychologie — Cours':'#534AB7'
       };
       const tc=tagColors[e.tag]||c;
       const newBadgeEx=e.new?`<span class="new-badge">✦ Nouveau</span>`:'';
@@ -838,7 +1129,7 @@ function renderContent(){
     const liens=n.liens||[];
     html+=`<div class="slabel">Liens avec d'autres notions</div>
     <div class="liens-row">
-      ${liens.map(l=>{const k=KEYS.find(k=>D[k].l===l);return k?`<div class="lpill" style="border-color:${D[k].c};color:${D[k].c}" onclick="cur='${k}';curTab='auteurs';renderSB();renderContent()">${l}</div>`:''}).join('')}
+      ${liens.map(l=>{const k=KEYS.find(k=>D[k].l===l);return k?`<div class="lpill" style="border-color:${D[k].c};color:${D[k].c}" onclick="cur='${k}';curTab='auteurs';sbMode='notions';renderSB();renderContent()">${l}</div>`:''}).join('')}
     </div>
     <div class="slabel">Questions de dissertation typiques</div>
     <div class="diss-list">`;
