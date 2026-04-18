@@ -134,6 +134,28 @@ body{font-family:'Inter',system-ui,sans-serif;background:#121212;min-height:100v
 .sb-tab:hover{color:var(--color-text-primary)}
 .sb-tab.active{background:var(--color-background-primary);color:var(--color-text-primary);border-color:var(--color-border-tertiary)}
 
+/* ── Author search & filter ──────────────────────────────────── */
+.sb-search-row{display:flex;gap:4px;padding:0 2px;margin-bottom:6px}
+.sb-search{flex:1;background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:5px 8px;font-size:11px;color:var(--color-text-primary);outline:none;font-family:inherit;min-width:0}
+.sb-search::placeholder{color:var(--color-text-tertiary)}
+.sb-search:focus{border-color:var(--color-border-secondary)}
+.sb-filter-btn{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:5px 7px;cursor:pointer;font-size:11px;color:var(--color-text-tertiary);transition:all .15s;flex-shrink:0;line-height:1}
+.sb-filter-btn:hover{color:var(--color-text-primary);border-color:var(--color-border-secondary)}
+.sb-filter-btn.active{color:var(--color-new);border-color:var(--color-new-border);background:var(--color-new-bg)}
+.filter-panel{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:8px 7px;margin:0 2px 6px;display:none}
+.filter-panel.open{display:block}
+.filter-panel-title{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--color-text-tertiary);margin-bottom:6px}
+.filter-notions{display:flex;flex-direction:column;gap:3px;margin-bottom:7px}
+.filter-notion-item{display:flex;align-items:center;gap:6px;cursor:pointer;padding:3px 4px;border-radius:5px;transition:background .12s}
+.filter-notion-item:hover{background:var(--color-background-secondary)}
+.filter-notion-check{width:12px;height:12px;border-radius:3px;border:1.5px solid var(--color-border-secondary);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:8px;transition:all .12s}
+.filter-notion-check.checked{border-color:transparent}
+.filter-notion-label{font-size:11px;color:var(--color-text-secondary);line-height:1.2}
+.filter-actions{display:flex;gap:4px}
+.filter-action-btn{flex:1;padding:4px 0;font-size:10px;border-radius:5px;cursor:pointer;border:0.5px solid var(--color-border-tertiary);background:transparent;color:var(--color-text-tertiary);font-family:inherit;transition:all .12s}
+.filter-action-btn:hover{color:var(--color-text-primary);border-color:var(--color-border-secondary)}
+.sb-results-count{font-size:9px;color:var(--color-text-tertiary);padding:0 4px 4px;text-transform:uppercase;letter-spacing:.05em}
+
 /* ── Author list items ──────────────────────────────────────── */
 .ab{padding:7px 9px;border-radius:var(--border-radius-md);cursor:pointer;font-size:12px;color:var(--color-text-secondary);border:0.5px solid transparent;transition:all .15s}
 .ab:hover{background:var(--color-background-primary);color:var(--color-text-primary)}
@@ -903,12 +925,39 @@ const CC={
 };
 
 /* ── renderSB ────────────────────────────────────────────────── */
+let authorSearch='';
+let authorFilter=new Set(); // empty = all
+let filterOpen=false;
+let filterMode='or'; // 'or' | 'and'
+
+function authorsFiltered(){
+  const q=authorSearch.trim().toLowerCase();
+  return authorsSorted().filter(name=>{
+    const entry=AI[name];
+    const matchSearch=!q||name.toLowerCase().includes(q)||(AM[name]&&AM[name].courant&&AM[name].courant.toLowerCase().includes(q));
+    let matchFilter=true;
+    if(authorFilter.size>0){
+      if(filterMode==='or') matchFilter=entry.notions.some(k=>authorFilter.has(k));
+      else matchFilter=[...authorFilter].every(k=>entry.notions.includes(k));
+    }
+    return matchSearch&&matchFilter;
+  });
+}
+
+function toggleFilter(k){
+  if(authorFilter.has(k)) authorFilter.delete(k); else authorFilter.add(k);
+  renderSB();
+}
+
 function renderSB(){
   const sb=document.getElementById('sb');
+  const filterActive=authorFilter.size>0;
+
   sb.innerHTML=`<div class="sb-tabs">
-    <div class="sb-tab${sbMode==='notions'?' active':''}" onclick="sbMode='notions';renderSB();renderContent()">Notions</div>
+    <div class="sb-tab${sbMode==='notions'?' active':''}" onclick="sbMode='notions';filterOpen=false;renderSB();renderContent()">Notions</div>
     <div class="sb-tab${sbMode==='auteurs'?' active':''}" onclick="if(sbMode!=='auteurs'){sbMode='auteurs';if(!curAuthor)curAuthor=authorsSorted()[0];curAuthorTab='idees';renderSB();renderAuthorContent();}">Auteurs</div>
   </div>`;
+
   if(sbMode==='notions'){
     KEYS.forEach(k=>{
       const el=document.createElement('div');
@@ -918,16 +967,75 @@ function renderSB(){
       sb.appendChild(el);
     });
   } else {
-    authorsSorted().forEach(name=>{
+    // Search row
+    const searchRow=document.createElement('div');
+    searchRow.className='sb-search-row';
+    searchRow.innerHTML=`
+      <input class="sb-search" type="text" placeholder="Rechercher…" value="${authorSearch.replace(/"/g,'&quot;')}"
+        oninput="authorSearch=this.value;renderSBList()" />
+      <button class="sb-filter-btn${filterActive||filterOpen?' active':''}" onclick="filterOpen=!filterOpen;renderSB()" title="Filtrer par notion">⊟</button>`;
+    sb.appendChild(searchRow);
+
+    // Filter panel
+    const fp=document.createElement('div');
+    fp.className='filter-panel'+(filterOpen?' open':'');
+    const checks=KEYS.map(k=>{
+      const checked=authorFilter.has(k);
+      return `<div class="filter-notion-item" onclick="toggleFilter('${k}')">
+        <div class="filter-notion-check${checked?' checked':''}" style="${checked?`background:${D[k].c};color:#fff`:''}">${checked?'✓':''}</div>
+        <span class="filter-notion-label">${D[k].l}</span>
+        <span style="width:6px;height:6px;border-radius:50%;background:${D[k].c};flex-shrink:0;margin-left:auto"></span>
+      </div>`;
+    }).join('');
+    fp.innerHTML=`<div class="filter-panel-title">Filtrer par notion</div>
+      <div style="display:flex;gap:3px;margin-bottom:8px">
+        <button class="filter-action-btn" style="${filterMode==='or'?'background:var(--color-background-secondary);color:var(--color-text-primary);border-color:var(--color-border-secondary)':''}"
+          onclick="filterMode='or';renderSB()">Au moins une</button>
+        <button class="filter-action-btn" style="${filterMode==='and'?'background:var(--color-background-secondary);color:var(--color-text-primary);border-color:var(--color-border-secondary)':''}"
+          onclick="filterMode='and';renderSB()">Toutes</button>
+      </div>
+      <div class="filter-notions">${checks}</div>
+      <div class="filter-actions">
+        <button class="filter-action-btn" onclick="authorFilter=new Set(KEYS);renderSB()">Sélect. tout</button>
+        <button class="filter-action-btn" onclick="authorFilter=new Set();renderSB()">Effacer</button>
+      </div>`;
+    sb.appendChild(fp);
+
+    // List
+    const listWrap=document.createElement('div');
+    listWrap.id='sb-author-list';
+    sb.appendChild(listWrap);
+    renderSBList();
+  }
+}
+
+function renderSBList(){
+  const wrap=document.getElementById('sb-author-list');
+  if(!wrap) return;
+  const list=authorsFiltered();
+  // update search input value without re-rendering whole sidebar
+  const inp=document.querySelector('.sb-search');
+  if(inp&&document.activeElement!==inp) inp.value=authorSearch;
+
+  let html='';
+  if(list.length===0){
+    html=`<div style="padding:10px 4px;font-size:11px;color:var(--color-text-tertiary);text-align:center">Aucun résultat</div>`;
+  } else {
+    const filterActive=authorFilter.size>0;
+    if(authorSearch||filterActive)
+      html+=`<div class="sb-results-count">${list.length} auteur${list.length>1?'s':''}</div>`;
+    list.forEach(name=>{
       const entry=AI[name];
-      const el=document.createElement('div');
-      el.className='ab'+(name===curAuthor?' active':'');
       const bdgs=entry.notions.map(k=>`<span class="ab-bdg" style="background:${D[k].c}" title="${D[k].l}"></span>`).join('');
-      el.innerHTML=`<div class="ab-name">${name}</div><div class="ab-badges">${bdgs}</div>`;
-      el.onclick=()=>{curAuthor=name;curAuthorTab='idees';renderSB();renderAuthorContent()};
-      sb.appendChild(el);
+      const active=name===curAuthor?' active':'';
+      const safeN=name.replace(/'/g,"\\'");
+      html+=`<div class="ab${active}" onclick="curAuthor='${safeN}';curAuthorTab='idees';renderSBList();renderAuthorContent()">
+        <div class="ab-name">${name}</div>
+        <div class="ab-badges">${bdgs}</div>
+      </div>`;
     });
   }
+  wrap.innerHTML=html;
 }
 
 function tab(id){curTab=id;renderContent()}
