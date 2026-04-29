@@ -206,7 +206,26 @@ body{font-family:'Inter',system-ui,sans-serif;background:#121212;min-height:100v
 .dial-sujet{font-size:10px;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:.05em;margin:2px 0}
 .dial-desc{font-size:12px;color:var(--color-text-secondary);line-height:1.5}
 
-/* ── Author name clickable in notion cards ──────────────────── */
+/* ── Concept cards (sidebar list) ───────────────────────────── */
+.cb{padding:7px 9px;border-radius:var(--border-radius-md);cursor:pointer;font-size:12px;color:var(--color-text-secondary);border:0.5px solid transparent;transition:all .15s}
+.cb:hover{background:var(--color-background-primary);color:var(--color-text-primary)}
+.cb.active{background:var(--color-background-primary);color:var(--color-text-primary);border-color:var(--color-border-secondary);font-weight:500}
+.cb-term{line-height:1.3;margin-bottom:2px}
+.cb-cat{font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:var(--color-text-tertiary)}
+
+/* ── Concept fiche ──────────────────────────────────────────── */
+.concept-title{font-size:17px;font-weight:500;color:var(--color-text-primary)}
+.concept-cat-badge{display:inline-flex;align-items:center;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;padding:2px 8px;border-radius:20px;background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);color:var(--color-text-tertiary);margin-top:3px}
+.concept-def-box{background:var(--color-background-secondary);border-left:2.5px solid var(--color-border-secondary);padding:11px 13px;border-radius:0 var(--border-radius-md) var(--border-radius-md) 0;margin:12px 0;font-size:13px;color:var(--color-text-secondary);line-height:1.65}
+.concept-section{margin-bottom:14px}
+.concept-section-title{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--color-text-tertiary);margin-bottom:7px}
+.tension-item{display:flex;align-items:flex-start;gap:7px;font-size:12px;color:var(--color-text-secondary);margin-bottom:5px;line-height:1.5}
+.tension-sep{color:var(--color-text-tertiary);font-size:10px;font-weight:700;flex-shrink:0;margin-top:2px}
+
+/* ── Concept term link (inline in text) ─────────────────────── */
+.cterm{cursor:pointer;border-bottom:1px dotted var(--color-text-tertiary);transition:border-color .15s;color:inherit}
+.cterm:hover{border-bottom-color:var(--color-text-primary)}
+
 .an-link{cursor:pointer;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:2px}
 .an-link:hover{opacity:.75}
 </style>
@@ -825,6 +844,128 @@ exemples:[
 ],
 liens:["Travail","Technique","Liberté","Conscience","Nature"],
 diss:[{new:true,q:"L'artiste travaille-t-il ?"},{new:true,q:"Peut-on apprendre à créer ?"},{new:true,q:"L'œuvre d'art a-t-elle une utilité ?"},{new:true,q:"Le génie est-il inné ou acquis ?"},{new:true,q:"L'art doit-il être beau ?"},{new:true,q:"La technique suffit-elle pour créer une œuvre d'art ?"},{new:true,q:"L'art est-il un langage universel ?"},{new:true,q:"Une œuvre d'art peut-elle être immortelle ?"},{new:true,q:"L'art est-il affaire de goût ?"}]
+},
+
+langage:{c:"#6B4FA0",l:"Langage",s:"Le langage ne sert-il qu'à communiquer ?",
+def:"Le <span class='kw'>langage</span> est tout système de signes permettant l'expression ou la communication. Il se distingue des autres systèmes par la <span class='kw'>double articulation</span> (monèmes + phonèmes). Question centrale : est-il un simple <span class='kw'>moyen</span> (instrument) ou peut-il être une <span class='kw'>fin en soi</span> ?<details><summary>Approfondir la notion</summary><div class='def-sec'><div class='def-sec-title'>Trois distinctions fondamentales</div><div class='def-sec-body'><strong>Langage</strong> (général) : système de signes permettant l'exploration ou la communication — englobe le langage animal, informatique, humain. <strong>Langue</strong> : instrument de communication propre à une communauté humaine, produit social et stable (le français, l'anglais…). <strong>Parole</strong> (Saussure) : acte individuel par lequel un individu s'approprie une langue commune. Et aussi : <strong>logos</strong> (parole rationnelle, Aristote) ≠ <strong>phone</strong> (voix animale, cri).</div></div><div class='def-sec'><div class='def-sec-title'>Signe linguistique (Saussure)</div><div class='def-sec-body'>Le signe = <strong>signifiant</strong> (image acoustique, le son) + <strong>signifié</strong> (concept mental). Lien <strong>arbitraire</strong> mais <strong>inséparable</strong> — comme le recto/verso d'une feuille. Le <strong>référent</strong> (l'objet réel) est distinct. La licorne : signifiant + signifié sans référent → le langage dépasse la transmission utilitaire.</div></div><div class='def-sec'><div class='def-sec-title'>Signal vs Symbole (Benveniste)</div><div class='def-sec-body'>Le <strong>signal</strong> est un fait physique relié à un autre par rapport naturel/conventionnel — l'animal y réagit par réflexe. Le <strong>symbole</strong> est institué par l'homme : il faut apprendre à l'interpréter. L'animal <em>exprime</em> ses émotions, il ne les <em>dénomme</em> pas. Cette capacité symbolique est à la base de toutes les fonctions conceptuelles.</div></div><div class='def-sec'><div class='def-sec-title'>6 fonctions du langage (Jakobson)</div><div class='def-sec-body'><strong>Émotive</strong> (je), <strong>conative</strong> (tu — commander, persuader), <strong>référentielle</strong> (il — décrire), <strong>phatique</strong> (maintenir le contact), <strong>métalinguistique</strong> (parler du code lui-même), <strong>poétique</strong> (la forme du message). Une phrase combine rarement une seule fonction. La fonction poétique : le langage comme fin en soi.</div></div><div class='def-sec'><div class='def-sec-title'>Le langage structure la pensée</div><div class='def-sec-body'>Saussure : sans les signes, notre pensée n'est qu'une « nébuleuse amorphe et indistincte ». Hegel (<em>Philosophie de l'esprit</em>) : « C'est dans les mots que nous pensons. » Boroditsky : les locuteurs ayant des catégories linguistiques différentes (ex. point cardinal vs gauche/droite) perçoivent le monde différemment. Orwell (<em>1984</em>) : la <em>novlangue</em> réduit le pensable en appauvrissant le vocabulaire.</div></div></details>",
+auteurs:[
+{new:true,n:"Saussure",w:"Cours de linguistique générale, 1906–1911",i:"Fonde la linguistique moderne. Le signe = signifiant + signifié, lien arbitraire mais inséparable. La langue est un système de différences : les mots n'ont pas de valeur en eux-mêmes, mais par rapport aux autres. Sans les signes, la pensée est une nébuleuse indistincte.",q:"'La pensée, chaotique de sa nature, est forcée de se préciser en se décomposant'"},
+{new:true,n:"Benveniste",w:"Problèmes de linguistique générale, 1963",i:"Distingue signal et symbole : l'animal perçoit le signal et y réagit par réflexe conditionné — l'homme invente et comprend des symboles. Cette capacité symbolique est à la base des fonctions conceptuelles. La pensée est par essence symbolique.",q:"'L'homme invente et comprend des symboles ; l'animal, non. Tout découle de là'"},
+{new:true,n:"Jakobson",w:"Essais de linguistique générale, 1963",i:"Identifie 6 fonctions du langage selon le pôle de communication dominant : émotive (émetteur), conative (destinataire), référentielle (contexte), phatique (contact), métalinguistique (code), poétique (message). Le langage est irréductible à la seule transmission d'information.",q:"La fonction poétique : l'accent mis sur le message pour son propre compte"},
+{new:true,n:"Austin",w:"Quand dire, c'est faire, 1962",i:"Distingue énoncés constatatifs (décrivent, vrais/faux) et performatifs (accomplissent l'action qu'ils énoncent). 'Je vous déclare mari et femme' : dire, c'est faire. Conditions de félicité : statut du locuteur, reconnaissance institutionnelle. Le langage est un mode d'action.",q:"'Produire l'énonciation est exécuter une action'"},
+{new:true,n:"Bergson",w:"Le Rire, 1900 / L'évolution créatrice, 1907",i:"Le Rire : les mots (termes généraux) masquent le particulier et l'intime — nous ne voyons pas les choses mais des étiquettes. Le langage échoue parfois à communiquer l'expérience individuelle. L'évolution créatrice : le signe intelligent est mobile (connotations, ironie, sens figurés), contrairement au signe instinctif adhérent.",q:"'Les mots s'insinuent entre la chose et nous'"},
+{new:true,n:"Hegel",w:"Philosophie de l'esprit, 1817",i:"C'est dans les mots que nous pensons. La pensée ne devient consciente d'elle-même qu'en se donnant une forme extérieure par le langage. L'intuition n'est que pensée obscure à l'état de fermentation. Le mot articulé donne à la pensée son objectivité.",q:"'C'est dans les mots que nous pensons — c'est le son articulé, le mot, qui seul nous offre une existence où l'externe et l'interne sont si intimement unis'"},
+{new:true,n:"Orwell",w:"1984, 1949",i:"La novlangue est une langue artificielle conçue pour réduire le champ du pensable : moins de mots = moins de pensées possibles. Instrument du pouvoir totalitaire. Illustre que le langage conditionne la pensée et peut être outil d'oppression autant que de libération.",q:"'La novlangue réduira finalement le champ de la pensée'"},
+{new:true,n:"Watzlawick",w:"Une logique de la communication, 1967",i:"Analyse les injonctions paradoxales : messages qui exigent un comportement spontané ('Soyez spontané !'). Pour obéir, il faudrait être spontané par obéissance — contradiction performative. Ces paradoxes révèlent les limites de la communication humaine et expliquent certaines formes de souffrance psychique.",q:"'Soyez spontané !' — prototype de l'injonction paradoxale"},
+{new:true,n:"Boroditsky",w:"'How language shapes the way we think ?', 2009",i:"Linguiste cognitive américaine. Ses expériences montrent que la langue maternelle influence la façon de percevoir le temps, l'espace, les couleurs et les causes. Les locuteurs utilisant les points cardinaux (nord/sud) ont une orientation spatiale supérieure à ceux utilisant gauche/droite.",q:"'Language crafts reality'"},
+{new:true,n:"Cassin",w:"Vocabulaire européen des philosophies (dir.), 2004",i:"Les 'intraduisibles' : certains mots sont philosophiquement intraduisibles car ils condensent une vision du monde irréductible (logos ≠ raison + discours en anglais). La traduction est toujours une trahison partielle. Philosophie comme exploration des différences de langues.",q:"Les intraduisibles révèlent ce que chaque langue pense que les autres ne pensent pas"},
+{new:true,n:"Arendt",w:"La Crise de la culture, 1961",i:"La langue est mémoire : elle conserve la trace des générations. Le langage n'est pas seulement communication — c'est le médium dans lequel le monde commun se constitue et se transmet. La perte de la langue commune est une perte du monde commun.",q:"Le langage conserve / trace / mémoire / historique"},
+],
+textes:[
+{new:true,n:"Benveniste — Signal vs Symbole (cours p.6–8)",t:"Un signal est un fait physique relié à un autre par rapport naturel ou conventionnel. L'animal perçoit le signal et réagit adéquatement. L'homme utilise en outre le symbole : il faut apprendre le sens du symbole, l'interpréter dans sa fonction signifiante. L'animal exprime ses émotions, il ne peut les dénommer. La capacité symbolique est à la base des fonctions conceptuelles."},
+{new:true,n:"Saussure — La langue comme pensée dans la matière phonique (cours p.17)",t:"La pensée, abstraction faite de son expression par les mots, n'est qu'une masse amorphe et indistincte. Sans les signes, nous serions incapables de distinguer deux idées d'une façon claire et constante. Le signifiant et le signifié sont les deux faces du signe linguistique, aussi inséparables que le recto et le verso d'une feuille de papier. La pensée ne préexiste pas aux sons."},
+{new:true,n:"Bergson — Termes généraux (cours p.9)",t:"Nous ne voyons pas les choses mêmes ; nous nous bornons, le plus souvent, à lire des étiquettes collées sur elles. Les mots (sauf les noms propres) désignent des genres — le mot s'insinue entre la chose et nous. Jusque dans notre propre individu, l'individualité nous échappe. Nous nous mouvons parmi des généralités et des symboles. (Le Rire, 1900)"},
+{new:true,n:"Bergson — Mobilité du signe (cours p.10)",t:"Ce qui caractérise les signes du langage humain, ce n'est pas tant leur généralité que leur mobilité. Le signe instinctif est un signe adhérent, le signe intelligent est un signe mobile. Un signe n'est pas figé dans une seule signification : il peut impliquer des connotations péjoratives/mélioratives, avoir des sens figurés, être détourné par l'ironie. (L'évolution créatrice, 1907)"},
+{new:true,n:"Watzlawick — Injonctions paradoxales (cours p.10)",t:"La forme la plus fréquente sous laquelle le paradoxe s'introduit dans la communication humaine est l'injonction exigeant un comportement déterminé qui, par sa nature même, ne saurait être que spontané. 'Soyez spontané !' — pour obéir, il faudrait être spontané par obéissance, donc sans spontanéité. (Une logique de la communication, 1967)"},
+{new:true,n:"Hegel — La pensée dans les mots (cours p.18)",t:"C'est dans les mots que nous pensons. Nous n'avons conscience de nos pensées déterminées et réelles que lorsque nous leur donnons la forme objective, que nous les différencions de notre intériorité et par suite nous les marquons d'une forme externe. L'intuition n'est que de la pensée obscure, à l'état de fermentation. C'est le son articulé, le mot, qui seul nous offre une existence où l'externe et l'interne sont si intimement unis. (Philosophie de l'esprit, 1817)"},
+{new:true,n:"Austin — Performatif (cours p.15–16)",t:"Quand je dis 'oui je le veux' lors de la cérémonie du mariage, ce n'est ni décrire ce que je fais ni affirmer que je le fais : c'est le faire. Je propose d'appeler une telle phrase 'performative'. Ce nom dérive du verbe 'perform' : produire l'énonciation est exécuter une action. Conditions de félicité : statut du locuteur, reconnaissance par l'assistance. (Quand dire, c'est faire, 1962)"},
+],
+axes:[
+{new:true,n:"Axe A",t:"Le langage est un moyen de communiquer",pb:"Le langage n'est-il qu'un instrument de transmission d'information ?",
+sps:[
+{l:"A",c:"Chez les animaux, le langage est un code servant à communiquer des informations sur le monde extérieur ou l'individu lui-même (codes visuels, sonores, chimiques, tactiles). Le langage humain peut en ce sens s'apparenter à un code.",r:"Éthologie animale ; Saussure (signifiant/signifié comme code)"},
+{l:"B",c:"Saussure fonde la linguistique structurale : le signe = signifiant + signifié, arbitraires mais inséparables. Le langage humain est un système qui permet de désigner des objets, actions, états de manière compréhensible par autrui.",r:"Saussure, Cours de linguistique générale"},
+{l:"C",c:"Cependant le langage humain ne peut se réduire à un code : comprendre un énoncé exige d'interpréter, faire des hypothèses, contextualiser. Benveniste : signal ≠ symbole — l'animal réagit au signal, l'homme interprète le symbole.",r:"Benveniste, Problèmes de linguistique générale"},
+]},
+{new:true,n:"Axe B",t:"Le langage a d'autres fonctions que la communication",pb:"En quoi le langage dépasse-t-il la simple transmission d'information ?",
+sps:[
+{l:"A",c:"Le langage échoue parfois à communiquer : (1) problème des termes généraux — les mots masquent le particulier (Bergson) ; (2) mobilité signifiante — un signe peut avoir des connotations variables, être détourné par l'ironie ; (3) injonctions paradoxales — 'Soyez spontané !' (Watzlawick).",r:"Bergson, Le Rire ; Watzlawick, Une logique de la communication"},
+{l:"B",c:"Jakobson identifie 6 fonctions du langage. Les fonctions émotive, conative, phatique, métalinguistique et poétique dépassent la seule transmission d'information référentielle. La fonction poétique (centrée sur le message lui-même) est particulièrement importante : langage comme fin.",r:"Jakobson, Essais de linguistique générale"},
+{l:"C",c:"Le langage a aussi une fonction sociale/politique : facteur d'appartenance et d'identité culturelle. Il peut être instrument de pouvoir (novlangue d'Orwell) ou mémoire collective (Arendt). La langue est la dimension culturelle d'une communauté.",r:"Orwell, 1984 ; Arendt, La Crise de la culture"},
+]},
+{new:true,n:"Axe C",t:"Loin d'être un simple moyen, le langage peut être une fin en soi",pb:"Le langage n'est-il qu'un simple moyen ou peut-il être une fin en lui-même ?",
+sps:[
+{l:"A",c:"La fonction poétique du langage (Jakobson) détruit le rapport utilitaire entre signifiant et signifié. Dans la littérature et la poésie, la communication peut être suspendue. Robbe-Grillet : 'le véritable écrivain est celui qui n'a rien à dire.' Le langage devient matériau à travailler (cf. Barthes).",r:"Jakobson ; Robbe-Grillet ; Barthes (écrivain/écrivant)"},
+{l:"B",c:"Austin : le langage performatif est un mode d'action — certaines paroles font des choses. 'Je vous déclare mari et femme' modifie la réalité. Le langage n'est pas seulement représentation mais constitution du réel social. Le droit repose sur cette performativité.",r:"Austin, Quand dire, c'est faire, 1962"},
+{l:"C",c:"Le langage structure et met en forme la pensée (Saussure, Hegel) — la pensée sans langage n'est qu'une nébuleuse indistincte. Plus profond encore : la langue que l'on parle oriente la manière de percevoir le monde (Boroditsky). Le langage n'est pas seulement moyen de la pensée mais sa condition de possibilité.",r:"Saussure, CLG ; Hegel, Philosophie de l'esprit ; Boroditsky"},
+]},
+],
+exemples:[
+{new:true,tag:"Littérature",tit:"Tour de Babel (Genèse 11)",body:"Mythe fondateur de l'incommunicabilité : les hommes parlaient une seule langue, construisaient la Tour de Babel. Dieu confond leurs langues et les disperse. Illustre que la multiplicité des langues est à la fois richesse (diversité des mondes) et obstacle (incompréhension). Borgès, Cassin sur les intraduisibles prolongent cette réflexion.",lien:"→ Limite de la communication, intraduisibles"},
+{new:true,tag:"Littérature",tit:"Orwell — 1984 et la novlangue",body:"La novlangue est conçue pour rendre hérétique impossible : si 'liberté' est supprimé du dictionnaire, le concept disparaît avec le mot. 'Bienbon' remplace 'bien', 'doubleplusbienbon' est le superlatif absolu. Illustre la thèse que le langage conditionne la pensée — et que son contrôle est instrument de pouvoir totalitaire.",lien:"→ Langage, Liberté, État (notions liées)"},
+{new:true,tag:"Philosophie — Cours",tit:"Austin — Énoncés performatifs",body:"'Je vous déclare mari et femme' (le maire), 'Je baptise ce bateau la Queen Elisabeth', 'Je lègue ma montre à mon frère'. Ces phrases ne décrivent pas une action — elles la font. Elles modifient la réalité sociale. Conditions de félicité : statut du locuteur, reconnaissance. Un convive éméché ne peut pas déclarer mari et femme deux invités.",lien:"→ Langage comme action, Travail, Droit"},
+{new:true,tag:"Science — Cours",tit:"Boroditsky — Le langage oriente la perception",body:"Expérience : les Kuuk Thaayorre (aborigènes australiens) utilisent les points cardinaux au lieu de gauche/droite — ils ont une orientation spatiale extraordinaire. Autre expérience : le genre grammatical influence les associations (ex. 'pont' masculin en espagnol → fort/robuste, féminin en allemand → beau/élégant). La langue n'est pas un répertoire neutre : elle découpe le réel.",lien:"→ Langage, Conscience, Raison"},
+{new:true,tag:"Philosophie — Cours",tit:"Jakobson — Les 6 fonctions (publicités)",body:"'Dior, j'adore' → fonction poétique (jeu de sonorités). 'Allô, vous m'entendez ?' → fonction phatique. 'Vite ! Dépêche-toi !' → fonction conative. 'Hélas ! Je suis arrivé trop tard' → fonction émotive. 'Que voulez-vous dire par là ?' → fonction métalinguistique. 'Le train est en retard' → fonction référentielle.",lien:"→ Fonctions du langage, Communication"},
+{new:true,tag:"Philosophie — Cours",tit:"Watzlawick — Injonctions paradoxales",body:"'Soyez spontané !' : paradoxe de communication — on ne peut obéir qu'en désobéissant à l'esprit de l'injonction. Autres exemples : 'Tu devrais m'aimer', 'Ne sois pas si docile'. Ces paradoxes révèlent que le langage peut se retourner contre sa propre fonction et produire de la souffrance psychique (double bind de Bateson).",lien:"→ Limites de la communication, Injonction paradoxale"},
+],
+liens:["Conscience","Liberté","Technique","Raison","Art","Nature"],
+diss:[{new:true,q:"Le langage ne sert-il qu'à communiquer ?"},{new:true,q:"Les mots peuvent-ils tout dire ?"},{new:true,q:"Le langage exprime-t-il la pensée ou la constitue-t-il ?"},{new:true,q:"Peut-on communiquer sans mentir ?"},{new:true,q:"Le langage est-il un obstacle à la connaissance ?"},{new:true,q:"Parler, est-ce agir ?"},{new:true,q:"Peut-on penser sans langage ?"},{new:true,q:"Toutes les langues sont-elles équivalentes ?"},{new:true,q:"Le langage nous appartient-il ?"}]
+},
+
+inconscient:{c:"#7B4F9E",l:"Inconscient",s:"L'inconscient remet-il en cause notre liberté ?",
+def:"L'<span class='kw'>inconscient</span> désigne chez Freud l'ensemble des représentations refoulées qui continuent d'agir sur notre psychisme à notre insu. Question centrale : si nous sommes déterminés par des forces que nous ne connaissons pas, sommes-nous encore libres et responsables ?<details><summary>Approfondir la notion</summary><div class='def-sec'><div class='def-sec-title'>Le modèle freudien</div><div class='def-sec-body'>Freud construit deux topiques : (1) <strong>Inconscient / Préconscient / Conscient</strong> ; (2) <strong>Ça / Moi / Surmoi</strong>. L'inconscient contient des désirs refoulés, des pulsions (Éros/Thanatos) que la censure maintient hors de la conscience. Il se manifeste dans les rêves, les actes manqués, les lapsus, les symptômes névrotiques.</div></div><div class='def-sec'><div class='def-sec-title'>La triple blessure narcissique</div><div class='def-sec-body'>Freud : trois blessures infligées à l'orgueil de l'humanité : (1) Copernic — la Terre n'est pas le centre du cosmos ; (2) Darwin — l'homme est un animal parmi d'autres ; (3) Freud lui-même — le moi n'est pas maître en sa propre maison.</div></div></details>",
+auteurs:[
+{n:"Freud",w:"L'Interprétation des rêves, 1900 / Introduction à la psychanalyse, 1916",i:"L'inconscient est le psychisme lui-même dans sa réalité profonde. Il contient des désirs refoulés qui se manifestent dans les rêves (voie royale vers l'inconscient), les actes manqués et les symptômes. La cure vise à rendre conscient l'inconscient pour que le Moi reprenne là où était le Ça.",q:"'Le moi n'est pas maître en sa propre maison'"},
+],
+textes:[],axes:[],
+exemples:[{tag:"Psychanalyse — Cours",tit:"Freud — Triple blessure narcissique",body:"Copernic (la Terre n'est pas le centre), Darwin (l'homme est un animal), Freud (le moi n'est pas maître). Trois humiliations qui remettent en cause la prétention de l'homme à être le centre du monde.",lien:"→ Conscience, Liberté"}],
+liens:["Conscience","Liberté","Nature"],
+diss:["L'inconscient remet-il en cause la liberté ?","L'inconscient est-il une excuse ?","Peut-on se connaître soi-même ?","La psychanalyse est-elle une science ?"]
+},
+
+raison:{c:"#2E86AB",l:"Raison",s:"La raison peut-elle tout expliquer ?",
+def:"La <span class='kw'>raison</span> est la faculté humaine de penser de manière logique et d'établir des vérités par démonstration. Elle peut désigner la <span class='kw'>raison théorique</span> (connaître) ou la <span class='kw'>raison pratique</span> (agir moralement). Question : la raison est-elle infaillible ? Y a-t-il des limites à la rationalité ?",
+auteurs:[
+{n:"Kant",w:"Critique de la raison pure, 1781",i:"La raison pure a des limites : elle ne peut connaître que les phénomènes (le monde tel qu'il nous apparaît) et non les noumènes (les choses en soi). Quand elle dépasse ses limites, elle produit des antinomies (contradictions). Révolution copernicienne : c'est le sujet qui structure l'expérience.",q:"'La raison produit des illusions inévitables quand elle dépasse ses limites'"},
+{n:"Pascal",w:"Pensées, 1670",i:"La raison a des limites : le cœur a ses raisons que la raison ne connaît point. Le roseau pensant : l'homme est la plus faible des roseaux — mais un roseau pensant. Sa dignité est dans la pensée, mais sa condition est d'être un être fini.",q:"'Le cœur a ses raisons que la raison ne connaît point'"},
+],
+textes:[],axes:[],exemples:[],
+liens:["Science","Vérité","Langage","Conscience","Nature"],
+diss:["La raison peut-elle tout expliquer ?","Y a-t-il des vérités inaccessibles à la raison ?","La raison est-elle universelle ?","Peut-on être raisonnable sans être rationnel ?"]
+},
+
+religion:{c:"#C4682A",l:"Religion",s:"La religion est-elle compatible avec la raison ?",
+def:"La <span class='kw'>religion</span> est un ensemble de croyances et de pratiques relatives au sacré, au divin ou à ce qui transcende l'ordre naturel. Elle articule une vision du monde, une morale et des rites. Question : la religion est-elle une illusion, un besoin ou une vérité ?",
+auteurs:[
+{n:"Nietzsche",w:"La Généalogie de la morale, 1887 / Le Gai Savoir, 1882",i:"'Dieu est mort' — la foi en Dieu a perdu sa crédibilité dans la culture moderne. La morale judéo-chrétienne est une 'morale d'esclaves' née du ressentiment. Il faut une 'transvaluation de toutes les valeurs'.",q:"'Dieu est mort ! Et c'est nous qui l'avons tué !'"},
+{n:"Freud",w:"L'Avenir d'une illusion, 1927",i:"La religion est une illusion collective — une projection des désirs infantiles (le père protecteur). Elle remplit une fonction d'apaisement face à l'angoisse de la mort et à la détresse humaine. Non nécessairement fausse mais motivée par le désir.",q:"'La religion est l'illusion universelle obsessionnelle de l'humanité'"},
+],
+textes:[],axes:[],exemples:[],
+liens:["Vérité","Raison","Science","État","Liberté"],
+diss:["La religion est-elle une illusion ?","La foi est-elle raisonnable ?","La religion favorise-t-elle ou entrave-t-elle la liberté ?","Peut-on se passer de religion ?"]
+},
+
+science:{c:"#1A7A4A",l:"Science",s:"La science peut-elle tout expliquer ?",
+def:"La <span class='kw'>science</span> est une connaissance rationnelle, méthodique et vérifiable des phénomènes naturels ou humains. Elle se distingue de la croyance par ses exigences de preuve et de réfutabilité. Question : la science produit-elle la vérité ? Y a-t-il des domaines hors de sa portée ?",
+auteurs:[
+{n:"Popper",w:"La Logique de la découverte scientifique, 1934",i:"Critère de démarcation : une théorie est scientifique si elle est réfutable (falsifiable). La psychanalyse et le marxisme ne sont pas des sciences car elles ne peuvent être réfutées. La science progresse par conjectures et réfutations.",q:"'La science n'est pas un corps de connaissances certaines mais de conjectures audacieuses'"},
+{n:"Kuhn",w:"La Structure des révolutions scientifiques, 1962",i:"La science progresse par paradigmes — matrices disciplinaires partagées. La révolution scientifique est un changement de paradigme, non une accumulation linéaire. Exemple : passage de Ptolémée à Copernic.",q:"'Un paradigme est ce que les membres d'une communauté scientifique partagent'"},
+],
+textes:[],axes:[],exemples:[],
+liens:["Raison","Vérité","Technique","Nature","Langage"],
+diss:["La science peut-elle tout expliquer ?","Y a-t-il une vérité scientifique unique ?","La science est-elle objective ?","Le progrès scientifique est-il nécessairement un progrès moral ?"]
+},
+
+temps:{c:"#4E6D8C",l:"Temps",s:"Pouvons-nous maîtriser le temps ?",
+def:"Le <span class='kw'>temps</span> peut être envisagé comme dimension physique (temps mesuré), psychologique (durée vécue) ou existentiel (rapport à la mort, à la mémoire). Question : le temps nous appartient-il ? Peut-on vivre pleinement dans le temps ?",
+auteurs:[
+{n:"Bergson",w:"Essai sur les données immédiates de la conscience, 1889",i:"La durée (durée vécue intérieure) est irréductible au temps mesuré par l'horloge. Le temps scientifique spatialise la durée — il la trahit. La vraie liberté se situe dans la durée vécue, non dans le déterminisme des sciences.",q:"'La durée est le progrès continu du passé qui ronge l'avenir'"},
+{n:"Heidegger",w:"Être et Temps, 1927",i:"L'être humain (Dasein) est fondamentalement 'être-vers-la-mort'. La temporalité est la structure fondamentale de l'existence. L'authenticité consiste à assumer sa finitude au lieu de fuir dans le 'On' (das Man) anonyme.",q:"'L'être-là est fondamentalement un être-vers-la-mort'"},
+],
+textes:[],axes:[],exemples:[],
+liens:["Conscience","Liberté","Travail","Nature","Science"],
+diss:["Le temps nous appartient-il ?","Peut-on maîtriser le temps ?","La conscience du temps est-elle une malédiction ?","Peut-on vivre sans passé ?"]
+},
+
+verite:{c:"#8A6B2E",l:"Vérité",s:"Peut-on douter de tout ?",
+def:"La <span class='kw'>vérité</span> est l'adéquation entre un jugement et la réalité (conception classique). Mais on distingue vérité <span class='kw'>absolue</span> (universelle, nécessaire) et vérité <span class='kw'>relative</span> (dépendante d'un contexte). Question : comment distinguer le vrai du faux ? Y a-t-il des vérités définitives ?",
+auteurs:[
+{n:"Descartes",w:"Méditations métaphysiques, 1641",i:"Le doute méthodique comme chemin vers la vérité : douter de tout ce qui peut être mis en doute. La seule certitude indubitale : le cogito. À partir de là, reconstruire un édifice de connaissances certaines.",q:"'Pour examiner la vérité, il est besoin de douter une fois en sa vie de toutes choses'"},
+{n:"Nietzsche",w:"Par-delà le Bien et le Mal, 1886",i:"La vérité n'est pas donnée mais construite — elle est une perspective parmi d'autres. 'Il n'y a pas de faits, il n'y a que des interprétations.' La volonté de vérité cache une volonté de puissance.",q:"'Il n'y a pas de faits, seulement des interprétations'"},
+],
+textes:[],axes:[],exemples:[],
+liens:["Science","Raison","Langage","Conscience","Religion"],
+diss:["Peut-on douter de tout ?","La vérité existe-t-elle ?","Peut-on vivre sans illusions ?","Le doute est-il nécessaire à la connaissance ?","Faut-il toujours dire la vérité ?"]
 }
 };
 
@@ -877,10 +1018,64 @@ const AM={
 "Baudrillard":{bio:"Sociologue et philosophe français (1929–2007). Il analyse la société de consommation comme un système de signes qui remplace la réalité par des simulacres.",courant:"Philosophie de la culture / Postmodernisme",periode:"XXe siècle",themes:["simulation","simulacre","société de consommation","hyperréalité","objets et rêves"],dialogues:[{dir:"prolonge",auteur:"Marx",sujet:"critique de la société marchande",desc:"Baudrillard prolonge Marx : la marchandise n'est plus seulement un rapport social — elle est devenue signe, simulation, hyperréalité."},{dir:"repond",auteur:"Simondon",sujet:"objets techniques",desc:"Simondon analyse les objets techniques pour mieux les comprendre ; Baudrillard analyse la société de consommation pour en montrer le caractère illusoire."}]},
 "Ricœur":{bio:"Philosophe français (1913–2005). Il développe une herméneutique de soi et de l'identité narrative, cherchant à réconcilier interprétation et réflexion.",courant:"Herméneutique / Phénoménologie",periode:"XXe siècle",themes:["identité narrative","idem/ipse","herméneutique","récit de soi","mémoire"],dialogues:[{dir:"prolonge",auteur:"Freud",sujet:"récit et inconscient",desc:"Ricœur voit dans la cure analytique une forme d'herméneutique du soi — reconstruire une identité narrative à partir des fragments du passé."},{dir:"repond",auteur:"Hume",sujet:"identité du moi",desc:"Hume dissout le moi en un flux de perceptions ; Ricœur répond : l'identité narrative permet de maintenir une unité sans substance fixe."}]},
 "Alain":{bio:"Philosophe français (1868–1951), professeur emblématique de la Troisième République. Il développe une philosophie de la résistance à la puissance et de la formation du sujet par le travail.",courant:"Rationalisme républicain",periode:"XIXe–XXe siècle",themes:["résistance aux pouvoirs","formation du sujet","travail manuel","bonheur","propos"],dialogues:[{dir:"prolonge",auteur:"Kant",sujet:"autonomie morale",desc:"Alain hérite de Kant le souci de l'autonomie : le citoyen doit résister aux pouvoirs, y compris aux passions et aux émotions."},{dir:"prolonge",auteur:"Hegel",sujet:"conscience de soi et autrui",desc:"Alain prolonge Hegel : c'est des autres que nous tenons la première connaissance de nous-mêmes."}]},
-"Pascal":{bio:"Mathématicien, physicien et philosophe français (1623–1662). Sa pensée oscille entre l'apologétique chrétienne et une lucidité radicale sur la condition humaine ('roseau pensant').",courant:"Augustinisme / Apologétique",periode:"XVIIe siècle",themes:["roseau pensant","divertissement","misère et grandeur de l'homme","pari","cœur et raison"],dialogues:[{dir:"repond",auteur:"Descartes",sujet:"raison et finitude",desc:"Descartes fonde tout sur la raison ; Pascal montre ses limites — le cœur a ses raisons que la raison ne connaît point."},{dir:"prolonge",auteur:"Nietzsche",sujet:"divertissement et travail",desc:"Pascal analyse le divertissement comme fuite de soi ; Nietzsche prolonge cette idée en montrant que le travail est la 'meilleure des polices'."}]}
+"Pascal":{bio:"Mathématicien, physicien et philosophe français (1623–1662). Sa pensée oscille entre l'apologétique chrétienne et une lucidité radicale sur la condition humaine ('roseau pensant').",courant:"Augustinisme / Apologétique",periode:"XVIIe siècle",themes:["roseau pensant","divertissement","misère et grandeur de l'homme","pari","cœur et raison"],dialogues:[{dir:"repond",auteur:"Descartes",sujet:"raison et finitude",desc:"Descartes fonde tout sur la raison ; Pascal montre ses limites — le cœur a ses raisons que la raison ne connaît point."},{dir:"prolonge",auteur:"Nietzsche",sujet:"divertissement et travail",desc:"Pascal analyse le divertissement comme fuite de soi ; Nietzsche prolonge cette idée en montrant que le travail est la 'meilleure des polices'."}]},
+"Saussure":{bio:"Linguiste suisse (1857–1913), fondateur de la linguistique structurale. Son Cours de linguistique générale (reconstitué par ses étudiants) pose les bases de la sémiologie moderne.",courant:"Structuralisme / Linguistique",periode:"XIXe–XXe siècle",themes:["signifiant/signifié","arbitraire du signe","langue comme système","synchronie/diachronie","valeur différentielle"],dialogues:[{dir:"prolonge",auteur:"Benveniste",sujet:"signe et symbole",desc:"Benveniste prolonge et nuance Saussure en distinguant signal et symbole, réservant le symbole à l'espèce humaine."},{dir:"prolonge",auteur:"Hegel",sujet:"langage et pensée",desc:"Hegel avait posé que la pensée se réalise dans le mot ; Saussure montre que la langue structure la pensée en la découpant."}]},
+"Benveniste":{bio:"Linguiste français d'origine syrienne (1902–1976). Spécialiste de linguistique générale et de linguistique indo-européenne, il développe une réflexion sur la subjectivité dans le langage.",courant:"Linguistique / Phénoménologie du langage",periode:"XXe siècle",themes:["signal/symbole","subjectivité dans le langage","énonciation","personne grammaticale","intersubjectivité"],dialogues:[{dir:"prolonge",auteur:"Saussure",sujet:"arbitraire et symbole",desc:"Benveniste nuance Saussure : le lien n'est pas arbitraire pour le locuteur natif (il est motivé psychologiquement). Et distingue signal/symbole."},{dir:"repond",auteur:"Aristote",sujet:"logos et animal",desc:"Aristote distinguait logos et phone ; Benveniste formalise cette distinction avec signal/symbole."}]},
+"Jakobson":{bio:"Linguiste et théoricien de la littérature russo-américain (1896–1982). Co-fondateur du Cercle linguistique de Moscou et de Prague. Il développe un modèle de la communication à six facteurs.",courant:"Structuralisme / Linguistique",periode:"XXe siècle",themes:["6 fonctions du langage","modèle de communication","phonologie","poétique","fonction poétique"],dialogues:[{dir:"prolonge",auteur:"Saussure",sujet:"structuralisme",desc:"Jakobson prolonge le structuralisme saussurien en l'appliquant à la poétique et à la communication."},{dir:"repond",auteur:"Bergson",sujet:"langage et communication",desc:"Bergson souligne les limites communicationnelles du langage ; Jakobson en fait une richesse en multipliant les fonctions."}]},
+"Austin":{bio:"Philosophe britannique (1911–1960), fondateur de la philosophie du langage ordinaire. Sa distinction performatif/constatif révolutionne la conception du langage.",courant:"Philosophie analytique du langage",periode:"XXe siècle",themes:["performatif/constatif","actes de langage","conditions de félicité","langage ordinaire","dire c'est faire"],dialogues:[{dir:"prolonge",auteur:"Wittgenstein",sujet:"langage ordinaire",desc:"Austin s'inscrit dans la tradition de Wittgenstein du second Tractatus : la signification est dans l'usage."},{dir:"repond",auteur:"Jakobson",sujet:"fonctions du langage",desc:"Jakobson catalogue les fonctions ; Austin montre que le langage peut être une action à part entière, pas seulement de la communication."}]},
+"Watzlawick":{bio:"Psychologue et théoricien de la communication austro-américain (1921–2007). Membre de l'École de Palo Alto, il développe une pragmatique de la communication humaine.",courant:"Pragmatique de la communication / Psychologie systémique",periode:"XXe siècle",themes:["injonction paradoxale","double bind","métacommunication","pragmatique","communication pathologique"],dialogues:[{dir:"prolonge",auteur:"Bateson",sujet:"double bind",desc:"Watzlawick prolonge Bateson : le double bind (double contrainte) est à l'origine de certaines pathologies psychiques."},{dir:"repond",auteur:"Benveniste",sujet:"limites de la communication",desc:"Benveniste montre que le langage humain est symbolique ; Watzlawick montre que cette complexité crée des paradoxes communicationnels."}]},
+"Boroditsky":{bio:"Linguiste cognitive américaine (née en 1975). Ses recherches expérimentales montrent que la langue maternelle influence profondément la cognition : perception du temps, de l'espace, des couleurs, de la causalité.",courant:"Linguistique cognitive / Relativisme linguistique",periode:"XXe–XXIe siècle",themes:["relativisme linguistique","Sapir-Whorf","espace et langue","genre grammatical","temps et langue"],dialogues:[{dir:"prolonge",auteur:"Saussure",sujet:"langue et pensée",desc:"Saussure pose que la langue découpe la pensée ; Boroditsky le démontre expérimentalement avec des données cognitives."},{dir:"repond",auteur:"Chomsky",sujet:"universaux linguistiques",desc:"Chomsky défend une grammaire universelle innée ; Boroditsky montre la profonde diversité cognitive liée aux langues."}]},
+"Orwell":{bio:"Écrivain et journaliste britannique (1903–1950). Ses romans 1984 et La Ferme des animaux sont des analyses politiques du totalitarisme sous forme littéraire.",courant:"Littérature politique / Socialisme démocratique",periode:"XXe siècle",themes:["novlangue","totalitarisme","propagande","langage et pouvoir","doublethink"],dialogues:[{dir:"prolonge",auteur:"Hegel",sujet:"langage et pensée",desc:"Hegel pose que c'est dans les mots que nous pensons ; Orwell tire la conséquence politique : contrôler les mots, c'est contrôler la pensée."},{dir:"prolonge",auteur:"Arendt",sujet:"totalitarisme",desc:"Arendt analyse le totalitarisme politiquement ; Orwell le représente littérairement et insiste sur le rôle du langage dans sa propagation."}]},
+"Cassin":{bio:"Philosophe et philologue française (née en 1947). Directrice de recherche au CNRS, elle développe une réflexion sur les 'intraduisibles' philosophiques et la politique de la mémoire.",courant:"Philosophie du langage / Philologie",periode:"XXe–XXIe siècle",themes:["intraduisibles","logos/phone","politique de la mémoire","sophistique","traduction philosophique"],dialogues:[{dir:"prolonge",auteur:"Aristote",sujet:"logos et politique",desc:"Aristote distingue logos (parole politique) et phone (voix animale) ; Cassin prolonge en montrant que cette distinction est elle-même culturellement marquée."},{dir:"repond",auteur:"Benveniste",sujet:"langue et pensée",desc:"Benveniste analyse la subjectivité dans le langage ; Cassin élargit à la dimension interculturelle des concepts philosophiques."}]},
+"Popper":{bio:"Philosophe des sciences austro-britannique (1902–1994). Il développe le principe de falsifiabilité (réfutabilité) comme critère de démarcation entre science et non-science.",courant:"Épistémologie critique",periode:"XXe siècle",themes:["falsifiabilité","conjectures et réfutations","société ouverte","démocratie","critique du totalitarisme"],dialogues:[{dir:"oppose",auteur:"Kuhn",sujet:"progrès scientifique",desc:"Kuhn voit le progrès par révolutions de paradigmes ; Popper par conjectures et réfutations cumulatives."},{dir:"oppose",auteur:"Marx",sujet:"scientificité",desc:"Popper juge le marxisme non-scientifique car non-réfutable : toute contre-évidence est réinterprétée pour confirmer la théorie."}]},
+"Kuhn":{bio:"Historien et philosophe des sciences américain (1922–1996). Sa notion de 'paradigme' et de 'révolution scientifique' a transformé l'épistémologie.",courant:"Histoire et philosophie des sciences",periode:"XXe siècle",themes:["paradigme","révolution scientifique","incommensurabilité","science normale","communauté scientifique"],dialogues:[{dir:"oppose",auteur:"Popper",sujet:"progrès scientifique",desc:"Popper voit la science comme progrès rationnel cumulatif ; Kuhn montre des ruptures paradigmatiques incommensurables."},{dir:"prolonge",auteur:"Gaston Bachelard",sujet:"ruptures épistémologiques",desc:"Bachelard avait déjà analysé les 'obstacles épistémologiques' ; Kuhn formalise cette rupture dans la notion de révolution."}]}
 };
 
-/* ── Build author index ────────────────────────────────────────── */
+/* ── Concepts Glossaire ──────────────────────────────────────── */
+const CONCEPTS=[
+{id:'langage-def',term:'Langage',cat:'Linguistique',def:'Tout système ou ensemble de signes permettant l\'expression ou la communication. Le langage humain se distingue par la <strong>double articulation</strong> (monèmes + phonèmes) — il peut produire un nombre illimité d\'énoncés avec ~40 sons.',auteur:'Saussure',tensions:['Langage (général) ≠ Langue (propre à une communauté)','Langage ≠ Parole (acte individuel)','Signal ≠ Symbole (Benveniste)'],notions:['langage']},
+{id:'langue',term:'Langue',cat:'Linguistique',def:'Instrument de communication propre à une communauté humaine. Produit social de la faculté du langage — ensemble institué et stable de symboles verbaux ou écrits. Système de différences : chaque terme n\'a de valeur que par rapport aux autres.',auteur:'Saussure',tensions:['Langue ≠ Parole (social vs individuel)','Langue ≠ Langage (particulier vs général)'],notions:['langage']},
+{id:'parole',term:'Parole',cat:'Linguistique',def:'Acte individuel par lequel s\'exerce la fonction linguistique — appropriation d\'une langue par un individu. Manière singulière dont chacun s\'empare d\'une langue commune. Fondement de la créativité linguistique (néologismes, style).',auteur:'Saussure',tensions:['Parole ≠ Langue (individuel vs social)','Parole créatrice ≠ code figé'],notions:['langage','art']},
+{id:'signifiant-signifie',term:'Signifiant / Signifié',cat:'Linguistique',def:'Le <strong>signifiant</strong> est l\'image acoustique (le son du mot). Le <strong>signifié</strong> est le concept mental associé. Lien <strong>arbitraire</strong> (pas de nécessité naturelle entre le son "arbre" et l\'idée d\'arbre) mais <strong>inséparable</strong> (comme recto/verso d\'une feuille).',auteur:'Saussure',tensions:['Signifiant ≠ Référent (le mot ≠ la chose réelle)','Lien arbitraire → mais il faut l\'apprendre'],notions:['langage']},
+{id:'referent',term:'Référent',cat:'Linguistique',def:'L\'objet, phénomène ou être de la réalité objective que désigne le signe linguistique. La licorne : signifiant (le son) + signifié (le concept d\'animal à corne unique) mais <em>référent absent</em> — preuve que le langage peut fonctionner sans ancrage réel.',auteur:'Saussure',tensions:['Signe sans référent → le langage dépasse la pure utilité','Référent imaginaire → fiction, mythe, abstraction'],notions:['langage','art']},
+{id:'signal-symbole',term:'Signal / Symbole',cat:'Linguistique',def:'Le <strong>signal</strong> est un fait physique lié à un autre par rapport naturel ou conventionnel — l\'animal y réagit par réflexe conditionné (Pavlov). Le <strong>symbole</strong> est institué par l\'homme et doit être interprété : l\'animal exprime ses émotions, il ne les dénomme pas.',auteur:'Benveniste',tensions:['Animal = signal / Homme = signal ET symbole','Expression (animal) ≠ dénomination (homme)'],notions:['langage','nature','conscience']},
+{id:'logos-phone',term:'Logos / Phone',cat:'Linguistique',def:'<strong>Phone</strong> : la voix, cri, expression sonore des émotions — partagée avec l\'animal. <strong>Logos</strong> : parole rationnelle, discours structuré permettant de délibérer du juste et de l\'injuste. Aristote : seul l\'homme possède le logos, ce qui fait de lui un <em>animal politique</em>. Cassin : logos = à la fois raison ET discours (intraduisible).',auteur:'Aristote / Cassin',tensions:['Phone → expression / Logos → argumentation et délibération','Logos ≠ raison pure (il est aussi rhétorique, persuasion)'],notions:['langage','raison','etat']},
+{id:'double-articulation',term:'Double articulation',cat:'Linguistique',def:'Propriété distinctive du langage humain (Martinet) : (1) articulation en <strong>monèmes</strong> (unités de son ET de sens minimales) ; (2) articulation en <strong>phonèmes</strong> (unités de son pur, sans sens, en nombre fini ~40). Combinatoire illimitée à partir d\'éléments finis.',auteur:'Martinet / Saussure',tensions:['Double articulation → richesse infinie ≠ code animal (nombre fini de messages)'],notions:['langage']},
+{id:'performatif',term:'Performatif / Constatif',cat:'Philosophie du langage',def:'Austin : un énoncé <strong>constatif</strong> décrit et peut être vrai/faux ("Il pleut"). Un énoncé <strong>performatif</strong> <em>accomplit</em> ce qu\'il énonce — dire c\'est faire. "Je vous déclare mari et femme" : la réalité est modifiée par la parole. Conditions de félicité : statut du locuteur, reconnaissance institutionnelle.',auteur:'Austin',tensions:['Performatif ≠ Constatif (action vs description)','Langage comme moyen ≠ Langage comme action constitutive du réel'],notions:['langage','travail','etat','droit']},
+{id:'novlangue',term:'Novlangue',cat:'Politique / Linguistique',def:'Dans <em>1984</em> d\'Orwell : langue artificielle réduisant le vocabulaire pour réduire le pensable. Si un mot disparaît, la pensée correspondante disparaît. Exemple : "crimepensée" remplace toute idée hérétique — un seul mot empêche d\'articuler une pensée complexe.',auteur:'Orwell',tensions:['Novlangue → le langage peut supprimer la liberté de pensée','Langue appauvrie ≠ langue enrichissante (Cassin)'],notions:['langage','liberté','etat']},
+{id:'fonctions-langage',term:'6 fonctions du langage',cat:'Linguistique',def:'Jakobson : <strong>émotive</strong> (je — interjections), <strong>conative</strong> (tu — impératif, persuasion), <strong>référentielle</strong> (il — décrire le contexte), <strong>phatique</strong> (maintenir le contact), <strong>métalinguistique</strong> (parler du code), <strong>poétique</strong> (le message pour lui-même — rythme, sonorités). Une phrase combine rarement une seule fonction.',auteur:'Jakobson',tensions:['Communication ≠ seule fonction','Fonction poétique → langage comme fin en soi ≠ moyen'],notions:['langage','art']},
+{id:'injonction-paradoxale',term:'Injonction paradoxale',cat:'Pragmatique',def:'"Soyez spontané !" — contradiction performative : pour obéir, il faudrait être spontané par obéissance, donc sans spontanéité. Watzlawick : ces paradoxes sont au cœur de la communication pathologique (double bind de Bateson). Révèlent les limites structurelles de la communication.',auteur:'Watzlawick',tensions:['Le langage peut se retourner contre sa fonction de communication','Injonction paradoxale → souffrance psychique, nevrose'],notions:['langage','conscience']},
+{id:'cogito',term:'Cogito',cat:'Épistémologie',def:'<em>Cogito ergo sum</em> — "je pense donc je suis" (Descartes, <em>Méditations métaphysiques</em>, 1641). Première certitude après le doute hyperbolique. Fondement du rationalisme moderne. Critiques : Nietzsche ("ça pense"), Hume (pas de moi stable), Freud (l\'inconscient contredit la transparence du cogito).',auteur:'Descartes',tensions:['Cogito → conscience transparente à elle-même','Freud : le moi n\'est pas maître en sa propre maison — cogito illusoire ?'],notions:['conscience','raison','liberté','langage']},
+{id:'mauvaise-foi',term:'Mauvaise foi',cat:'Existentialisme',def:'Sartre : attitude qui consiste à se croire déterminé comme une chose, à nier sa liberté radicale en "jouant un rôle". Exemple : le garçon de café qui "joue" à être garçon de café. ≠ mensonge (on se ment à soi-même conscient de sa liberté).',auteur:'Sartre',tensions:['Mauvaise foi ≠ mensonge (auto-illusion)','Mauvaise foi ↔ authenticité (assumer sa liberté)'],notions:['conscience','liberté']},
+{id:'dialectique-maitre-esclave',term:'Dialectique Maître/Esclave',cat:'Idéalisme',def:'Hegel (<em>Phénoménologie de l\'Esprit</em>, 1807) : la conscience de soi ne s\'obtient que dans la <strong>reconnaissance</strong> par une autre conscience. Le maître exige la reconnaissance de l\'esclave qu\'il nie — reconnaissance creuse. L\'esclave se réalise dans le travail et accède à une vraie conscience de soi.',auteur:'Hegel',tensions:['Domination → reconnaissance vide','Travail de l\'esclave → émancipation paradoxale'],notions:['conscience','liberté','travail']},
+{id:'determinisme',term:'Déterminisme',cat:'Métaphysique',def:'Doctrine : tout événement, y compris les actes humains, est la conséquence nécessaire de causes antérieures. D\'Holbach : l\'homme est "une machine". Spinoza et Engels : compatibilisme — la liberté est la nécessité comprise. Différent du fatalisme (qui nie l\'action).',auteur:"D'Holbach / Spinoza / Engels",tensions:['Déterminisme strict ≠ libre arbitre','Compatibilisme : déterminisme + liberté possible'],notions:['liberté','conscience','nature','science']},
+{id:'libre-arbitre',term:'Libre arbitre',cat:'Métaphysique',def:'Capacité à choisir librement entre plusieurs possibles, indépendamment de toute détermination. Descartes : la liberté est "la plus grande perfection de l\'homme". Sartre : "nous sommes condamnés à être libres". Remis en cause par le déterminisme et la psychanalyse (inconscient).',auteur:'Descartes / Sartre',tensions:['Libre arbitre ≠ liberté spinoziste (nécessité comprise)','Libre arbitre ≠ caprice / indéterminisme'],notions:['liberté','conscience','devoir']},
+{id:'alienation',term:'Aliénation',cat:'Philosophie sociale',def:'Marx : le travailleur est étranger à son produit (qui lui échappe), à son activité (imposée), à son espèce (déshumanisé), à ses semblables (concurrence). Hegel : l\'esprit s\'aliène dans le monde avant de se retrouver. Simondon : aliénation par méconnaissance des machines.',auteur:'Marx / Hegel / Simondon',tensions:['Aliénation économique (Marx) ≠ aliénation de l\'Esprit (Hegel)','Travail aliéné ≠ travail libre (créateur)'],notions:['travail','liberté','conscience','technique']},
+{id:'labor-work-action',term:'Labor / Work / Action',cat:'Philosophie politique',def:'Arendt (<em>Condition de l\'homme moderne</em>, 1958) : <strong>Labor</strong> (cycle biologique, sans durée — corvée) ; <strong>Work/Œuvre</strong> (fabrication d\'un monde durable — artisan, artiste) ; <strong>Action</strong> (activité politique libre entre égaux — seule vraiment humaine). La modernité réduit tout au labor.',auteur:'Arendt',tensions:['Labor (animal laborans) ≠ Work (homo faber) ≠ Action (politique)','Modernité : tout devient labor — appauvrissement'],notions:['travail','art','liberté','etat']},
+{id:'plus-value',term:'Plus-value',cat:'Économie politique',def:'Marx : écart entre la valeur produite par le travailleur et le salaire reçu. Fondement de l\'exploitation capitaliste. Journée divisée en <strong>temps nécessaire</strong> (reproduit le salaire) et <strong>surtravail</strong> (produit la plus-value pour le capitaliste).',auteur:'Marx',tensions:['Plus-value → le travail crée la valeur mais le travailleur ne la reçoit pas','≠ profit (qui peut avoir d\'autres sources)'],notions:['travail','justice']},
+{id:'contrat-social',term:'Contrat social',cat:'Philosophie politique',def:'Théorie de la légitimité politique par accord entre individus. <strong>Hobbes</strong> : abandon total des droits au souverain absolu pour la sécurité. <strong>Locke</strong> : contrat révocable si les droits naturels sont violés. <strong>Rousseau</strong> : aliénation à la volonté générale — "en obéissant à la loi qu\'on s\'est prescrite, on est libre".',auteur:'Hobbes / Locke / Rousseau',tensions:['Sécurité (Hobbes) ≠ droits naturels (Locke) ≠ liberté civile (Rousseau)','Contrat fictif ou historique ?'],notions:['etat','liberté','justice']},
+{id:'volonte-generale',term:'Volonté générale',cat:'Philosophie politique',def:'Rousseau : volonté du corps politique visant le bien commun. ≠ "volonté de tous" (somme des intérêts particuliers). Inaliénable et indivisible. Base de la souveraineté populaire. Peut légitimer la contrainte de l\'individu au nom du bien commun.',auteur:'Rousseau',tensions:['Volonté générale ≠ volonté de tous (arithmétique)','Peut-elle justifier la tyrannie de la majorité ?'],notions:['etat','liberté','justice']},
+{id:'etat-de-nature',term:'État de nature',cat:'Philosophie politique',def:'Fiction philosophique : condition humaine avant tout ordre politique. <strong>Hobbes</strong> : guerre de tous contre tous ("vie solitaire, pauvre, brutale et brève"). <strong>Locke</strong> : état pacifique mais fragile. <strong>Rousseau</strong> : bonheur naturel, égalité, pas encore corrompu par la propriété.',auteur:'Hobbes / Locke / Rousseau',tensions:['Violent (Hobbes) ≠ Pacifique (Locke) ≠ Heureux (Rousseau)','Fiction conceptuelle ≠ fait historique'],notions:['etat','nature','liberté']},
+{id:'ataraxie',term:'Ataraxie',cat:'Éthique antique',def:'Terme épicurien : état de paix de l\'âme, absence de trouble et d\'inquiétude. Joint à l\'<strong>aponie</strong> (absence de douleur corporelle), elle constitue le bonheur épicurien. S\'obtient par le calcul des désirs : désirs naturels et nécessaires > naturels non nécessaires > vains.',auteur:'Épicure',tensions:['Ataraxie (paix, repos) ≠ eudaimonia (activité, vertu — Aristote)','Ataraxie → bonheur passif ≠ bonheur actif'],notions:['bonheur']},
+{id:'eudaimonia',term:'Eudaimonia',cat:'Éthique antique',def:'Terme aristotélicien traduit par "bonheur" ou "félicité". Littéralement : "avoir un bon démon". Pour Aristote, c\'est l\'<strong>activité de l\'âme conforme à la vertu</strong> la plus haute. Ce n\'est pas un état passif mais une <em>energeia</em> (actualisation de ses capacités).',auteur:'Aristote',tensions:['Eudaimonia (activité) ≠ ataraxie (repos — Épicure)','Eudaimonia ≠ hedone (plaisir sensoriel pur)'],notions:['bonheur','travail']},
+{id:'habitus',term:'Habitus',cat:'Sociologie',def:'Bourdieu : système de dispositions durables acquises dans la socialisation — façons d\'agir, de penser, de percevoir incorporées. Génère des pratiques adaptées aux structures sociales sans calcul conscient. Le goût esthétique est un habitus de classe.',auteur:'Bourdieu',tensions:['Habitus → déterminisme social mais non absolu (il peut être transformé)','Habitus ≠ habitude (structure profonde vs comportement répété)'],notions:['bonheur','art','nature','liberté']},
+{id:'imperatif-categorique',term:'Impératif catégorique',cat:'Éthique kantienne',def:'Kant : commandement moral qui s\'impose inconditionnellement, sans égard aux conséquences ou aux désirs. Trois formulations : (1) <em>Universalisation</em> : "Agis seulement selon la maxime qui peut devenir loi universelle" ; (2) <em>Humanité comme fin</em> ; (3) <em>Législation universelle</em>.',auteur:'Kant',tensions:['Impératif catégorique ≠ hypothétique ("si tu veux X, fais Y")','Devoir inconditionnel ≠ utilitarisme (Mill) — les conséquences ne comptent pas'],notions:['devoir','liberté','justice']},
+{id:'banalite-du-mal',term:'Banalité du mal',cat:'Philosophie politique',def:'Arendt (<em>Eichmann à Jérusalem</em>, 1963) : le mal radical ne suppose pas de monstruosité mais l\'<strong>absence de pensée</strong> — obéissance sans jugement. Eichmann exécutait des ordres sans réfléchir à leur sens moral. La pensée est une condition de résistance au mal.',auteur:'Arendt',tensions:['Mal banal (absence de pensée) ≠ mal radical (intentions diaboliques)','Obéissance sans pensée ≠ devoir moral kantien (autonomie)'],notions:['devoir','etat','conscience']},
+{id:'ready-made',term:'Ready-made',cat:'Art contemporain',def:'Duchamp (<em>La Fontaine</em>, 1917) : objet manufacturé ordinaire promu au statut d\'œuvre d\'art par désignation institutionnelle. Ce n\'est pas le geste technique qui crée l\'œuvre mais l\'acte de désignation. O\'Doherty : c\'est l\'espace de la galerie qui fait l\'art.',auteur:'Duchamp',tensions:['Ready-made → l\'art ≠ maîtrise technique','Valeur esthétique ≠ valeur commerciale','Art institutionnel ≠ art comme expression singulière'],notions:['art','travail','technique']},
+{id:'genie',term:'Génie',cat:'Esthétique',def:'Kant (<em>Critique de la faculté de juger</em>, 1790) : talent de produire ce dont on ne peut donner de règle déterminée. L\'originalité est sa première qualité. Ses productions doivent être exemplaires. Nietzsche critique le mythe du génie inné : c\'est l\'ignorance et la paresse qui font croire au "don".',auteur:'Kant / Nietzsche',tensions:['Génie inné (mythe romantique) ≠ travail acharné (Nietzsche)','Génie ≠ simple habileté technique'],notions:['art','travail','liberté']},
+{id:'beau-sans-concept',term:'Beau sans concept',cat:'Esthétique',def:'Kant : le jugement de goût ("c\'est beau") est un <strong>universel sans concept</strong> — on attend l\'accord universel sans pouvoir le justifier par une règle. Bourdieu critique : ce prétendu universel cache un habitus de classe. Le "goût" dominant est celui de la classe dominante.',auteur:'Kant / Bourdieu',tensions:['Universalité esthétique (Kant) ≠ relativisme de classe (Bourdieu)','Jugement de goût ≠ jugement moral ≠ jugement de connaissance'],notions:['art','bonheur']},
+{id:'autonomie',term:'Autonomie',cat:'Éthique kantienne',def:'Kant : se donner sa propre loi (auto-nomos). L\'<strong>autonomie</strong> morale est la capacité à agir selon des principes que l\'on s\'est soi-même donnés par la raison. ≠ hétéronomie (obéir à une loi extérieure). C\'est le fondement de la dignité humaine.',auteur:'Kant',tensions:['Autonomie ≠ hétéronomie (contrainte extérieure, désir, Dieu)','Autonomie ≠ liberté arbitraire (c\'est la raison qui légifère)'],notions:['devoir','liberté','conscience']},
+{id:'servitude-volontaire',term:'Servitude volontaire',cat:'Philosophie politique',def:'La Boétie (<em>Discours de la servitude volontaire</em>, ~1548) : mystère politique — pourquoi des millions d\'hommes obéissent-ils librement à un seul tyran ? Par habitude, coutume, peur. La tyrannie repose non sur la force mais sur le consentement. Résistance = cesser d\'obéir.',auteur:'La Boétie',tensions:['Servitude volontaire → complicité des dominés','Résistance passive ≠ révolution armée'],notions:['etat','liberté','devoir']},
+{id:'intersubjectivite',term:'Intersubjectivité',cat:'Phénoménologie',def:'Relation entre sujets par laquelle chacun reconnaît l\'autre comme une autre conscience. Fondement du monde commun et de l\'objectivité. Husserl : la réalité partagée se constitue par l\'intersubjectivité. Sartre : "l\'enfer, c\'est les autres" — mais aussi la condition de la conscience de soi.',auteur:'Husserl / Sartre / Merleau-Ponty',tensions:['Intersubjectivité → monde commun ≠ solipsisme','Autrui comme menace (Sartre) ≠ autrui comme condition (Merleau-Ponty)'],notions:['conscience','langage','etat']},
+{id:'elan-vital',term:'Élan vital',cat:'Vitalisme',def:'Bergson (<em>L\'Évolution créatrice</em>, 1907) : principe de la vie — force créatrice qui s\'exprime à travers l\'évolution des espèces. Imprévisible, créateur, non téléologique (≠ finalisme). L\'homme est la pointe de cet élan vital grâce à l\'intelligence et à l\'intuition.',auteur:'Bergson',tensions:['Élan vital ≠ mécanisme (déterministe)','Élan vital ≠ finalisme (un but préétabli)'],notions:['nature','temps','liberté']},
+{id:'physis',term:'Physis',cat:'Philosophie antique',def:'Terme grec désignant la nature comme processus de croissance spontané (de <em>phuein</em> : pousser, naître). ≠ <em>nomos</em> (la loi, la convention humaine). La physis est ce qui s\'engendre de soi-même sans artifice humain. Aristote : la physis a une finalité interne.',auteur:'Aristote / Héraclite',tensions:['Physis ≠ tekhnê (nature ≠ art/technique)','Physis ≠ nomos (nature ≠ loi humaine)'],notions:['nature','technique','art']},
+];
+
+/* ── Concept state ───────────────────────────────────────────── */
+let curConcept=null;
+let conceptSearch='';
+let conceptFilter=new Set(); // empty = all notions
+let conceptFilterOpen=false;
 function buildAI(){
   const idx={};
   KEYS.forEach(k=>{
@@ -921,7 +1116,16 @@ const CC={
   'Socialisme / Critique du travail':'#D85A30','Philosophie de la culture / Postmodernisme':'#5F5E5A',
   'Herméneutique / Phénoménologie':'#534AB7','Rationalisme républicain':'#185FA5',
   'Augustinisme / Apologétique':'#EF9F27','Pessimisme / Volontarisme':'#5F5E5A',
-  'Philosophie de la technique / Philosophie de l\'existence':'#185FA5'
+  'Philosophie de la technique / Philosophie de l\'existence':'#185FA5',
+  'Linguistique / Phénoménologie du langage':'#6B4FA0',
+  'Structuralisme / Linguistique':'#6B4FA0',
+  'Philosophie analytique du langage':'#6B4FA0',
+  'Pragmatique de la communication / Psychologie systémique':'#6B4FA0',
+  'Linguistique cognitive / Relativisme linguistique':'#6B4FA0',
+  'Littérature politique / Socialisme démocratique':'#D85A30',
+  'Philosophie du langage / Philologie':'#6B4FA0',
+  'Épistémologie critique':'#2E86AB',
+  'Histoire et philosophie des sciences':'#2E86AB'
 };
 
 /* ── renderSB ────────────────────────────────────────────────── */
@@ -951,11 +1155,10 @@ function toggleFilter(k){
 
 function renderSB(){
   const sb=document.getElementById('sb');
-  const filterActive=authorFilter.size>0;
-
-  sb.innerHTML=`<div class="sb-tabs">
-    <div class="sb-tab${sbMode==='notions'?' active':''}" onclick="sbMode='notions';filterOpen=false;renderSB();renderContent()">Notions</div>
-    <div class="sb-tab${sbMode==='auteurs'?' active':''}" onclick="if(sbMode!=='auteurs'){sbMode='auteurs';if(!curAuthor)curAuthor=authorsSorted()[0];curAuthorTab='idees';renderSB();renderAuthorContent();}">Auteurs</div>
+  sb.innerHTML=`<div class="sb-tabs" style="gap:1px">
+    <div class="sb-tab${sbMode==='notions'?' active':''}" onclick="sbMode='notions';renderSB();renderContent()" style="font-size:9.5px">Notions</div>
+    <div class="sb-tab${sbMode==='auteurs'?' active':''}" onclick="if(sbMode!=='auteurs'){sbMode='auteurs';if(!curAuthor)curAuthor=authorsSorted()[0];curAuthorTab='idees';renderSB();renderAuthorContent();}" style="font-size:9.5px">Auteurs</div>
+    <div class="sb-tab${sbMode==='concepts'?' active':''}" onclick="if(sbMode!=='concepts'){sbMode='concepts';if(!curConcept)curConcept=CONCEPTS[0].id;renderSB();renderConceptContent();}" style="font-size:9.5px">Concepts</div>
   </div>`;
 
   if(sbMode==='notions'){
@@ -966,16 +1169,15 @@ function renderSB(){
       el.onclick=()=>{cur=k;curTab='auteurs';sbMode='notions';renderSB();renderContent()};
       sb.appendChild(el);
     });
-  } else {
+  } else if(sbMode==='auteurs'){
     // Search row
     const searchRow=document.createElement('div');
     searchRow.className='sb-search-row';
     searchRow.innerHTML=`
       <input class="sb-search" type="text" placeholder="Rechercher…" value="${authorSearch.replace(/"/g,'&quot;')}"
         oninput="authorSearch=this.value;renderSBList()" />
-      <button class="sb-filter-btn${filterActive||filterOpen?' active':''}" onclick="filterOpen=!filterOpen;renderSB()" title="Filtrer par notion">⊟</button>`;
+      <button class="sb-filter-btn${(authorFilter.size>0)||filterOpen?' active':''}" onclick="filterOpen=!filterOpen;renderSB()" title="Filtrer par notion">⊟</button>`;
     sb.appendChild(searchRow);
-
     // Filter panel
     const fp=document.createElement('div');
     fp.className='filter-panel'+(filterOpen?' open':'');
@@ -1000,43 +1202,121 @@ function renderSB(){
         <button class="filter-action-btn" onclick="authorFilter=new Set();renderSB()">Effacer</button>
       </div>`;
     sb.appendChild(fp);
-
-    // List
     const listWrap=document.createElement('div');
     listWrap.id='sb-author-list';
     sb.appendChild(listWrap);
     renderSBList();
-  }
-}
-
-function renderSBList(){
-  const wrap=document.getElementById('sb-author-list');
-  if(!wrap) return;
-  const list=authorsFiltered();
-  // update search input value without re-rendering whole sidebar
-  const inp=document.querySelector('.sb-search');
-  if(inp&&document.activeElement!==inp) inp.value=authorSearch;
-
-  let html='';
-  if(list.length===0){
-    html=`<div style="padding:10px 4px;font-size:11px;color:var(--color-text-tertiary);text-align:center">Aucun résultat</div>`;
   } else {
-    const filterActive=authorFilter.size>0;
-    if(authorSearch||filterActive)
-      html+=`<div class="sb-results-count">${list.length} auteur${list.length>1?'s':''}</div>`;
-    list.forEach(name=>{
-      const entry=AI[name];
-      const bdgs=entry.notions.map(k=>`<span class="ab-bdg" style="background:${D[k].c}" title="${D[k].l}"></span>`).join('');
-      const active=name===curAuthor?' active':'';
-      const safeN=name.replace(/'/g,"\\'");
-      html+=`<div class="ab${active}" onclick="curAuthor='${safeN}';curAuthorTab='idees';renderSBList();renderAuthorContent()">
-        <div class="ab-name">${name}</div>
-        <div class="ab-badges">${bdgs}</div>
+    // Concepts — search + filter (same system as auteurs)
+    const searchRow=document.createElement('div');
+    searchRow.className='sb-search-row';
+    searchRow.innerHTML=`
+      <input class="sb-search" type="text" placeholder="Chercher…" value="${conceptSearch.replace(/"/g,'&quot;')}"
+        oninput="conceptSearch=this.value;renderSBConceptsList()" />
+      <button class="sb-filter-btn${(conceptFilter.size>0)||conceptFilterOpen?' active':''}" onclick="conceptFilterOpen=!conceptFilterOpen;renderSB()" title="Filtrer par notion">⊟</button>`;
+    sb.appendChild(searchRow);
+    // Filter panel
+    const cfp=document.createElement('div');
+    cfp.className='filter-panel'+(conceptFilterOpen?' open':'');
+    const cChecks=KEYS.map(k=>{
+      const checked=conceptFilter.has(k);
+      return `<div class="filter-notion-item" onclick="toggleConceptFilter('${k}')">
+        <div class="filter-notion-check${checked?' checked':''}" style="${checked?`background:${D[k].c};color:#fff`:''}">${checked?'✓':''}</div>
+        <span class="filter-notion-label">${D[k].l}</span>
+        <span style="width:6px;height:6px;border-radius:50%;background:${D[k].c};flex-shrink:0;margin-left:auto"></span>
       </div>`;
-    });
+    }).join('');
+    cfp.innerHTML=`<div class="filter-panel-title">Filtrer par notion</div>
+      <div class="filter-notions">${cChecks}</div>
+      <div class="filter-actions">
+        <button class="filter-action-btn" onclick="conceptFilter=new Set(KEYS);renderSB()">Sélect. tout</button>
+        <button class="filter-action-btn" onclick="conceptFilter=new Set();renderSB()">Effacer</button>
+      </div>`;
+    sb.appendChild(cfp);
+    const listWrap=document.createElement('div');
+    listWrap.id='sb-concept-list';
+    sb.appendChild(listWrap);
+    renderSBConceptsList();
   }
-  wrap.innerHTML=html;
 }
+
+function toggleConceptFilter(k){
+  if(conceptFilter.has(k)) conceptFilter.delete(k); else conceptFilter.add(k);
+  renderSB();
+}
+
+function renderSBConceptsList(){
+  const wrap=document.getElementById('sb-concept-list');
+  if(!wrap) return;
+  const q=conceptSearch.trim().toLowerCase();
+  const list=CONCEPTS.filter(c=>{
+    const matchSearch=!q||c.term.toLowerCase().includes(q)||c.cat.toLowerCase().includes(q)||c.def.toLowerCase().includes(q);
+    const matchFilter=conceptFilter.size===0||c.notions.some(k=>conceptFilter.has(k));
+    return matchSearch&&matchFilter;
+  });
+  if(!list.length){wrap.innerHTML=`<div style="padding:10px 4px;font-size:11px;color:var(--color-text-tertiary);text-align:center">Aucun résultat</div>`;return;}
+  const hasFilter=q||(conceptFilter.size>0);
+  let countHtml='';
+  if(hasFilter) countHtml=`<div class="sb-results-count">${list.length} concept${list.length>1?'s':''}</div>`;
+  wrap.innerHTML=countHtml;
+  list.forEach(c=>{
+    const el=document.createElement('div');
+    el.className='cb'+(c.id===curConcept?' active':'');
+    const bdgs=c.notions.map(k=>D[k]?`<span class="ab-bdg" style="background:${D[k].c}" title="${D[k].l}"></span>`:'').join('');
+    el.innerHTML=`<div class="cb-term">${c.term}</div><div class="ab-badges" style="margin-top:3px">${bdgs}</div>`;
+    el.onclick=()=>{curConcept=c.id;renderSBConceptsList();renderConceptContent()};
+    wrap.appendChild(el);
+  });
+}
+
+function openConcept(id){
+  sbMode='concepts'; curConcept=id;
+  renderSB(); renderConceptContent();
+}
+
+function renderConceptContent(){
+  const main=document.getElementById('main');
+  const c=CONCEPTS.find(x=>x.id===curConcept);
+  if(!c){main.innerHTML='';return;}
+
+  // Notion pills
+  const notionPills=c.notions.map(k=>{
+    const nd=D[k]; if(!nd) return '';
+    return `<span class="notion-pill" style="color:${nd.c};border-color:${nd.c}40;background:${nd.c}12"
+      onclick="cur='${k}';curTab='auteurs';sbMode='notions';renderSB();renderContent()">${nd.l} →</span>`;
+  }).join('');
+
+  // Tensions
+  const tensionItems=c.tensions.map(t=>{
+    const parts=t.split('≠').map(s=>s.trim());
+    if(parts.length===2) return `<div class="tension-item"><span>${parts[0]}</span><span class="tension-sep">≠</span><span>${parts[1]}</span></div>`;
+    return `<div class="tension-item">${t}</div>`;
+  }).join('');
+
+  // Auteur link
+  const autLink=c.auteur?c.auteur.split('/').map(a=>{
+    const name=a.trim();
+    return AI[name]?`<span class="an-link" onclick="openAuthor('${name.replace(/'/g,"\\'")}')"> ${name}</span>`:` ${name}`;
+  }).join(' /'):'' ;
+
+  let html=`
+<div class="notion-head">
+  <div>
+    <div class="concept-title">${c.term}</div>
+    <span class="concept-cat-badge">${c.cat}</span>
+  </div>
+</div>
+<div class="concept-def-box">${linkTerms(c.def)}</div>`;
+
+  if(c.auteur) html+=`<div class="concept-section"><div class="concept-section-title">Auteur(s) associé(s)</div><div style="font-size:12px;color:var(--color-text-secondary)">${autLink}</div></div>`;
+
+  if(c.tensions.length) html+=`<div class="concept-section"><div class="concept-section-title">Tensions philosophiques</div>${tensionItems}</div>`;
+
+  if(c.notions.length) html+=`<div class="concept-section"><div class="concept-section-title">Notions concernées</div><div style="display:flex;flex-wrap:wrap;gap:6px">${notionPills}</div></div>`;
+
+  main.innerHTML=html;
+}
+
 
 function tab(id){curTab=id;renderContent()}
 
@@ -1166,7 +1446,7 @@ function renderContent(){
   <div class="nbadge" style="background:${c}"></div>
   <div><div class="ntitle">${n.l}</div><div class="nsub">${n.s}</div></div>
 </div>
-<div class="def-box">${n.def}</div>
+<div class="def-box">${linkTerms(n.def)}</div>
 <div class="tabs">
   ${tabs2.map(t=>`<div class="tab${curTab===t?' active':''}" onclick="tab('${t}')">${tabLabels[t]}</div>`).join('')}
 </div>`;
@@ -1250,6 +1530,47 @@ function renderContent(){
   }
 
   document.getElementById('main').innerHTML=html;
+}
+
+function renderSBList(){
+  const wrap=document.getElementById('sb-author-list');
+  if(!wrap) return;
+  const list=authorsFiltered();
+  const inp=document.querySelector('.sb-search');
+  if(inp&&document.activeElement!==inp) inp.value=authorSearch;
+  let html='';
+  if(!list.length){html=`<div style="padding:10px 4px;font-size:11px;color:var(--color-text-tertiary);text-align:center">Aucun résultat</div>`;}
+  else{
+    const fa=authorFilter.size>0;
+    if(authorSearch||fa) html+=`<div class="sb-results-count">${list.length} auteur${list.length>1?'s':''}</div>`;
+    list.forEach(name=>{
+      const entry=AI[name];
+      const bdgs=entry.notions.map(k=>`<span class="ab-bdg" style="background:${D[k].c}" title="${D[k].l}"></span>`).join('');
+      const safeN=name.replace(/'/g,"\\'");
+      html+=`<div class="ab${name===curAuthor?' active':''}" onclick="curAuthor='${safeN}';curAuthorTab='idees';renderSBList();renderAuthorContent()">
+        <div class="ab-name">${name}</div><div class="ab-badges">${bdgs}</div>
+      </div>`;
+    });
+  }
+  wrap.innerHTML=html;
+}
+
+/* ── Concept term linking ────────────────────────────────────── */
+const CTERM_MAP={};
+CONCEPTS.forEach(c=>{CTERM_MAP[c.term.toLowerCase()]=c.id;});
+// Build a regex from all concept terms sorted by length desc (longer first)
+const CTERM_REGEX=new RegExp('\\b('+Object.keys(CTERM_MAP).sort((a,b)=>b.length-a.length).map(t=>t.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|')+')\\b','gi');
+
+function linkTerms(html){
+  // Only linkify text nodes — don't touch existing tags
+  return html.replace(/>([^<]+)</g,(match,text)=>{
+    const linked=text.replace(CTERM_REGEX,(m)=>{
+      const id=CTERM_MAP[m.toLowerCase()];
+      if(!id) return m;
+      return `<span class="cterm" onclick="openConcept('${id}')" title="Voir définition : ${m}">${m}</span>`;
+    });
+    return '>'+linked+'<';
+  });
 }
 
 renderSB();renderContent();
