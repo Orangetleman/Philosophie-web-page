@@ -20,25 +20,28 @@
   --border-radius-lg:12px;
   --border-radius-md:8px;
 }
-body{font-family:'Inter',system-ui,sans-serif;background:#121212;min-height:100vh;padding:16px;}
+body{font-family:'Inter',system-ui,sans-serif;background:#121212;height:100vh;padding:16px;overflow:hidden;}
 *{box-sizing:border-box;margin:0;padding:0}
 .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
-.wrap{display:flex;min-height:700px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);overflow:hidden}
-.sidebar{width:155px;flex-shrink:0;background:var(--color-background-secondary);border-right:0.5px solid var(--color-border-tertiary);padding:10px 7px;display:flex;flex-direction:column;gap:3px}
-.stitle{font-size:10px;font-weight:500;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:.06em;padding:0 6px 8px}
-.nb{padding:7px 9px;border-radius:var(--border-radius-md);cursor:pointer;font-size:12px;color:var(--color-text-secondary);border:0.5px solid transparent;transition:all .15s;line-height:1.3;display:flex;align-items:center;gap:6px}
+.wrap{height:calc(100vh - 32px);display:flex;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);overflow:hidden;}
+.sidebar{width:155px;flex-shrink:0;background:var(--color-background-secondary);border-right:0.5px solid var(--color-border-tertiary);display:flex;flex-direction:column;overflow:hidden;}
+.sb-fixed{flex-shrink:0;padding:0 7px;}
+.sidebar-list{flex:1;overflow-y:auto;padding:0 7px 8px;height:0;min-height:0;}
+.stitle{font-size:10px;font-weight:500;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:.06em;padding:0 6px 8px;flex-shrink:0;}
+.nb{padding:7px 9px;border-radius:var(--border-radius-md);cursor:pointer;font-size:12px;color:var(--color-text-secondary);border:0.5px solid transparent;transition:all .15s;line-height:1.3;display:flex;align-items:center;gap:6px;flex-shrink:0;}
 .nb:hover{background:var(--color-background-primary);color:var(--color-text-primary)}
 .nb.active{background:var(--color-background-primary);color:var(--color-text-primary);border-color:var(--color-border-secondary);font-weight:500}
 .dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
-.main{flex:1;overflow:auto;padding:18px 22px 24px}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.main-content{flex:1;overflow-y:auto;padding:18px 22px 24px;height:0;min-height:0;}
 
 /* Tabs */
-.tabs{display:flex;gap:2px;margin-bottom:18px;border-bottom:0.5px solid var(--color-border-tertiary);padding-bottom:0}
+.tabs{display:flex;gap:2px;border-bottom:0.5px solid var(--color-border-tertiary);padding:10px 22px 0;flex-shrink:0;}
 .tab{padding:7px 14px;font-size:12px;cursor:pointer;color:var(--color-text-secondary);border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s;border-radius:0}
 .tab:hover{color:var(--color-text-primary)}
 .tab.active{color:var(--color-text-primary);font-weight:500;border-bottom-color:currentColor}
 
-.notion-head{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.notion-head{display:flex;align-items:center;gap:10px;margin-bottom:14px;margin-top:18px}
 .nbadge{width:10px;height:10px;border-radius:50%;flex-shrink:0}
 .ntitle{font-size:17px;font-weight:500;color:var(--color-text-primary)}
 .nsub{font-size:12px;color:var(--color-text-secondary);margin-top:2px}
@@ -58,7 +61,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:#121212;min-height:100v
 
 /* Textes */
 .tbox{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:11px 13px;margin-bottom:16px}
-.ti2{display:flex;gap:8px;padding:5px 0;border-bottom:0.5px solid var(--color-border-tertiary);font-size:12px;line-height:1.5}
+.ti2{display:flex;flex-direction:column;gap:3px;padding:8px 0;border-bottom:0.5px solid var(--color-border-tertiary);font-size:12px;line-height:1.5}
 .ti2:last-child{border-bottom:none;padding-bottom:0}
 .tinum{font-weight:500;color:var(--color-text-primary);flex-shrink:0}
 .titxt{color:var(--color-text-secondary)}
@@ -232,16 +235,11 @@ body{font-family:'Inter',system-ui,sans-serif;background:#121212;min-height:100v
 
 <div class="sr-only">Graphe de révision philosophie — 9 notions avec auteurs, exemples, axes développés et questions de dissertation</div>
 <div class="wrap">
-<div class="sidebar" id="sb"><div class="stitle">Notions</div><div class="nb"><span class="dot" style="background:#534AB7"></span>Conscience</div><div class="nb"><span class="dot" style="background:#1D9E75"></span>Nature</div><div class="nb"><span class="dot" style="background:#EF9F27"></span>Bonheur</div><div class="nb"><span class="dot" style="background:#D85A30"></span>Justice</div><div class="nb"><span class="dot" style="background:#993556"></span>Devoir</div><div class="nb"><span class="dot" style="background:#3B6D11"></span>Travail</div><div class="nb"><span class="dot" style="background:#185FA5"></span>Technique</div><div class="nb active"><span class="dot" style="background:#5F5E5A"></span>État</div><div class="nb"><span class="dot" style="background:#D4537E"></span>Liberté</div></div>
+<div class="sidebar" id="sb"></div>
 <div class="main" id="main">
-<div class="notion-head">
-  <div class="nbadge" style="background:#5F5E5A"></div>
-  <div><div class="ntitle">État</div><div class="nsub">L'État est-il nécessaire ?</div></div>
+  <div class="tabs"></div>
+  <div class="main-content"></div>
 </div>
-<div class="def-box">L'<span class="kw">État</span> est une forme d'organisation politique qui détient le <span class="kw">monopole de la violence légitime</span> (Weber) sur un territoire. Il naît d'un contrat social ou d'un rapport de force. Question centrale : l'État est-il garant de la liberté ou menace contre elle ?</div>
-<div class="tabs">
-  <div class="tab active" onclick="tab('auteurs')">Auteurs</div><div class="tab" onclick="tab('textes')">Textes du cours</div><div class="tab" onclick="tab('axes')">Axes &amp; sous-parties</div><div class="tab" onclick="tab('exemples')">Exemples</div><div class="tab" onclick="tab('diss')">Dissertations</div>
-</div><div class="slabel">Auteurs et idées clés (6 auteurs)</div><div class="ag"><div class="ac"><div class="an" style="color:#5F5E5A">Hobbes</div><div class="aw">Léviathan, 1651</div><div class="ai">Sans État : état de nature = guerre de tous contre tous, vie 'solitaire, misérable, bestiale et brève'. Le contrat cède tous les droits à un souverain absolu (Léviathan) en échange de la sécurité. La justice naît du contrat.</div><div class="aq">'L'homme est un loup pour l'homme' (à l'état de nature)</div></div><div class="ac"><div class="an" style="color:#5F5E5A">Locke</div><div class="aw">Traité du gouvernement civil, 1690</div><div class="ai">L'état de nature est pacifique mais fragile (sans juge impartial). L'État protège les droits naturels (vie, liberté, propriété). Le contrat est révocable : si le gouvernement viole les droits, la révolution est légitime.</div><div class="aq">L'État = protecteur des droits naturels, contrat révocable</div></div><div class="ac"><div class="an" style="color:#5F5E5A">Rousseau</div><div class="aw">Du Contrat social, 1762</div><div class="ai">Volonté générale : la souveraineté appartient au peuple, inaliénable et indivisible. Le contrat transforme la liberté naturelle en liberté civile. L'État juste = expression de la volonté générale, pas de la volonté de tous.</div><div class="aq">'L'obéissance à la loi qu'on s'est prescrite est liberté'</div></div><div class="ac"><div class="an" style="color:#5F5E5A">Hegel</div><div class="aw">Principes de la philosophie du droit, 1820</div><div class="ai">L'État est la réalité effective de la liberté objective. Il n'est pas seulement instrument mais fin en soi : la vie éthique concrète. La famille (amour) → la société civile (intérêts) → l'État (universalité).</div><div class="aq">'L'État est la réalité effective de la liberté concrète'</div></div><div class="ac"><div class="an" style="color:#5F5E5A">Marx</div><div class="aw">L'Idéologie allemande / Le Manifeste, 1848</div><div class="ai">L'État est l'instrument de la classe dominante. Infrastructure économique → superstructure (État, droit, idéologie). L'État bourgeois protège les intérêts du capital. Objectif : dépérissement de l'État dans la société communiste.</div><div class="aq">'L'État n'est que le comité d'affaires de la bourgeoisie'</div></div><div class="ac"><div class="an" style="color:#5F5E5A">Weber</div><div class="aw">Le Savant et le politique, 1919</div><div class="ai">L'État = monopole de la violence physique légitime sur un territoire. 3 types de légitimité : traditionnelle, charismatique, légale-rationnelle. L'État moderne repose sur la légitimité légale-rationnelle.</div><div class="aq">'L'État revendique le monopole de la violence physique légitime'</div></div></div></div>
 </div>
 
 <script>
@@ -1155,11 +1153,28 @@ function toggleFilter(k){
 
 function renderSB(){
   const sb=document.getElementById('sb');
-  sb.innerHTML=`<div class="sb-tabs" style="gap:1px">
+
+  // ── Zone fixe : sb-tabs toujours en haut ──────────────────────
+  let fixed=sb.querySelector('.sb-fixed');
+  if(!fixed){
+    fixed=document.createElement('div');
+    fixed.className='sb-fixed';
+    sb.innerHTML='';
+    sb.appendChild(fixed);
+  }
+  fixed.innerHTML=`<div class="sb-tabs" style="gap:1px;padding:8px 0 6px">
     <div class="sb-tab${sbMode==='notions'?' active':''}" onclick="sbMode='notions';renderSB();renderContent()" style="font-size:9.5px">Notions</div>
     <div class="sb-tab${sbMode==='auteurs'?' active':''}" onclick="if(sbMode!=='auteurs'){sbMode='auteurs';if(!curAuthor)curAuthor=authorsSorted()[0];curAuthorTab='idees';renderSB();renderAuthorContent();}" style="font-size:9.5px">Auteurs</div>
     <div class="sb-tab${sbMode==='concepts'?' active':''}" onclick="if(sbMode!=='concepts'){sbMode='concepts';if(!curConcept)curConcept=CONCEPTS[0].id;renderSB();renderConceptContent();}" style="font-size:9.5px">Concepts</div>
   </div>`;
+  // ── Zone scrollable ────────────────────────────────────────────
+  let list=sb.querySelector('.sidebar-list');
+  if(!list){
+    list=document.createElement('div');
+    list.className='sidebar-list';
+    sb.appendChild(list);
+  }
+  list.innerHTML='';
 
   if(sbMode==='notions'){
     KEYS.forEach(k=>{
@@ -1167,75 +1182,84 @@ function renderSB(){
       el.className='nb'+(k===cur?' active':'');
       el.innerHTML=`<span class="dot" style="background:${D[k].c}"></span>${D[k].l}`;
       el.onclick=()=>{cur=k;curTab='auteurs';sbMode='notions';renderSB();renderContent()};
-      sb.appendChild(el);
+      list.appendChild(el);
     });
   } else if(sbMode==='auteurs'){
-    // Search row
-    const searchRow=document.createElement('div');
-    searchRow.className='sb-search-row';
+    // Search row (fixe dans la zone fixe, en dessous des sb-tabs)
+    let searchRow=fixed.querySelector('.sb-search-row');
+    if(!searchRow){
+      searchRow=document.createElement('div');
+      searchRow.className='sb-search-row';
+      fixed.appendChild(searchRow);
+    }
     searchRow.innerHTML=`
       <input class="sb-search" type="text" placeholder="Rechercher…" value="${authorSearch.replace(/"/g,'&quot;')}"
         oninput="authorSearch=this.value;renderSBList()" />
       <button class="sb-filter-btn${(authorFilter.size>0)||filterOpen?' active':''}" onclick="filterOpen=!filterOpen;renderSB()" title="Filtrer par notion">⊟</button>`;
-    sb.appendChild(searchRow);
-    // Filter panel
-    const fp=document.createElement('div');
-    fp.className='filter-panel'+(filterOpen?' open':'');
-    const checks=KEYS.map(k=>{
-      const checked=authorFilter.has(k);
-      return `<div class="filter-notion-item" onclick="toggleFilter('${k}')">
-        <div class="filter-notion-check${checked?' checked':''}" style="${checked?`background:${D[k].c};color:#fff`:''}">${checked?'✓':''}</div>
-        <span class="filter-notion-label">${D[k].l}</span>
-        <span style="width:6px;height:6px;border-radius:50%;background:${D[k].c};flex-shrink:0;margin-left:auto"></span>
-      </div>`;
-    }).join('');
-    fp.innerHTML=`<div class="filter-panel-title">Filtrer par notion</div>
-      <div style="display:flex;gap:3px;margin-bottom:8px">
-        <button class="filter-action-btn" style="${filterMode==='or'?'background:var(--color-background-secondary);color:var(--color-text-primary);border-color:var(--color-border-secondary)':''}"
-          onclick="filterMode='or';renderSB()">Au moins une</button>
-        <button class="filter-action-btn" style="${filterMode==='and'?'background:var(--color-background-secondary);color:var(--color-text-primary);border-color:var(--color-border-secondary)':''}"
-          onclick="filterMode='and';renderSB()">Toutes</button>
-      </div>
-      <div class="filter-notions">${checks}</div>
-      <div class="filter-actions">
-        <button class="filter-action-btn" onclick="authorFilter=new Set(KEYS);renderSB()">Sélect. tout</button>
-        <button class="filter-action-btn" onclick="authorFilter=new Set();renderSB()">Effacer</button>
-      </div>`;
-    sb.appendChild(fp);
+    // Filter panel (dans la zone scrollable)
+    if(filterOpen){
+      const fp=document.createElement('div');
+      fp.className='filter-panel open';
+      const checks=KEYS.map(k=>{
+        const checked=authorFilter.has(k);
+        return `<div class="filter-notion-item" onclick="toggleFilter('${k}')">
+          <div class="filter-notion-check${checked?' checked':''}" style="${checked?`background:${D[k].c};color:#fff`:''}">${checked?'✓':''}</div>
+          <span class="filter-notion-label">${D[k].l}</span>
+          <span style="width:6px;height:6px;border-radius:50%;background:${D[k].c};flex-shrink:0;margin-left:auto"></span>
+        </div>`;
+      }).join('');
+      fp.innerHTML=`<div class="filter-panel-title">Filtrer par notion</div>
+        <div style="display:flex;gap:3px;margin-bottom:8px">
+          <button class="filter-action-btn" style="${filterMode==='or'?'background:var(--color-background-secondary);color:var(--color-text-primary);border-color:var(--color-border-secondary)':''}"
+            onclick="filterMode='or';renderSB()">Au moins une</button>
+          <button class="filter-action-btn" style="${filterMode==='and'?'background:var(--color-background-secondary);color:var(--color-text-primary);border-color:var(--color-border-secondary)':''}"
+            onclick="filterMode='and';renderSB()">Toutes</button>
+        </div>
+        <div class="filter-notions">${checks}</div>
+        <div class="filter-actions">
+          <button class="filter-action-btn" onclick="authorFilter=new Set(KEYS);renderSB()">Sélect. tout</button>
+          <button class="filter-action-btn" onclick="authorFilter=new Set();renderSB()">Effacer</button>
+        </div>`;
+      list.appendChild(fp);
+    }
     const listWrap=document.createElement('div');
     listWrap.id='sb-author-list';
-    sb.appendChild(listWrap);
+    list.appendChild(listWrap);
     renderSBList();
   } else {
-    // Concepts — search + filter (same system as auteurs)
-    const searchRow=document.createElement('div');
-    searchRow.className='sb-search-row';
+    // Concepts
+    let searchRow=fixed.querySelector('.sb-search-row');
+    if(!searchRow){
+      searchRow=document.createElement('div');
+      searchRow.className='sb-search-row';
+      fixed.appendChild(searchRow);
+    }
     searchRow.innerHTML=`
       <input class="sb-search" type="text" placeholder="Chercher…" value="${conceptSearch.replace(/"/g,'&quot;')}"
         oninput="conceptSearch=this.value;renderSBConceptsList()" />
       <button class="sb-filter-btn${(conceptFilter.size>0)||conceptFilterOpen?' active':''}" onclick="conceptFilterOpen=!conceptFilterOpen;renderSB()" title="Filtrer par notion">⊟</button>`;
-    sb.appendChild(searchRow);
-    // Filter panel
-    const cfp=document.createElement('div');
-    cfp.className='filter-panel'+(conceptFilterOpen?' open':'');
-    const cChecks=KEYS.map(k=>{
-      const checked=conceptFilter.has(k);
-      return `<div class="filter-notion-item" onclick="toggleConceptFilter('${k}')">
-        <div class="filter-notion-check${checked?' checked':''}" style="${checked?`background:${D[k].c};color:#fff`:''}">${checked?'✓':''}</div>
-        <span class="filter-notion-label">${D[k].l}</span>
-        <span style="width:6px;height:6px;border-radius:50%;background:${D[k].c};flex-shrink:0;margin-left:auto"></span>
-      </div>`;
-    }).join('');
-    cfp.innerHTML=`<div class="filter-panel-title">Filtrer par notion</div>
-      <div class="filter-notions">${cChecks}</div>
-      <div class="filter-actions">
-        <button class="filter-action-btn" onclick="conceptFilter=new Set(KEYS);renderSB()">Sélect. tout</button>
-        <button class="filter-action-btn" onclick="conceptFilter=new Set();renderSB()">Effacer</button>
-      </div>`;
-    sb.appendChild(cfp);
+    if(conceptFilterOpen){
+      const cfp=document.createElement('div');
+      cfp.className='filter-panel open';
+      const cChecks=KEYS.map(k=>{
+        const checked=conceptFilter.has(k);
+        return `<div class="filter-notion-item" onclick="toggleConceptFilter('${k}')">
+          <div class="filter-notion-check${checked?' checked':''}" style="${checked?`background:${D[k].c};color:#fff`:''}">${checked?'✓':''}</div>
+          <span class="filter-notion-label">${D[k].l}</span>
+          <span style="width:6px;height:6px;border-radius:50%;background:${D[k].c};flex-shrink:0;margin-left:auto"></span>
+        </div>`;
+      }).join('');
+      cfp.innerHTML=`<div class="filter-panel-title">Filtrer par notion</div>
+        <div class="filter-notions">${cChecks}</div>
+        <div class="filter-actions">
+          <button class="filter-action-btn" onclick="conceptFilter=new Set(KEYS);renderSB()">Sélect. tout</button>
+          <button class="filter-action-btn" onclick="conceptFilter=new Set();renderSB()">Effacer</button>
+        </div>`;
+      list.appendChild(cfp);
+    }
     const listWrap=document.createElement('div');
     listWrap.id='sb-concept-list';
-    sb.appendChild(listWrap);
+    list.appendChild(listWrap);
     renderSBConceptsList();
   }
 }
@@ -1275,9 +1299,16 @@ function openConcept(id){
 }
 
 function renderConceptContent(){
-  const main=document.getElementById('main');
+  const mainEl=document.getElementById('main');
+  if(!mainEl.querySelector('.tabs')||!mainEl.querySelector('.main-content')){
+    mainEl.innerHTML='<div class="tabs"></div><div class="main-content"></div>';
+  }
+  const tabsEl=mainEl.querySelector('.tabs');
+  const mc=mainEl.querySelector('.main-content');
+  tabsEl.innerHTML=''; // pas d'onglets en vue concept
+
   const c=CONCEPTS.find(x=>x.id===curConcept);
-  if(!c){main.innerHTML='';return;}
+  if(!c){mc.innerHTML='';return;}
 
   // Notion pills
   const notionPills=c.notions.map(k=>{
@@ -1314,7 +1345,7 @@ function renderConceptContent(){
 
   if(c.notions.length) html+=`<div class="concept-section"><div class="concept-section-title">Notions concernées</div><div style="display:flex;flex-wrap:wrap;gap:6px">${notionPills}</div></div>`;
 
-  main.innerHTML=html;
+  mc.innerHTML=html;
 }
 
 
@@ -1328,8 +1359,14 @@ function openAuthor(name){
 
 /* ── renderAuthorContent ─────────────────────────────────────── */
 function renderAuthorContent(){
-  const main=document.getElementById('main');
-  if(!curAuthor||!AI[curAuthor]){main.innerHTML='';return;}
+  const mainEl=document.getElementById('main');
+  if(!mainEl.querySelector('.tabs')||!mainEl.querySelector('.main-content')){
+    mainEl.innerHTML='<div class="tabs"></div><div class="main-content"></div>';
+  }
+  const tabsEl=mainEl.querySelector('.tabs');
+  const mc=mainEl.querySelector('.main-content');
+
+  if(!curAuthor||!AI[curAuthor]){mc.innerHTML='';tabsEl.innerHTML='';return;}
   const entry=AI[curAuthor];
   const meta=AM[curAuthor]||{bio:'',courant:'',periode:'',themes:[],dialogues:[]};
   const cc=CC[meta.courant]||'#888';
@@ -1338,6 +1375,9 @@ function renderAuthorContent(){
   const notionBdgs=entry.notions.map(k=>`<span class="ab-bdg" style="background:${D[k].c};width:8px;height:8px" title="${D[k].l}"></span>`).join('');
 
   const tabs2=[{id:'idees',l:'Idées'},{id:'citations',l:'Citations'},{id:'oeuvres',l:'Œuvres'},{id:'dialogues',l:'Dialogues'}];
+
+  // Barre d'onglets fixe
+  tabsEl.innerHTML=tabs2.map(t=>`<div class="tab${curAuthorTab===t.id?' active':''}" onclick="curAuthorTab='${t.id}';renderAuthorContent()">${t.l}</div>`).join('');
 
   let html=`
 <div class="notion-head">
@@ -1361,7 +1401,7 @@ function renderAuthorContent(){
     html+=`</div>`;
   }
 
-  html+=`<div class="tabs">${tabs2.map(t=>`<div class="tab${curAuthorTab===t.id?' active':''}" onclick="curAuthorTab='${t.id}';renderAuthorContent()">${t.l}</div>`).join('')}</div>`;
+  // (les onglets sont désormais dans tabsEl — pas dans html)
 
   if(curAuthorTab==='idees'){
     html+=`<div class="slabel">Idées de ${curAuthor} par notion</div>`;
@@ -1431,25 +1471,34 @@ function renderAuthorContent(){
     }
   }
 
-  main.innerHTML=html;
+  mc.innerHTML=html;
 }
 
 /* ── renderContent (notions) ─────────────────────────────────── */
 function renderContent(){
+  const mainEl=document.getElementById('main');
+  // Garantir la structure .tabs + .main-content
+  if(!mainEl.querySelector('.tabs')||!mainEl.querySelector('.main-content')){
+    mainEl.innerHTML='<div class="tabs"></div><div class="main-content"></div>';
+  }
+  const tabsEl=mainEl.querySelector('.tabs');
+  const mc=mainEl.querySelector('.main-content');
+
   const n=D[cur];
   const c=n.c;
   const tabs2=['auteurs','textes','axes','exemples','diss'];
   const tabLabels={'auteurs':'Auteurs','textes':'Textes du cours','axes':'Axes & sous-parties','exemples':'Exemples','diss':'Dissertations'};
 
+  // Remplir la barre d'onglets (toujours fixe)
+  tabsEl.innerHTML=tabs2.map(t=>`<div class="tab${curTab===t?' active':''}" onclick="tab('${t}')">${tabLabels[t]}</div>`).join('');
+
+  // Contenu scrollable
   let html=`
 <div class="notion-head">
   <div class="nbadge" style="background:${c}"></div>
   <div><div class="ntitle">${n.l}</div><div class="nsub">${n.s}</div></div>
 </div>
-<div class="def-box">${linkTerms(n.def)}</div>
-<div class="tabs">
-  ${tabs2.map(t=>`<div class="tab${curTab===t?' active':''}" onclick="tab('${t}')">${tabLabels[t]}</div>`).join('')}
-</div>`;
+<div class="def-box">${linkTerms(n.def)}</div>`;
 
   if(curTab==='auteurs'){
     html+=`<div class="slabel">Auteurs et idées clés (${n.auteurs.length} auteurs)</div><div class="ag">`;
@@ -1529,7 +1578,7 @@ function renderContent(){
     html+=`</div>`;
   }
 
-  document.getElementById('main').innerHTML=html;
+  mc.innerHTML=html;
 }
 
 function renderSBList(){
