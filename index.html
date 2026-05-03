@@ -151,6 +151,43 @@ body{font-family:'Inter',system-ui,sans-serif;background:#121212;height:100vh;pa
 .dq.is-new{color:var(--color-new);border-bottom-color:var(--color-new-border)}
 .dq.is-new::before{color:var(--color-new)}
 
+/* ── Éléments modifiés ────────────────────────────────────────── */
+:root{
+  --color-mod:#4A9CC8;
+  --color-mod-bg:#0d1e2a;
+  --color-mod-border:#1d4c6e;
+}
+.modified-badge{
+  display:inline-flex;align-items:center;gap:3px;
+  font-size:9px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
+  background:var(--color-mod-bg);color:var(--color-mod);
+  border:0.5px solid var(--color-mod-border);
+  border-radius:4px;padding:1px 6px;flex-shrink:0;
+}
+.ac.is-modified{border-color:var(--color-mod-border);background:var(--color-mod-bg)}
+.ac.is-modified .an{color:var(--color-mod)!important}
+.ti2.is-modified{background:var(--color-mod-bg);border-radius:4px;padding:5px 7px;margin-bottom:2px;border-bottom:none!important}
+.ti2.is-modified .tinum{color:var(--color-mod)}
+.axe-card.is-modified{border-color:var(--color-mod-border);background:var(--color-mod-bg)}
+.axe-card.is-modified .axe-num{color:var(--color-mod)}
+.ex-card.is-modified{border-color:var(--color-mod-border);background:var(--color-mod-bg)}
+.dq.is-modified{color:var(--color-mod);border-bottom-color:var(--color-mod-border)}
+.dq.is-modified::before{color:var(--color-mod)}
+.idea-card.is-modified{border-color:var(--color-mod-border);background:var(--color-mod-bg)}
+
+/* ── Bouton retour ───────────────────────────────────────────── */
+.back-btn{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:5px 10px;font-size:11px;font-weight:500;
+  color:var(--color-text-tertiary);background:transparent;
+  border:0.5px solid var(--color-border-tertiary);
+  border-radius:var(--border-radius-md);cursor:pointer;
+  font-family:inherit;transition:all .15s;flex-shrink:0;
+  margin-right:6px;line-height:1;
+}
+.back-btn:hover{color:var(--color-text-primary);border-color:var(--color-border-secondary);background:var(--color-background-primary)}
+.back-btn:disabled{opacity:.3;cursor:default;pointer-events:none}
+
 /* ── Définition enrichie ─────────────────────────────────────── */
 .def-box details{margin-top:10px;border-top:0.5px solid var(--color-border-tertiary);padding-top:8px}
 .def-box summary{cursor:pointer;font-size:11px;font-weight:600;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:.07em;list-style:none;display:flex;align-items:center;gap:5px;user-select:none}
@@ -1209,6 +1246,44 @@ const CC={
   'Histoire et philosophie des sciences':'#2E86AB'
 };
 
+/* ── Historique de navigation ────────────────────────────────── */
+let navHistory=[];
+let _navigating=false; // évite les boucles lors du goBack
+
+function pushHistory(){
+  if(_navigating) return;
+  navHistory.push({sbMode,cur,curTab,curAuthor,curAuthorTab,curConcept});
+  // Limiter l'historique à 50 entrées
+  if(navHistory.length>50) navHistory.shift();
+  updateBackBtn();
+}
+
+function goBack(){
+  if(!navHistory.length) return;
+  _navigating=true;
+  const s=navHistory.pop();
+  sbMode=s.sbMode; cur=s.cur; curTab=s.curTab;
+  curAuthor=s.curAuthor; curAuthorTab=s.curAuthorTab; curConcept=s.curConcept;
+  renderSB();
+  if(sbMode==='auteurs'&&curAuthor) renderAuthorContent();
+  else if(sbMode==='concepts') renderConceptContent();
+  else renderContent();
+  _navigating=false;
+  updateBackBtn();
+}
+
+function updateBackBtn(){
+  document.querySelectorAll('.back-btn').forEach(btn=>{
+    btn.disabled=navHistory.length===0;
+    btn.title=navHistory.length?`Retour (${navHistory.length} page${navHistory.length>1?'s':''} dans l'historique)`:'Aucune page précédente';
+  });
+}
+
+function backBtnHTML(){
+  const disabled=navHistory.length===0;
+  return `<button class="back-btn"${disabled?' disabled':''} onclick="goBack()" title="${disabled?'Aucune page précédente':`Retour (${navHistory.length} page${navHistory.length>1?'s':''})`}">← Retour</button>`;
+}
+
 /* ── renderSB ────────────────────────────────────────────────── */
 let authorSearch='';
 let authorFilter=new Set(); // empty = all
@@ -1250,7 +1325,6 @@ function renderSB(){
     <div class="sb-tab${sbMode==='auteurs'?' active':''}" onclick="if(sbMode!=='auteurs'){sbMode='auteurs';if(!curAuthor)curAuthor=authorsSorted()[0];curAuthorTab='idees';renderSB();renderAuthorContent();}" style="font-size:9.5px">Auteurs</div>
     <div class="sb-tab${sbMode==='concepts'?' active':''}" onclick="if(sbMode!=='concepts'){sbMode='concepts';if(!curConcept)curConcept=CONCEPTS[0].id;renderSB();renderConceptContent();}" style="font-size:9.5px">Concepts</div>
   </div>`;
-  // ── Zone scrollable ────────────────────────────────────────────
   let list=sb.querySelector('.sidebar-list');
   if(!list){
     list=document.createElement('div');
@@ -1264,7 +1338,7 @@ function renderSB(){
       const el=document.createElement('div');
       el.className='nb'+(k===cur?' active':'');
       el.innerHTML=`<span class="dot" style="background:${D[k].c}"></span>${D[k].l}`;
-      el.onclick=()=>{cur=k;curTab='auteurs';sbMode='notions';renderSB();renderContent()};
+      el.onclick=()=>{pushHistory();cur=k;curTab='auteurs';sbMode='notions';renderSB();renderContent()};
       list.appendChild(el);
     });
   } else if(sbMode==='auteurs'){
@@ -1389,10 +1463,12 @@ const CONCEPT_TO_NOTION={
 function openConcept(id){
   const notionKey=CONCEPT_TO_NOTION[id];
   if(notionKey&&D[notionKey]){
+    pushHistory();
     cur=notionKey; curTab='auteurs'; sbMode='notions';
     renderSB(); renderContent();
     return;
   }
+  pushHistory();
   sbMode='concepts'; curConcept=id;
   renderSB(); renderConceptContent();
 }
@@ -1404,7 +1480,7 @@ function renderConceptContent(){
   }
   const tabsEl=mainEl.querySelector('.tabs');
   const mc=mainEl.querySelector('.main-content');
-  tabsEl.innerHTML=''; // pas d'onglets en vue concept
+  tabsEl.innerHTML=backBtnHTML(); // bouton retour seul dans la barre
 
   const c=CONCEPTS.find(x=>x.id===curConcept);
   if(!c){mc.innerHTML='';return;}
@@ -1413,7 +1489,7 @@ function renderConceptContent(){
   const notionPills=c.notions.map(k=>{
     const nd=D[k]; if(!nd) return '';
     return `<span class="notion-pill" style="color:${nd.c};border-color:${nd.c}40;background:${nd.c}12"
-      onclick="cur='${k}';curTab='auteurs';sbMode='notions';renderSB();renderContent()">${nd.l} →</span>`;
+      onclick="pushHistory();cur='${k}';curTab='auteurs';sbMode='notions';renderSB();renderContent()">${nd.l} →</span>`;
   }).join('');
 
   // Tensions
@@ -1448,10 +1524,11 @@ function renderConceptContent(){
 }
 
 
-function tab(id){curTab=id;renderContent()}
+function tab(id){pushHistory();curTab=id;renderContent()}
 
 function openAuthor(name){
   if(!AI[name]) return;
+  pushHistory();
   sbMode='auteurs'; curAuthor=name; curAuthorTab='idees';
   renderSB(); renderAuthorContent();
 }
@@ -1476,7 +1553,7 @@ function renderAuthorContent(){
   const tabs2=[{id:'idees',l:'Idées'},{id:'citations',l:'Citations'},{id:'oeuvres',l:'Œuvres'},{id:'dialogues',l:'Dialogues'}];
 
   // Barre d'onglets fixe
-  tabsEl.innerHTML=tabs2.map(t=>`<div class="tab${curAuthorTab===t.id?' active':''}" onclick="curAuthorTab='${t.id}';renderAuthorContent()">${t.l}</div>`).join('');
+  tabsEl.innerHTML=backBtnHTML()+tabs2.map(t=>`<div class="tab${curAuthorTab===t.id?' active':''}" onclick="curAuthorTab='${t.id}';renderAuthorContent()">${t.l}</div>`).join('');
 
   let html=`
 <div class="notion-head">
@@ -1507,11 +1584,13 @@ function renderAuthorContent(){
     entry.notions.forEach(k=>{
       const a=entry.entries[k]; const nc=D[k].c;
       const nb=a.new?`<span class="new-badge">✦ Nouveau</span>`:'';
-      html+=`<div class="idea-card${a.new?' is-new':''}">
+      const mb=a.modified?`<span class="modified-badge">✎ Modifié</span>`:'';
+      const statusCls=a.new?' is-new':a.modified?' is-modified':'';
+      html+=`<div class="idea-card${statusCls}">
         <div class="idea-card-head">
-          <div class="idea-card-work">${a.w||''} ${nb}</div>
+          <div class="idea-card-work">${a.w||''} ${nb}${mb}</div>
           <span class="notion-pill" style="color:${nc};border-color:${nc}40;background:${nc}12"
-            onclick="cur='${k}';curTab='auteurs';sbMode='notions';renderSB();renderContent()">${D[k].l} →</span>
+            onclick="pushHistory();cur='${k}';curTab='auteurs';sbMode='notions';renderSB();renderContent()">${D[k].l} →</span>
         </div>
         <div class="idea-card-body">${a.i}</div>
       </div>`;
@@ -1529,7 +1608,7 @@ function renderAuthorContent(){
           <div class="cit-card-footer">
             <span class="cit-card-src">${a.w||''}</span>
             <span class="notion-pill" style="color:${nc};border-color:${nc}40;background:${nc}12"
-              onclick="cur='${k}';curTab='auteurs';sbMode='notions';renderSB();renderContent()">${D[k].l} →</span>
+              onclick="pushHistory();cur='${k}';curTab='auteurs';sbMode='notions';renderSB();renderContent()">${D[k].l} →</span>
           </div>
         </div>`;
       });
@@ -1544,7 +1623,7 @@ function renderAuthorContent(){
       html+=`<div class="slabel">Œuvres de ${curAuthor} citées dans le cours</div>`;
       wks.forEach(w=>{
         const bdgs=works[w].map(k=>`<span class="notion-pill" style="color:${D[k].c};border-color:${D[k].c}40;background:${D[k].c}12;font-size:10px;padding:2px 7px"
-          onclick="cur='${k}';curTab='auteurs';sbMode='notions';renderSB();renderContent()">${D[k].l}</span>`).join('');
+          onclick="pushHistory();cur='${k}';curTab='auteurs';sbMode='notions';renderSB();renderContent()">${D[k].l}</span>`).join('');
         html+=`<div class="oeuvre-card"><div class="oeuvre-title">${w}</div><div class="oeuvre-badges">${bdgs}</div></div>`;
       });
     }
@@ -1589,7 +1668,7 @@ function renderContent(){
   const tabLabels={'auteurs':'Auteurs','textes':'Textes du cours','axes':'Axes & sous-parties','exemples':'Exemples','diss':'Dissertations'};
 
   // Remplir la barre d'onglets (toujours fixe)
-  tabsEl.innerHTML=tabs2.map(t=>`<div class="tab${curTab===t?' active':''}" onclick="tab('${t}')">${tabLabels[t]}</div>`).join('');
+  tabsEl.innerHTML=backBtnHTML()+tabs2.map(t=>`<div class="tab${curTab===t?' active':''}" onclick="tab('${t}')">${tabLabels[t]}</div>`).join('');
 
   // Contenu scrollable
   let html=`
@@ -1603,11 +1682,13 @@ function renderContent(){
     html+=`<div class="slabel">Auteurs et idées clés (${n.auteurs.length} auteurs)</div><div class="ag">`;
     n.auteurs.forEach(a=>{
       const newBadge=a.new?`<span class="new-badge">✦ Nouveau</span>`:'';
-      const nameColor=a.new?'var(--color-new)':c;
+      const modBadge=a.modified?`<span class="modified-badge">✎ Modifié</span>`:'';
+      const statusClass=a.new?' is-new':a.modified?' is-modified':'';
+      const nameColor=a.new?'var(--color-new)':a.modified?'var(--color-mod)':c;
       const safeN=a.n.replace(/'/g,"\\'");
-      html+=`<div class="ac${a.new?' is-new':''}">
+      html+=`<div class="ac${statusClass}">
         <div class="an" style="color:${nameColor}">
-          <span class="an-link" style="color:${nameColor}" onclick="openAuthor('${safeN}')">${a.n}</span> ${newBadge}
+          <span class="an-link" style="color:${nameColor}" onclick="openAuthor('${safeN}')">${a.n}</span> ${newBadge}${modBadge}
         </div>
         <div class="aw">${a.w}</div><div class="ai">${linkTerms('<span>'+a.i+'</span>')}</div>${a.q?`<div class="aq">${a.q}</div>`:''}
       </div>`;
@@ -1618,7 +1699,9 @@ function renderContent(){
     html+=`<div class="slabel">Textes étudiés en cours</div><div class="tbox">`;
     n.textes.forEach(t=>{
       const newBadge=t.new?`<span class="new-badge">✦ Nouveau</span>`:'';
-      html+=`<div class="ti2${t.new?' is-new':''}"><span class="tinum">${t.n} ${newBadge}</span><span class="titxt">${linkTerms('<span>'+t.t+'</span>')}</span></div>`;
+      const modBadge=t.modified?`<span class="modified-badge">✎ Modifié</span>`:'';
+      const statusClass=t.new?' is-new':t.modified?' is-modified':'';
+      html+=`<div class="ti2${statusClass}"><span class="tinum">${t.n} ${newBadge}${modBadge}</span><span class="titxt">${linkTerms('<span>'+t.t+'</span>')}</span></div>`;
     });
     html+=`</div>`;
   }
@@ -1626,8 +1709,10 @@ function renderContent(){
     html+=`<div class="slabel">3 axes de dissertation avec sous-parties détaillées</div>`;
     n.axes.forEach(a=>{
       const newBadge=a.new?`<span class="new-badge">✦ Nouveau</span>`:'';
-      html+=`<div class="axe-card${a.new?' is-new':''}">
-        <div class="axe-head"><span class="axe-num">${a.n}</span><span class="axe-title">${a.t}</span>${newBadge}</div>
+      const modBadge=a.modified?`<span class="modified-badge">✎ Modifié</span>`:'';
+      const statusClass=a.new?' is-new':a.modified?' is-modified':'';
+      html+=`<div class="axe-card${statusClass}">
+        <div class="axe-head"><span class="axe-num">${a.n}</span><span class="axe-title">${a.t}</span>${newBadge}${modBadge}</div>
         <div class="axe-pb">Problématique : ${a.pb}</div>
         <div class="sp">`;
       a.sps.forEach(sp=>{
@@ -1651,10 +1736,12 @@ function renderContent(){
       };
       const tc=tagColors[e.tag]||c;
       const newBadgeEx=e.new?`<span class="new-badge">✦ Nouveau</span>`:'';
-      html+=`<div class="ex-card${e.new?' is-new':''}">
+      const modBadgeEx=e.modified?`<span class="modified-badge">✎ Modifié</span>`:'';
+      const statusClassEx=e.new?' is-new':e.modified?' is-modified':'';
+      html+=`<div class="ex-card${statusClassEx}">
         <div class="ex-head">
-          <span class="ex-tag" style="background:${e.new?'var(--color-new-bg)':tc+'18'};color:${e.new?'var(--color-new)':tc};border:0.5px solid ${e.new?'var(--color-new-border)':tc+'40'}">${e.tag}</span>
-          <span class="ex-title">${e.tit}</span>${newBadgeEx}
+          <span class="ex-tag" style="background:${(e.new||e.modified)?((e.new?'var(--color-new-bg)':'var(--color-mod-bg)')):tc+'18'};color:${(e.new||e.modified)?((e.new?'var(--color-new)':'var(--color-mod)')):tc};border:0.5px solid ${(e.new||e.modified)?((e.new?'var(--color-new-border)':'var(--color-mod-border)')):tc+'40'}">${e.tag}</span>
+          <span class="ex-title">${e.tit}</span>${newBadgeEx}${modBadgeEx}
         </div>
         <div class="ex-body">${linkTerms('<span>'+e.body+'</span>')}</div>
         <div class="ex-lien">${e.lien}</div>
@@ -1665,14 +1752,16 @@ function renderContent(){
     const liens=n.liens||[];
     html+=`<div class="slabel">Liens avec d'autres notions</div>
     <div class="liens-row">
-      ${liens.map(l=>{const k=KEYS.find(k=>D[k].l===l);return k?`<div class="lpill" style="border-color:${D[k].c};color:${D[k].c}" onclick="cur='${k}';curTab='auteurs';sbMode='notions';renderSB();renderContent()">${l}</div>`:''}).join('')}
+      ${liens.map(l=>{const k=KEYS.find(k=>D[k].l===l);return k?`<div class="lpill" style="border-color:${D[k].c};color:${D[k].c}" onclick="pushHistory();cur='${k}';curTab='auteurs';sbMode='notions';renderSB();renderContent()">${l}</div>`:''}).join('')}
     </div>
     <div class="slabel">Questions de dissertation typiques</div>
     <div class="diss-list">`;
     n.diss.forEach(d=>{
       const isNew=typeof d==='object'&&d.new;
+      const isMod=typeof d==='object'&&d.modified;
       const txt=typeof d==='object'?d.q:d;
-      html+=`<div class="dq${isNew?' is-new':''}">${linkTerms('<span>'+txt+'</span>')}</div>`;
+      const modBadgeDq=isMod?`<span class="modified-badge" style="margin-left:6px;vertical-align:middle">✎ Modifié</span>`:'';
+      html+=`<div class="dq${isNew?' is-new':isMod?' is-modified':''}">${linkTerms('<span>'+txt+'</span>')}${modBadgeDq}</div>`;
     });
     html+=`</div>`;
   }
@@ -1695,7 +1784,7 @@ function renderSBList(){
       const entry=AI[name];
       const bdgs=entry.notions.map(k=>`<span class="ab-bdg" style="background:${D[k].c}" title="${D[k].l}"></span>`).join('');
       const safeN=name.replace(/'/g,"\\'");
-      html+=`<div class="ab${name===curAuthor?' active':''}" onclick="curAuthor='${safeN}';curAuthorTab='idees';renderSBList();renderAuthorContent()">
+      html+=`<div class="ab${name===curAuthor?' active':''}" onclick="pushHistory();curAuthor='${safeN}';curAuthorTab='idees';renderSBList();renderAuthorContent()">
         <div class="ab-name">${name}</div><div class="ab-badges">${bdgs}</div>
       </div>`;
     });
