@@ -1252,8 +1252,12 @@ let _navigating=false; // évite les boucles lors du goBack
 
 function pushHistory(){
   if(_navigating) return;
+  const last=navHistory[navHistory.length-1];
+  // Ne pas pousser si on est déjà sur la même page
+  if(last&&last.sbMode===sbMode&&last.cur===cur&&last.curTab===curTab
+    &&last.curAuthor===curAuthor&&last.curAuthorTab===curAuthorTab
+    &&last.curConcept===curConcept) return;
   navHistory.push({sbMode,cur,curTab,curAuthor,curAuthorTab,curConcept});
-  // Limiter l'historique à 50 entrées
   if(navHistory.length>50) navHistory.shift();
   updateBackBtn();
 }
