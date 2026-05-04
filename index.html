@@ -1,35 +1,92 @@
 <!DOCTYPE html>
 <!--
-═══════════════════════════════════════════════════════════════════════════
-  RÉCAPITULATIF DES CORRECTIONS APPLIQUÉES (vérifiées par recherches web)
-═══════════════════════════════════════════════════════════════════════════
+╔══════════════════════════════════════════════════════════════════════════╗
+║        GRAPHE PHILOSOPHIE — TERMINALE  ·  index.html                   ║
+║        Application de révision mono-fichier HTML/CSS/JS                ║
+╚══════════════════════════════════════════════════════════════════════════╝
 
-  ▸ FAUTES D'ORTHOGRAPHE :
-    • "indubituble" / "indubitale" → "indubitable" (×5 occurrences)
-    • "autoconsicence" → "autoconscience" (×2)
-    • "Aurores" → "Aurore" (titre exact de l'œuvre de Nietzsche, ×6)
-    • "diligement" → "diligemment" (×2)
-    • "ennobling" (anglicisme) → "ennoblissent"
-    • "Redistributer" → "Redistribuer"
-    • "Ce dernier solution" → "Cette dernière solution"
-    • "nevrose" → "névrose"
+  STRUCTURE DU FICHIER
+  ────────────────────
+  1. <head>          Métadonnées, police Google Fonts (Inter)
+  2. <style>         Tout le CSS (variables, layout, composants UI)
+  3. <body> HTML     Squelette minimal : sidebar (#sb) + zone principale (#main)
+  4. <script>        Toute la logique JS, données et rendu
 
-  ▸ ERREURS FACTUELLES (dates et titres) :
-    • Manzoni "Verde d'artista" → "Merda d'artista" (1961)
-    • "Salvator Garau" → "Salvatore Garau" (artiste italien)
-    • "Sculture invisibili" → "Sculture immateriali" (l'artiste préfère ce terme)
-    • Constitution équatorienne 2007 → 2008 (référendum 28 sept. 2008)
-    • Serres, Le Contrat naturel : 2009 → 1990 (édition F. Bourin)
-    • La Boétie, Servitude volontaire : 1577 → 1549 (rédaction ; pub. posth. 1574/1576)
-    • Saussure, CLG : "1906–1911" → "1916" (publication posthume ; les dates
-      1906-1911 sont celles des cours)
-    • Schopenhauer, Le Monde comme volonté : 1818 → 1819 (cohérence interne)
-    • Sartre, Existentialisme est un humanisme : précisé "1946 (conférence 1945)"
-    • Aristote, Éthique à Nicomaque : "-335" → "~335 av. J.-C."
-    • Boroditsky : "2009" → "TED 2017 (essai Edge.org 2009)"
-    • Hobbes "Homo homini lupus" : précisé que la formule vient du De Cive (1642),
-      pas du Léviathan (1651)
-═══════════════════════════════════════════════════════════════════════════
+  ARCHITECTURE JS (dans l'ordre d'apparition)
+  ─────────────────────────────────────────────
+  A. DONNÉES
+     · const D        — Les 9 notions du programme (conscience, nature…)
+                        Chaque notion contient : auteurs, textes, axes, exemples,
+                        liens, questions de dissertation, définition enrichie.
+     · const AM       — Métadonnées des auteurs : bio, courant, période, thèmes,
+                        dialogues philosophiques (qui répond à qui, sur quoi).
+     · const CONCEPTS — Glossaire de ~70 concepts clés (cogito, aliénation…)
+                        avec définition, tensions, auteur, notions liées.
+     · const CC       — Couleurs par courant philosophique (Rationalisme → bleu…)
+
+  B. ÉTAT DE L'APPLICATION
+     · cur            — Notion actuellement sélectionnée (clé de D)
+     · curTab         — Onglet actif dans la vue notion (auteurs/textes/axes…)
+     · sbMode         — Mode de la sidebar : 'notions' | 'auteurs' | 'concepts'
+     · curAuthor      — Auteur actuellement sélectionné
+     · curAuthorTab   — Onglet actif dans la fiche auteur (idées/citations…)
+     · curConcept     — Concept actuellement sélectionné
+     · historyStack   — Pile de navigation (bouton Retour)
+
+  C. FONCTIONS UTILITAIRES
+     · buildAI()         — Construit un index auteur → {notions, entries} depuis D
+     · authorsSorted()   — Trie les auteurs par nombre de notions couvertes
+     · pushHistory()     — Sauvegarde l'état actuel dans la pile de navigation
+     · backBtnHTML()     — Génère le HTML du bouton Retour (désactivé si pile vide)
+     · linkTerms(html)   — Détecte les termes du glossaire dans un texte HTML
+                           et les transforme en liens cliquables (.cterm)
+
+  D. RENDU (fonctions render*)
+     · renderSB()              — Reconstruit toute la sidebar (tabs + liste)
+     · renderSBList()          — Liste des auteurs filtrée/recherchée
+     · renderSBConceptsList()  — Liste des concepts filtrée/recherchée
+     · renderContent()         — Vue principale d'une notion (5 onglets)
+     · renderAuthorContent()   — Fiche d'un auteur (idées/citations/œuvres/dialogues)
+     · renderConceptContent()  — Fiche d'un concept du glossaire
+
+  E. NAVIGATION
+     · tab(id)          — Change l'onglet actif dans la vue notion
+     · openAuthor(name) — Ouvre la fiche d'un auteur (depuis n'importe où)
+     · openConcept(id)  — Ouvre un concept ou redirige vers la notion liée
+
+  DONNÉES : STRUCTURE D'UNE NOTION (objet dans D)
+  ────────────────────────────────────────────────
+  {
+    c:       "#couleur hex",
+    l:       "Label affiché",
+    s:       "Sous-titre / question",
+    def:     "HTML de la définition (peut contenir <details>)",
+    auteurs: [ { n, w, i, q, new?, modified? }, … ],
+    textes:  [ { n, t, new?, modified? }, … ],
+    axes:    [ { n, t, pb, sps:[{l,c,r}], new?, modified? }, … ],
+    exemples:[ { tag, tit, body, lien, new?, modified? }, … ],
+    liens:   [ "AutreNotion", … ],
+    diss:    [ "Question ?", { q, new?, modified? }, … ]
+  }
+
+  DONNÉES : STRUCTURE D'UN AUTEUR DANS AM
+  ────────────────────────────────────────
+  {
+    bio:       "Présentation biographique",
+    courant:   "Courant philosophique",
+    periode:   "XVIIe siècle",
+    themes:    ["thème1", "thème2", …],
+    dialogues: [{ dir: "oppose"|"prolonge"|"repond", auteur, sujet, desc }, …]
+  }
+
+  CORRECTIONS APPLIQUÉES (vérifiées)
+  ───────────────────────────────────
+  Orthographe : "indubitable" (×5), "autoconscience" (×2), "Aurore" (×6),
+  "diligemment" (×2), "ennoblissent", "Redistribuer", "névrose".
+  Factuel : Merda d'artista (Manzoni), Salvatore Garau, Constitution
+  équatorienne 2008, Serres 1990, La Boétie ~1549, Saussure CLG 1916,
+  Schopenhauer 1819, Sartre 1946, Aristote ~335 av. J.-C., Boroditsky
+  TED 2017, Hobbes De Cive 1642.
 -->
 <html lang="fr"><head><meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -38,6 +95,30 @@
 </head>
 <body>
 <style>
+/* ══════════════════════════════════════════════════════════════════
+   CSS — TABLE DES MATIÈRES
+   ──────────────────────────────────────────────────────────────────
+   1. Variables globales (:root)
+   2. Layout de base  — body, .wrap, .sidebar, .main
+   3. Sidebar         — items de notion (.nb), titre (.stitle)
+   4. Tabs            — barre d'onglets (.tab)
+   5. En-tête notion  — .notion-head, .ntitle, .nsub, .def-box
+   6. Contenu notion  — .ag/.ac (auteurs), .tbox (textes),
+                        .axe-card (axes), .ex-card (exemples),
+                        .lpill/.dq (liens & dissertations)
+   7. Badges          — .new-badge (nouveau), .modified-badge (modifié)
+   8. Bouton retour   — .back-btn
+   9. Définition enrichie — .def-box details/summary
+  10. Sidebar Auteurs — onglets (.sb-tab), recherche/filtre
+  11. Liste auteurs   — .ab, .ab-badges
+  12. Fiche auteur    — .author-title, .idea-card, .cit-card,
+                        .oeuvre-card, .dial-card
+  13. Sidebar Concepts — .cb
+  14. Fiche concept   — .concept-title, .tension-item
+  15. Liens inline    — .cterm (terme cliquable), .an-link (auteur)
+   ══════════════════════════════════════════════════════════════════ */
+
+/* ── 1. Variables globales ───────────────────────────────────────── */
 :root{
   --color-background-primary:#1e1e1e;
   --color-background-secondary:#2a2a2a;
@@ -52,6 +133,7 @@
   --border-radius-lg:12px;
   --border-radius-md:8px;
 }
+/* ── 2. Layout de base ───────────────────────────────────────────── */
 body{font-family:'Inter',system-ui,sans-serif;background:#121212;height:100vh;padding:16px;overflow:hidden;}
 *{box-sizing:border-box;margin:0;padding:0}
 .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
@@ -59,6 +141,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:#121212;height:100vh;pa
 .sidebar{width:155px;flex-shrink:0;background:var(--color-background-secondary);border-right:0.5px solid var(--color-border-tertiary);display:flex;flex-direction:column;overflow:hidden;}
 .sb-fixed{flex-shrink:0;padding:0 7px;}
 .sidebar-list{flex:1;overflow-y:auto;padding:0 7px 8px;height:0;min-height:0;}
+/* ── 3. Sidebar — liste des notions ─────────────────────────────── */
 .stitle{font-size:10px;font-weight:500;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:.06em;padding:0 6px 8px;flex-shrink:0;}
 .nb{padding:7px 9px;border-radius:var(--border-radius-md);cursor:pointer;font-size:12px;color:var(--color-text-secondary);border:0.5px solid transparent;transition:all .15s;line-height:1.3;display:flex;align-items:center;gap:6px;flex-shrink:0;}
 .nb:hover{background:var(--color-background-primary);color:var(--color-text-primary)}
@@ -67,7 +150,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:#121212;height:100vh;pa
 .main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
 .main-content{flex:1;overflow-y:auto;padding:18px 22px 24px;height:0;min-height:0;}
 
-/* Tabs */
+/* ── 4. Tabs — barre d'onglets principale ────────────────────────── */
 .tabs{display:flex;gap:2px;border-bottom:0.5px solid var(--color-border-tertiary);padding:10px 22px 0;flex-shrink:0;}
 .tab{padding:7px 14px;font-size:12px;cursor:pointer;color:var(--color-text-secondary);border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s;border-radius:0}
 .tab:hover{color:var(--color-text-primary)}
@@ -83,7 +166,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:#121212;height:100vh;pa
 
 .slabel{font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.06em;color:var(--color-text-tertiary);margin-bottom:8px}
 
-/* Auteurs */
+/* ── 6. Contenu notion — onglet Auteurs (.ag/.ac) ────────────────── */
 .ag{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:9px;margin-bottom:16px}
 .ac{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:10px 12px}
 .an{font-size:12px;font-weight:500;margin-bottom:2px}
@@ -91,14 +174,14 @@ body{font-family:'Inter',system-ui,sans-serif;background:#121212;height:100vh;pa
 .ai{font-size:12px;color:var(--color-text-secondary);line-height:1.5}
 .aq{font-size:11px;color:var(--color-text-tertiary);font-style:italic;margin-top:5px;border-left:2px solid var(--color-border-tertiary);padding-left:7px;line-height:1.4}
 
-/* Textes */
+/* ── 6b. Contenu notion — onglet Textes (.tbox/.ti2) ─────────────── */
 .tbox{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:11px 13px;margin-bottom:16px}
 .ti2{display:flex;flex-direction:column;gap:3px;padding:8px 0;border-bottom:0.5px solid var(--color-border-tertiary);font-size:12px;line-height:1.5}
 .ti2:last-child{border-bottom:none;padding-bottom:0}
 .tinum{font-weight:500;color:var(--color-text-primary);flex-shrink:0}
 .titxt{color:var(--color-text-secondary)}
 
-/* Axes */
+/* ── 6c. Contenu notion — onglet Axes (.axe-card/.sp) ───────────── */
 .axe-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:12px 14px;margin-bottom:10px}
 .axe-head{display:flex;align-items:center;gap:8px;margin-bottom:8px}
 .axe-num{font-size:10px;font-weight:500;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:.05em}
@@ -111,7 +194,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:#121212;height:100vh;pa
 .sp-content{color:var(--color-text-secondary)}
 .sp-ref{font-size:10px;color:var(--color-text-tertiary);display:block;margin-top:1px}
 
-/* Exemples */
+/* ── 6d. Contenu notion — onglet Exemples (.ex-card) ─────────────── */
 .ex-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:11px 13px;margin-bottom:9px}
 .ex-head{display:flex;align-items:center;gap:7px;margin-bottom:5px}
 .ex-tag{font-size:10px;font-weight:500;padding:2px 8px;border-radius:20px;flex-shrink:0}
@@ -119,7 +202,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:#121212;height:100vh;pa
 .ex-body{font-size:12px;color:var(--color-text-secondary);line-height:1.55}
 .ex-lien{font-size:10px;color:var(--color-text-tertiary);margin-top:4px;font-style:italic}
 
-/* Liens + diss */
+/* ── 6e. Contenu notion — onglets Liens & Dissertations ──────────── */
 .liens-row{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:14px}
 .lpill{font-size:11px;padding:4px 10px;border-radius:20px;cursor:pointer;border:0.5px solid;color:inherit;background:transparent;transition:opacity .15s}
 .lpill:hover{opacity:.7}
@@ -312,6 +395,29 @@ body{font-family:'Inter',system-ui,sans-serif;background:#121212;height:100vh;pa
 </div>
 
 <script>
+/* ══════════════════════════════════════════════════════════════════
+   A. DONNÉES — NOTIONS
+   ──────────────────────────────────────────────────────────────────
+   const D  est le dictionnaire principal de l'application.
+   Chaque clé est l'identifiant d'une notion du programme de Terminale
+   (ex: "conscience", "nature", "bonheur"…).
+
+   Pour chaque notion, les propriétés sont :
+     c        → couleur hex utilisée partout (badge, pills, graphe…)
+     l        → label lisible ("Conscience")
+     s        → sous-titre / question d'accroche
+     def      → définition HTML (peut contenir un <details> dépliable)
+     auteurs  → tableau d'auteurs, chacun avec :
+                  n  = nom  ·  w = œuvre  ·  i = idée  ·  q = citation
+                  new? / modified? → affiche un badge coloré
+     textes   → textes du cours (n = titre, t = contenu)
+     axes     → 3 axes de dissertation, chacun avec :
+                  n = "Axe 1"  ·  t = titre  ·  pb = problématique
+                  sps = sous-parties [{l, c, r}] (lettre, contenu, référence)
+     exemples → exemples mobilisables (tag, tit, body, lien)
+     liens    → noms d'autres notions liées (navigables)
+     diss     → questions de dissertation (string ou {q, new?})
+   ══════════════════════════════════════════════════════════════════ */
 const D={
 conscience:{c:"#534AB7",l:"Conscience",s:"Qu'est-ce que la conscience ?",
 def:"La <span class='kw'>conscience</span> est la présence à soi et au monde. On distingue la <span class='kw'>conscience immédiate</span> (perception du monde) et la <span class='kw'>conscience réflexive</span> (retour sur soi). Mais la psychanalyse (Freud) remet en cause sa transparence : une grande part de la vie psychique nous échappe.<details><summary>Approfondir la notion</summary><div class='def-sec'><div class='def-sec-title'>Étymologie &amp; distinctions</div><div class='def-sec-body'>Du latin <em>cum scientia</em> (« avec savoir »). On distingue : <strong>conscience psychologique</strong> (présence au monde, perception) ; <strong>conscience morale</strong> (sens du bien et du mal, voix intérieure) ; <strong>conscience politique</strong> (prise de conscience collective, engagement). Ces trois sens se recoupent souvent.</div></div><div class='def-sec'><div class='def-sec-title'>Le problème du cogito (Descartes)</div><div class='def-sec-body'>Le cogito (<em>Méditations</em>, 1641) pose la conscience comme seule certitude indubitable. Mais est-ce une substance ou un acte ? Nietzsche critique le cogito : dire « je pense » présuppose un sujet substantiel qui n'est pas prouvé — il ne faut dire que « ça pense ». Hume va encore plus loin : le moi n'est qu'un « faisceau de perceptions » sans unité stable.</div></div><div class='def-sec'><div class='def-sec-title'>Conscience et inconscient</div><div class='def-sec-body'>La psychanalyse freudienne (Ça / Moi / Surmoi) montre que la conscience n'est que la partie émergée de l'iceberg psychique. Les désirs refoulés, les pulsions, les actes manqués révèlent que le moi n'est pas « maître en sa propre maison ». La conscience n'est donc ni transparente ni souveraine.</div></div><div class='def-sec'><div class='def-sec-title'>Identité et intersubjectivité</div><div class='def-sec-body'>Hegel : la conscience de soi naît dans le <strong>regard d'autrui</strong> (dialectique maître/esclave). Locke : l'identité personnelle se fonde sur la mémoire (continuité de conscience). Ricœur distingue <em>idem</em> (identité numérique, permanence) et <em>ipse</em> (identité narrative, récit de soi). Sartre : la conscience est néant — elle n'est jamais « chose ».</div></div></details>",
@@ -1040,14 +1146,33 @@ diss:["Peut-on douter de tout ?","La vérité existe-t-elle ?","Peut-on vivre sa
 }
 };
 
-const KEYS=Object.keys(D);
-let cur=KEYS[0];
-let curTab='auteurs';
-let sbMode='notions';
-let curAuthor=null;
-let curAuthorTab='idees';
+/* ── B. ÉTAT GLOBAL DE L'APPLICATION ────────────────────────────────
+   Ces variables mémorisent ce qui est affiché à l'écran.
+   Toute modification doit être suivie d'un appel à renderSB()
+   et/ou renderContent() / renderAuthorContent() pour mettre à jour l'UI.  */
+const KEYS=Object.keys(D);  // liste ordonnée des clés de notion
+let cur=KEYS[0];             // notion active (ex: "conscience")
+let curTab='auteurs';        // onglet actif dans la vue notion
+let sbMode='notions';        // mode sidebar : 'notions' | 'auteurs' | 'concepts'
+let curAuthor=null;          // auteur actif (chaîne = nom exact dans AM/AI)
+let curAuthorTab='idees';    // onglet actif dans la fiche auteur
 
-/* ── Auteurs metadata ──────────────────────────────────────────── */
+/* ── C. DONNÉES — MÉTADONNÉES AUTEURS ───────────────────────────────
+   const AM  (Author Metadata) : informations biographiques et philosophiques
+   de chaque auteur, indépendantes des notions.
+   Clé = nom exact de l'auteur (doit correspondre à la propriété n dans D).
+   Propriétés :
+     bio       → courte biographie (dates, nationalité, apport principal)
+     courant   → courant philosophique (utilisé pour la couleur via CC)
+     periode   → siècle(s) d'activité
+     themes    → liste de concepts-clés propres à cet auteur (affichés et
+                 linkifiés dans la fiche auteur — c'est ce que tu as corrigé)
+     dialogues → relations avec d'autres auteurs, chacune avec :
+                   dir    = "oppose" | "prolonge" | "repond"
+                   auteur = nom de l'interlocuteur
+                   sujet  = thème du dialogue (court)
+                   desc   = explication de la relation (affichée dans
+                            l'onglet Dialogues de la fiche auteur)         */
 const AM={
 "Descartes":{bio:"Philosophe et mathématicien français (1596–1650). Fondateur du rationalisme moderne, il cherche à atteindre des vérités certaines par le doute méthodique.",courant:"Rationalisme",periode:"XVIIe siècle",themes:["cogito","dualisme corps/âme","méthode","maîtrise de la nature","certitude"],dialogues:[{dir:"oppose",auteur:"Hume",sujet:"certitudes de la raison",desc:"Hume montre qu'aucune relation causale n'est nécessaire : ce que Descartes tenait pour certain n'est qu'une habitude psychologique."},{dir:"oppose",auteur:"Freud",sujet:"transparence de la conscience",desc:"Freud renverse le cogito : le moi n'est pas maître en sa propre maison — l'inconscient détermine nos actes à notre insu."},{dir:"prolonge",auteur:"Spinoza",sujet:"rationalisme",desc:"Spinoza radicalise Descartes en éliminant le dualisme corps/âme et en identifiant Dieu, la Nature et la Substance."}]},
 "Freud":{bio:"Neurologue autrichien (1856–1939), fondateur de la psychanalyse. Il découvre l'inconscient comme instance psychique déterminant nos actes à notre insu.",courant:"Psychanalyse",periode:"XIXe–XXe siècle",themes:["inconscient","ça/moi/surmoi","refoulement","rêve","pulsions"],dialogues:[{dir:"oppose",auteur:"Descartes",sujet:"souveraineté du cogito",desc:"Le cogito cartésien suppose que la conscience est transparente à elle-même — Freud montre que ce présupposé est faux."},{dir:"repond",auteur:"Sartre",sujet:"liberté et inconscient",desc:"Sartre refuse l'inconscient freudien : la censure doit avoir conscience de ce qu'elle refoule, ce qui la rend de 'mauvaise foi'."},{dir:"prolonge",auteur:"Nietzsche",sujet:"critique du sujet rationnel",desc:"Nietzsche annonce Freud en montrant que nos motivations réelles sont masquées par des rationalisations."}]},
@@ -1102,7 +1227,19 @@ const AM={
 "Kuhn":{bio:"Historien et philosophe des sciences américain (1922–1996). Sa notion de 'paradigme' et de 'révolution scientifique' a transformé l'épistémologie.",courant:"Histoire et philosophie des sciences",periode:"XXe siècle",themes:["paradigme","révolution scientifique","incommensurabilité","science normale","communauté scientifique"],dialogues:[{dir:"oppose",auteur:"Popper",sujet:"progrès scientifique",desc:"Popper voit la science comme progrès rationnel cumulatif ; Kuhn montre des ruptures paradigmatiques incommensurables."},{dir:"prolonge",auteur:"Gaston Bachelard",sujet:"ruptures épistémologiques",desc:"Bachelard avait déjà analysé les 'obstacles épistémologiques' ; Kuhn formalise cette rupture dans la notion de révolution."}]}
 };
 
-/* ── Concepts Glossaire ──────────────────────────────────────── */
+/* ── D. DONNÉES — GLOSSAIRE DE CONCEPTS ─────────────────────────────
+   const CONCEPTS : ~70 concepts philosophiques clés, distincts des notions.
+   Accessibles via l'onglet "Concepts" de la sidebar.
+   Chaque concept contient :
+     id       → identifiant unique (utilisé pour les liens .cterm)
+     term     → terme affiché
+     cat      → catégorie (Linguistique, Épistémologie, Éthique…)
+     def      → définition HTML
+     auteur   → auteur(s) associé(s) (chaîne, peut contenir " / ")
+     tensions → paires de tensions conceptuelles ["A ≠ B", …]
+     notions  → clés de D auxquelles ce concept est rattaché
+   Les concepts dont l'id commence par "notion-" sont des raccourcis
+   qui redirigent directement vers la notion du programme correspondante.  */
 const CONCEPTS=[
 {id:'langage-def',term:'Langage',cat:'Linguistique',def:'Tout système ou ensemble de signes permettant l\'expression ou la communication. Le langage humain se distingue par la <strong>double articulation</strong> (monèmes + phonèmes) — il peut produire un nombre illimité d\'énoncés avec ~40 sons.',auteur:'Saussure',tensions:['Langage (général) ≠ Langue (propre à une communauté)','Langage ≠ Parole (acte individuel)','Signal ≠ Symbole (Benveniste)'],notions:['langage']},
 {id:'langue',term:'Langue',cat:'Linguistique',def:'Instrument de communication propre à une communauté humaine. Produit social de la faculté du langage — ensemble institué et stable de symboles verbaux ou écrits. Système de différences : chaque terme n\'a de valeur que par rapport aux autres.',auteur:'Saussure',tensions:['Langue ≠ Parole (social vs individuel)','Langue ≠ Langage (particulier vs général)'],notions:['langage']},
@@ -1194,6 +1331,14 @@ let curConcept=null;
 let conceptSearch='';
 let conceptFilter=new Set(); // empty = all notions
 let conceptFilterOpen=false;
+/* ── E. FONCTIONS UTILITAIRES ────────────────────────────────────────
+
+   buildAI() — construit l'index auteurs à partir de D.
+   Parcourt toutes les notions et regroupe chaque auteur avec :
+     · notions  : liste des clés de notion où il apparaît
+     · entries  : { clé_notion → objet auteur complet }
+   Résultat stocké dans const AI, utilisé par la sidebar Auteurs
+   et la fiche auteur (renderAuthorContent).                          */
 function buildAI(){
   const idx={};
   KEYS.forEach(k=>{
@@ -1207,6 +1352,9 @@ function buildAI(){
 }
 const AI=buildAI();
 
+/* authorsSorted() — renvoie la liste des noms d'auteurs triée :
+   d'abord par nombre de notions couvertes (décroissant),
+   puis alphabétiquement en cas d'égalité.                           */
 function authorsSorted(){
   return Object.keys(AI).sort((a,b)=>{
     const d=AI[b].notions.length-AI[a].notions.length;
@@ -1247,6 +1395,13 @@ const CC={
 };
 
 /* ── Historique de navigation ────────────────────────────────── */
+/* ── Système de navigation historique ───────────────────────────────
+   navHistory  : pile d'états (snapshots de cur, curTab, sbMode, etc.)
+   pushHistory(): sauvegarde l'état courant avant chaque navigation.
+   backBtnHTML(): génère le HTML du bouton Retour — désactivé si la
+                  pile est vide, sinon affiche le nombre de pages.
+   Le bouton Retour est placé dans la barre d'onglets (.tabs) de chaque
+   vue (notion, auteur, concept) par les fonctions renderContent* .     */
 let navHistory=[];
 let _navigating=false; // évite les boucles lors du goBack
 
@@ -1313,6 +1468,18 @@ function toggleFilter(k){
   renderSB();
 }
 
+/* ── F. RENDU — SIDEBAR ──────────────────────────────────────────────
+
+   renderSB() reconstruit la sidebar entière à chaque changement de mode.
+   Elle contient deux zones :
+     · .sb-fixed  : onglets de mode (Notions / Auteurs / Concepts) + barre
+                    de recherche + panneau de filtre — toujours visible
+     · .sidebar-list : liste scrollable des items (notions, auteurs ou concepts)
+
+   Selon sbMode, elle appelle ensuite :
+     · renderSBList()         → liste des notions (mode 'notions')
+     · renderSBList()         → liste des auteurs (mode 'auteurs')
+     · renderSBConceptsList() → liste des concepts (mode 'concepts')        */
 function renderSB(){
   const sb=document.getElementById('sb');
 
@@ -1430,6 +1597,8 @@ function toggleConceptFilter(k){
   renderSB();
 }
 
+/* renderSBConceptsList() — filtre et affiche la liste des concepts.
+   Filtres cumulables : texte libre (term/cat/def) + notions cochées.  */
 function renderSBConceptsList(){
   const wrap=document.getElementById('sb-concept-list');
   if(!wrap) return;
@@ -1454,7 +1623,10 @@ function renderSBConceptsList(){
   });
 }
 
-/* Mapping concept IDs → notion keys */
+/* CONCEPT_TO_NOTION — table de correspondance pour les concepts
+   dont l'id commence par "notion-" : un clic sur ces concepts
+   redirige vers la notion du programme, non vers une fiche concept.
+   Ex : "notion-conscience" → ouvre D["conscience"] dans sbMode='notions'. */
 const CONCEPT_TO_NOTION={
   'notion-conscience':'conscience','notion-liberté':'liberté','notion-justice':'justice',
   'notion-etat':'etat','notion-travail':'travail','notion-technique':'technique',
@@ -1464,6 +1636,9 @@ const CONCEPT_TO_NOTION={
   'notion-inconscient':'inconscient'
 };
 
+/* openConcept(id) — point d'entrée pour tout lien .cterm dans les textes.
+   Si le concept est une "notion-*", redirige vers la vue notion.
+   Sinon, ouvre la fiche concept dans la zone principale.             */
 function openConcept(id){
   const notionKey=CONCEPT_TO_NOTION[id];
   if(notionKey&&D[notionKey]){
@@ -1477,6 +1652,11 @@ function openConcept(id){
   renderSB(); renderConceptContent();
 }
 
+/* ── G. RENDU — FICHES ───────────────────────────────────────────────
+
+   renderConceptContent() — affiche la fiche d'un concept du glossaire.
+   Contenu : titre, catégorie, définition, auteur(s) associé(s),
+   tensions conceptuelles, notion-pills (liens vers les notions liées). */
 function renderConceptContent(){
   const mainEl=document.getElementById('main');
   if(!mainEl.querySelector('.tabs')||!mainEl.querySelector('.main-content')){
@@ -1528,6 +1708,10 @@ function renderConceptContent(){
 }
 
 
+/* tab(id)        — change l'onglet actif dans la vue notion (curTab).
+   openAuthor(name) — ouvre la fiche d'un auteur depuis n'importe où
+                      (liens .an-link dans les cartes auteur, pills dans
+                      la fiche concept, noms dans l'onglet Dialogues…).  */
 function tab(id){pushHistory();curTab=id;renderContent()}
 
 function openAuthor(name){
@@ -1537,7 +1721,13 @@ function openAuthor(name){
   renderSB(); renderAuthorContent();
 }
 
-/* ── renderAuthorContent ─────────────────────────────────────── */
+/* renderAuthorContent() — affiche la fiche d'un auteur (curAuthor).
+   4 onglets (curAuthorTab) :
+     · idées     → une carte par notion couverte (œuvre + idée + pill notion)
+     · citations → citations de l'auteur, groupées par notion
+     · œuvres    → œuvres mentionnées avec les notions associées
+     · dialogues → relations avec d'autres auteurs (oppose/prolonge/répond)
+   Tous les textes passent par linkTerms() pour rendre les concepts cliquables. */
 function renderAuthorContent(){
   const mainEl=document.getElementById('main');
   if(!mainEl.querySelector('.tabs')||!mainEl.querySelector('.main-content')){
@@ -1571,11 +1761,11 @@ function renderAuthorContent(){
 </div>`;
 
   if(meta.bio){
-    html+=`<div class="author-def-box">${meta.bio}`;
+    html+=`<div class="author-def-box">${linkTerms('<span>'+meta.bio+'</span>')}`;
     if(meta.periode||meta.themes.length){
       html+=`<details><summary>Période &amp; thèmes majeurs</summary>`;
       if(meta.periode) html+=`<div style="margin-top:8px;font-size:12px"><span style="font-weight:500;color:var(--color-text-primary)">Période :</span> ${meta.periode}</div>`;
-      if(meta.themes.length) html+=`<div style="margin-top:4px;font-size:12px"><span style="font-weight:500;color:var(--color-text-primary)">Thèmes :</span> ${meta.themes.join(' · ')}</div>`;
+      if(meta.themes.length) html+=`<div style="margin-top:4px;font-size:12px"><span style="font-weight:500;color:var(--color-text-primary)">Thèmes :</span> ${linkTerms('<span>'+meta.themes.join(' · ')+'</span>')}</div>`;
       html+=`</details>`;
     }
     html+=`</div>`;
@@ -1596,7 +1786,7 @@ function renderAuthorContent(){
           <span class="notion-pill" style="color:${nc};border-color:${nc}40;background:${nc}12"
             onclick="pushHistory();cur='${k}';curTab='auteurs';sbMode='notions';renderSB();renderContent()">${D[k].l} →</span>
         </div>
-        <div class="idea-card-body">${a.i}</div>
+        <div class="idea-card-body">${linkTerms('<span>'+a.i+'</span>')}</div>
       </div>`;
     });
   }
@@ -1608,7 +1798,7 @@ function renderAuthorContent(){
       qs.forEach(k=>{
         const a=entry.entries[k]; const nc=D[k].c;
         html+=`<div class="cit-card" style="border-left-color:${nc}">
-          <div class="cit-card-text">${a.q}</div>
+          <div class="cit-card-text">${linkTerms('<span>'+a.q+'</span>')}</div>
           <div class="cit-card-footer">
             <span class="cit-card-src">${a.w||''}</span>
             <span class="notion-pill" style="color:${nc};border-color:${nc}40;background:${nc}12"
@@ -1646,7 +1836,7 @@ function renderAuthorContent(){
           <div class="dial-body">
             <span class="dial-auteur" ${can?`onclick="openAuthor('${safeN}')"`:''}>${d.auteur}</span>
             <div class="dial-sujet">${d.sujet}</div>
-            <div class="dial-desc">${d.desc}</div>
+            <div class="dial-desc">${linkTerms('<span>'+d.desc+'</span>')}</div>
           </div>
         </div>`;
       });
@@ -1656,7 +1846,16 @@ function renderAuthorContent(){
   mc.innerHTML=html;
 }
 
-/* ── renderContent (notions) ─────────────────────────────────── */
+/* renderContent() — vue principale d'une notion (cur).
+   C'est la fonction de rendu la plus volumineuse : elle gère les 5 onglets
+   de la barre (curTab) :
+     · auteurs   → grille de cartes auteur (.ag/.ac), linkTerms sur .ai
+     · textes    → liste des textes du cours (.tbox), linkTerms sur .titxt
+     · axes      → 3 axes de dissertation avec sous-parties (.axe-card/.sp)
+     · exemples  → cartes d'exemples (.ex-card), filtrage par tag
+     · diss      → questions de dissertation (.dq) + liens vers notions liées
+   La définition (.def-box) est toujours affichée en haut, quelle que soit
+   l'onglet actif.                                                         */
 function renderContent(){
   const mainEl=document.getElementById('main');
   // Garantir la structure .tabs + .main-content
@@ -1773,6 +1972,10 @@ function renderContent(){
   mc.innerHTML=html;
 }
 
+/* renderSBList() — affiche la liste des items dans la sidebar scrollable.
+   En mode 'notions' : une entrée .nb par notion (avec point coloré).
+   En mode 'auteurs' : une entrée .ab par auteur filtré/recherché,
+   avec les badges colorés des notions couvertes.                      */
 function renderSBList(){
   const wrap=document.getElementById('sb-author-list');
   if(!wrap) return;
@@ -1796,14 +1999,23 @@ function renderSBList(){
   wrap.innerHTML=html;
 }
 
-/* ── Concept term linking ────────────────────────────────────── */
+/* ── H. MOTEUR DE LIENS DYNAMIQUES ──────────────────────────────────
+
+   CTERM_MAP   : dictionnaire { terme_en_minuscules → id_concept }
+                 construit à partir de CONCEPTS au chargement.
+   CTERM_REGEX : regex globale générée depuis tous les termes du glossaire,
+                 triés du plus long au plus court pour éviter les collisions
+                 (ex: "impératif catégorique" doit matcher avant "catégorique").
+
+   linkTerms(html) : reçoit du HTML, ne touche qu'aux nœuds texte (entre >…<),
+   remplace chaque terme reconnu par un <span class="cterm"> cliquable.
+   Appelé systématiquement sur toutes les zones de texte libre :
+   définitions, idées, citations, biographies, thèmes, descriptions.     */
 const CTERM_MAP={};
 CONCEPTS.forEach(c=>{CTERM_MAP[c.term.toLowerCase()]=c.id;});
-// Build a regex from all concept terms sorted by length desc (longer first)
 const CTERM_REGEX=new RegExp('\\b('+Object.keys(CTERM_MAP).sort((a,b)=>b.length-a.length).map(t=>t.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|')+')\\b','gi');
 
 function linkTerms(html){
-  // Only linkify text nodes — don't touch existing tags
   return html.replace(/>([^<]+)</g,(match,text)=>{
     const linked=text.replace(CTERM_REGEX,(m)=>{
       const id=CTERM_MAP[m.toLowerCase()];
@@ -1814,6 +2026,10 @@ function linkTerms(html){
   });
 }
 
+/* ── I. INITIALISATION ───────────────────────────────────────────────
+   Appel initial au chargement de la page :
+   renderSB()      → construit la sidebar avec la première notion active
+   renderContent() → affiche le contenu de cette première notion        */
 renderSB();renderContent();
 </script>
 
