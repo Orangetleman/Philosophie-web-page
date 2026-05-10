@@ -1540,6 +1540,7 @@ let curConcept=null;
 let conceptSearch='';
 let conceptFilter=new Set(); // empty = all notions
 let conceptFilterOpen=false;
+let conceptFilterMode='or'; // 'or' = au moins une notion ; 'and' = toutes les notions cochées
 /* ── E. FONCTIONS UTILITAIRES ────────────────────────────────────────
 
    buildAI() — construit l'index auteurs à partir de D.
@@ -1747,9 +1748,9 @@ function renderSB(){
       }).join('');
       fp.innerHTML=`<div class="filter-panel-title">Filtrer par notion</div>
         <div style="display:flex;gap:3px;margin-bottom:8px">
-          <button class="filter-action-btn" style="${filterMode==='or'?'background:var(--color-background-secondary);color:var(--color-text-primary);border-color:var(--color-border-secondary)':''}"
+          <button class="filter-action-btn" title="Un auteur apparaît s'il traite au moins une des notions cochées" style="${filterMode==='or'?'background:var(--color-background-secondary);color:var(--color-text-primary);border-color:var(--color-border-secondary)':''}"
             onclick="filterMode='or';renderSB()">Au moins une</button>
-          <button class="filter-action-btn" style="${filterMode==='and'?'background:var(--color-background-secondary);color:var(--color-text-primary);border-color:var(--color-border-secondary)':''}"
+          <button class="filter-action-btn" title="Un auteur n'apparaît que s'il traite toutes les notions cochées simultanément" style="${filterMode==='and'?'background:var(--color-background-secondary);color:var(--color-text-primary);border-color:var(--color-border-secondary)':''}"
             onclick="filterMode='and';renderSB()">Toutes</button>
         </div>
         <div class="filter-notions">${checks}</div>
@@ -1787,6 +1788,12 @@ function renderSB(){
         </div>`;
       }).join('');
       cfp.innerHTML=`<div class="filter-panel-title">Filtrer par notion</div>
+        <div style="display:flex;gap:3px;margin-bottom:8px">
+          <button class="filter-action-btn" title="Un concept apparaît s'il est lié à au moins une des notions cochées" style="${conceptFilterMode==='or'?'background:var(--color-background-secondary);color:var(--color-text-primary);border-color:var(--color-border-secondary)':''}"
+            onclick="conceptFilterMode='or';renderSB()">Au moins une</button>
+          <button class="filter-action-btn" title="Un concept n'apparaît que s'il est lié à toutes les notions cochées simultanément" style="${conceptFilterMode==='and'?'background:var(--color-background-secondary);color:var(--color-text-primary);border-color:var(--color-border-secondary)':''}"
+            onclick="conceptFilterMode='and';renderSB()">Toutes</button>
+        </div>
         <div class="filter-notions">${cChecks}</div>
         <div class="filter-actions">
           <button class="filter-action-btn" onclick="conceptFilter=new Set(KEYS);renderSB()">Sélect. tout</button>
@@ -1814,7 +1821,11 @@ function renderSBConceptsList(){
   const q=conceptSearch.trim().toLowerCase();
   const list=CONCEPTS.filter(c=>{
     const matchSearch=!q||c.term.toLowerCase().includes(q)||c.cat.toLowerCase().includes(q)||c.def.toLowerCase().includes(q);
-    const matchFilter=conceptFilter.size===0||c.notions.some(k=>conceptFilter.has(k));
+    let matchFilter=true;
+    if(conceptFilter.size>0){
+      if(conceptFilterMode==='or') matchFilter=c.notions.some(k=>conceptFilter.has(k));
+      else matchFilter=[...conceptFilter].every(k=>c.notions.includes(k));
+    }
     return matchSearch&&matchFilter;
   });
   if(!list.length){wrap.innerHTML=`<div style="padding:10px 4px;font-size:11px;color:var(--color-text-tertiary);text-align:center">Aucun résultat</div>`;return;}
