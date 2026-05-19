@@ -2987,19 +2987,27 @@ function generateAjout(b,f){
 /* Corps généré pour une boîte (remarque / correction / ajout). */
 function generateBoxBody(b){
   const f=b.f||{};
-  const notionLbl=f.notion&&D[f.notion]?D[f.notion].l:'—';
+  // Ligne « notion » : pour un concept, on liste les notions liées (f.cnotions,
+  // un tableau) ; pour les autres cibles, la notion de rattachement (f.notion).
+  let notionLine;
+  if(b.cible==='concept'){
+    const ks=(f.cnotions||[]).filter(k=>D[k]);
+    notionLine='Notions liées : '+(ks.length?ks.map(k=>D[k].l).join(', '):'—');
+  }else{
+    notionLine='Notion : '+(f.notion&&D[f.notion]?D[f.notion].l:'—');
+  }
   if(b.type==='remarque')
-    return 'Notion : '+notionLbl+'\n'
+    return notionLine+'\n'
       +'Élément concerné : '+(gv(f,'remelement')||'—')+'\n\n'
       +'Remarque :\n'+(gv(f,'remtexte')||'(vide)')+'\n';
   if(b.type==='correction'){
-    const head='Notion : '+notionLbl+'\nÉlément ciblé : '+(gv(f,'cibleref')||'—')+'\n\nModifications proposées :\n';
+    const head=notionLine+'\nÉlément ciblé : '+(gv(f,'cibleref')||'—')+'\n\nModifications proposées :\n';
     const lines=[];
     if(b.cible==='auteur'&&gv(f,'nom')) lines.push('  - Nom de l\'auteur : '+gv(f,'nom'));
     (PROPOSAL_FIELDS[b.cible]||[]).forEach(d=>{ if(gv(f,d.k)) lines.push('  - '+d.l+' : '+gv(f,d.k)); });
     return head+(lines.length?lines.join('\n'):'  (aucun champ rempli)')+'\n';
   }
-  return 'Notion : '+notionLbl+'\n\n'+generateAjout(b,f);
+  return notionLine+'\n\n'+generateAjout(b,f);
 }
 
 /* cleanFields — copie de box.f sans les valeurs vides (pour le bloc JSON). */
@@ -3173,10 +3181,13 @@ function closeProposal(){
    Le bouton d'ouverture (.sb-propose) est câblé dans renderSB. */
 (function initProposalUI(){
   document.getElementById('proposal-close').addEventListener('click',closeProposal);
-  // clic sur le fond assombri (cible = l'overlay lui-même, pas le panneau) → ferme
-  document.getElementById('proposal-overlay').addEventListener('click',e=>{
-    if(e.target.id==='proposal-overlay') closeProposal();
-  });
+  // Fermeture au clic sur le fond assombri : on ne ferme QUE si le clic
+  // a COMMENCÉ et FINI sur le fond. Sinon, sélectionner du texte dans le
+  // panneau puis relâcher la souris sur le fond fermerait la modale par erreur.
+  const _ov=document.getElementById('proposal-overlay');
+  let _downOnBackdrop=false;
+  _ov.addEventListener('mousedown',e=>{ _downOnBackdrop=(e.target===_ov); });
+  _ov.addEventListener('click',e=>{ if(e.target===_ov&&_downOnBackdrop) closeProposal(); });
   // touche Échap → ferme
   document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeProposal(); });
   // clic sur un bouton « + » injecté dans les vues → ouvre la modale pré-remplie
