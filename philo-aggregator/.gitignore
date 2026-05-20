@@ -1,0 +1,18 @@
+# Base SQLite — données locales, jamais commitées
+proposals.db
+proposals.db-journal
+
+# Exports — artefacts générés par `aggregate.py export`
+review_*.txt
+
+# Contenu des dossiers (sauf le placeholder .gitkeep)
+inbox/*
+processed/*
+quarantine/*
+!inbox/.gitkeep
+!processed/.gitkeep
+!quarantine/.gitkeep
+
+# Artefacts Python
+__pycache__/
+*.pyc
