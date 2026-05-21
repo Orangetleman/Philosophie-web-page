@@ -93,6 +93,10 @@
 <html lang="fr"><head><meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Graphe Philosophie — Terminale</title>
+<!-- Favicon SVG inline : un emoji 🏛️ (temple antique) rendu comme texte dans un
+     SVG en data-URI. Astuce qui préserve le mono-fichier (aucune image externe à
+     charger). L'emoji est rendu via la fonte système — pas de typo à embarquer. -->
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏛️</text></svg>">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -2080,7 +2084,7 @@ function renderSB(){
       fixed.appendChild(searchRow);
     }
     searchRow.innerHTML=`
-      <input class="sb-search" type="text" placeholder="Chercher…" value="${conceptSearch.replace(/"/g,'&quot;')}"
+      <input class="sb-search" type="text" placeholder="Rechercher…" value="${conceptSearch.replace(/"/g,'&quot;')}"
         oninput="conceptSearch=this.value;renderSBConceptsList()" />
       <button class="sb-filter-btn${(conceptFilter.size>0)||conceptFilterOpen?' active':''}" onclick="conceptFilterOpen=!conceptFilterOpen;renderSB()" title="Filtrer par notion">⊟</button>`;
     if(conceptFilterOpen){
