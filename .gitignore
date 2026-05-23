@@ -1,0 +1,10 @@
+# Réglages locaux de Claude Code (permissions propres à chaque machine)
+# — ne doivent jamais être committés.
+.claude/settings.local.json
+
+# Worktrees temporaires créés par Claude Code.
+.claude/worktrees/
+
+# Caches Python de l'agrégateur.
+__pycache__/
+*.pyc
