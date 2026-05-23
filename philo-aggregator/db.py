@@ -28,8 +28,10 @@ DB_PATH = SCRIPT_DIR / "proposals.db"
 STATUSES = ("en_attente", "integree", "rejetee", "archivee")
 
 
-# Les sept cibles possibles, telles que définies par le site (CLAUDE.md).
-CIBLES = ("notion", "auteur", "texte", "axe", "exemple", "dissertation", "concept")
+# Les cibles possibles, telles que définies par le site (CLAUDE.md).
+# 'plan' (plan de dissertation) remplace 'axe' depuis la refonte de l'onglet
+# Dissertations ; 'axe' est conservé pour ingérer les anciens .txt (v1).
+CIBLES = ("notion", "auteur", "texte", "plan", "axe", "exemple", "dissertation", "concept")
 
 # Les trois types de boîte.
 TYPES = ("ajout", "correction", "remarque")

@@ -5,7 +5,7 @@ Pour chaque fichier :
   1. Lire le contenu (UTF-8).
   2. Extraire le bloc JSON entre les marqueurs
      [PHILO-PROPOSAL-JSON-START] / [PHILO-PROPOSAL-JSON-END].
-  3. Parser et valider la structure (schéma philo-proposal/v1).
+  3. Parser et valider la structure (schémas philo-proposal/v1 ou v2).
   4. Calculer pour chaque boîte sa signature et son `key_term`
      (discriminant lisible).
   5. Insérer la soumission et ses boîtes en base.
@@ -59,19 +59,28 @@ def extract_json_block(text):
 
 # ────────── Validation du schéma ──────────
 
+SUPPORTED_SCHEMAS = ("philo-proposal/v1", "philo-proposal/v2")
+
+
 def validate_payload(payload):
     """
-    Vérifie que l'objet JSON parsé respecte le schéma philo-proposal/v1.
-    Lève `ValueError` avec un message clair si quelque chose cloche.
+    Vérifie que l'objet JSON parsé respecte un schéma supporté
+    (philo-proposal/v1 ou v2). Lève `ValueError` avec un message clair si
+    quelque chose cloche.
+
+    v1 → v2 : pour cible 'auteur', les champs d'idée (oeuvre, date, idee,
+    citation, concepts) ne sont plus à plat dans `fields` mais dans le
+    tableau `fields.ideas[]` (chaque entrée = un objet de champs).
+
     Validation volontairement souple sur les champs internes des boîtes
     (la source est de confiance).
     """
     if not isinstance(payload, dict):
         raise ValueError("Le JSON racine n'est pas un objet.")
-    if payload.get("schema") != "philo-proposal/v1":
+    if payload.get("schema") not in SUPPORTED_SCHEMAS:
         raise ValueError(
-            f"Champ 'schema' attendu = 'philo-proposal/v1', "
-            f"reçu = {payload.get('schema')!r}."
+            f"Champ 'schema' inconnu : {payload.get('schema')!r}. "
+            f"Schémas supportés : {SUPPORTED_SCHEMAS}."
         )
     boxes = payload.get("boxes")
     if not isinstance(boxes, list):
@@ -139,6 +148,8 @@ def compute_key_term(type_, cible, fields):
         return (f.get("nom") or "").strip()
     if cible == "texte":
         return (f.get("titre") or "").strip()
+    if cible == "plan":
+        return (f.get("plan_q") or "").strip()
     if cible == "axe":
         return (f.get("axenom") or "").strip()
     if cible == "exemple":

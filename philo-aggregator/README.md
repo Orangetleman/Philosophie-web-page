@@ -91,7 +91,12 @@ Deux passes complémentaires :
 
 ## Schéma JSON consommé
 
-`philo-proposal/v1`, généré par le site. Voir `CLAUDE.md` à la racine du
-projet pour la spécification détaillée (cibles, champs par cible, cas
-particulier de la cible `concept` dont les notions sont dans `cnotions[]`
-et non `notion`).
+`philo-proposal/v1` **et** `philo-proposal/v2`, générés par le site. La
+v2 introduit le multi-idées pour la cible `auteur` : les champs `oeuvre`,
+`date`, `idee`, `citation`, `concepts` ne sont plus à plat dans `fields`
+mais regroupés dans un tableau `fields.ideas[]` (chaque entrée = une idée
+distincte du même auteur). Les anciens `.txt` (v1) restent ingestibles.
+
+Voir `CLAUDE.md` à la racine du projet pour la spécification détaillée
+(cibles, champs par cible, cas particulier de la cible `concept` dont les
+notions sont dans `cnotions[]` et non `notion`).

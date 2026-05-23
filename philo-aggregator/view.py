@@ -27,6 +27,7 @@ from ingest import normalize
 BUCKETS = {
     "notion":       "NOTIONS",
     "texte":        "NOTIONS",
+    "plan":         "NOTIONS",
     "axe":          "NOTIONS",
     "exemple":      "NOTIONS",
     "dissertation": "NOTIONS",
@@ -80,11 +81,18 @@ def main_text_field(row):
     c = row["cible"]
     if t == "remarque":
         return f.get("remtexte") or ""
+    # Cas particulier auteur v2 : les idées sont dans fields.ideas[]. On
+    # joint toutes les `idee` non vides pour avoir un aperçu représentatif.
+    if c == "auteur" and isinstance(f.get("ideas"), list):
+        ideas = [str(it.get("idee") or "").strip()
+                 for it in f["ideas"] if isinstance(it, dict)]
+        return " ; ".join(s for s in ideas if s)
     # Le champ "contenu" principal par cible.
     by_cible = {
         "notion":       "notiondef",
         "auteur":       "idee",
         "texte":        "contenu",
+        "plan":         "plan_q",
         "axe":          "axepb",
         "exemple":      "excorps",
         "dissertation": "question",
@@ -245,6 +253,26 @@ def cmd_show(box_id):
     print()
     print("  ─── Champs ───")
     for k, v in fields.items():
+        # Cas particulier auteur v2 : 'ideas' est un tableau d'objets.
+        # On l'affiche en bloc structuré (Idée 1 / Idée 2 / …).
+        if k == "ideas" and isinstance(v, list):
+            print(f"    {k}:")
+            for j, it in enumerate(v):
+                print(f"      Idée {j+1}:")
+                if not isinstance(it, dict):
+                    print(f"        {it}")
+                    continue
+                for ik, iv in it.items():
+                    if isinstance(iv, list):
+                        iv = ", ".join(str(x) for x in iv)
+                    iv = str(iv)
+                    if "\n" in iv or len(iv) > 80:
+                        print(f"        {ik}:")
+                        for line in iv.splitlines() or [iv]:
+                            print(f"          {line}")
+                    else:
+                        print(f"        {ik}: {iv}")
+            continue
         if isinstance(v, list):
             v = ", ".join(str(x) for x in v)
         v = str(v)

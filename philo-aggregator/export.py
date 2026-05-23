@@ -52,7 +52,20 @@ FIELD_LABELS = {
     # texte
     "titre":      "Titre / source du texte",
     "contenu":    "Contenu de l'extrait",
-    # axe
+    # plan de dissertation (nouveau format)
+    "plan_q":     "Sujet de dissertation",
+    "plan_intro": "Problématisation",
+    "plan_pb":    "Problématique",
+    "plan_a1t":   "Axe I — titre",
+    "plan_a1c":   "Axe I — arguments / sous-parties",
+    "plan_a1l":   "Axe I — limite (transition)",
+    "plan_a2t":   "Axe II — titre",
+    "plan_a2c":   "Axe II — arguments / sous-parties",
+    "plan_a2l":   "Axe II — limite (transition)",
+    "plan_a3t":   "Axe III — titre",
+    "plan_a3c":   "Axe III — arguments / sous-parties",
+    "plan_a3l":   "Axe III — limite / ouverture",
+    # axe (ancien format, conservé pour les anciens .txt)
     "axenom":     "Nom de l'axe",
     "axepb":      "Problématique de l'axe",
     "spa":        "Sous-partie A",
@@ -75,6 +88,8 @@ FIELD_LABELS = {
     "ccat":       "Catégorie",
     "cdef":       "Définition",
     "ctensions":  "Tensions / distinctions",
+    "clien":      "Lien avec la / les notion(s)",
+    "crelations": "Liens avec d'autres concepts",
 }
 
 TYPE_LABELS = {
@@ -87,6 +102,7 @@ CIBLE_LABELS = {
     "notion":       "notion",
     "auteur":       "auteur",
     "texte":        "texte",
+    "plan":         "plan de dissertation",
     "axe":          "axe",
     "exemple":      "exemple",
     "dissertation": "dissertation",
@@ -161,6 +177,27 @@ def render_box(row, dup_first_id=None):
     if ordered_keys:
         lines.append("")  # ligne vide visuelle
     for k in ordered_keys:
+        # Cas particulier auteur v2 : 'ideas' est un tableau d'objets,
+        # chacun avec ses propres champs (oeuvre/date/idee/citation/concepts).
+        # On le rend en bloc structuré « Idée n » → champs indentés.
+        if k == "ideas" and isinstance(fields.get(k), list):
+            for j, it in enumerate(fields[k]):
+                lines.append(f"   Idée {j+1} :")
+                if not isinstance(it, dict):
+                    lines.append(f"     {it}")
+                    continue
+                for ik, iv in it.items():
+                    ilbl = FIELD_LABELS.get(ik, ik)
+                    ival = _format_value(iv)
+                    if not ival.strip():
+                        continue
+                    if "\n" in ival or len(ival) > 80:
+                        lines.append(f"     {ilbl} :")
+                        for ln in ival.splitlines() or [ival]:
+                            lines.append(f"       {ln}")
+                    else:
+                        lines.append(f"     {ilbl} : {ival}")
+            continue
         label = FIELD_LABELS.get(k, k)
         val = _format_value(fields[k])
         if not val.strip():

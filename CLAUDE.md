@@ -40,14 +40,44 @@ Outil de révision **Philosophie Terminale** : application mono-fichier `index.h
 {
   c:"#couleur", l:"Label", s:"Question/sous-titre",
   def:"HTML de la définition (peut contenir <details>)",
-  auteurs:[ {n,w,i,q, new?, modified?}, … ],
+  auteurs:[ {n, ideas:[ {w,i,q, new?, modified?}, … ]}, … ],
   textes:[ {n,t, new?, modified?}, … ],
-  axes:[ {n,t,pb,sps:[{l,c,r}], new?, modified?}, … ],
+  axes:[ {n,t,pb,sps:[{l,c,r}], new?, modified?}, … ],   // ANCIEN — migré en plans au chargement
+  plans:[ {q, intro, pb, axes:[ {t, sps:[{t,args,auteurs,ref,limite}], limite}, … ], new?, modified?}, … ],
   exemples:[ {tag,tit,body,lien, new?, modified?}, … ],
   liens:["AutreNotion", …],
   diss:["Question ?", {q, new?, modified?}, … ]
 }
 ```
+
+**Onglets d'une notion** : `auteurs`, `textes`, `concepts`, `diss`
+(« Dissertations »), `exemples`. L'ancien onglet `axes` a été supprimé,
+remplacé par les **plans** dans l'onglet Dissertations.
+
+**Format dissertation — plans (`plans:[]`).** Un plan = **1 sujet + 1
+problématique + 3 axes I/II/III**. Chaque axe a un titre, des
+**sous-parties déroulables** (`sps:[{t, args, auteurs, ref, limite}]`, rendues
+en `<details>`) et une **limite de fin d'axe** (transition). L'onglet
+Dissertations rend : liens entre notions + `plans` (déroulables) + `diss`
+(questions simples).
+
+Migration : `normalizeD()` convertit au chargement chaque ancien
+`axes:[{t,pb,sps:[A,B,C]}]` en un plan dont A/B/C deviennent les 3 axes
+(contenu `c`→`args`, `r`→`ref`), avec `migrated:true` (badge « ↻ à
+enrichir »). `D[k].plans` = plans rédigés à la main **puis** axes migrés.
+La source n'est pas réécrite ; toute **nouvelle** dissertation détaillée
+s'écrit directement dans `plans:[…]`.
+
+**Format auteur — multi-idées.** Un même auteur peut avoir plusieurs idées
+(plusieurs œuvres / angles) sur une même notion ; chaque idée est un objet
+`{w, i, q, new?, modified?}` du tableau `ideas`. Le nom `n` reste au
+niveau auteur.
+
+L'ancien format à plat `{n, w, i, q, new?, modified?}` reste accepté en
+source : `normalizeD()` le convertit au chargement en `{n, ideas:[{w,i,q,…}]}`.
+Toute **nouvelle entrée** doit être écrite directement au format
+`ideas:[…]`. `buildAI` fusionne les idées si un auteur apparaît plusieurs
+fois dans la même `D[k].auteurs[]`.
 
 ### Auteur (objet dans `AM`)
 ```js
@@ -58,8 +88,20 @@ Un auteur peut aussi avoir un alias court : `"Tzara":{bio:"Voir 'Tristan Tzara'.
 
 ### Concept (objet dans `CONCEPTS`)
 ```js
-{ id, term, cat, def, auteur, tensions:[…], notions:[…], new? }
+{ id, term, cat, def, auteur, tensions:[…], notions:[…], new?,
+  liens:{ notionKey:"explication du lien avec CETTE notion", … },      // optionnel
+  relations:[ {to:"id-concept", type:"oppose|prolonge|complete|repond", desc}, … ] }  // optionnel
+}
 ```
+
+**Onglet « Concepts » d'une notion** : liste les concepts dont
+`notions` contient la notion courante. Pour chacun, si `liens[notionKey]`
+existe, l'explication contextuelle du lien concept↔notion est affichée.
+Un bloc « Liens entre concepts » montre les `relations` dont les deux
+extrémités appartiennent à la notion. La **fiche concept** affiche les
+relations **sortantes** (`relations`) ET **entrantes** (calculées : autres
+concepts pointant vers lui). `relations[].to` doit être un `id` de concept
+existant (⚠ certains ids portent des accents, ex. `aliénation-religieuse`).
 
 ## Liens dynamiques
 
@@ -96,9 +138,11 @@ d'ouverture `.sb-propose` (« 💡 Proposer du contenu ») intégré à la sideb
 
 - **Modèle « boîte »** : une soumission = une ou plusieurs boîtes empilées.
   Chaque boîte : un **type** (`ajout` / `correction` / `remarque`) et une
-  **cible** (`notion` / `auteur` / `texte` / `axe` / `exemple` /
+  **cible** (`notion` / `auteur` / `texte` / `plan` / `exemple` /
   `dissertation` / `concept`). État dans `proposalBoxes` ; valeurs de champ
-  dans `box.f`.
+  dans `box.f`. (La cible `plan` a remplacé l'ancienne `axe` ; champs
+  `plan_q`, `plan_intro`, `plan_pb`, `plan_a{1,2,3}{t,c,l}`. La cible
+  `concept` a deux champs ajoutés : `clien` et `crelations`.)
 - **Boutons « + »** injectés dans les vues (`pPlus` carte → correction,
   `pPlusCat` bas de catégorie → ajout) ; un écouteur délégué lit les
   `data-*` et appelle `openProposalFromPlus`.
@@ -107,18 +151,25 @@ d'ouverture `.sb-propose` (« 💡 Proposer du contenu ») intégré à la sideb
   `[PHILO-PROPOSAL-JSON-END]`, destiné à un programme d'agrégation externe.
 - **Envoi** : `mailto:` vers la constante `PROPOSAL_EMAIL`.
 
-### Schéma JSON « philo-proposal/v1 »
+### Schéma JSON « philo-proposal/v2 »
 
 ```json
-{ "schema":"philo-proposal/v1", "date":"<ISO>", "contributor":"<nom|anonyme>",
+{ "schema":"philo-proposal/v2", "date":"<ISO>", "contributor":"<nom|anonyme>",
   "boxes":[ { "type":"...", "cible":"...", "fields":{ ... } } ] }
 ```
 
-`fields` = `box.f` nettoyé (champs vides exclus). Pour la cible `concept`,
-la/les notion(s) sont dans `fields.cnotions` (**tableau**) — pas dans
-`fields.notion`. Pour les autres cibles, la notion est dans `fields.notion`
-(clé de `D`). Tenir compte de cette différence dans tout code qui lit une
-proposition.
+`fields` = `box.f` nettoyé (champs vides exclus).
+
+- **Cible `concept`** : la/les notion(s) liées sont dans `fields.cnotions`
+  (**tableau**) — pas dans `fields.notion`.
+- **Cible `auteur`** (v2) : les champs d'idée sont regroupés dans
+  `fields.ideas[]` (tableau d'objets `{oeuvre, date, idee, citation,
+  concepts}`). Le nom est dans `fields.nom` ; la notion de rattachement
+  dans `fields.notion`. L'agrégateur accepte aussi l'ancien format v1
+  (mêmes champs à plat dans `fields`).
+- **Autres cibles** : la notion est dans `fields.notion` (clé de `D`).
+
+Tenir compte de ces différences dans tout code qui lit une proposition.
 
 ## Pièges connus
 

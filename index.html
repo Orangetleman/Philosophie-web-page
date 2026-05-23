@@ -179,6 +179,8 @@ body{font-family:'Inter',system-ui,sans-serif;background:#121212;height:100vh;pa
 .aw{font-size:11px;color:var(--color-text-tertiary);font-style:italic;margin-bottom:4px}
 .ai{font-size:12px;color:var(--color-text-secondary);line-height:1.5}
 .aq{font-size:11px;color:var(--color-text-tertiary);font-style:italic;margin-top:5px;border-left:2px solid var(--color-border-tertiary);padding-left:7px;line-height:1.4}
+/* Carte auteur multi-idées : séparateur discret entre deux idées du même auteur. */
+.a-idea+.a-idea{margin-top:9px;padding-top:9px;border-top:1px dashed var(--color-border-tertiary)}
 
 /* ── 6b. Contenu notion — onglet Textes (.tbox/.ti2) ─────────────── */
 .tbox{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:11px 13px;margin-bottom:16px}
@@ -199,6 +201,39 @@ body{font-family:'Inter',system-ui,sans-serif;background:#121212;height:100vh;pa
 .sp-letter{font-weight:500;color:var(--color-text-primary);flex-shrink:0;min-width:14px}
 .sp-content{color:var(--color-text-secondary)}
 .sp-ref{font-size:10px;color:var(--color-text-tertiary);display:block;margin-top:1px}
+
+/* ── Plans de dissertation (onglet Dissertations) ──────────────────
+   .plan-card : carte d'un plan complet (1 sujet + 3 axes I/II/III)
+   .plan-axe  : un axe ; .plan-sp : une sous-partie DÉROULABLE (<details>)
+   Les « limites » marquent les transitions : la limite de sous-partie est
+   discrète, la limite d'axe (transition vers l'axe suivant) est plus
+   marquée (encadré coloré).                                            */
+.plan-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:13px 15px;margin-bottom:12px}
+.plan-q{font-size:13.5px;font-weight:600;color:var(--color-text-primary);line-height:1.4;margin-bottom:9px}
+.plan-intro,.plan-pb{font-size:12px;color:var(--color-text-secondary);line-height:1.55;margin-bottom:6px}
+.plan-lbl{font-weight:600;color:var(--color-text-primary)}
+.plan-pb{margin-bottom:11px}
+.plan-axe{margin:0 0 11px 0;padding:9px 0 0 0;border-top:0.5px solid var(--color-border-tertiary)}
+.plan-axe-head{font-size:12.5px;font-weight:600;color:var(--color-text-primary);margin-bottom:6px}
+.plan-todo{color:var(--color-text-tertiary);font-weight:400;font-style:italic}
+.plan-sp{margin:4px 0;border-left:2px solid var(--color-border-tertiary);padding-left:9px}
+.plan-sp>summary{font-size:12px;color:var(--color-text-secondary);cursor:pointer;line-height:1.45;list-style:none;padding:2px 0}
+.plan-sp>summary::-webkit-details-marker{display:none}
+.plan-sp>summary::before{content:"▸ ";color:var(--color-text-tertiary);font-size:10px}
+.plan-sp[open]>summary::before{content:"▾ "}
+.plan-sp>summary:hover{color:var(--color-text-primary)}
+.plan-sp[open]>summary{font-weight:600;color:var(--color-text-primary);margin-bottom:4px}
+.plan-sp-letter{font-weight:600;color:var(--color-text-primary)}
+/* Sous-partie sans titre (plan migré) : affichée en entier, lettre flottante. */
+.plan-sp-flat{margin:6px 0}
+.plan-sp-flat .plan-sp-letter{float:left;margin-right:5px}
+.plan-sp-flat .plan-sp-body{overflow:hidden}
+.plan-sp-body{font-size:12px;color:var(--color-text-secondary);line-height:1.55;padding:2px 0 6px 4px}
+.plan-sp-args{margin-bottom:5px}
+.plan-sp-meta,.plan-sp-ref{font-size:11px;color:var(--color-text-tertiary);margin-top:3px}
+.plan-sp-limite{font-size:11px;color:var(--color-text-secondary);margin-top:5px;padding:4px 8px;background:var(--color-background-secondary);border-radius:var(--border-radius-md)}
+.plan-axe-limite{font-size:11.5px;color:var(--color-text-secondary);line-height:1.5;margin-top:7px;padding:7px 10px;background:var(--color-background-secondary);border-left:3px solid var(--color-border-secondary);border-radius:0 var(--border-radius-md) var(--border-radius-md) 0}
+.plan-migr{font-size:9.5px;font-weight:600;color:var(--color-text-tertiary);border:0.5px dashed var(--color-border-tertiary);border-radius:20px;padding:1px 7px;white-space:nowrap}
 
 /* ── 6d. Contenu notion — onglet Exemples (.ex-card) ─────────────── */
 .ex-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:11px 13px;margin-bottom:9px}
@@ -382,6 +417,23 @@ body{font-family:'Inter',system-ui,sans-serif;background:#121212;height:100vh;pa
 .concept-section-title{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--color-text-tertiary);margin-bottom:7px}
 .tension-item{display:flex;align-items:flex-start;gap:7px;font-size:12px;color:var(--color-text-secondary);margin-bottom:5px;line-height:1.5}
 .tension-sep{color:var(--color-text-tertiary);font-size:10px;font-weight:700;flex-shrink:0;margin-top:2px}
+/* Onglet Concepts d'une notion : carte concept (cc-*) + carte de relation (crel-*). */
+.concept-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:10px 12px;margin-bottom:9px}
+.cc-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:5px}
+.cc-term{font-size:12.5px;font-weight:600;color:var(--color-text-info);cursor:pointer}
+.cc-term:hover{text-decoration:underline}
+.cc-cat{font-size:9.5px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--color-text-tertiary);border:0.5px solid var(--color-border-tertiary);border-radius:20px;padding:1px 8px}
+.cc-def{font-size:12px;color:var(--color-text-secondary);line-height:1.5}
+.cc-lien{font-size:11.5px;color:var(--color-text-secondary);line-height:1.5;margin-top:7px;padding:7px 9px;background:var(--color-background-secondary);border-left:2px solid var(--color-border-secondary);border-radius:0 var(--border-radius-md) var(--border-radius-md) 0}
+.cc-lien-label{font-weight:600;color:var(--color-text-primary)}
+.crel-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:9px 12px;margin-bottom:8px}
+.crel-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px}
+.crel-dir{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;padding:1px 8px;border-radius:20px;background:var(--color-background-secondary)}
+.crel-oppose{color:#D85A30}
+.crel-prolonge{color:#1D9E75}
+.crel-complete{color:#534AB7}
+.crel-repond{color:#2E86AB}
+.crel-desc{font-size:11.5px;color:var(--color-text-secondary);line-height:1.5}
 
 /* ── Liens dynamiques inline (dans le texte) ──────────────────
    3 types, distingués au coup d'œil par le style de soulignement :
@@ -464,6 +516,21 @@ body{font-family:'Inter',system-ui,sans-serif;background:#121212;height:100vh;pa
 .pauth-newmsg{font-size:11px;color:#d3a86a;margin-top:4px}
 .pauth-new{margin:0 0 9px;padding:10px;background:var(--color-background-primary);
   border:0.5px dashed var(--color-border-secondary);border-radius:var(--border-radius-md)}
+/* Bloc « idée » d'une boîte cible auteur (la boîte peut en contenir N).
+   .pidea-head sert d'en-tête quand il y a plusieurs idées (étiquette + ×). */
+.pidea{margin:0 0 9px;padding:10px;background:var(--color-background-primary);
+  border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md)}
+.pidea-head{display:flex;align-items:center;justify-content:space-between;
+  font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.5px;
+  color:var(--color-text-tertiary);margin-bottom:8px}
+.pidea-del{background:none;border:0;color:var(--color-text-tertiary);
+  font-size:16px;line-height:1;cursor:pointer;padding:0 4px}
+.pidea-del:hover{color:var(--color-text-primary)}
+.pidea-add{margin:0 0 9px}
+.pidea-addbtn{font-size:11px;background:var(--color-background-info);
+  border:0.5px dashed var(--color-border-info);color:var(--color-text-info);
+  padding:6px 12px;border-radius:var(--border-radius-md);cursor:pointer}
+.pidea-addbtn:hover{opacity:.85}
 .pchk-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px 10px;margin-top:2px}
 .pchk{display:flex;align-items:center;gap:5px;font-size:11px;font-weight:400;
   text-transform:none;letter-spacing:0;color:var(--color-text-secondary);cursor:pointer}
@@ -473,7 +540,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:#121212;height:100vh;pa
    .pplus     : bouton d'angle sur une carte (apparaît au survol)
    .pplus-cat : bouton d'ajout en bas de chaque catégorie */
 .ac,.ti2,.axe-card,.ex-card,.dq,.def-box,.concept-def-box,
-.idea-card,.cit-card,.oeuvre-card,.dial-card{position:relative}
+.idea-card,.cit-card,.oeuvre-card,.dial-card,.concept-card,.plan-card{position:relative}
 .pplus{position:absolute;bottom:5px;right:5px;width:19px;height:19px;padding:0;
   border-radius:50%;background:var(--color-background-info);
   border:0.5px solid var(--color-border-info);color:var(--color-text-info);
@@ -486,7 +553,8 @@ body{font-family:'Inter',system-ui,sans-serif;background:#121212;height:100vh;pa
   .pplus{opacity:0}
   .ac:hover .pplus,.ti2:hover .pplus,.axe-card:hover .pplus,.ex-card:hover .pplus,
   .dq:hover .pplus,.def-box:hover .pplus,.idea-card:hover .pplus,.cit-card:hover .pplus,
-  .oeuvre-card:hover .pplus,.dial-card:hover .pplus,.concept-def-box:hover .pplus{opacity:.5}
+  .oeuvre-card:hover .pplus,.dial-card:hover .pplus,.concept-def-box:hover .pplus,
+  .concept-card:hover .pplus,.plan-card:hover .pplus{opacity:.5}
 }
 @media (hover:none){
   .pplus{width:24px;height:24px;font-size:15px}
@@ -1386,7 +1454,33 @@ exemples:[
 {new:true,tag:"Argumentation",tit:"Le pari pascalien",body:"Pascal (<em>Pensées</em>, 1670) : face à l'incertitude rationnelle sur l'existence de Dieu, le calcul des gains et des pertes recommande de croire. Quatre issues possibles : (1) Dieu existe et je crois → gain infini ; (2) Dieu existe et je ne crois pas → perte infinie ; (3) Dieu n'existe pas et je crois → perte finie (du temps, des plaisirs) ; (4) Dieu n'existe pas et je ne crois pas → gain fini. <strong>Conclusion</strong> : « Gagez donc qu'il est, sans hésiter. » Critique classique : Pascal présuppose qu'on choisit la <em>bonne</em> religion (laquelle ?). Reste un modèle fameux de raisonnement décisionnel sous incertitude — premier exemple historique d'application du calcul des probabilités à un choix existentiel.",lien:"→ Pascal, pari pascalien, décision sous incertitude"},
 ],
 liens:["Vérité","Raison","Science","État","Liberté"],
-diss:["La religion est-elle une illusion ?","La foi est-elle raisonnable ?","La religion favorise-t-elle ou entrave-t-elle la liberté ?","Peut-on se passer de religion ?",{new:true,q:"Science et religion s'opposent-elles nécessairement ?"},{new:true,q:"Croire et savoir s'excluent-ils ?"},{new:true,q:"La religion peut-elle prétendre à la vérité ?"},{new:true,q:"La religion n'est-elle qu'une projection humaine ?"},{new:true,q:"L'expérience religieuse a-t-elle une valeur de vérité ?"},{new:true,q:"Peut-on réduire la religion à sa fonction sociale ?"}]
+diss:["La religion est-elle une illusion ?","La foi est-elle raisonnable ?","La religion favorise-t-elle ou entrave-t-elle la liberté ?","Peut-on se passer de religion ?",{new:true,q:"Science et religion s'opposent-elles nécessairement ?"},{new:true,q:"Croire et savoir s'excluent-ils ?"},{new:true,q:"La religion peut-elle prétendre à la vérité ?"},{new:true,q:"La religion n'est-elle qu'une projection humaine ?"},{new:true,q:"L'expérience religieuse a-t-elle une valeur de vérité ?"},{new:true,q:"Peut-on réduire la religion à sa fonction sociale ?"}],
+plans:[
+{new:true,
+q:"La science et la religion s'opposent-elles ?",
+intro:"Spontanément, science et religion semblent inconciliables : l'une démontre, l'autre croit ; l'une explique le monde par des causes, l'autre lui donne un sens. Galilée condamné, Darwin contesté : l'histoire paraît leur donner raison. Pourtant bien des savants furent croyants, et la science repose elle-même sur des convictions qu'elle ne démontre pas.",
+pb:"L'opposition entre science et religion est-elle une opposition de nature (deux domaines ennemis), une simple différence de domaine (deux questions distinctes), ou bien la science partage-t-elle, à son insu, quelque chose de l'attitude religieuse ?",
+axes:[
+{t:"Science et religion s'opposent : deux régimes de vérité antagonistes",
+sps:[
+{t:"Deux méthodes inconciliables : démontrer ou croire",args:"La science procède par démonstration, expérience et réfutation ; la religion par foi et révélation. Savoir, depuis Platon, c'est tenir une croyance vraie justifiée : la justification (preuve, méthode) manque précisément à la croyance religieuse. Croire n'est pas savoir.",auteurs:"Platon (Théétète : savoir = croyance vraie justifiée) ; Russell",ref:"Russell, Is There a God ? (1952)",limite:"Mais cette opposition suppose que la religion prétende expliquer les faits, comme une science rivale — ce qui n'est peut-être pas son objet."},
+{t:"Des conflits historiques réels",args:"L'héliocentrisme de Galilée condamné par l'Inquisition (1633) ; le créationnisme opposé au darwinisme. Pour Auguste Comte, l'âge positif (scientifique) dépasse l'âge théologique : la science remplace la religion dans l'explication du monde.",auteurs:"Comte (loi des trois états)",ref:"Comte, Cours de philosophie positive",limite:"Réduire la religion à une science dépassée, c'est lui prêter une ambition (expliquer le mécanisme du monde) qu'elle n'a peut-être jamais eue."}
+],
+limite:"Si science et religion ne répondent pas à la même question, leur conflit n'est peut-être qu'un malentendu sur leurs domaines respectifs. D'où l'hypothèse d'une conciliation par séparation."},
+{t:"Science et religion sont conciliables : des domaines distincts, voire complémentaires",
+sps:[
+{t:"NOMA : des magistères qui ne se recouvrent pas",args:"Stephen Jay Gould : la science traite du « comment » (faits, mécanismes), la religion du « pourquoi » (sens, valeurs, fins). Aucun conflit possible si chacun reste dans son domaine ; les conflits naissent des transgressions de frontières (créationnisme d'un côté, scientisme de l'autre).",auteurs:"Gould (NOMA)",ref:"Gould, Et Dieu dit : « Que Darwin soit ! » (1999)",limite:"La séparation stricte est fragile : cosmologie et théorie de l'évolution ont des implications sur les croyances religieuses, et inversement."},
+{t:"Des ordres irréductibles mais coexistants",args:"Pascal distingue trois ordres (corps, esprits, charité) : vouloir prouver Dieu comme un théorème, c'est se tromper d'ordre. Les vérités du cœur ne relèvent pas de la démonstration, sans être pour autant irrationnelles.",auteurs:"Pascal (les trois ordres ; vérités du cœur)",ref:"Pascal, Pensées",limite:"Mais séparer n'est pas tout : certains savants ne distinguent pas les domaines, ils les unissent dans une même attitude."}
+],
+limite:"Plus qu'une simple coexistence, certains savants affirment que la science elle-même suppose une forme de religiosité : la conciliation deviendrait alors fusion."},
+{t:"La croyance en la science relève elle-même d'une forme de religiosité",
+sps:[
+{t:"La religiosité cosmique du savant",args:"Einstein : le sentiment religieux le plus élevé n'est pas la foi en un Dieu personnel (la « religion de l'homme simple »), mais l'émerveillement devant l'ordre intelligible de l'univers — le « Dieu de Spinoza ». La religiosité du savant est l'autre face de la science.",auteurs:"Einstein (religiosité cosmique) ; Spinoza",ref:"Einstein, Comment je vois le monde (1934)",limite:"Cette religiosité est sans dogme ni providence : est-ce encore de la religion, ou seulement une métaphore de l'émerveillement scientifique ?"},
+{t:"La science repose sur un acte de foi : le problème de l'induction",args:"Aucune accumulation d'observations passées ne prouve qu'une loi vaudra demain (Hume, Russell) : la science présuppose, sans le démontrer, que l'univers est ordonné et que l'avenir ressemblera au passé. Cette confiance dans la rationalité du monde a la structure d'une croyance.",auteurs:"Hume / Russell (problème de l'induction)",ref:"Russell, Problèmes de philosophie (1912)",limite:"Mais la foi scientifique est révisable : elle s'expose à la réfutation (Popper), là où le dogme religieux se veut définitif."}
+],
+limite:"Il reste donc à distinguer deux croyances : celle qui s'expose à la réfutation (la science) et celle qui s'y soustrait (le dogme) — ce qui relance, pour finir, la question du critère du vrai."}
+]}
+]
 },
 
 science:{c:"#1A7A4A",l:"Science",s:"La science peut-elle tout expliquer ?",
@@ -1745,12 +1839,14 @@ const CONCEPTS=[
 
 {id:'rupture-epistemologique',term:'Rupture épistémologique',cat:'Épistémologie',def:'Bachelard : passage <strong>discontinu</strong> d\'un mode de connaissance à un autre — par exemple de la chimie pré-lavoisienne (théorie du phlogistique) à la chimie moderne (théorie de l\'oxygène). La science ne progresse pas par accumulation continue mais par <em>ruptures</em>. Anticipe Kuhn et ses <em>révolutions paradigmatiques</em>. Implique que la vérité scientifique n\'est pas le prolongement raffiné du sens commun.',auteur:'Bachelard / Kuhn',tensions:['Rupture (discontinuité) ≠ continuité accumulative (positivisme)','Science ≠ sens commun raffiné','Ruptures locales (Bachelard) ≠ révolutions globales (Kuhn)'],notions:['raison','verite']},
 
-{id:'noma',term:'NOMA',cat:'Philosophie des sciences',def:'Stephen Jay Gould (<em>Et Dieu dit : « Que Darwin soit ! »</em>, 1999) : <em>Non-Overlapping Magisteria</em>. Science et religion sont deux <strong>magistères distincts qui ne se recouvrent pas</strong> : la science traite du <em>comment</em> (faits, mécanismes, lois empiriques) ; la religion traite du <em>pourquoi</em> (sens, valeurs, finalité ultime). Pas de conflit possible si chacun reste dans son domaine. Les conflits (créationnisme, scientisme) résultent de <em>transgressions de frontières</em>.',auteur:'Stephen Jay Gould',tensions:['NOMA (séparation) ≠ concordisme (recherche d\'accords)','NOMA (deux magistères) ≠ scientisme (un seul magistère = la science)','Comment (science) ≠ pourquoi (religion)'],notions:['religion','verite','raison']},
+{id:'noma',term:'NOMA',cat:'Philosophie des sciences',def:'Stephen Jay Gould (<em>Et Dieu dit : « Que Darwin soit ! »</em>, 1999) : <em>Non-Overlapping Magisteria</em>. Science et religion sont deux <strong>magistères distincts qui ne se recouvrent pas</strong> : la science traite du <em>comment</em> (faits, mécanismes, lois empiriques) ; la religion traite du <em>pourquoi</em> (sens, valeurs, finalité ultime). Pas de conflit possible si chacun reste dans son domaine. Les conflits (créationnisme, scientisme) résultent de <em>transgressions de frontières</em>.',auteur:'Stephen Jay Gould',tensions:['NOMA (séparation) ≠ concordisme (recherche d\'accords)','NOMA (deux magistères) ≠ scientisme (un seul magistère = la science)','Comment (science) ≠ pourquoi (religion)'],notions:['religion','verite','raison'],
+liens:{religion:'Pour la notion Religion, NOMA est la thèse contemporaine de référence sur la coexistence : la religion garde un domaine propre (le sens, les valeurs) que la science n\'a pas vocation à occuper. Elle s\'oppose donc à la réduction de la religion à une illusion à éliminer.',science:'Pour la notion Science, NOMA fixe une limite à l\'ambition explicative : la science répond au « comment », pas au « pourquoi » ultime. Refuser cette limite, c\'est verser dans le scientisme (faire de la science la seule source de sens).'},
+relations:[{to:'illusion',type:'oppose',desc:'Gould refuse la réduction freudienne de la religion à une illusion : ce serait laisser la science déborder sur le magistère du sens, donc transgresser les frontières.'},{to:'verites-coeur',type:'prolonge',desc:'Les trois ordres de Pascal (corps / esprits / charité) anticipent la séparation des magistères : vouloir prouver Dieu comme un théorème, c\'est se tromper d\'ordre.'}],modified:true},
 
 {id:'aletheia',term:'Alètheia',cat:'Philosophie de la vérité',def:'Terme grec souvent traduit par « vérité ». Étymologie : <em>a-lèthe</em>, « non-oubli, non-occultation ». Heidegger insiste sur ce sens originaire : la vérité comme <strong>dévoilement</strong> (<em>Unverborgenheit</em>) — l\'être qui sort de la cachette pour se montrer. Plus ancien et plus fondamental que la vérité-adéquation (jugement/réalité). La science empirique opère une vérité <em>dérivée</em> qui présuppose une vérité originaire (alètheia) qu\'elle ne thématise pas (« la science ne pense pas »).',auteur:'Heidegger',tensions:['Alètheia (dévoilement) ≠ vérité-adéquation (correspondance)','Vérité comme événement ≠ vérité comme propriété d\'un jugement','Pensée philosophique ≠ savoir scientifique'],notions:['verite','langage']},
 
-{id:'aliénation-religieuse',term:'Aliénation religieuse',cat:'Critique de la religion',def:'Feuerbach (<em>L\'Essence du christianisme</em>, 1842) : Dieu n\'est rien d\'autre que la <strong>projection</strong> hors de soi des aspirations humaines (puissance, sagesse, amour) que l\'expérience de notre finitude borne. L\'homme s\'aliène en Dieu parce qu\'en lui il se réalise dans un <em>autre imaginaire</em>. Marx prolonge : il faut analyser les conditions sociales (oppression, frustration) qui produisent cette projection. Critiquer la religion sans transformer la société = inutile.',auteur:'Feuerbach / Marx',tensions:['Aliénation religieuse (projection) ≠ révélation (Dieu comme réalité)','Critique anthropologique (Feuerbach) ≠ critique sociale (Marx)','Religion comme aliénation ≠ religion comme expérience authentique'],notions:['religion','liberte','conscience']},
-
+{id:'aliénation-religieuse',term:'Aliénation religieuse',cat:'Critique de la religion',def:'Feuerbach (<em>L\'Essence du christianisme</em>, 1842) : Dieu n\'est rien d\'autre que la <strong>projection</strong> hors de soi des aspirations humaines (puissance, sagesse, amour) que l\'expérience de notre finitude borne. L\'homme s\'aliène en Dieu parce qu\'en lui il se réalise dans un <em>autre imaginaire</em>. Marx prolonge : il faut analyser les conditions sociales (oppression, frustration) qui produisent cette projection. Critiquer la religion sans transformer la société = inutile.',auteur:'Feuerbach / Marx',tensions:['Aliénation religieuse (projection) ≠ révélation (Dieu comme réalité)','Critique anthropologique (Feuerbach) ≠ critique sociale (Marx)','Religion comme aliénation ≠ religion comme expérience authentique'],notions:['religion','liberte','conscience'],
+liens:{religion:'Pour la notion Religion, c\'est la matrice de toute la critique moderne : la religion n\'est pas jugée vraie ou fausse, elle est expliquée comme projection d\'un manque humain. Feuerbach ouvre la voie à Marx (critique sociale) et à Freud (illusion du désir).'},modified:true},
 {id:'religion-naturelle',term:'Religion naturelle',cat:'Religion',def:'Concept des Lumières du XVIIIe siècle : religion qui s\'oppose à la fois aux religions <em>positives</em> (instituées) et aux religions <em>révélées</em>. Prône un rapport immédiat à Dieu sans intermédiaire ecclésiastique. Repère la divinité dans les <strong>lois de la nature</strong> (« le grand livre du monde ») plutôt que dans la Bible. <strong>Naturelle = aussi rationnelle</strong> (Kant, <em>La Religion dans les limites de la simple raison</em>, 1793). Voisin du <em>déisme</em>.',auteur:'Kant / Voltaire',tensions:['Religion naturelle ≠ religion révélée (Bible)','Religion naturelle ≠ religion positive (instituée)','Naturelle (rationnelle) ≠ surnaturelle (miracles)'],notions:['religion','raison','nature']},
 
 {id:'religion-civile',term:'Religion civile',cat:'Philosophie politique / Religion',def:'Rousseau (<em>Du contrat social</em>, IV, 8) : religion instituée par le souverain dans l\'État républicain pour conférer un caractère sacré aux institutions de convention. Comporte un petit nombre de <strong>dogmes positifs</strong> : croyance en une divinité bienveillante, châtiment pour les méchants, justice pour les meilleurs. <em>Tolère tous les cultes... sauf l\'intolérance.</em> Modèle pour la laïcité républicaine et le sacré civique.',auteur:'Rousseau',tensions:['Religion civile (instituée par l\'État) ≠ religion révélée','Tolérance générale ≠ tolérance de l\'intolérance','Sacré religieux ≠ sacré civique'],notions:['religion','etat','liberte']},
@@ -1767,7 +1863,9 @@ const CONCEPTS=[
 
 {id:'pari-pascalien',term:'Pari pascalien',cat:'Philosophie de la religion',def:'Pascal (<em>Pensées</em>, fragment 233) : <strong>argument pragmatique</strong> en faveur de la croyance en Dieu, face à l\'incertitude rationnelle. Calcul des gains/pertes : si Dieu existe et qu\'on croit → gain infini ; si Dieu n\'existe pas et qu\'on croit → perte minime ; si Dieu existe et qu\'on ne croit pas → perte infinie. Donc rationnellement il faut parier que Dieu existe. Critique : suppose qu\'on choisit ses croyances, et qu\'un Dieu accepterait une foi calculée.',auteur:'Pascal',tensions:['Pari pragmatique (Pascal) ≠ démonstration rationnelle classique','Foi calculée ≠ foi authentique (Kierkegaard)','Rationalité (calcul) au service de la foi'],notions:['religion','verite','liberte']},
 
-{id:'illusion',term:'Illusion',cat:'Philosophie / Psychanalyse',def:'À distinguer de l\'erreur (qu\'on peut corriger) et du mensonge (intentionnel). Une <strong>illusion</strong> est une croyance fausse motivée par un <em>désir</em>. Freud (<em>L\'Avenir d\'une illusion</em>, 1927) : la religion est l\'illusion universelle obsessionnelle de l\'humanité — non nécessairement fausse, mais motivée par le désir infantile d\'un père protecteur. Marx élargit : toute idéologie peut être une illusion qui exprime et compense un manque réel.',auteur:'Freud / Marx / Feuerbach',tensions:['Illusion (motivée par le désir) ≠ erreur (corrigible)','Illusion ≠ hallucination (pathologique)','Critique de l\'illusion ≠ destruction de l\'expérience qui la motive'],notions:['religion','conscience','inconscient']},
+{id:'illusion',term:'Illusion',cat:'Philosophie / Psychanalyse',def:'À distinguer de l\'erreur (qu\'on peut corriger) et du mensonge (intentionnel). Une <strong>illusion</strong> est une croyance fausse motivée par un <em>désir</em>. Freud (<em>L\'Avenir d\'une illusion</em>, 1927) : la religion est l\'illusion universelle obsessionnelle de l\'humanité — non nécessairement fausse, mais motivée par le désir infantile d\'un père protecteur. Marx élargit : toute idéologie peut être une illusion qui exprime et compense un manque réel.',auteur:'Freud / Marx / Feuerbach',tensions:['Illusion (motivée par le désir) ≠ erreur (corrigible)','Illusion ≠ hallucination (pathologique)','Critique de l\'illusion ≠ destruction de l\'expérience qui la motive'],notions:['religion','conscience','inconscient'],
+liens:{religion:'Pour la notion Religion, l\'illusion est l\'angle critique : la religion ne serait pas démontrée fausse, mais expliquée par le désir (un père protecteur). C\'est exactement ce que refuse NOMA, qui interdit à la science de juger le magistère religieux.'},
+relations:[{to:'aliénation-religieuse',type:'prolonge',desc:'Feuerbach (Dieu = projection des aspirations humaines) puis Marx fournissent le socle critique que Freud reprend et déplace vers le désir inconscient.'}],modified:true},
 
 {id:'lumieres',term:'Lumières',cat:'Histoire de la philosophie',def:'Mouvement philosophique européen du XVIIIe siècle (<em>Aufklärung</em>, <em>Enlightenment</em>) qui place la <strong>raison</strong> au cœur du progrès humain. « <em>Sapere aude !</em> Aie le courage de te servir de ton propre entendement » (Kant, <em>Qu\'est-ce que les Lumières ?</em>, 1784). Critique de l\'autorité (religieuse, politique), promotion de la science, de la tolérance, de l\'éducation universelle. Côté religieux : développe le déisme et la religion naturelle, critique des dogmes révélés.',auteur:'Kant / Voltaire / Diderot',tensions:['Lumières (raison) ≠ tradition (autorité)','Religion naturelle des Lumières ≠ religion révélée','Émancipation par la raison ≠ confiance dans l\'autorité'],notions:['raison','liberte','religion']},
 
@@ -1807,7 +1905,9 @@ const CONCEPTS=[
 
 {new:true,id:'probleme-induction',term:'Problème de l\'induction',cat:'Épistémologie',def:'Problème logique posé par Hume et radicalisé par <strong>Russell</strong> (<em>Problèmes de Philosophie</em>, 1912) : aucune accumulation finie d\'observations passées ne <em>prouve</em> qu\'une régularité se maintiendra à l\'avenir. « Le soleil s\'est levé chaque jour » ne démontre pas qu\'il se lèvera demain. Toute connaissance empirique est donc <em>conjecturale</em>, non nécessaire. Conséquence majeure : les sciences expérimentales reposent sur un acte de foi inductif. Popper en tire la <strong>falsifiabilité</strong> : si l\'induction ne prouve rien, c\'est la <em>réfutation</em> (et non la confirmation) qui définit la science.',auteur:'Hume / Russell / Popper',tensions:['Conclusion inductive ≠ démonstration déductive','Probabilité ≠ certitude','Confirmation (illusoire) ≠ réfutation (cruciale)'],notions:['raison','science','verite']},
 
-{new:true,id:'religiosite-cosmique',term:'Religiosité cosmique',cat:'Philosophie de la religion',def:'Concept einsteinien (<em>Comment je vois le monde</em>, 1934) : sentiment religieux qui ne porte pas sur un Dieu personnel mais sur l\'<strong>admiration extasiée de l\'harmonie de la nature</strong>. Le savant remplace l\'espoir de la sollicitude divine par l\'émerveillement devant l\'<em>intelligibilité</em> du cosmos. Religiosité <em>compatible avec</em> et <em>nourrie par</em> la pratique scientifique — c\'est le « Dieu de Spinoza » : la nécessité harmonieuse du tout. Pas de prière efficace ni de providence, mais une forme de gratitude métaphysique.',auteur:'Einstein / Spinoza',tensions:['Religiosité cosmique ≠ religion personnelle (Dieu providentiel)','Émerveillement scientifique ≠ scientisme (qui prétendrait épuiser le sens)','Spinozisme ≠ athéisme strict'],notions:['religion','science','nature']},
+{new:true,id:'religiosite-cosmique',term:'Religiosité cosmique',cat:'Philosophie de la religion',def:'Concept einsteinien (<em>Comment je vois le monde</em>, 1934) : sentiment religieux qui ne porte pas sur un Dieu personnel mais sur l\'<strong>admiration extasiée de l\'harmonie de la nature</strong>. Le savant remplace l\'espoir de la sollicitude divine par l\'émerveillement devant l\'<em>intelligibilité</em> du cosmos. Religiosité <em>compatible avec</em> et <em>nourrie par</em> la pratique scientifique — c\'est le « Dieu de Spinoza » : la nécessité harmonieuse du tout. Pas de prière efficace ni de providence, mais une forme de gratitude métaphysique.',auteur:'Einstein / Spinoza',tensions:['Religiosité cosmique ≠ religion personnelle (Dieu providentiel)','Émerveillement scientifique ≠ scientisme (qui prétendrait épuiser le sens)','Spinozisme ≠ athéisme strict'],notions:['religion','science','nature'],
+liens:{religion:'Pour la notion Religion, ce concept déplace la frontière du religieux : la religiosité n\'est plus la croyance en un Dieu personnel (la « religion de l\'homme simple », anthropomorphique), mais une attitude d\'émerveillement devant l\'ordre du monde — la « religiosité du savant ».',science:'Pour la notion Science, Einstein montre que l\'activité scientifique peut reposer sur une forme de foi : la conviction que l\'univers est ordonné et intelligible précède et soutient la recherche. Une « religiosité » sans dogme ni providence.'},
+relations:[{to:'noma',type:'prolonge',desc:'Comme Gould, Einstein articule science et religion sans conflit ; mais là où NOMA les sépare en deux magistères, Einstein les unit dans une même attitude d\'émerveillement devant l\'intelligibilité du cosmos.'},{to:'illusion',type:'oppose',desc:'La religiosité cosmique du savant n\'est pas l\'illusion freudienne du père protecteur : elle ne console pas, elle n\'attend rien d\'un Dieu personnel — elle contemple la nécessité harmonieuse du tout.'}]},
 
 {new:true,id:'pari-pascalien-religion',term:'Pari pascalien (décisionnel)',cat:'Philosophie de la religion',def:'Argument décisionnel de <strong>Pascal</strong> (<em>Pensées</em>, 1670) face à l\'incertitude rationnelle sur l\'existence de Dieu. « Il faut parier ; cela n\'est pas volontaire, vous êtes embarqué. » Quatre issues : (1) Dieu existe et je crois → gain infini ; (2) Dieu existe et je ne crois pas → perte infinie ; (3) Dieu n\'existe pas et je crois → perte finie ; (4) Dieu n\'existe pas et je ne crois pas → gain fini. L\'<em>espérance mathématique</em> est en faveur de la croyance. <strong>« Gagez donc qu\'il est, sans hésiter. »</strong> Premier exemple historique de raisonnement décisionnel sous incertitude.',auteur:'Pascal',tensions:['Pari (décision pratique) ≠ démonstration (preuve théorique)','Croire par calcul ≠ croire par foi','Argument décisionnel ≠ argument ontologique'],notions:['religion','raison','verite']},
 
@@ -1827,10 +1927,76 @@ let conceptFilterOpen=false;
 let conceptFilterMode='or'; // 'or' = au moins une notion ; 'and' = toutes les notions cochées
 /* ── E. FONCTIONS UTILITAIRES ────────────────────────────────────────
 
-   buildAI() — construit l'index auteurs à partir de D.
+   normalizeAuthor(a) — convertit une entrée auteur au format canonique
+   { n, ideas:[ {w,i,q, new?, modified?}, … ] }.
+
+   • Si l'entrée est déjà au nouveau format (a.ideas est un tableau),
+     elle est renvoyée telle quelle.
+   • Ancien format {n,w,i,q,new?,modified?} : w/i/q (et new/modified) sont
+     placés dans une seule idée du tableau ideas, et le nom n reste au
+     niveau auteur.
+
+   Conséquence : tout le code de rendu peut lire a.ideas sans se soucier
+   du format source. Les nouvelles entrées peuvent être écrites
+   directement au format {n, ideas:[…]} dans D.                        */
+function normalizeAuthor(a){
+  if(Array.isArray(a.ideas)) return a;
+  const idea={};
+  ['w','i','q','new','modified'].forEach(k=>{ if(a[k]!==undefined) idea[k]=a[k]; });
+  return {n:a.n, ideas:[idea]};
+}
+
+/* migrateAxeToPlan(axe) — convertit un ANCIEN axe au format PLAN de
+   dissertation. Modèle cible : 1 plan = 1 problématique + 3 axes (I/II/III),
+   chaque axe ayant des sous-parties déroulables.
+
+   Mapping retenu : un ancien axe {t, pb, sps:[A,B,C]} est déjà un mini-plan
+   (titre + problématique + 3 mouvements A/B/C). On le convertit donc en un
+   plan dont les sous-parties A/B/C deviennent les 3 AXES I/II/III ; le
+   contenu c → champ « arguments », la référence r → champ « ref ». Les
+   nouveaux champs (problématisation, titres d'axes, limites, auteurs par
+   sous-partie) restent vides, à enrichir à la main.
+   Le drapeau migrated:true signale un plan issu de cette conversion auto. */
+function migrateAxeToPlan(axe){
+  const sps=axe.sps||[];
+  return {
+    q: axe.pb||axe.t||'',     // la question = l'ancienne problématique
+    theme: axe.t||'',         // thème conservé (ancien titre d'axe)
+    intro: '',                // problématisation à écrire
+    pb: axe.pb||'',           // problématique (reprise, à affiner)
+    axes: sps.map(sp=>({
+      t:'',                                                   // titre court de l'axe (à écrire)
+      sps:[{t:'', args:sp.c||'', auteurs:'', ref:sp.r||'', limite:''}],
+      limite:''                                               // limite de fin d'axe (à écrire)
+    })),
+    new: !!axe.new, modified: !!axe.modified, migrated:true
+  };
+}
+
+/* normalizeD() — prépare D au démarrage (UNE fois, avant buildAI) :
+   1. Auteurs → format canonique {n, ideas:[…]} (mute D[k].auteurs[]).
+   2. Dissertations → D[k].plans[] : on conserve les plans déjà rédigés à
+      la main dans la source (s'il y en a), puis on y AJOUTE la conversion
+      automatique des anciens D[k].axes[]. D[k].axes reste intact (non
+      réécrit), mais le rendu s'appuie désormais sur D[k].plans. */
+function normalizeD(){
+  KEYS.forEach(k=>{
+    const arr=D[k].auteurs||[];
+    for(let i=0;i<arr.length;i++) arr[i]=normalizeAuthor(arr[i]);
+    // Plans : plans manuels (déjà au bon format) + axes migrés.
+    const manual=Array.isArray(D[k].plans)?D[k].plans:[];
+    const migrated=(D[k].axes||[]).map(migrateAxeToPlan);
+    D[k].plans=manual.concat(migrated);
+  });
+}
+normalizeD();
+
+/* buildAI() — construit l'index auteurs à partir de D (déjà normalisé).
    Parcourt toutes les notions et regroupe chaque auteur avec :
      · notions  : liste des clés de notion où il apparaît
-     · entries  : { clé_notion → objet auteur complet }
+     · entries  : { clé_notion → objet auteur normalisé {n, ideas:[…]} }
+   Si un auteur apparaît plusieurs fois dans D[k].auteurs[] (cas rare
+   mais autorisé), les idées sont concaténées — on ne perd aucune idée.
    Résultat stocké dans const AI, utilisé par la sidebar Auteurs
    et la fiche auteur (renderAuthorContent).                          */
 function buildAI(){
@@ -1839,7 +2005,13 @@ function buildAI(){
     (D[k].auteurs||[]).forEach(a=>{
       const name=a.n;
       if(!idx[name]) idx[name]={notions:[],entries:{}};
-      if(!idx[name].entries[k]){idx[name].notions.push(k);idx[name].entries[k]=a;}
+      if(!idx[name].entries[k]){
+        idx[name].notions.push(k);
+        idx[name].entries[k]=a;
+      }else{
+        // Doublon du même auteur dans la même notion : fusion des idées.
+        idx[name].entries[k].ideas.push(...a.ideas);
+      }
     });
   });
   return idx;
@@ -2152,10 +2324,14 @@ function renderSBConceptsList(){
   // 2. Tri : par nombre de notions VALIDES traitées (décroissant)
   }).sort((a,b)=>b.notions.filter(k=>D[k]).length-a.notions.filter(k=>D[k]).length);
   if(!list.length){wrap.innerHTML=`<div style="padding:10px 4px;font-size:11px;color:var(--color-text-tertiary);text-align:center">Aucun résultat</div>`;return;}
+  // Compteur TOUJOURS affiché : total de concepts, ou « filtrés / total »
+  // quand une recherche/un filtre est actif.
   const hasFilter=q||(conceptFilter.size>0);
-  let countHtml='';
-  if(hasFilter) countHtml=`<div class="sb-results-count">${list.length} concept${list.length>1?'s':''}</div>`;
-  wrap.innerHTML=countHtml;
+  const total=CONCEPTS.length;
+  const countTxt=hasFilter
+    ?`${list.length} / ${total} concepts`
+    :`${total} concept${total>1?'s':''}`;
+  wrap.innerHTML=`<div class="sb-results-count">${countTxt}</div>`;
   list.forEach(c=>{
     const el=document.createElement('div');
     el.className='cb'+(c.id===curConcept?' active':'');
@@ -2202,6 +2378,62 @@ function openNotion(key){
   pushHistory();
   cur=key; curTab='auteurs'; sbMode='notions';
   renderSB(); renderContent();
+}
+
+/* relTypeLabel(t) — libellé lisible d'un type de relation entre concepts.
+   Utilisé par l'onglet Concepts d'une notion et par la fiche concept. */
+function relTypeLabel(t){
+  return {oppose:"s'oppose à",prolonge:'prolonge',complete:'complète',repond:'répond à'}[t]||t;
+}
+
+/* planCardHTML(p) — rend une carte « plan de dissertation ».
+   Structure : sujet (q) → problématisation (intro) → problématique (pb)
+   → 3 axes I/II/III. Chaque axe a des sous-parties (A/B/C) rendues en
+   <details> DÉROULABLE (arguments, auteurs, référence, mini-limite) et se
+   clôt par sa LIMITE (transition marquée vers l'axe suivant).
+   Tolère tous les champs vides : les plans issus de la migration
+   automatique (migrated:true) n'ont que les arguments remplis.
+   Utilise la notion courante `cur` (global) pour les boutons « + ».      */
+function planCardHTML(p){
+  const ROMAN=['I','II','III','IV','V','VI'];
+  const LETTERS=['A','B','C','D','E','F'];
+  const statusCls=p.new?' is-new':p.modified?' is-modified':'';
+  const nb=p.new?`<span class="new-badge">✦ Nouveau</span>`:'';
+  const mb=p.modified?`<span class="modified-badge">✎ Modifié</span>`:'';
+  const mig=p.migrated?`<span class="plan-migr" title="Plan converti automatiquement depuis l'ancien format — à enrichir (problématisation, titres d'axes, limites)">↻ à enrichir</span>`:'';
+  let h=`<div class="plan-card${statusCls}">
+    <div class="plan-q">${linkTerms('<span>'+(p.q||'(sujet à préciser)')+'</span>')} ${nb}${mb}${mig}</div>`;
+  if(p.intro) h+=`<div class="plan-intro"><span class="plan-lbl">Problématisation —</span> ${linkTerms('<span>'+p.intro+'</span>')}</div>`;
+  if(p.pb) h+=`<div class="plan-pb"><span class="plan-lbl">Problématique —</span> ${linkTerms('<span>'+p.pb+'</span>')}</div>`;
+  (p.axes||[]).forEach((ax,i)=>{
+    h+=`<div class="plan-axe">
+      <div class="plan-axe-head">${ROMAN[i]||(i+1)}. ${ax.t?linkTerms('<span>'+ax.t+'</span>'):'<span class="plan-todo">(titre de l\'axe à préciser)</span>'}</div>`;
+    (ax.sps||[]).forEach((sp,j)=>{
+      const letter=LETTERS[j]||(j+1);
+      // Corps COMPLET de la sous-partie (jamais tronqué) : arguments +
+      // auteurs + référence + mini-limite.
+      let body='';
+      if(sp.args) body+=`<div class="plan-sp-args">${linkTerms('<span>'+sp.args+'</span>')}</div>`;
+      if(sp.auteurs) body+=`<div class="plan-sp-meta"><span class="plan-lbl">Auteurs —</span> ${linkTerms('<span>'+sp.auteurs+'</span>')}</div>`;
+      if(sp.ref) body+=`<div class="plan-sp-ref">${linkTerms('<span>'+sp.ref+'</span>')}</div>`;
+      if(sp.limite) body+=`<div class="plan-sp-limite"><span class="plan-lbl">Limite —</span> ${linkTerms('<span>'+sp.limite+'</span>')}</div>`;
+      if(sp.t){
+        // Sous-partie TITRÉE → repliable (<details>) : le titre, entier, sert
+        // de résumé. Aucune troncature.
+        h+=`<details class="plan-sp"><summary><span class="plan-sp-letter">${letter}.</span> ${linkTerms('<span>'+sp.t+'</span>')}</summary>
+          <div class="plan-sp-body">${body}</div></details>`;
+      }else{
+        // Sous-partie SANS titre (ex. plan migré) → contenu affiché EN ENTIER,
+        // directement, sans repli ni « … ».
+        h+=`<div class="plan-sp plan-sp-flat"><span class="plan-sp-letter">${letter}.</span>
+          <div class="plan-sp-body">${body||'<span class="plan-todo">(sous-partie à compléter)</span>'}</div></div>`;
+      }
+    });
+    if(ax.limite) h+=`<div class="plan-axe-limite"><span class="plan-lbl">Limite de l'axe —</span> ${linkTerms('<span>'+ax.limite+'</span>')}</div>`;
+    h+=`</div>`;
+  });
+  h+=`${pPlus('correction','plan',cur,p.q||'plan')}</div>`;
+  return h;
 }
 
 /* ── G. RENDU — FICHES ───────────────────────────────────────────────
@@ -2253,6 +2485,33 @@ function renderConceptContent(){
   if(c.auteur) html+=`<div class="concept-section"><div class="concept-section-title">Auteur(s) associé(s)</div><div style="font-size:12px;color:var(--color-text-secondary)">${autLink}</div></div>`;
 
   if(c.tensions.length) html+=`<div class="concept-section"><div class="concept-section-title">Tensions philosophiques</div>${tensionItems}</div>`;
+
+  // Concepts en relation : on agrège les relations SORTANTES (c.relations)
+  // et ENTRANTES (les autres concepts dont une relation pointe vers c.id),
+  // pour que le lien soit visible des deux côtés sans le saisir deux fois.
+  // NB : on n'utilise PAS la variable globale `cur` ici (c'est la clé de
+  // notion) — on nomme les locales selfTerm / otherTerm.
+  const rels=[];
+  (c.relations||[]).forEach(r=>{
+    const tg=CONCEPTS.find(x=>x.id===r.to);
+    if(tg) rels.push({other:tg,type:r.type,desc:r.desc,dir:'out'});
+  });
+  CONCEPTS.forEach(x=>{
+    if(x.id===c.id) return;
+    (x.relations||[]).forEach(r=>{ if(r.to===c.id) rels.push({other:x,type:r.type,desc:r.desc,dir:'in'}); });
+  });
+  if(rels.length){
+    html+=`<div class="concept-section"><div class="concept-section-title">Concepts en relation</div>`;
+    rels.forEach(r=>{
+      const safeOther=r.other.id.replace(/'/g,"\\'");
+      const selfTerm=`<span class="cc-term" style="cursor:default">${c.term}</span>`;
+      const otherTerm=`<span class="cc-term" onclick="openConcept('${safeOther}')">${r.other.term}</span>`;
+      const left=r.dir==='out'?selfTerm:otherTerm;
+      const right=r.dir==='out'?otherTerm:selfTerm;
+      html+=`<div class="crel-card"><div class="crel-head">${left}<span class="crel-dir crel-${r.type}">${relTypeLabel(r.type)}</span>${right}</div>${r.desc?`<div class="crel-desc">${linkTerms('<span>'+r.desc+'</span>')}</div>`:''}</div>`;
+    });
+    html+=`</div>`;
+  }
 
   if(c.notions.length) html+=`<div class="concept-section"><div class="concept-section-title">Notions concernées</div><div style="display:flex;flex-wrap:wrap;gap:6px">${notionPills}</div></div>`;
 
@@ -2330,34 +2589,44 @@ function renderAuthorContent(){
 
   if(curAuthorTab==='idees'){
     html+=`<div class="slabel">Idées de ${curAuthor} par notion</div>`;
+    // Une notion peut contenir plusieurs idées de l'auteur (a.ideas[]) :
+    // on rend une carte par idée, en répétant la pill de la notion pour
+    // que chaque idée soit clairement rattachée.
     entry.notions.forEach(k=>{
       const a=entry.entries[k]; const nc=D[k].c;
-      const nb=a.new?`<span class="new-badge">✦ Nouveau</span>`:'';
-      const mb=a.modified?`<span class="modified-badge">✎ Modifié</span>`:'';
-      const statusCls=a.new?' is-new':a.modified?' is-modified':'';
-      html+=`<div class="idea-card${statusCls}">
-        <div class="idea-card-head">
-          <div class="idea-card-work">${a.w||''} ${nb}${mb}</div>
-          <span class="notion-pill" style="color:${nc};border-color:${nc}40;background:${nc}12"
-            onclick="pushHistory();cur='${k}';curTab='auteurs';sbMode='notions';renderSB();renderContent()">${D[k].l} →</span>
-        </div>
-        <div class="idea-card-body">${linkTerms('<span>'+a.i+'</span>')}</div>
-        ${pPlus('correction','auteur',k,curAuthor+' — '+(a.w||'idée')+' · '+D[k].l,curAuthor)}
-      </div>`;
+      a.ideas.forEach(it=>{
+        const nb=it.new?`<span class="new-badge">✦ Nouveau</span>`:'';
+        const mb=it.modified?`<span class="modified-badge">✎ Modifié</span>`:'';
+        const statusCls=it.new?' is-new':it.modified?' is-modified':'';
+        html+=`<div class="idea-card${statusCls}">
+          <div class="idea-card-head">
+            <div class="idea-card-work">${it.w||''} ${nb}${mb}</div>
+            <span class="notion-pill" style="color:${nc};border-color:${nc}40;background:${nc}12"
+              onclick="pushHistory();cur='${k}';curTab='auteurs';sbMode='notions';renderSB();renderContent()">${D[k].l} →</span>
+          </div>
+          <div class="idea-card-body">${linkTerms('<span>'+(it.i||'')+'</span>')}</div>
+          ${pPlus('correction','auteur',k,curAuthor+' — '+(it.w||'idée')+' · '+D[k].l,curAuthor)}
+        </div>`;
+      });
     });
     html+=pPlusCat('auteur','','Proposer une idée',curAuthor);
   }
   else if(curAuthorTab==='citations'){
-    const qs=entry.notions.filter(k=>entry.entries[k].q);
+    // Collecte plate : pour chaque notion, on extrait les idées qui ont
+    // une citation. Une notion peut en fournir plusieurs.
+    const qs=[];
+    entry.notions.forEach(k=>{
+      entry.entries[k].ideas.forEach(it=>{ if(it.q) qs.push({k,it}); });
+    });
     if(!qs.length){html+=`<div style="color:var(--color-text-tertiary);font-size:12px;padding:10px 0">Aucune citation référencée.</div>`;}
     else{
       html+=`<div class="slabel">Citations de ${curAuthor}</div>`;
-      qs.forEach(k=>{
-        const a=entry.entries[k]; const nc=D[k].c;
+      qs.forEach(({k,it})=>{
+        const nc=D[k].c;
         html+=`<div class="cit-card" style="border-left-color:${nc}">
-          <div class="cit-card-text">${linkTerms('<span>'+a.q+'</span>')}</div>
+          <div class="cit-card-text">${linkTerms('<span>'+it.q+'</span>')}</div>
           <div class="cit-card-footer">
-            <span class="cit-card-src">${a.w||''}</span>
+            <span class="cit-card-src">${it.w||''}</span>
             <span class="notion-pill" style="color:${nc};border-color:${nc}40;background:${nc}12"
               onclick="pushHistory();cur='${k}';curTab='auteurs';sbMode='notions';renderSB();renderContent()">${D[k].l} →</span>
           </div>
@@ -2368,16 +2637,23 @@ function renderAuthorContent(){
     html+=pPlusCat('auteur','','Proposer une citation',curAuthor);
   }
   else if(curAuthorTab==='oeuvres'){
+    // Une œuvre peut être référencée par plusieurs idées et plusieurs
+    // notions. On agrège : works[w] = Set de notions où l'œuvre apparaît.
     const works={};
-    entry.notions.forEach(k=>{const w=entry.entries[k].w;if(w){if(!works[w])works[w]=[];works[w].push(k);}});
+    entry.notions.forEach(k=>{
+      entry.entries[k].ideas.forEach(it=>{
+        if(it.w){ if(!works[it.w]) works[it.w]=new Set(); works[it.w].add(k); }
+      });
+    });
     const wks=Object.keys(works);
     if(!wks.length){html+=`<div style="color:var(--color-text-tertiary);font-size:12px;padding:10px 0">Aucune œuvre référencée.</div>`;}
     else{
       html+=`<div class="slabel">Œuvres de ${curAuthor} citées dans le cours</div>`;
       wks.forEach(w=>{
-        const bdgs=works[w].map(k=>`<span class="notion-pill" style="color:${D[k].c};border-color:${D[k].c}40;background:${D[k].c}12;font-size:10px;padding:2px 7px"
+        const ks=Array.from(works[w]);
+        const bdgs=ks.map(k=>`<span class="notion-pill" style="color:${D[k].c};border-color:${D[k].c}40;background:${D[k].c}12;font-size:10px;padding:2px 7px"
           onclick="pushHistory();cur='${k}';curTab='auteurs';sbMode='notions';renderSB();renderContent()">${D[k].l}</span>`).join('');
-        html+=`<div class="oeuvre-card"><div class="oeuvre-title">${w}</div><div class="oeuvre-badges">${bdgs}</div>${pPlus('correction','auteur',works[w][0]||'',curAuthor+' — œuvre : '+w,curAuthor)}</div>`;
+        html+=`<div class="oeuvre-card"><div class="oeuvre-title">${w}</div><div class="oeuvre-badges">${bdgs}</div>${pPlus('correction','auteur',ks[0]||'',curAuthor+' — œuvre : '+w,curAuthor)}</div>`;
       });
     }
     html+=pPlusCat('auteur','','Proposer une œuvre',curAuthor);
@@ -2429,8 +2705,8 @@ function renderContent(){
 
   const n=D[cur];
   const c=n.c;
-  const tabs2=['auteurs','textes','axes','exemples','diss'];
-  const tabLabels={'auteurs':'Auteurs','textes':'Textes du cours','axes':'Axes & sous-parties','exemples':'Exemples','diss':'Dissertations'};
+  const tabs2=['auteurs','textes','concepts','diss','exemples'];
+  const tabLabels={'auteurs':'Auteurs','textes':'Textes du cours','concepts':'Concepts','diss':'Dissertations','exemples':'Exemples'};
 
   // Remplir la barre d'onglets (toujours fixe)
   tabsEl.innerHTML=backBtnHTML()+tabs2.map(t=>`<div class="tab${curTab===t?' active':''}" onclick="tab('${t}')">${tabLabels[t]}</div>`).join('');
@@ -2445,18 +2721,35 @@ function renderContent(){
 
   if(curTab==='auteurs'){
     html+=`<div class="slabel">Auteurs et idées clés (${n.auteurs.length} auteurs)</div><div class="ag">`;
+    // Un auteur peut désormais avoir plusieurs idées (a.ideas[]) pour la
+    // même notion : on rend une seule carte auteur contenant tous ses
+    // blocs idée (œuvre / idée / citation), séparés par .a-idea+.a-idea.
     n.auteurs.forEach(a=>{
-      const newBadge=a.new?`<span class="new-badge">✦ Nouveau</span>`:'';
-      const modBadge=a.modified?`<span class="modified-badge">✎ Modifié</span>`:'';
-      const statusClass=a.new?' is-new':a.modified?' is-modified':'';
-      const nameColor=a.new?'var(--color-new)':a.modified?'var(--color-mod)':c;
+      // Statut global de la carte : « new » si toutes les idées sont
+      // neuves, « modified » si au moins une est modifiée (ou neuve sans
+      // l'être toutes). Sert à colorer le nom et la bordure de la carte.
+      const allNew=a.ideas.length>0&&a.ideas.every(it=>it.new);
+      const anyNewOrMod=a.ideas.some(it=>it.new||it.modified);
+      const statusClass=allNew?' is-new':anyNewOrMod?' is-modified':'';
+      const nameColor=allNew?'var(--color-new)':anyNewOrMod?'var(--color-mod)':c;
       const safeN=a.n.replace(/'/g,"\\'");
+      // Rendu de chaque idée (œuvre / idée / citation + badges + bouton +)
+      let ideasHTML='';
+      a.ideas.forEach(it=>{
+        const nb=it.new?`<span class="new-badge">✦ Nouveau</span>`:'';
+        const mb=it.modified?`<span class="modified-badge">✎ Modifié</span>`:'';
+        ideasHTML+=`<div class="a-idea">
+          <div class="aw">${it.w||''} ${nb}${mb}</div>
+          <div class="ai">${linkTerms('<span>'+(it.i||'')+'</span>')}</div>
+          ${it.q?`<div class="aq">${it.q}</div>`:''}
+          ${pPlus('correction','auteur',cur,a.n+' — '+(it.w||'idée'))}
+        </div>`;
+      });
       html+=`<div class="ac${statusClass}">
         <div class="an" style="color:${nameColor}">
-          <span class="an-link" style="color:${nameColor}" onclick="openAuthor('${safeN}')">${a.n}</span> ${newBadge}${modBadge}
+          <span class="an-link" style="color:${nameColor}" onclick="openAuthor('${safeN}')">${a.n}</span>
         </div>
-        <div class="aw">${a.w}</div><div class="ai">${linkTerms('<span>'+a.i+'</span>')}</div>${a.q?`<div class="aq">${a.q}</div>`:''}
-        ${pPlus('correction','auteur',cur,a.n+' — '+a.w)}
+        ${ideasHTML}
       </div>`;
     });
     html+=`</div>`;
@@ -2473,22 +2766,63 @@ function renderContent(){
     html+=`</div>`;
     html+=pPlusCat('texte',cur,'Proposer un texte');
   }
-  else if(curTab==='axes'){
-    html+=`<div class="slabel">3 axes de dissertation avec sous-parties détaillées</div>`;
-    n.axes.forEach(a=>{
-      const newBadge=a.new?`<span class="new-badge">✦ Nouveau</span>`:'';
-      const modBadge=a.modified?`<span class="modified-badge">✎ Modifié</span>`:'';
-      const statusClass=a.new?' is-new':a.modified?' is-modified':'';
-      html+=`<div class="axe-card${statusClass}">
-        <div class="axe-head"><span class="axe-num">${a.n}</span><span class="axe-title">${a.t}</span>${newBadge}${modBadge}</div>
-        <div class="axe-pb">Problématique : ${a.pb}</div>
-        <div class="sp">`;
-      a.sps.forEach(sp=>{
-        html+=`<div class="sp-item"><span class="sp-letter">${sp.l}.</span><span class="sp-content">${linkTerms('<span>'+sp.c+'</span>')}<span class="sp-ref">${sp.r}</span></span></div>`;
-      });
-      html+=`</div>${pPlus('correction','axe',cur,a.n+' — '+a.t)}</div>`;
+  else if(curTab==='concepts'){
+    // Concepts rattachés à la notion courante : on filtre CONCEPTS par
+    // c.notions.includes(cur). Chaque concept peut figurer dans plusieurs
+    // notions ; ici on n'affiche que ceux liés à la notion ouverte.
+    const cs=CONCEPTS.filter(c=>(c.notions||[]).includes(cur));
+    html+=`<div class="slabel">Concepts liés à ${n.l} (${cs.length})</div>`;
+    if(!cs.length){
+      html+=`<div style="color:var(--color-text-tertiary);font-size:12px;padding:6px 0 10px">Aucun concept rattaché à cette notion pour l'instant.</div>`;
+    }
+    cs.forEach(c=>{
+      const isNew=c.new, isMod=c.modified;
+      const statusCls=isNew?' is-new':isMod?' is-modified':'';
+      const nb=isNew?`<span class="new-badge">✦ Nouveau</span>`:'';
+      const mb=isMod?`<span class="modified-badge">✎ Modifié</span>`:'';
+      const safeId=c.id.replace(/'/g,"\\'");
+      // Définition COMPLÈTE (HTML d'origine, termes rendus cliquables par
+      // linkTerms) — pas de troncature : on affiche tout le contenu.
+      // Explication contextuelle du lien concept ↔ notion (champ c.liens[cur]).
+      const lien=c.liens&&c.liens[cur];
+      html+=`<div class="concept-card${statusCls}">
+        <div class="cc-head">
+          <span class="cc-term" onclick="openConcept('${safeId}')">${c.term} →</span>
+          <span class="cc-cat">${c.cat||''}</span>${nb}${mb}
+        </div>
+        <div class="cc-def">${linkTerms(c.def||'')}</div>
+        ${lien?`<div class="cc-lien"><span class="cc-lien-label">Lien avec ${n.l} :</span> ${linkTerms('<span>'+lien+'</span>')}</div>`:''}
+        ${pPlus('correction','concept',cur,c.term)}
+      </div>`;
     });
-    html+=pPlusCat('axe',cur,'Proposer un axe');
+    // Bloc « Liens entre concepts » : relations dont les DEUX extrémités
+    // appartiennent à la notion courante (mini-graphe local de la notion).
+    const idsInNotion=new Set(cs.map(c=>c.id));
+    const relPairs=[];
+    cs.forEach(c=>{
+      (c.relations||[]).forEach(r=>{
+        if(idsInNotion.has(r.to)){
+          const target=CONCEPTS.find(x=>x.id===r.to);
+          if(target) relPairs.push({from:c,to:target,type:r.type,desc:r.desc});
+        }
+      });
+    });
+    if(relPairs.length){
+      html+=`<div class="slabel">Liens entre concepts</div>`;
+      relPairs.forEach(p=>{
+        const safeFrom=p.from.id.replace(/'/g,"\\'");
+        const safeTo=p.to.id.replace(/'/g,"\\'");
+        html+=`<div class="crel-card">
+          <div class="crel-head">
+            <span class="cc-term" onclick="openConcept('${safeFrom}')">${p.from.term}</span>
+            <span class="crel-dir crel-${p.type}">${relTypeLabel(p.type)}</span>
+            <span class="cc-term" onclick="openConcept('${safeTo}')">${p.to.term}</span>
+          </div>
+          ${p.desc?`<div class="crel-desc">${linkTerms('<span>'+p.desc+'</span>')}</div>`:''}
+        </div>`;
+      });
+    }
+    html+=pPlusCat('concept',cur,'Proposer un concept');
   }
   else if(curTab==='exemples'){
     html+=`<div class="slabel">Exemples concrets mobilisables en dissertation</div>`;
@@ -2520,12 +2854,27 @@ function renderContent(){
     html+=pPlusCat('exemple',cur,'Proposer un exemple');
   }
   else if(curTab==='diss'){
+    // Onglet « Dissertations » : remplace l'ancien onglet Axes et absorbe
+    // l'ancien onglet Dissertations. Trois sections :
+    //   1. liens avec d'autres notions (navigation) ;
+    //   2. plans de dissertation détaillés et déroulables (n.plans) ;
+    //   3. autres sujets de dissertation (n.diss, questions simples).
+    // 1) Liens avec d'autres notions
     const liens=n.liens||[];
-    html+=`<div class="slabel">Liens avec d'autres notions</div>
-    <div class="liens-row">
-      ${liens.map(l=>{const k=KEYS.find(k=>D[k].l===l);return k?`<div class="lpill" style="border-color:${D[k].c};color:${D[k].c}" onclick="pushHistory();cur='${k}';curTab='auteurs';sbMode='notions';renderSB();renderContent()">${l}</div>`:''}).join('')}
-    </div>
-    <div class="slabel">Questions de dissertation typiques</div>
+    if(liens.length){
+      html+=`<div class="slabel">Liens avec d'autres notions</div>
+      <div class="liens-row">
+        ${liens.map(l=>{const k=KEYS.find(k=>D[k].l===l);return k?`<div class="lpill" style="border-color:${D[k].c};color:${D[k].c}" onclick="pushHistory();cur='${k}';curTab='auteurs';sbMode='notions';renderSB();renderContent()">${l}</div>`:''}).join('')}
+      </div>`;
+    }
+    // 2) Plans de dissertation détaillés (cartes déroulables)
+    const plans=n.plans||[];
+    html+=`<div class="slabel">Plans de dissertation détaillés (${plans.length})</div>`;
+    if(!plans.length) html+=`<div style="color:var(--color-text-tertiary);font-size:12px;padding:6px 0 10px">Aucun plan détaillé pour l'instant.</div>`;
+    plans.forEach(p=>{ html+=planCardHTML(p); });
+    html+=pPlusCat('plan',cur,'Proposer un plan');
+    // 3) Autres sujets de dissertation (questions simples)
+    html+=`<div class="slabel">Autres sujets de dissertation</div>
     <div class="diss-list">`;
     n.diss.forEach(d=>{
       const isNew=typeof d==='object'&&d.new;
@@ -2555,7 +2904,14 @@ function renderSBList(){
   if(!list.length){html=`<div style="padding:10px 4px;font-size:11px;color:var(--color-text-tertiary);text-align:center">Aucun résultat</div>`;}
   else{
     const fa=authorFilter.size>0;
-    if(authorSearch||fa) html+=`<div class="sb-results-count">${list.length} auteur${list.length>1?'s':''}</div>`;
+    // Compteur TOUJOURS affiché : total d'auteurs, ou « filtrés / total »
+    // quand une recherche/un filtre est actif.
+    const total=Object.keys(AI).length;
+    const hasFilter=authorSearch||fa;
+    const countTxt=hasFilter
+      ?`${list.length} / ${total} auteurs`
+      :`${total} auteur${total>1?'s':''}`;
+    html+=`<div class="sb-results-count">${countTxt}</div>`;
     list.forEach(name=>{
       const entry=AI[name];
       const bdgs=entry.notions.map(k=>`<span class="ab-bdg" style="background:${D[k].c}" title="${D[k].l}"></span>`).join('');
@@ -2646,7 +3002,7 @@ function linkTerms(html){
    MODÈLE — une soumission = une ou plusieurs « boîtes » empilées.
    Chaque boîte a deux menus : un TYPE de proposition et une CIBLE.
      · type  : 'ajout' | 'correction' | 'remarque'
-     · cible : 'notion' | 'auteur' | 'texte' | 'axe' | 'exemple'
+     · cible : 'notion' | 'auteur' | 'texte' | 'plan' | 'exemple'
                | 'dissertation' | 'concept'
    Les champs propres à chaque (type × cible) seront ajoutés à l'étape 1c
    dans le conteneur .pbox-fields.
@@ -2674,7 +3030,7 @@ const PROPOSAL_CIBLES=[
   {v:'notion',      l:'Notion (définition / approfondissement)'},
   {v:'auteur',      l:'Auteur'},
   {v:'texte',       l:'Texte du cours'},
-  {v:'axe',         l:'Axe & sous-parties'},
+  {v:'plan',        l:'Plan de dissertation'},
   {v:'exemple',     l:'Exemple'},
   {v:'dissertation',l:'Sujet de dissertation'},
   {v:'concept',     l:'Concept (glossaire)'}
@@ -2689,9 +3045,18 @@ let proposalSeq=0;           // compteur d'id uniques
 let proposalContributor='';  // nom/pseudo du contributeur (facultatif)
 let proposalView='edit';     // vue de la modale : 'edit' | 'preview'
 
-/* Ajoute une boîte vierge (type 'ajout', cible 'auteur' par défaut). */
+/* ensureIdeas — garantit que box.f.ideas existe (au moins une idée vide).
+   Une boîte cible 'auteur' utilise box.f.ideas[] pour permettre N idées
+   (œuvre / date / idée / citation / concepts) sous le même nom d'auteur. */
+function ensureIdeas(box){
+  const f=box.f||(box.f={});
+  if(!Array.isArray(f.ideas)) f.ideas=[{}];
+  if(f.ideas.length===0) f.ideas.push({});
+}
+/* Ajoute une boîte vierge (type 'ajout', cible 'auteur' par défaut).
+   Init box.f.ideas=[{}] car la cible 'auteur' s'appuie dessus. */
 function addProposalBox(){
-  proposalBoxes.push({id:++proposalSeq,type:'ajout',cible:'auteur',f:{}});
+  proposalBoxes.push({id:++proposalSeq,type:'ajout',cible:'auteur',f:{ideas:[{}]}});
   renderProposal();
 }
 /* Supprime une boîte — on en conserve toujours au moins une. */
@@ -2702,10 +3067,38 @@ function removeProposalBox(id){
 }
 /* Change le type ou la cible d'une boîte, puis re-rend (les champs
    spécifiques en dépendent). Les champs texte, eux, écrivent dans la
-   boîte SANS re-rendre (via setBoxF) pour ne pas perdre le focus. */
+   boîte SANS re-rendre (via setBoxF) pour ne pas perdre le focus.
+   Si on passe à cible='auteur', on s'assure que f.ideas est init. */
 function setProposalField(id,key,val){
   const b=proposalBoxes.find(x=>x.id===id);
-  if(b){ b[key]=val; renderProposal(); }
+  if(!b) return;
+  b[key]=val;
+  if(b.cible==='auteur') ensureIdeas(b);
+  renderProposal();
+}
+
+/* addProposalIdea — ajoute une idée vide à box.f.ideas et re-rend. */
+function addProposalIdea(id){
+  const b=proposalBoxes.find(x=>x.id===id); if(!b) return;
+  ensureIdeas(b);
+  b.f.ideas.push({});
+  renderProposal();
+}
+/* removeProposalIdea — supprime l'idée d'index idx (au moins une reste). */
+function removeProposalIdea(id,idx){
+  const b=proposalBoxes.find(x=>x.id===id); if(!b||!Array.isArray(b.f.ideas)) return;
+  if(b.f.ideas.length<=1) return;
+  b.f.ideas.splice(idx,1);
+  renderProposal();
+}
+/* setIdeaF — écrit une valeur de champ dans box.f.ideas[idx]. rerender=true
+   seulement si le champ modifie la STRUCTURE du formulaire (ex. catégorie). */
+function setIdeaF(id,idx,key,val,rerender){
+  const b=proposalBoxes.find(x=>x.id===id); if(!b) return;
+  ensureIdeas(b);
+  const it=b.f.ideas[idx]||(b.f.ideas[idx]={});
+  it[key]=val;
+  if(rerender) renderProposal();
 }
 
 /* ── Champs d'une boîte selon (type × cible) — étape 1c ──────────────
@@ -2732,15 +3125,19 @@ const PROPOSAL_FIELDS={
     {k:"titre",l:"Titre / source du texte",t:"text",r:true,ph:"ex. Descartes, Discours de la méthode"},
     {k:"contenu",l:"Contenu de l'extrait",t:"area",r:true}
   ],
-  axe:[
-    {k:"axenom",l:"Nom de l'axe",t:"text",r:true,ph:"ex. La liberté comme illusion"},
-    {k:"axepb",l:"Problématique de l'axe",t:"text",r:true},
-    {k:"spa",l:"Sous-partie A",t:"area",r:true},
-    {k:"spar",l:"Référence (sous-partie A)",t:"text",r:false,ph:"ex. Spinoza, Éthique"},
-    {k:"spb",l:"Sous-partie B",t:"area",r:false},
-    {k:"spbr",l:"Référence (sous-partie B)",t:"text",r:false},
-    {k:"spc",l:"Sous-partie C",t:"area",r:false},
-    {k:"spcr",l:"Référence (sous-partie C)",t:"text",r:false}
+  plan:[
+    {k:"plan_q",l:"Sujet (question de dissertation)",t:"text",r:true,ph:"ex. La science et la religion s'opposent-elles ?"},
+    {k:"plan_intro",l:"Problématisation (mise en tension)",t:"area",r:false,ph:"Pourquoi le sujet pose problème, en quelques phrases."},
+    {k:"plan_pb",l:"Problématique",t:"area",r:false,ph:"La question reformulée après problématisation."},
+    {k:"plan_a1t",l:"Axe I — titre",t:"text",r:true,ph:"Réponse évidente, argumentée"},
+    {k:"plan_a1c",l:"Axe I — arguments / sous-parties",t:"area",r:true},
+    {k:"plan_a1l",l:"Axe I — limite (transition vers II)",t:"text",r:false},
+    {k:"plan_a2t",l:"Axe II — titre",t:"text",r:false,ph:"Réflexion plus profonde"},
+    {k:"plan_a2c",l:"Axe II — arguments / sous-parties",t:"area",r:false},
+    {k:"plan_a2l",l:"Axe II — limite (transition vers III)",t:"text",r:false},
+    {k:"plan_a3t",l:"Axe III — titre",t:"text",r:false,ph:"Redéfinition / ouverture"},
+    {k:"plan_a3c",l:"Axe III — arguments / sous-parties",t:"area",r:false},
+    {k:"plan_a3l",l:"Axe III — limite / ouverture finale",t:"text",r:false}
   ],
   exemple:[
     {k:"excat",l:"Catégorie",t:"excat",r:true},
@@ -2755,7 +3152,9 @@ const PROPOSAL_FIELDS={
     {k:"cterme",l:"Terme",t:"text",r:true,ph:"ex. Réminiscence"},
     {k:"ccat",l:"Catégorie",t:"text",r:false,ph:"ex. Métaphysique, Logique…"},
     {k:"cdef",l:"Définition",t:"area",r:true},
-    {k:"ctensions",l:"Tensions / distinctions",t:"area",r:false,ph:"une par ligne — ex. A ≠ B"}
+    {k:"ctensions",l:"Tensions / distinctions",t:"area",r:false,ph:"une par ligne — ex. A ≠ B"},
+    {k:"clien",l:"Lien avec la / les notion(s) cochée(s)",t:"area",r:false,ph:"En quoi ce concept éclaire-t-il cette notion ? (affiché dans l'onglet Concepts)"},
+    {k:"crelations",l:"Liens avec d'autres concepts",t:"area",r:false,ph:"ex. s'oppose à l'illusion ; prolonge l'aliénation religieuse"}
   ]
 };
 
@@ -2809,6 +3208,17 @@ function pField(boxId,def,value,required){
   const ctrl=def.t==="area"
     ? `<textarea class="ptext" rows="3"${ph} oninput="setBoxF(${boxId},'${def.k}',this.value,false)">${v}</textarea>`
     : `<input class="pinput" type="text" value="${v}"${ph} oninput="setBoxF(${boxId},'${def.k}',this.value,false)">`;
+  return `<div class="pfield"><label class="plabel">${def.l} ${reqMark(required)}</label>${ctrl}</div>`;
+}
+
+/* pIdeaField — variante de pField pour les champs d'une idée d'auteur :
+   écrit dans box.f.ideas[ideaIdx][def.k] au lieu de box.f[def.k]. */
+function pIdeaField(boxId,ideaIdx,def,value,required){
+  const ph=def.ph?` placeholder="${pEsc(def.ph)}"`:"";
+  const v=pEsc(value||"");
+  const ctrl=def.t==="area"
+    ? `<textarea class="ptext" rows="3"${ph} oninput="setIdeaF(${boxId},${ideaIdx},'${def.k}',this.value,false)">${v}</textarea>`
+    : `<input class="pinput" type="text" value="${v}"${ph} oninput="setIdeaF(${boxId},${ideaIdx},'${def.k}',this.value,false)">`;
   return `<div class="pfield"><label class="plabel">${def.l} ${reqMark(required)}</label>${ctrl}</div>`;
 }
 
@@ -2905,9 +3315,30 @@ function renderBoxFields(box){
     html+=pField(box.id,{k:"cibleref",l:"Élément précis à corriger",t:"text",ph:"ex. la citation de Sartre, le titre de l'axe 2…"},f.cibleref,true);
     html+='<div class="phint" style="margin:-3px 0 9px">Ne remplissez ci-dessous que les champs à modifier.</div>';
   }
-  // Cible « auteur » : nom + vérification + sous-formulaire
-  if(box.cible==="auteur") html+=authorNameHTML(box,box.type==="ajout");
-  // Champs propres à la cible
+  // Cible « auteur » : nom + vérification + sous-formulaire (bio…) puis
+  // une OU plusieurs idées (œuvre / date / idée / citation / concepts).
+  if(box.cible==="auteur"){
+    html+=authorNameHTML(box,box.type==="ajout");
+    ensureIdeas(box);
+    const ideaDefs=PROPOSAL_FIELDS.auteur;
+    const multi=box.f.ideas.length>1;
+    box.f.ideas.forEach((it,idx)=>{
+      const header=multi
+        ?`<div class="pidea-head">Idée ${idx+1}${box.f.ideas.length>1?` <button class="pidea-del" title="Supprimer cette idée" onclick="removeProposalIdea(${box.id},${idx})">×</button>`:''}</div>`
+        :'';
+      html+=`<div class="pidea">${header}`;
+      ideaDefs.forEach(d=>{
+        const req=(box.type==="ajout")&&d.r;
+        html+=pIdeaField(box.id,idx,d,it[d.k],req);
+      });
+      html+='</div>';
+    });
+    // Bouton « + Ajouter une idée » (utile surtout en ajout — laissé visible
+    // aussi en correction si l'utilisateur veut corriger plusieurs idées).
+    html+=`<div class="pidea-add"><button class="pidea-addbtn" onclick="addProposalIdea(${box.id})">+ Ajouter une idée</button></div>`;
+    return html;
+  }
+  // Champs propres aux autres cibles
   (PROPOSAL_FIELDS[box.cible]||[]).forEach(d=>{
     const req=(box.type==="ajout")&&d.r;
     html+=(d.t==="excat")?excatFieldHTML(box,req):pField(box.id,d,f[d.k],req);
@@ -2950,10 +3381,18 @@ function generateAjout(b,f){
   if(b.cible==='notion')
     return 'Texte proposé pour la définition / l\'approfondissement :\n'+(gv(f,'notiondef')||'(vide)')+'\n';
   if(b.cible==='auteur'){
-    const w=[gv(f,'oeuvre'),gv(f,'date')].filter(Boolean).join(', ');
+    // Nouveau format : {n, ideas:[{w,i,q}, ...]} — N idées par auteur.
+    // On exclut les idées dont tous les champs sont vides.
+    const ideas=(f.ideas||[]).filter(it=>gv(it,'oeuvre')||gv(it,'date')||gv(it,'idee')||gv(it,'citation'));
+    const ideaLits=ideas.map(it=>{
+      const w=[gv(it,'oeuvre'),gv(it,'date')].filter(Boolean).join(', ');
+      return jsObj([['w',w],['i',gv(it,'idee')],['q',gv(it,'citation')]],true);
+    });
     let s='À insérer dans D.'+nk+'.auteurs[] :\n'
-      +jsObj([['n',gv(f,'nom')],['w',w],['i',gv(f,'idee')],['q',gv(f,'citation')]],true)+'\n';
-    if(gv(f,'concepts')) s+='\nTermes à lier au glossaire : '+gv(f,'concepts')+'\n';
+      +jsObj([['n',gv(f,'nom')],['ideas','['+ideaLits.join(', ')+']',true]],true)+'\n';
+    // Termes glossaire : on agrège ceux de toutes les idées.
+    const conceptsAll=(f.ideas||[]).map(it=>gv(it,'concepts')).filter(Boolean).join(', ');
+    if(conceptsAll) s+='\nTermes à lier au glossaire : '+conceptsAll+'\n';
     if(gv(f,'a_bio')||gv(f,'a_courant')||gv(f,'a_periode')||gv(f,'a_themes')){
       const themes='['+gv(f,'a_themes').split(',').map(x=>x.trim()).filter(Boolean).map(jsStr).join(',')+']';
       s+='\nNouvel auteur — entrée AM['+jsStr(gv(f,'nom'))+'] :\n'
@@ -2963,13 +3402,21 @@ function generateAjout(b,f){
   }
   if(b.cible==='texte')
     return 'À insérer dans D.'+nk+'.textes[] :\n'+jsObj([['n',gv(f,'titre')],['t',gv(f,'contenu')]],true)+'\n';
-  if(b.cible==='axe'){
-    const sps=[];
-    [['A','spa','spar'],['B','spb','spbr'],['C','spc','spcr']].forEach(x=>{
-      if(gv(f,x[1])) sps.push('{l:"'+x[0]+'",c:'+jsStr(gv(f,x[1]))+',r:'+jsStr(gv(f,x[2]))+'}');
+  if(b.cible==='plan'){
+    // Construit un littéral de plan {q, intro, pb, axes:[{t, sps:[{args}], limite}]}.
+    // Le formulaire visiteur ne saisit qu'un contenu par axe (pas de
+    // sous-parties imbriquées) : il est placé dans une seule sous-partie
+    // {args:…}, à découper ensuite à la main si besoin.
+    const axes=[];
+    ['1','2','3'].forEach(n=>{
+      const t=gv(f,'plan_a'+n+'t'), cc=gv(f,'plan_a'+n+'c'), li=gv(f,'plan_a'+n+'l');
+      if(t||cc||li){
+        const sps=cc?'[{args:'+jsStr(cc)+'}]':'[]';
+        axes.push('{t:'+jsStr(t)+', sps:'+sps+', limite:'+jsStr(li)+'}');
+      }
     });
-    return 'À insérer dans D.'+nk+'.axes[] :\n'
-      +jsObj([['n','"Axe ?"',true],['t',gv(f,'axenom')],['pb',gv(f,'axepb')],['sps','['+sps.join(',')+']',true]],true)+'\n';
+    return 'À insérer dans D.'+nk+'.plans[] :\n'
+      +jsObj([['q',gv(f,'plan_q')],['intro',gv(f,'plan_intro')],['pb',gv(f,'plan_pb')],['axes','['+axes.join(', ')+']',true]],true)+'\n';
   }
   if(b.cible==='exemple'){
     const tag=gv(f,'excat')==='Autre'?gv(f,'excatautre'):gv(f,'excat');
@@ -2981,9 +3428,19 @@ function generateAjout(b,f){
   if(b.cible==='concept'){
     const tensions='['+gv(f,'ctensions').split(/\r?\n/).map(x=>x.trim()).filter(Boolean).map(jsStr).join(',')+']';
     const notions='['+(f.cnotions||[]).map(jsStr).join(',')+']';
-    return 'À insérer dans le tableau CONCEPTS[] :\n'
-      +jsObj([['id',jsStr(slugify(gv(f,'cterme'))),true],['term',gv(f,'cterme')],['cat',gv(f,'ccat')||'À préciser'],
-              ['def',gv(f,'cdef')],['tensions',tensions,true],['notions',notions,true]],true)+'\n';
+    // liens : l'explication du lien (clien) est rattachée à CHAQUE notion
+    // cochée (même texte) — à ajuster ensuite si les notions diffèrent.
+    const clien=gv(f,'clien');
+    const liensLit=clien?'{'+(f.cnotions||[]).map(k=>jsStr(k)+':'+jsStr(clien)).join(', ')+'}':'';
+    const pairs=[['id',jsStr(slugify(gv(f,'cterme'))),true],['term',gv(f,'cterme')],['cat',gv(f,'ccat')||'À préciser'],
+                 ['def',gv(f,'cdef')],['tensions',tensions,true],['notions',notions,true]];
+    if(liensLit) pairs.push(['liens',liensLit,true]);
+    let s='À insérer dans le tableau CONCEPTS[] :\n'+jsObj(pairs,true)+'\n';
+    // Les relations (champ relations:[{to,type,desc}]) nécessitent l'id du
+    // concept cible : on les laisse en texte libre, à structurer à la main.
+    const crel=gv(f,'crelations');
+    if(crel) s+='\nRelations à structurer (relations:[{to:"id-concept",type:"oppose|prolonge|complete",desc:"…"}]) :\n'+crel+'\n';
+    return s;
   }
   return '(cible inconnue)\n';
 }
@@ -3007,29 +3464,56 @@ function generateBoxBody(b){
   if(b.type==='correction'){
     const head=notionLine+'\nÉlément ciblé : '+(gv(f,'cibleref')||'—')+'\n\nModifications proposées :\n';
     const lines=[];
-    if(b.cible==='auteur'&&gv(f,'nom')) lines.push('  - Nom de l\'auteur : '+gv(f,'nom'));
-    (PROPOSAL_FIELDS[b.cible]||[]).forEach(d=>{ if(gv(f,d.k)) lines.push('  - '+d.l+' : '+gv(f,d.k)); });
+    // Cible auteur : les champs des idées sont dans f.ideas[]
+    if(b.cible==='auteur'){
+      if(gv(f,'nom')) lines.push('  - Nom de l\'auteur : '+gv(f,'nom'));
+      const ideas=f.ideas||[];
+      const multi=ideas.length>1;
+      ideas.forEach((it,idx)=>{
+        const lbl=multi?(' (idée '+(idx+1)+')'):'';
+        (PROPOSAL_FIELDS.auteur).forEach(d=>{ if(gv(it,d.k)) lines.push('  - '+d.l+lbl+' : '+gv(it,d.k)); });
+      });
+    }else{
+      (PROPOSAL_FIELDS[b.cible]||[]).forEach(d=>{ if(gv(f,d.k)) lines.push('  - '+d.l+' : '+gv(f,d.k)); });
+    }
     return head+(lines.length?lines.join('\n'):'  (aucun champ rempli)')+'\n';
   }
   return notionLine+'\n\n'+generateAjout(b,f);
 }
 
-/* cleanFields — copie de box.f sans les valeurs vides (pour le bloc JSON). */
+/* cleanFields — copie de box.f sans les valeurs vides (pour le bloc JSON).
+   Cas particulier : f.ideas est un tableau d'objets. Chaque idée est
+   nettoyée de ses champs vides ; les idées entièrement vides sont
+   retirées. */
 function cleanFields(f){
   const o={};
   Object.keys(f||{}).forEach(k=>{
     const v=f[k];
-    if(Array.isArray(v)){ if(v.length) o[k]=v.slice(); }
+    if(k==='ideas'&&Array.isArray(v)){
+      const cleaned=v.map(it=>{
+        const out={};
+        Object.keys(it||{}).forEach(ik=>{
+          const iv=it[ik];
+          if(iv!=null&&String(iv).trim()!=='') out[ik]=String(iv).trim();
+        });
+        return out;
+      }).filter(it=>Object.keys(it).length>0);
+      if(cleaned.length) o[k]=cleaned;
+    }
+    else if(Array.isArray(v)){ if(v.length) o[k]=v.slice(); }
     else if(v!=null&&String(v).trim()!=='') o[k]=String(v).trim();
   });
   return o;
 }
 /* generateProposalJSON — objet structuré de la proposition, destiné au
-   programme d'agrégation externe (schéma « philo-proposal/v1 »).
-   Chaque boîte : { type, cible, fields } — fields = box.f nettoyé.       */
+   programme d'agrégation externe (schéma « philo-proposal/v2 »).
+   v2 : pour cible 'auteur', fields.ideas[] est un tableau d'idées
+       { oeuvre, date, idee, citation, concepts } — N idées possibles.
+   v1 : les mêmes champs étaient à plat dans fields. L'agrégateur lit
+       les deux pour rester compatible avec les anciens .txt.            */
 function generateProposalJSON(){
   return {
-    schema:'philo-proposal/v1',
+    schema:'philo-proposal/v2',
     date:new Date().toISOString(),
     contributor:(proposalContributor||'').trim()||'anonyme',
     boxes:proposalBoxes.map(b=>({type:b.type,cible:b.cible,fields:cleanFields(b.f)}))
@@ -3144,11 +3628,20 @@ function pPlusCat(cible,notion,label,author){
   return `<div class="pplus-catwrap"><button class="pplus-cat" title="Proposer un ajout"`
     +` data-pt="ajout" data-pc="${cible}" data-pn="${pEsc(notion||'')}" data-pr="" data-pa="${pEsc(author||'')}">+ ${label}</button></div>`;
 }
-/* Une boîte est « vierge » si elle a ses valeurs par défaut et aucun champ rempli. */
+/* Une boîte est « vierge » si elle a ses valeurs par défaut et aucun champ
+   rempli. Pour cible 'auteur', il faut aussi que toutes les idées soient
+   vides (les ideas vides initialisées par défaut ne comptent pas). */
 function isBoxPristine(b){
   if(b.type!=='ajout'||b.cible!=='auteur') return false;
   const f=b.f||{};
-  return !Object.keys(f).some(k=>{const v=f[k];return Array.isArray(v)?v.length:String(v==null?'':v).trim();});
+  return !Object.keys(f).some(k=>{
+    const v=f[k];
+    if(k==='ideas'&&Array.isArray(v)){
+      // au moins une idée porte un champ non vide ?
+      return v.some(it=>it&&Object.keys(it).some(ik=>String(it[ik]==null?'':it[ik]).trim()));
+    }
+    return Array.isArray(v)?v.length:String(v==null?'':v).trim();
+  });
 }
 /* Ouvre la modale avec une boîte pré-remplie depuis un bouton « + ».
    Remplace l'unique boîte vierge le cas échéant, sinon empile une boîte. */
@@ -3160,6 +3653,7 @@ function openProposalFromPlus(type,cible,notion,ref,author){
   }
   if(type==='correction'&&ref) box.f.cibleref=ref;
   if(author) box.f.nom=author;   // « + » de la vue Auteur : nom pré-rempli
+  if(cible==='auteur') ensureIdeas(box);   // cible auteur → init ideas[]
   if(proposalBoxes.length===0||(proposalBoxes.length===1&&isBoxPristine(proposalBoxes[0])))
     proposalBoxes=[box];
   else
@@ -3172,7 +3666,7 @@ function openProposalFromPlus(type,cible,notion,ref,author){
 /* Ouvre la modale (en garantissant au moins une boîte). Le contenu
    saisi n'est PAS réinitialisé à la fermeture : on le conserve. */
 function openProposal(){
-  if(proposalBoxes.length===0) proposalBoxes.push({id:++proposalSeq,type:'ajout',cible:'auteur',f:{}});
+  if(proposalBoxes.length===0) proposalBoxes.push({id:++proposalSeq,type:'ajout',cible:'auteur',f:{ideas:[{}]}});
   proposalView='edit';
   renderProposal();
   document.getElementById('proposal-overlay').classList.add('open');
