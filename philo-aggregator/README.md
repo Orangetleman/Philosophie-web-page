@@ -91,12 +91,17 @@ Deux passes complémentaires :
 
 ## Schéma JSON consommé
 
-`philo-proposal/v1` **et** `philo-proposal/v2`, générés par le site. La
-v2 introduit le multi-idées pour la cible `auteur` : les champs `oeuvre`,
-`date`, `idee`, `citation`, `concepts` ne sont plus à plat dans `fields`
-mais regroupés dans un tableau `fields.ideas[]` (chaque entrée = une idée
-distincte du même auteur). Les anciens `.txt` (v1) restent ingestibles.
+`philo-proposal/v1`, `v2` **et** `v3`, générés par le site (rétro-compat
+totale — les anciens `.txt` restent ingestibles).
+
+- **v2** : multi-idées pour la cible `auteur` (`fields.ideas[]`).
+- **v3** : menu à 2 niveaux — chaque boîte porte `categorie`
+  (`notion`/`auteur`/`concept`) + `cible` (sous-cible) + `type`. Les idées
+  d'un auteur portent leur **notion** et un tableau **`citations[]`** :
+  `fields.ideas[] = {notion, oeuvre, date, idee, citations:[…], concepts}`.
+  Nouvelles sous-cibles : `auteur-citation`, `auteur-dialogue`, `auteur-bio`,
+  `concept-relation`. Pour la cible `auteur`, `extract_notions` lit les
+  notions dans `ideas[].notion` (pas `fields.notion`).
 
 Voir `CLAUDE.md` à la racine du projet pour la spécification détaillée
-(cibles, champs par cible, cas particulier de la cible `concept` dont les
-notions sont dans `cnotions[]` et non `notion`).
+(catégories, sous-cibles, champs par sous-cible).

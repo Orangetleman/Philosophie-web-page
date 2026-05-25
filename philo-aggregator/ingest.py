@@ -59,7 +59,7 @@ def extract_json_block(text):
 
 # ────────── Validation du schéma ──────────
 
-SUPPORTED_SCHEMAS = ("philo-proposal/v1", "philo-proposal/v2")
+SUPPORTED_SCHEMAS = ("philo-proposal/v1", "philo-proposal/v2", "philo-proposal/v3")
 
 
 def validate_payload(payload):
@@ -144,7 +144,8 @@ def compute_key_term(type_, cible, fields):
     # type == 'ajout' : dépend de la cible.
     if cible == "notion":
         return (f.get("notion") or "").strip()
-    if cible == "auteur":
+    # Toutes les sous-cibles auteur sont discriminées par le nom.
+    if cible in ("auteur", "auteur-citation", "auteur-dialogue", "auteur-bio"):
         return (f.get("nom") or "").strip()
     if cible == "texte":
         return (f.get("titre") or "").strip()
@@ -157,7 +158,8 @@ def compute_key_term(type_, cible, fields):
     if cible == "dissertation":
         q = (f.get("question") or "").strip()
         return (q[:60] + "…") if len(q) > 60 else q
-    if cible == "concept":
+    # Concept (définition) et relation : discriminés par le terme.
+    if cible in ("concept", "concept-relation"):
         return (f.get("cterme") or "").strip()
     return ""
 
@@ -165,26 +167,36 @@ def compute_key_term(type_, cible, fields):
 def extract_notions(cible, fields):
     """
     Renvoie le tuple (notion_principale, extras_json) :
-      - pour un concept : la première notion de `cnotions` (triée), les
-        autres sérialisées en JSON dans `extras_json` (ou None s'il n'y
-        en a qu'une).
-      - pour les autres cibles : `fields.notion` (chaîne), et None.
+      - concept (définition) : 1re notion de `cnotions` (triée), les autres
+        dans `extras_json`.
+      - auteur (idée/œuvre, v3) : notions DISTINCTES des idées
+        (`fields.ideas[].notion`) — 1re + extras.
+      - autres cibles : `fields.notion` (chaîne), et None.
+      - dialogue / bio / concept-relation : aucune notion (None, None).
 
     Le tri rend l'ordre déterministe — deux soumissions identiques
-    aboutissent à la même `notion_principale` même si l'utilisateur a
-    coché les cases dans un ordre différent.
+    aboutissent à la même `notion_principale`.
     """
     f = fields or {}
-    if cible == "concept":
-        cn = f.get("cnotions") or []
-        if not isinstance(cn, list):
-            cn = []
-        cn = sorted({str(x).strip() for x in cn if str(x).strip()})
-        if not cn:
+
+    def pack(values):
+        vs = sorted({str(x).strip() for x in values if str(x).strip()})
+        if not vs:
             return (None, None)
-        if len(cn) == 1:
-            return (cn[0], None)
-        return (cn[0], json.dumps(cn[1:], ensure_ascii=False))
+        if len(vs) == 1:
+            return (vs[0], None)
+        return (vs[0], json.dumps(vs[1:], ensure_ascii=False))
+
+    if cible == "concept":
+        cn = f.get("cnotions")
+        return pack(cn if isinstance(cn, list) else [])
+    if cible == "auteur":
+        # v3 : les notions sont portées par chaque idée.
+        ideas = f.get("ideas") if isinstance(f.get("ideas"), list) else []
+        notions = [it.get("notion") for it in ideas if isinstance(it, dict)]
+        return pack(notions)
+    if cible in ("auteur-dialogue", "auteur-bio", "concept-relation"):
+        return (None, None)
     n = f.get("notion")
     if n is None or not str(n).strip():
         return (None, None)

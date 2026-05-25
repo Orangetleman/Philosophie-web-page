@@ -28,10 +28,18 @@ DB_PATH = SCRIPT_DIR / "proposals.db"
 STATUSES = ("en_attente", "integree", "rejetee", "archivee")
 
 
-# Les cibles possibles, telles que définies par le site (CLAUDE.md).
-# 'plan' (plan de dissertation) remplace 'axe' depuis la refonte de l'onglet
-# Dissertations ; 'axe' est conservé pour ingérer les anciens .txt (v1).
-CIBLES = ("notion", "auteur", "texte", "plan", "axe", "exemple", "dissertation", "concept")
+# Catégories principales (niveau 1 du menu, schéma v3).
+CATEGORIES = ("notion", "auteur", "concept")
+
+# Les sous-cibles possibles (box.cible), telles que définies par le site.
+# v3 a introduit le menu à 2 niveaux : la plupart des cibles existaient déjà
+# (rétro-compat v1/v2), on y a ajouté les sous-cibles auteur (citation /
+# dialogue / bio) et concept (relation). 'axe' reste pour les anciens .txt.
+CIBLES = (
+    "notion", "texte", "plan", "axe", "exemple", "dissertation",
+    "auteur", "auteur-citation", "auteur-dialogue", "auteur-bio",
+    "concept", "concept-relation",
+)
 
 # Les trois types de boîte.
 TYPES = ("ajout", "correction", "remarque")

@@ -40,7 +40,7 @@ Outil de révision **Philosophie Terminale** : application mono-fichier `index.h
 {
   c:"#couleur", l:"Label", s:"Question/sous-titre",
   def:"HTML de la définition (peut contenir <details>)",
-  auteurs:[ {n, ideas:[ {w,i,q, new?, modified?}, … ]}, … ],
+  auteurs:[ {n, ideas:[ {w,i, citations:[…], new?, modified?}, … ]}, … ],
   textes:[ {n,t, new?, modified?}, … ],
   axes:[ {n,t,pb,sps:[{l,c,r}], new?, modified?}, … ],   // ANCIEN — migré en plans au chargement
   plans:[ {q, intro, pb, axes:[ {t, sps:[{t,args,auteurs,ref,limite}], limite}, … ], new?, modified?}, … ],
@@ -68,16 +68,19 @@ enrichir »). `D[k].plans` = plans rédigés à la main **puis** axes migrés.
 La source n'est pas réécrite ; toute **nouvelle** dissertation détaillée
 s'écrit directement dans `plans:[…]`.
 
-**Format auteur — multi-idées.** Un même auteur peut avoir plusieurs idées
-(plusieurs œuvres / angles) sur une même notion ; chaque idée est un objet
-`{w, i, q, new?, modified?}` du tableau `ideas`. Le nom `n` reste au
-niveau auteur.
+**Format auteur — multi-idées + multi-citations.** Un même auteur peut
+avoir plusieurs idées (plusieurs œuvres / angles) sur une même notion ;
+chaque idée est un objet `{w, i, citations:[…], new?, modified?}` du tableau
+`ideas`. Le nom `n` reste au niveau auteur. Chaque idée porte **plusieurs
+citations** dans `citations:[]` (la 1re est affichée, les suivantes dans un
+déroulant ; toutes apparaissent dans l'onglet *Citations* de l'auteur). Une
+idée sans `i` (texte) mais avec une `citations` = une **citation simple**.
 
-L'ancien format à plat `{n, w, i, q, new?, modified?}` reste accepté en
-source : `normalizeD()` le convertit au chargement en `{n, ideas:[{w,i,q,…}]}`.
-Toute **nouvelle entrée** doit être écrite directement au format
-`ideas:[…]`. `buildAI` fusionne les idées si un auteur apparaît plusieurs
-fois dans la même `D[k].auteurs[]`.
+L'ancien format à plat `{n, w, i, q}` et le `q` unique d'une idée restent
+acceptés en source : `normalizeAuthor()` convertit au chargement en
+`{n, ideas:[{w, i, citations:[q]}]}`. Toute **nouvelle entrée** s'écrit
+directement avec `citations:[…]`. `buildAI` fusionne les idées si un auteur
+apparaît plusieurs fois dans la même `D[k].auteurs[]`.
 
 ### Auteur (objet dans `AM`)
 ```js
@@ -88,20 +91,32 @@ Un auteur peut aussi avoir un alias court : `"Tzara":{bio:"Voir 'Tristan Tzara'.
 
 ### Concept (objet dans `CONCEPTS`)
 ```js
-{ id, term, cat, def, auteur, tensions:[…], notions:[…], new?,
+{ id, term, cat, def, auteur, notions:[…], new?,
   liens:{ notionKey:"explication du lien avec CETTE notion", … },      // optionnel
-  relations:[ {to:"id-concept", type:"oppose|prolonge|complete|repond", desc}, … ] }  // optionnel
+  relations:[ {to:"id-concept", type, desc},          // cible = concept (lien dynamique)
+              {term:"terme libre", type, desc},        // cible non fichée (rendue via linkTerms)
+              {type:"distinction", desc:"A ≠ B"}, … ] }  // ex-« tension »
 }
 ```
+`type` ∈ `oppose | prolonge | complete | repond | distinction | implique`.
 
-**Onglet « Concepts » d'une notion** : liste les concepts dont
-`notions` contient la notion courante. Pour chacun, si `liens[notionKey]`
-existe, l'explication contextuelle du lien concept↔notion est affichée.
-Un bloc « Liens entre concepts » montre les `relations` dont les deux
-extrémités appartiennent à la notion. La **fiche concept** affiche les
-relations **sortantes** (`relations`) ET **entrantes** (calculées : autres
-concepts pointant vers lui). `relations[].to` doit être un `id` de concept
-existant (⚠ certains ids portent des accents, ex. `aliénation-religieuse`).
+**Relations unifiées.** L'ancien champ `tensions:[…]` (chaînes « A ≠ B »,
+sans lien dynamique) a été **fusionné dans `relations`** :
+`normalizeConcepts()` convertit au chargement chaque tension en
+`{type:'distinction', desc}`. Tout passe par `linkTerms` → les termes qui
+sont des concepts/notions/auteurs deviennent cliquables. Une relation cible
+soit un concept (`to`, lien direct), soit un terme libre (`term`, se liera
+si une fiche est créée plus tard). **Ne plus écrire `tensions` dans la
+source** : utiliser `relations`.
+
+**Onglet « Concepts » d'une notion** : **deux sous-onglets**
+(`curConceptSubTab`) — « Concepts liés à la notion » (avec `liens[notionKey]`
+si présent) et « Liens entre les concepts » (les `relations` dont les deux
+extrémités appartiennent à la notion). La **fiche concept** affiche une
+section unique « Relations & distinctions » : relations **sortantes**
+(`relations`) ET **entrantes** (calculées). `relations[].to` doit être un
+`id` de concept existant (⚠ certains ids portent des accents, ex.
+`aliénation-religieuse`).
 
 ## Liens dynamiques
 
@@ -137,12 +152,25 @@ Une modale permet aux visiteurs de **proposer du contenu**. Bouton
 d'ouverture `.sb-propose` (« 💡 Proposer du contenu ») intégré à la sidebar.
 
 - **Modèle « boîte »** : une soumission = une ou plusieurs boîtes empilées.
-  Chaque boîte : un **type** (`ajout` / `correction` / `remarque`) et une
-  **cible** (`notion` / `auteur` / `texte` / `plan` / `exemple` /
-  `dissertation` / `concept`). État dans `proposalBoxes` ; valeurs de champ
-  dans `box.f`. (La cible `plan` a remplacé l'ancienne `axe` ; champs
-  `plan_q`, `plan_intro`, `plan_pb`, `plan_a{1,2,3}{t,c,l}`. La cible
-  `concept` a deux champs ajoutés : `clien` et `crelations`.)
+  Chaque boîte a un **menu à 2 niveaux** + une action :
+  - `categorie` (niveau 1) : `notion` / `auteur` / `concept` ;
+  - `cible` (niveau 2 = sous-cible, clé de dispatch) :
+    - notion → `notion` (définition) / `texte` / `plan` / `dissertation` (sujet) / `exemple` ;
+    - auteur → `auteur` (idée/œuvre) / `auteur-citation` / `auteur-dialogue` / `auteur-bio` ;
+    - concept → `concept` (définition) / `concept-relation` ;
+  - `type` (action) : `ajout` / `correction` / `remarque`.
+
+  État dans `proposalBoxes` (`{id, categorie, cible, type, f}`) ; valeurs de
+  champ dans `box.f`. `PROPOSAL_SOUSCIBLES` mappe catégorie→sous-cibles ;
+  `CIBLE_CAT`/`cibleCat()` font l'inverse (et la rétro-compat des anciennes
+  cibles à plat). Les selects en cascade sont dans `renderProposal` ;
+  `renderBoxFields` dispatche par `(categorie × cible × type)`.
+  - **Cible `auteur` (idée)** : `f.ideas[]`, chaque idée
+    `{notion, oeuvre, date, idee, citations:[…], concepts, remove?, justif?}`
+    → **multi-notions** (une notion par bloc) + **multi-citations**. En
+    correction, `remove:true` + `justif` retire une idée/notion.
+  - **Remarque** : ciblage adapté à la catégorie (notion / nom d'auteur /
+    concept) + `remtexte`, sans champs de contenu.
 - **Boutons « + »** injectés dans les vues (`pPlus` carte → correction,
   `pPlusCat` bas de catégorie → ajout) ; un écouteur délégué lit les
   `data-*` et appelle `openProposalFromPlus`.
@@ -151,25 +179,29 @@ d'ouverture `.sb-propose` (« 💡 Proposer du contenu ») intégré à la sideb
   `[PHILO-PROPOSAL-JSON-END]`, destiné à un programme d'agrégation externe.
 - **Envoi** : `mailto:` vers la constante `PROPOSAL_EMAIL`.
 
-### Schéma JSON « philo-proposal/v2 »
+### Schéma JSON « philo-proposal/v3 »
 
 ```json
-{ "schema":"philo-proposal/v2", "date":"<ISO>", "contributor":"<nom|anonyme>",
-  "boxes":[ { "type":"...", "cible":"...", "fields":{ ... } } ] }
+{ "schema":"philo-proposal/v3", "date":"<ISO>", "contributor":"<nom|anonyme>",
+  "boxes":[ { "categorie":"...", "cible":"...", "type":"...", "fields":{ ... } } ] }
 ```
 
 `fields` = `box.f` nettoyé (champs vides exclus).
 
-- **Cible `concept`** : la/les notion(s) liées sont dans `fields.cnotions`
+- **Cible `concept`** (définition) : notions liées dans `fields.cnotions`
   (**tableau**) — pas dans `fields.notion`.
-- **Cible `auteur`** (v2) : les champs d'idée sont regroupés dans
-  `fields.ideas[]` (tableau d'objets `{oeuvre, date, idee, citation,
-  concepts}`). Le nom est dans `fields.nom` ; la notion de rattachement
-  dans `fields.notion`. L'agrégateur accepte aussi l'ancien format v1
-  (mêmes champs à plat dans `fields`).
+- **Cible `auteur`** (idée/œuvre) : `fields.ideas[]`, chaque idée
+  `{notion, oeuvre, date, idee, citations:[…], concepts}`. Le **nom** est
+  dans `fields.nom`. La **notion est PAR IDÉE** (`ideas[].notion`), pas dans
+  `fields.notion`.
+- **`auteur-citation`** : `fields.notion` + `oeuvre` + `citation` (+`rattach`).
+- **`auteur-dialogue` / `auteur-bio` / `concept-relation`** : pas de notion.
 - **Autres cibles** : la notion est dans `fields.notion` (clé de `D`).
 
-Tenir compte de ces différences dans tout code qui lit une proposition.
+**Rétro-compat** : l'agrégateur (`philo-aggregator/`) lit v1/v2/v3. En v1/v2,
+la boîte n'a pas de `categorie` (déduite via `cibleCat`) et la cible `auteur`
+a ses champs d'idée à plat (v1) ou dans `ideas[]` sans `notion`/`citations`
+(v2). Tenir compte de ces différences dans tout code qui lit une proposition.
 
 ## Pièges connus
 

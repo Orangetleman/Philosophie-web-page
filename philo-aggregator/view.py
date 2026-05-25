@@ -25,14 +25,18 @@ from ingest import normalize
 
 # Trois sections, calquées sur les onglets du site.
 BUCKETS = {
-    "notion":       "NOTIONS",
-    "texte":        "NOTIONS",
-    "plan":         "NOTIONS",
-    "axe":          "NOTIONS",
-    "exemple":      "NOTIONS",
-    "dissertation": "NOTIONS",
-    "auteur":       "AUTEURS",
-    "concept":      "CONCEPTS",
+    "notion":            "NOTIONS",
+    "texte":             "NOTIONS",
+    "plan":              "NOTIONS",
+    "axe":               "NOTIONS",
+    "exemple":           "NOTIONS",
+    "dissertation":      "NOTIONS",
+    "auteur":            "AUTEURS",
+    "auteur-citation":   "AUTEURS",
+    "auteur-dialogue":   "AUTEURS",
+    "auteur-bio":        "AUTEURS",
+    "concept":           "CONCEPTS",
+    "concept-relation":  "CONCEPTS",
 }
 
 SECTION_ORDER = ("NOTIONS", "AUTEURS", "CONCEPTS")
@@ -89,14 +93,18 @@ def main_text_field(row):
         return " ; ".join(s for s in ideas if s)
     # Le champ "contenu" principal par cible.
     by_cible = {
-        "notion":       "notiondef",
-        "auteur":       "idee",
-        "texte":        "contenu",
-        "plan":         "plan_q",
-        "axe":          "axepb",
-        "exemple":      "excorps",
-        "dissertation": "question",
-        "concept":      "cdef",
+        "notion":            "notiondef",
+        "auteur":            "idee",
+        "auteur-citation":   "citation",
+        "auteur-dialogue":   "dialdesc",
+        "auteur-bio":        "a_bio",
+        "texte":             "contenu",
+        "plan":              "plan_q",
+        "axe":               "axepb",
+        "exemple":           "excorps",
+        "dissertation":      "question",
+        "concept":           "cdef",
+        "concept-relation":  "reldesc",
     }
     return f.get(by_cible.get(c, "")) or ""
 

@@ -39,11 +39,21 @@ FIELD_LABELS = {
     "notiondef":  "Définition / approfondissement proposé",
     # auteur — fiche dans la notion
     "nom":        "Nom de l'auteur",
+    "notion":     "Notion (clé)",
     "oeuvre":     "Œuvre",
     "date":       "Date de l'œuvre",
     "idee":       "Idée maîtresse",
-    "citation":   "Citation associée",
+    "citation":   "Citation",
+    "citations":  "Citations",
+    "rattach":    "Rattacher à une idée existante",
     "concepts":   "Termes à lier aux concepts",
+    "justif":     "Justification du retrait",
+    "remove":     "À retirer",
+    # auteur — dialogue (AM[nom].dialogues[])
+    "dialdir":    "Type de relation",
+    "dialauteur": "Auteur en relation",
+    "dialsujet":  "Sujet de la relation",
+    "dialdesc":   "Description du dialogue",
     # auteur — fiche top-level AM (nouvel auteur)
     "a_bio":      "Biographie (top-level AM)",
     "a_courant":  "Courant philosophique",
@@ -84,12 +94,16 @@ FIELD_LABELS = {
     "question":   "Question de dissertation",
     # concept
     "cnotions":   "Notions liées",
-    "cterme":     "Terme",
+    "cterme":     "Terme / concept concerné",
     "ccat":       "Catégorie",
     "cdef":       "Définition",
     "ctensions":  "Tensions / distinctions",
     "clien":      "Lien avec la / les notion(s)",
     "crelations": "Liens avec d'autres concepts",
+    # concept — relation (CONCEPTS[x].relations[])
+    "reltype":    "Type de relation",
+    "relcible":   "Concept / terme en relation",
+    "reldesc":    "Description du lien",
 }
 
 TYPE_LABELS = {
@@ -99,14 +113,18 @@ TYPE_LABELS = {
 }
 
 CIBLE_LABELS = {
-    "notion":       "notion",
-    "auteur":       "auteur",
-    "texte":        "texte",
-    "plan":         "plan de dissertation",
-    "axe":          "axe",
-    "exemple":      "exemple",
-    "dissertation": "dissertation",
-    "concept":      "concept",
+    "notion":            "notion (définition)",
+    "auteur":            "auteur (idée/œuvre)",
+    "auteur-citation":   "auteur (citation)",
+    "auteur-dialogue":   "auteur (dialogue)",
+    "auteur-bio":        "auteur (biographie)",
+    "texte":             "texte",
+    "plan":              "plan de dissertation",
+    "axe":               "axe",
+    "exemple":           "exemple",
+    "dissertation":      "sujet de dissertation",
+    "concept":           "concept (définition)",
+    "concept-relation":  "concept (relation)",
 }
 
 
