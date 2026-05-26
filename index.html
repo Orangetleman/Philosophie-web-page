@@ -97,6 +97,10 @@
      SVG en data-URI. Astuce qui préserve le mono-fichier (aucune image externe à
      charger). L'emoji est rendu via la fonte système — pas de typo à embarquer. -->
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏛️</text></svg>">
+<!-- PWA : manifeste pour l'installation, theme-color pour la barre d'état mobile. -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#121212">
+<link rel="apple-touch-icon" href="icon.svg">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -155,6 +159,19 @@ body{font-family:'Inter',system-ui,sans-serif;background:#121212;height:100vh;pa
 .dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
 .main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
 .main-content{flex:1;overflow-y:auto;padding:18px 22px 24px;height:0;min-height:0;}
+
+/* ── 3b. Fil d'Ariane (« crumbs ») — style explorateur ──────────────
+   Affiché au-dessus de la barre d'onglets. Chaque segment est cliquable
+   (sauf le dernier, « current ») et ramène à son niveau de hiérarchie. */
+.crumbs{padding:10px 22px 0;font-size:11px;color:var(--color-text-tertiary);
+  display:flex;flex-wrap:wrap;align-items:center;gap:3px;min-height:14px}
+.crumb{cursor:pointer;color:var(--color-text-tertiary);padding:3px 7px;
+  border-radius:var(--border-radius-md);transition:color .15s,background .15s;
+  white-space:nowrap}
+.crumb:hover{color:var(--color-text-info);background:var(--color-background-info)}
+.crumb.current{color:var(--color-text-primary);font-weight:500;cursor:default}
+.crumb.current:hover{color:var(--color-text-primary);background:transparent}
+.crumb-sep{color:var(--color-text-tertiary);opacity:.45;font-size:11px;padding:0 1px}
 
 /* ── 4. Tabs — barre d'onglets principale ────────────────────────── */
 .tabs{display:flex;gap:2px;border-bottom:0.5px solid var(--color-border-tertiary);padding:10px 22px 0;flex-shrink:0;}
@@ -480,6 +497,44 @@ body{font-family:'Inter',system-ui,sans-serif;background:#121212;height:100vh;pa
   font-family:inherit;font-size:11.5px;font-weight:500;line-height:1.3;
   text-align:center;cursor:pointer;outline:none;transition:filter .15s}
 .sb-propose:hover{filter:brightness(1.3)}
+/* Toggle Révision / Édition — petit bouton en bas de sidebar, persistant. */
+.sb-mode{flex-shrink:0;margin:6px 8px 10px;padding:6px 8px;
+  background:transparent;border:0.5px solid var(--color-border-tertiary);
+  border-radius:var(--border-radius-md);color:var(--color-text-tertiary);
+  font-family:inherit;font-size:10px;font-weight:500;letter-spacing:.02em;
+  cursor:pointer;outline:none;text-align:center;transition:all .15s}
+.sb-mode:hover{color:var(--color-text-info);border-color:var(--color-border-info)}
+body.mode-edition .sb-mode{color:var(--color-text-info);
+  border-color:var(--color-border-info);background:var(--color-background-info)}
+/* En mode RÉVISION (défaut), on cache les badges et boutons de contribution
+   pour offrir un rendu épuré aux élèves. Tout est révélé en mode édition. */
+body:not(.mode-edition) .new-badge,
+body:not(.mode-edition) .modified-badge,
+body:not(.mode-edition) .pplus,
+body:not(.mode-edition) .pplus-catwrap,
+body:not(.mode-edition) .sb-propose{display:none!important}
+
+/* Onboarding 1re visite — overlay centré avec 4 conseils. */
+.onb-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:900;
+  display:none;align-items:center;justify-content:center;padding:20px}
+.onb-overlay.open{display:flex}
+.onb-card{max-width:480px;width:100%;background:var(--color-background-primary);
+  border:0.5px solid var(--color-border-secondary);
+  border-radius:var(--border-radius-lg);padding:24px 22px;color:var(--color-text-primary)}
+.onb-title{font-size:18px;font-weight:500;margin-bottom:6px}
+.onb-sub{font-size:12px;color:var(--color-text-secondary);margin-bottom:14px;line-height:1.5}
+.onb-tip{display:flex;gap:10px;align-items:flex-start;margin:10px 0;font-size:13px;
+  color:var(--color-text-secondary);line-height:1.55}
+.onb-tip-num{flex-shrink:0;width:22px;height:22px;border-radius:50%;
+  background:var(--color-background-info);color:var(--color-text-info);
+  display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;
+  border:0.5px solid var(--color-border-info)}
+.onb-actions{margin-top:18px;display:flex;justify-content:flex-end}
+.onb-ok{padding:8px 18px;background:var(--color-background-info);
+  border:0.5px solid var(--color-border-info);color:var(--color-text-info);
+  border-radius:var(--border-radius-md);font-family:inherit;font-size:12px;
+  font-weight:500;cursor:pointer;transition:filter .15s}
+.onb-ok:hover{filter:brightness(1.3)}
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.62);z-index:1000;
   display:none;align-items:center;justify-content:center;padding:20px}
 .modal-overlay.open{display:flex}
@@ -581,6 +636,45 @@ body{font-family:'Inter',system-ui,sans-serif;background:#121212;height:100vh;pa
 @media (hover:none){
   .pplus{width:24px;height:24px;font-size:15px}
 }
+
+/* ── Responsive — tiroir « burger » sur mobile (≤700px) ──────────────
+   La sidebar fixe à 155px était inadaptée au téléphone : elle devient un
+   tiroir off-screen révélé par un bouton burger (top-left, position
+   fixed) ; un voile assombri ferme le tiroir au clic.                  */
+.sb-burger{display:none;position:fixed;top:14px;left:14px;z-index:200;
+  width:40px;height:40px;align-items:center;justify-content:center;
+  background:var(--color-background-secondary);color:var(--color-text-primary);
+  border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);
+  font-size:18px;line-height:1;cursor:pointer;padding:0}
+.sb-burger:hover{background:var(--color-background-primary)}
+.sb-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);
+  z-index:150;opacity:0;transition:opacity .2s}
+body.sb-open .sb-backdrop{display:block;opacity:1}
+
+@media (max-width:700px){
+  body{padding:0;height:100dvh;height:100vh}
+  .wrap{height:100dvh;height:100vh;border:0;border-radius:0}
+  .sidebar{position:fixed;top:0;left:0;height:100%;width:80%;max-width:300px;
+    transform:translateX(-100%);transition:transform .25s ease;z-index:160;
+    box-shadow:2px 0 12px rgba(0,0,0,.4)}
+  body.sb-open .sidebar{transform:translateX(0)}
+  .main{padding-top:0}
+  .main-content{padding:12px 14px 28px}
+  .crumbs{padding:10px 14px 0 60px}          /* place pour le burger à gauche */
+  .tabs{padding:8px 14px 0 60px}             /* idem pour la barre d'onglets */
+  .tab{padding:9px 12px;font-size:12.5px}
+  .sb-burger{display:flex}
+  /* Cibles tactiles élargies : tap targets ≥40 px */
+  .pplus{width:28px;height:28px;font-size:15px}
+  .pplus-cat{padding:8px 14px;font-size:12px}
+  /* Onglets et fiches : un peu plus d'air vertical */
+  .notion-head{margin-top:8px}
+  .ag{grid-template-columns:1fr;gap:11px}   /* cartes auteur en colonne unique */
+  /* Modale de contribution : plein écran sur mobile */
+  .modal-panel{width:100%;max-width:100%;height:100%;max-height:100%;
+    border-radius:0;margin:0}
+  .modal-body{padding:14px}
+}
 .pplus-catwrap{display:flex;justify-content:flex-end;margin:3px 0 14px}
 .pplus-cat{padding:5px 11px;font-family:inherit;font-size:11px;font-weight:500;
   background:transparent;border:1px dashed var(--color-border-secondary);
@@ -613,9 +707,13 @@ body{font-family:'Inter',system-ui,sans-serif;background:#121212;height:100vh;pa
 </style>
 
 <div class="sr-only">Graphe de révision philosophie — 9 notions avec auteurs, exemples, axes développés et questions de dissertation</div>
+<!-- Tiroir responsive : bouton burger + voile (visibles uniquement ≤700px) -->
+<button class="sb-burger" id="sb-burger" aria-label="Ouvrir le menu" aria-controls="sb">☰</button>
+<div class="sb-backdrop" id="sb-backdrop" aria-hidden="true"></div>
 <div class="wrap">
 <div class="sidebar" id="sb"></div>
 <div class="main" id="main">
+  <div class="crumbs" id="crumbs"></div>
   <div class="tabs"></div>
   <div class="main-content"></div>
 </div>
@@ -629,6 +727,20 @@ body{font-family:'Inter',system-ui,sans-serif;background:#121212;height:100vh;pa
       <button class="modal-close" id="proposal-close" aria-label="Fermer">×</button>
     </div>
     <div class="modal-body" id="proposal-body"></div>
+  </div>
+</div>
+
+<!-- Onboarding : 4 conseils à la 1re visite. Affiché si localStorage
+     'philo-onboarded' est vide ; masqué après clic sur « C'est parti ». -->
+<div class="onb-overlay" id="onb-overlay" role="dialog" aria-modal="true" aria-label="Bienvenue">
+  <div class="onb-card">
+    <div class="onb-title">🏛️ Bienvenue dans Graphe Philosophie</div>
+    <div class="onb-sub">Outil de révision pour le bac de philo — quelques repères en 20 secondes :</div>
+    <div class="onb-tip"><div class="onb-tip-num">1</div><div>Trois grands modes en haut de la <b>sidebar</b> : <b>Notions</b>, <b>Auteurs</b>, <b>Concepts</b>.</div></div>
+    <div class="onb-tip"><div class="onb-tip-num">2</div><div>Les <b>termes colorés</b> sont cliquables partout — concepts, auteurs et notions sont reliés en un graphe.</div></div>
+    <div class="onb-tip"><div class="onb-tip-num">3</div><div>Le <b>fil d'Ariane</b> en haut te ramène à n'importe quel niveau en un clic.</div></div>
+    <div class="onb-tip"><div class="onb-tip-num">4</div><div>Sur téléphone, le bouton <b>☰</b> en haut à gauche ouvre la sidebar.</div></div>
+    <div class="onb-actions"><button class="onb-ok" onclick="dismissOnboarding()">C'est parti</button></div>
   </div>
 </div>
 
@@ -2279,6 +2391,18 @@ function renderSB(){
   }
   list.innerHTML='';
 
+  // ── Toggle Révision / Édition (bas de la sidebar, persistant) ──
+  // Créé une seule fois, conservé entre les rendus.
+  let modeBtn=sb.querySelector('.sb-mode');
+  if(!modeBtn){
+    modeBtn=document.createElement('button');
+    modeBtn.className='sb-mode';
+    modeBtn.title="Bascule entre le mode révision (élève, épuré) et le mode édition (badges + boutons de contribution visibles)";
+    modeBtn.onclick=togglePhiloMode;
+    sb.appendChild(modeBtn);
+  }
+  applyPhiloMode();   // met à jour le libellé selon l'état actuel
+
   if(sbMode==='notions'){
     KEYS.forEach(k=>{
       const el=document.createElement('div');
@@ -2525,6 +2649,7 @@ function planCardHTML(p){
    Contenu : titre, catégorie, définition, auteur(s) associé(s),
    tensions conceptuelles, notion-pills (liens vers les notions liées). */
 function renderConceptContent(){
+  renderCrumbs();
   const mainEl=document.getElementById('main');
   if(!mainEl.querySelector('.tabs')||!mainEl.querySelector('.main-content')){
     mainEl.innerHTML='<div class="tabs"></div><div class="main-content"></div>';
@@ -2622,6 +2747,68 @@ function renderConceptContent(){
                       la fiche concept, noms dans l'onglet Dialogues…).  */
 function tab(id){pushHistory();curTab=id;renderContent()}
 
+/* ── Fil d'Ariane — navigation hiérarchique cliquable ─────────────────
+   renderCrumbs() peuple #crumbs selon l'état (sbMode, cur, curTab,
+   curAuthor, curAuthorTab, curConcept, curConceptSubTab). Chaque segment
+   porte data-act / data-arg ; un écouteur unique délègue les clics.
+   Style « explorateur Windows » : on clique sur n'importe quel niveau
+   pour y revenir directement. Le dernier segment (en cours) est inerte. */
+function renderCrumbs(){
+  const el=document.getElementById('crumbs'); if(!el) return;
+  // Helper : un segment. cur=true → segment « courant » (non cliquable).
+  const seg=(label,act,arg,cur)=>cur
+    ? `<span class="crumb current">${label}</span>`
+    : `<span class="crumb" data-act="${act}" data-arg="${pEsc(arg||'')}">${label}</span>`;
+  const sep=`<span class="crumb-sep">›</span>`;
+  const segs=[];
+  if(sbMode==='notions'){
+    segs.push(seg('Notions','mode','notions',false));
+    const n=D[cur];
+    if(n){
+      // Clic sur la notion → onglet par défaut 'auteurs'.
+      const notionIsCurrent=(curTab==='auteurs');
+      segs.push(seg(n.l,'tab','auteurs',notionIsCurrent));
+      if(!notionIsCurrent){
+        const lbl={textes:'Textes',concepts:'Concepts',diss:'Dissertations',exemples:'Exemples'}[curTab]||curTab;
+        // Pour l'onglet concepts, un dernier niveau pour le sous-onglet.
+        if(curTab==='concepts'){
+          const subIsLiens=(curConceptSubTab==='liens');
+          segs.push(seg(lbl,'subtab','concepts',!subIsLiens));   // « Concepts » courant si sous-onglet 'concepts'
+          if(subIsLiens) segs.push(seg('Liens entre concepts','',null,true));
+        }else{
+          segs.push(seg(lbl,'',null,true));
+        }
+      }
+    }
+  }else if(sbMode==='auteurs'){
+    segs.push(seg('Auteurs','mode','auteurs',false));
+    if(curAuthor){
+      const isIdees=(curAuthorTab==='idees');
+      segs.push(seg(curAuthor,'authortab','idees',isIdees));
+      if(!isIdees){
+        const lbl={citations:'Citations',oeuvres:'Œuvres',dialogues:'Dialogues'}[curAuthorTab]||curAuthorTab;
+        segs.push(seg(lbl,'',null,true));
+      }
+    }
+  }else if(sbMode==='concepts'){
+    segs.push(seg('Concepts','mode','concepts',false));
+    if(curConcept){
+      const c=CONCEPTS.find(x=>x.id===curConcept);
+      if(c) segs.push(seg(c.term,'',null,true));
+    }
+  }
+  el.innerHTML=segs.join(sep);
+}
+/* goMode(mode) — bascule la sidebar vers un mode (notions/auteurs/concepts)
+   et re-rend la zone principale. Utilisé par les crumbs et la sb-tab. */
+function goMode(mode){
+  if(sbMode===mode){ renderSB(); return; }
+  sbMode=mode;
+  if(mode==='notions'){ renderSB(); renderContent(); }
+  else if(mode==='auteurs'){ if(!curAuthor) curAuthor=authorsSorted()[0]; curAuthorTab='idees'; renderSB(); renderAuthorContent(); }
+  else if(mode==='concepts'){ if(!curConcept&&CONCEPTS[0]) curConcept=CONCEPTS[0].id; renderSB(); renderConceptContent(); }
+}
+
 /* openAuthor(name) — ouvre la fiche d'un auteur depuis n'importe où :
    bascule la sidebar en mode 'auteurs' et rend la fiche. Ignore un nom
    absent de l'index AI. */
@@ -2652,6 +2839,7 @@ function ideaCitationsHTML(cites){
   return first+`<details class="aq-details"><summary>+ ${n} autre${n>1?'s':''} citation${n>1?'s':''}</summary>${rest}</details>`;
 }
 function renderAuthorContent(){
+  renderCrumbs();
   const mainEl=document.getElementById('main');
   if(!mainEl.querySelector('.tabs')||!mainEl.querySelector('.main-content')){
     mainEl.innerHTML='<div class="tabs"></div><div class="main-content"></div>';
@@ -2805,6 +2993,7 @@ function renderAuthorContent(){
    La définition (.def-box) est toujours affichée en haut, quelle que soit
    l'onglet actif.                                                         */
 function renderContent(){
+  renderCrumbs();
   const mainEl=document.getElementById('main');
   // Garantir la structure .tabs + .main-content
   if(!mainEl.querySelector('.tabs')||!mainEl.querySelector('.main-content')){
@@ -4050,11 +4239,87 @@ function closeProposal(){
   });
 })();
 
+/* ── Tiroir « burger » (mobile ≤700px) ─────────────────────────────
+   La sidebar est masquée par défaut en mobile et révélée en ajoutant
+   la classe `sb-open` sur <body>. Le voile (#sb-backdrop) la referme
+   au clic, idem touche Échap. Sélectionner un item de la sidebar
+   (.nb/.ab/.cb) referme aussi automatiquement le tiroir, pour que
+   l'élève voie immédiatement le contenu choisi.                       */
+function toggleSidebar(){document.body.classList.toggle('sb-open')}
+function closeSidebar(){document.body.classList.remove('sb-open')}
+
+/* ── Mode révision / édition (persisté en localStorage) ──────────────
+   Par défaut « révision » (élève) : badges new/modified, boutons de
+   contribution (+) et « 💡 Proposer du contenu » cachés via CSS pour
+   un rendu épuré. « Édition » : tout est révélé pour le mainteneur.
+   Bascule via le bouton .sb-mode en bas de la sidebar.                */
+function applyPhiloMode(){
+  const m=localStorage.getItem('philo-mode')||'revision';
+  document.body.classList.toggle('mode-edition', m==='edition');
+  const btn=document.querySelector('.sb-mode');
+  if(btn) btn.innerHTML = m==='edition'
+    ? '<span style="opacity:.9">✎</span> Mode édition'
+    : '<span style="opacity:.55">👁</span> Mode révision';
+}
+function togglePhiloMode(){
+  const cur=localStorage.getItem('philo-mode')||'revision';
+  localStorage.setItem('philo-mode', cur==='edition'?'revision':'edition');
+  applyPhiloMode();
+}
+
+/* ── Onboarding 1re visite (4 conseils) ────────────────────────────
+   Affiché une seule fois (drapeau localStorage 'philo-onboarded').
+   Le clic « C'est parti » le masque et marque le drapeau.            */
+function showOnboardingIfFirst(){
+  if(localStorage.getItem('philo-onboarded')) return;
+  const el=document.getElementById('onb-overlay');
+  if(el) el.classList.add('open');
+}
+function dismissOnboarding(){
+  localStorage.setItem('philo-onboarded','1');
+  const el=document.getElementById('onb-overlay');
+  if(el) el.classList.remove('open');
+}
+(function initSidebarDrawer(){
+  document.getElementById('sb-burger').addEventListener('click',toggleSidebar);
+  document.getElementById('sb-backdrop').addEventListener('click',closeSidebar);
+  // Délégation des clics sur le fil d'Ariane (un seul écouteur).
+  document.getElementById('crumbs').addEventListener('click',e=>{
+    const c=e.target.closest('.crumb');
+    if(!c||c.classList.contains('current')) return;
+    const act=c.dataset.act, arg=c.dataset.arg||'';
+    pushHistory();
+    if(act==='mode') goMode(arg);
+    else if(act==='tab'){ curTab=arg; renderContent(); }
+    else if(act==='authortab'){ curAuthorTab=arg; renderAuthorContent(); }
+    else if(act==='subtab'){ curConceptSubTab=arg; renderContent(); }
+  });
+  // Délégation : sélection d'une notion/auteur/concept → ferme le tiroir
+  // (uniquement en mode mobile — on ne change rien sur desktop).
+  document.getElementById('sb').addEventListener('click',e=>{
+    if(window.innerWidth>700) return;
+    if(e.target.closest && e.target.closest('.nb,.ab,.cb')) closeSidebar();
+  });
+  document.addEventListener('keydown',e=>{
+    if(e.key==='Escape'&&document.body.classList.contains('sb-open')) closeSidebar();
+  });
+})();
+
 /* ── I. INITIALISATION ───────────────────────────────────────────────
    Appel initial au chargement de la page :
    renderSB()      → construit la sidebar avec la première notion active
    renderContent() → affiche le contenu de cette première notion        */
 renderSB();renderContent();
+showOnboardingIfFirst();
+
+/* ── PWA — enregistrement du service worker ─────────────────────────
+   Une fois le service worker enregistré, le site fonctionne hors-ligne
+   (cache d'abord). Aucune erreur si le navigateur ne supporte pas. */
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
+  });
+}
 </script>
 
 
