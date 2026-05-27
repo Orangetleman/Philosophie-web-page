@@ -641,11 +641,13 @@ body:not(.mode-edition) .sb-propose{display:none!important}
    La sidebar fixe à 155px était inadaptée au téléphone : elle devient un
    tiroir off-screen révélé par un bouton burger (top-left, position
    fixed) ; un voile assombri ferme le tiroir au clic.                  */
-.sb-burger{display:none;position:fixed;top:14px;left:14px;z-index:200;
-  width:40px;height:40px;align-items:center;justify-content:center;
+/* Bande d'en-tête : burger (mobile) + crumbs sur la même ligne, alignés. */
+.topbar{display:flex;align-items:flex-start;gap:6px}
+.sb-burger{display:none;width:32px;height:32px;flex-shrink:0;margin:6px 0 0 12px;
+  align-items:center;justify-content:center;
   background:var(--color-background-secondary);color:var(--color-text-primary);
   border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);
-  font-size:18px;line-height:1;cursor:pointer;padding:0}
+  font-size:15px;line-height:1;cursor:pointer;padding:0;font-family:inherit}
 .sb-burger:hover{background:var(--color-background-primary)}
 .sb-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);
   z-index:150;opacity:0;transition:opacity .2s}
@@ -660,9 +662,14 @@ body.sb-open .sb-backdrop{display:block;opacity:1}
   body.sb-open .sidebar{transform:translateX(0)}
   .main{padding-top:0}
   .main-content{padding:12px 14px 28px}
-  .crumbs{padding:10px 14px 0 60px}          /* place pour le burger à gauche */
-  .tabs{padding:8px 14px 0 60px}             /* idem pour la barre d'onglets */
-  .tab{padding:9px 12px;font-size:12.5px}
+  /* Burger inline dans .topbar : plus besoin de padding-left pour le contourner. */
+  .crumbs{padding:9px 14px 0 4px;flex-wrap:wrap}
+  /* Onglets : SCROLL HORIZONTAL au lieu de wrap (sinon certains débordent
+     ou se coupent — accès à tous garanti par le scroll latéral). */
+  .tabs{padding:6px 14px 0;overflow-x:auto;overflow-y:hidden;
+    flex-wrap:nowrap;scrollbar-width:none;-ms-overflow-style:none}
+  .tabs::-webkit-scrollbar{display:none}
+  .tab{padding:8px 11px;font-size:12px;white-space:nowrap;flex-shrink:0}
   .sb-burger{display:flex}
   /* Cibles tactiles élargies : tap targets ≥40 px */
   .pplus{width:28px;height:28px;font-size:15px}
@@ -707,13 +714,16 @@ body.sb-open .sb-backdrop{display:block;opacity:1}
 </style>
 
 <div class="sr-only">Graphe de révision philosophie — 9 notions avec auteurs, exemples, axes développés et questions de dissertation</div>
-<!-- Tiroir responsive : bouton burger + voile (visibles uniquement ≤700px) -->
-<button class="sb-burger" id="sb-burger" aria-label="Ouvrir le menu" aria-controls="sb">☰</button>
+<!-- Tiroir responsive : voile (visible uniquement ≤700px ; burger inline ci-dessous) -->
 <div class="sb-backdrop" id="sb-backdrop" aria-hidden="true"></div>
 <div class="wrap">
 <div class="sidebar" id="sb"></div>
 <div class="main" id="main">
-  <div class="crumbs" id="crumbs"></div>
+  <!-- Bande d'en-tête : burger (mobile uniquement) + fil d'Ariane, alignés. -->
+  <div class="topbar">
+    <button class="sb-burger" id="sb-burger" aria-label="Ouvrir le menu" aria-controls="sb">☰</button>
+    <div class="crumbs" id="crumbs"></div>
+  </div>
   <div class="tabs"></div>
   <div class="main-content"></div>
 </div>
