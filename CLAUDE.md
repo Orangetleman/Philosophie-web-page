@@ -203,6 +203,47 @@ la boîte n'a pas de `categorie` (déduite via `cibleCat`) et la cible `auteur`
 a ses champs d'idée à plat (v1) ou dans `ideas[]` sans `notion`/`citations`
 (v2). Tenir compte de ces différences dans tout code qui lit une proposition.
 
+## Interface & ergonomie (déjà en place)
+
+- **Responsive ≤ 700 px** : la sidebar devient un **tiroir** ouvert par un
+  bouton burger inline dans `.topbar` (voile `.sb-backdrop`, fermeture au clic
+  / Échap / sélection d'un item) ; onglets de notion **scrollables
+  horizontalement**.
+- **Fil d'Ariane** cliquable (`renderCrumbs()`, bloc `#crumbs` dans `.topbar`)
+  façon explorateur : chaque segment ramène à son niveau ; `goMode(mode)`
+  bascule entre les 3 modes de sidebar.
+- **Mode révision / édition** (localStorage `philo-mode`) : par défaut
+  *révision* (rendu épuré — badges `new`/`modified`, boutons `+` et
+  `.sb-propose` cachés via `body:not(.mode-edition)`) ; *édition* révèle tout.
+  Toggle `.sb-mode` en bas de sidebar.
+- **PWA** : `manifest.json` + `sw.js` (cache-first, hors-ligne) + `icon.svg`,
+  enregistrés depuis `index.html`. Installable.
+- **Onboarding** 1ʳᵉ visite (overlay `.onb-overlay`, drapeau localStorage
+  `philo-onboarded`).
+
+## Mode quiz (révision active) — À IMPLÉMENTER
+
+Outil de révision type Quizlet/Anki, **100 % frontend** (état en
+`localStorage`). Bouton d'entrée **« 🎯 Réviser » (thème bleu)** dans la
+sidebar, au-dessus de `.sb-propose`, toujours visible (en mode révision il est
+seul ; en mode édition « Réviser » puis « Proposer du contenu »). Ouvre un
+**overlay plein écran** distinct du rendu notion/auteur/concept.
+
+- **Cartes** — `buildQuizCards()` dérive tout de `CONCEPTS`/`D`/`AI` :
+  C1 concept→définition · C2 définition→concept · C3 citation↔auteur+œuvre
+  (2 sens) · C4 notion→auteurs majeurs et leur idée.
+- **Moteur Leitner 5 boîtes, DOUBLE HORIZON** (chacun garde sa progression) :
+  `sprint` (~2 sem.) intervalles `[0,1,2,4,7]` j ; `long` (~2 mois)
+  `[0,2,5,14,30]` j. localStorage `philo-quiz` =
+  `{horizon, byHorizon:{sprint:{cardId:{box,lastSeen,seen,correct}}, long:{…}}, daily:{…}}`.
+  « Maîtrisé » = boîte ≥ 4.
+- **Vues** : dashboard (% maîtrise, sélecteur d'horizon, session du jour,
+  filtres notion/type/ratés, streak + objectif, réinitialiser) → session
+  (carte → révéler → su/pas su, X/N) → fin (score + refaire les ratés).
+- **v2** : flip CSS 3D, **QCM** (distracteurs auto) pour C2/C3, stats par
+  notion, mode *Match* optionnel. **v3** : streak, objectif quotidien, badges.
+- Réglages : afficher *Anki 4 boutons* et *Simple binaire* **grisés (« bientôt »)**.
+
 ## Pièges connus
 
 - Les chaînes JS sont en **guillemets doubles** ; les apostrophes françaises
