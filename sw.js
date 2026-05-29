@@ -5,8 +5,8 @@
 // et stockée pour la prochaine fois. Permet l'usage 100 % hors-ligne.
 // Pour invalider le cache après une mise à jour, incrémenter la version.
 
-const CACHE = 'philo-v1';
-const PRECACHE = ['./', './index.html', './manifest.json', './icon.svg'];
+const CACHE = 'philo-v2';
+const PRECACHE = ['./', './index.html', './data.js', './manifest.json', './icon.svg'];
 
 // Installation : on précache les ressources critiques.
 self.addEventListener('install', e => {

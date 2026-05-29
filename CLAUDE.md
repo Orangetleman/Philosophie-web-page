@@ -1,20 +1,31 @@
 # CLAUDE.md — Consignes du projet
 
-Outil de révision **Philosophie Terminale** : application mono-fichier `index.html`
-(HTML + CSS + JS), dark mode, sans dépendance ni build.
+Outil de révision **Philosophie Terminale** : `index.html` (HTML + CSS + JS),
+dark mode, sans dépendance ni build. Les **données** vivent dans `data.js`,
+chargé en `<script src="data.js">` **avant** le `<script>` principal.
 
 ## Architecture de `index.html`
 
 1. `<head>` — métadonnées, police Google Fonts (Inter)
 2. `<style>` — tout le CSS
 3. `<body>` HTML — squelette : sidebar (`#sb`) + zone principale (`#main`)
-4. `<script>` — toute la logique JS, les données et le rendu
+4. `<script src="data.js">` — les données du site (voir ci-dessous)
+5. `<script>` — toute la logique JS et le rendu (consomme les données globales)
 
-### Données (dans le `<script>`)
+### Données (dans `data.js`, globales)
 - `const D` — les notions du programme (conscience, nature, science…)
+- `const KEYS` — `Object.keys(D)` (ordre des notions)
 - `const AM` — métadonnées des auteurs (bio, courant, période, thèmes, dialogues)
 - `const CONCEPTS` — glossaire des concepts clés
-- `const CC` — couleurs par courant philosophique
+- `const CC` — couleurs par courant philosophique (resté dans `index.html`)
+
+Ces `const` sont **globales** (script classique, pas de module) : `index.html`
+les utilise directement (normalizeD/buildAI/rendu). **Modifier les notions,
+auteurs et concepts dans `data.js`.** Après modif de `data.js` OU du `<script>`,
+relancer la vérif syntaxe sur les **deux** (concaténés). Toute nouvelle
+ressource statique (comme `data.js`) doit être ajoutée au `PRECACHE` de `sw.js`
+et la version du cache (`philo-vN`) incrémentée, sinon le hors-ligne sert une
+version périmée.
 
 ## Règles de modification (IMPÉRATIVES)
 
@@ -243,6 +254,121 @@ seul ; en mode édition « Réviser » puis « Proposer du contenu »). Ouvre un
 - **v2** : flip CSS 3D, **QCM** (distracteurs auto) pour C2/C3, stats par
   notion, mode *Match* optionnel. **v3** : streak, objectif quotidien, badges.
 - Réglages : afficher *Anki 4 boutons* et *Simple binaire* **grisés (« bientôt »)**.
+
+## Mode quiz (révision active — section JS « K. »)
+
+Overlay plein écran de révision par cartes à **répétition espacée** (Leitner),
+ouvert par le bouton **`.sb-quiz` (« 🎯 Réviser », thème bleu)** placé au-dessus
+de `.sb-propose` dans `renderSB` (toujours visible, révision ET édition).
+Overlay `#quiz-overlay` (z-index **850**, sous la modale=1000) ; contenu injecté
+dans `#quiz-body` par `renderQuiz()`. Aucune donnée n'est redite : tout est
+**dérivé** de `CONCEPTS` / `D` / `AI`.
+
+**Variables CSS bleues** dédiées : `--color-background-quiz`,
+`--color-border-quiz`, `--color-text-quiz`, `--color-accent-quiz`.
+
+### Cartes — `buildQuizCards()` → `QUIZ_CARDS` (index `QUIZ_BY_ID`)
+Chaque carte = `{id stable, type, notion?, recto, verso, qLabel, meta}`. 5 types :
+- `concept-def` (C1) terme→déf · `def-concept` (C2) déf→terme (bon support QCM) ;
+- `cite-author` / `author-cite` (C3) citation↔auteur, **les deux sens**, depuis
+  `AI[name].entries[k].ideas[].citations[]` ;
+- `notion-authors` (C4) notion→auteurs majeurs + thèse (auto-évaluation).
+`stripHtml()` nettoie les `def`/`i` (retire balises et `<details>`). **L'`id`
+doit rester stable** entre visites (sert de clé de progression).
+
+### Moteur Leitner — double horizon
+`QUIZ_INTERVALS = {sprint:[0,1,2,4,7], long:[0,2,5,14,30]}` (jours, boîtes 1→5).
+Les 2 horizons gardent leur progression séparée (basculer ne perd rien).
+« Maîtrisé » = boîte ≥ 4. **Vocabulaire UI** : côté interface on dit « **palier
+de mémorisation** » (1→5) et « cartes **mémorisées** » — *jamais* « boîte »
+(jargon Leitner) ni « niveau » (réservé à la gamification ⭐ XP, pour éviter la
+confusion). En interne, le code garde `box`/« boîte ». Fonctions : `isDue(card,horizon)`, `onAnswer(id,ok)`
+(ok→box+1 max 5 ; échec→box=1 ; maj lastSeen/seen/correct + compteur quotidien +
+**XP/niveau** ; **renvoie** `{gain, promoted, newlyMastered, box, leveledUp}`
+pour alimenter le récap de fin), `pickSession(n=15)` (dues triées par boîte
+ascendante + nouvelles jamais vues, léger mélange), `cardsForFilter()`,
+`quizStats()`.
+
+### localStorage `philo-quiz`
+```js
+{ horizon:'sprint',
+  byHorizon:{ sprint:{cardId:{box,lastSeen,seen,correct}}, long:{…} },
+  daily:{date,count,goal,streak,lastDate},
+  gamif:{xp,level},                        // gamification (transversal aux horizons)
+  prefs:{dontWarnNewSession},              // « ne plus afficher » l'avertissement
+  active:{ids:[…],idx,mode,horizon,results}|null }  // session reprenable (sérialisée)
+```
+Lu/garanti par `loadQuizState()` ; écrit par `saveQuizState()`. **Persistance** :
+tout est dans `localStorage`, donc la progression survit à un refresh, à la
+fermeture de l'onglet et à un redémarrage de l'appareil (rien n'est en
+`sessionStorage`). Seul un effacement manuel du stockage du site la supprime.
+
+### Reprise de session (`active`)
+`persistActive()` sérialise/efface la session en cours dans `philo-quiz.active`
+(ids + position + mode + horizon + récap) à chaque `advanceQuiz()` et au
+démarrage (`beginSession`). `quizSessionActive()` = il reste des cartes.
+`openQuiz()` **reconstruit** la session depuis `active` → la reprise survit même
+à un refresh. Fin de session ⇒ `active=null`. Contrôles : `resumeQuizSession()`,
+`requestNewSession()` (affiche l'avertissement si une session est active **et**
+`prefs.dontWarnNewSession` faux), `renderNewSessionWarning()` (panneau +
+case `#quiz-dontwarn`), `confirmNewSession()` / `cancelNewSession()`,
+`beginSession()` (cœur du démarrage), `quitSession()` (retour dashboard sans
+perdre la session).
+
+### Vues (état runtime `quizState`)
+`dashboard` (**niveau ⭐ + barre XP**, maîtrise %, sélecteur horizon, format
+**Cartes/QCM**, **filtres MULTI-SÉLECTION** Mes ratés/notions/types + « tout
+effacer », **Reprendre** / **Nouvelle session** (avec avertissement),
+**objectif 10/20/50 + barre du jour**, streak, **maîtrise par notion** +
+**badges** en `<details>`, **encadrés d'aide repliables** `.quiz-help` (« Comment
+fonctionne la révision ? » = paliers de mémorisation + répétition espacée ;
+« Ma progression est-elle sauvegardée ? » = persistance/limites), **deux
+réinitialisations** : `resetQuizHorizon()` (cartes du rythme courant seulement,
+niveau/XP conservés) et `resetAllQuiz()` (TOUT : 2 rythmes + niveau + XP +
+série + objectif, efface la clé localStorage)) → `session` → `end` (**récap gamifié** :
+score, XP gagnés, cartes en progrès, nouvelles maîtrisées, montée de niveau,
+barres niveau + jour, « Refaire les ratés » `redoWrong()` + Retour).
+`openQuiz()` / `closeQuiz()` (Échap ferme). Défauts : `QUIZ_SESSION_N=15`,
+`QUIZ_DEFAULT_GOAL=20`. **Filtres** (runtime) : `quizState.notionFilters` /
+`typeFilters` (deux `Set` ; OU dans une catégorie, ET entre catégories) +
+`quizState.wrongOnly` (drapeau) ; helpers `toggleNotionFilter`/`toggleTypeFilter`/
+`toggleQuizWrong`/`clearQuizFilters`/`quizFiltersEmpty`. `quizState.mode` ∈
+`cards|qcm` ; `quizState.qcmData`/`qcmAnswered`/`qcmChosen` pour la carte QCM ;
+`quizState.confirmNew` (panneau d'avertissement). `quizState.results` cumule
+`{ok,ko,wrongIds,xp,promoted,mastered,leveledUp}`.
+
+### v2 — fait
+- **Flip 3D** (CSS `rotateY`) : `renderFlipBody()` empile 2 faces dans une même
+  cellule de grille (hauteur = face la plus grande) ; `revealQuiz()` ajoute
+  `.flipped` sur l'élément **existant** (pas de re-rendu) pour animer.
+  `flipToQuestion()` **retire** `.flipped` pour **revenir lire la question**
+  après avoir vu la réponse (autant de fois qu'on veut). Les boutons ❌/✅
+  sont placés **sous** la carte (`.quiz-answer-row`, masquée tant que la réponse
+  n'est pas révélée) et **restent visibles** quand on retourne la carte.
+- **QCM** (toggle Cartes/QCM, `setQuizMode`) : appliqué aux types `def-concept`
+  et `cite-author` ; les autres restent en flip. `prepareCard()` génère 4 choix
+  une fois via `buildQCMChoices(card)` (3 distracteurs même `cat`/notion, dédoublonnés,
+  mélangés). `qcmAnswer(ix)` → feedback vert/rouge → `advanceQuiz()`. `recordResult`
+  factorise l'enregistrement Leitner pour les 2 modes.
+- **Barres de maîtrise par notion** : `notionMastery()` (% boîte≥4 par notion).
+- (Option non faite) mode **Match**.
+
+### v3 — fait
+- **Objectif quotidien réglable** 10/20/50 (`setQuizGoal`, persisté dans
+  `daily.goal`) + **barre de progression du jour**. **Streak** déjà géré par
+  `onAnswer` (`daily.streak`).
+- **Badges** : `quizBadges()` — 1 par notion, acquis si toutes ses cartes en
+  boîte 5 (horizon courant).
+- **Gamification XP/niveau** (`gamif:{xp,level}`, transversal aux horizons) :
+  `onAnswer` attribue 10 XP/bonne réponse (1 sinon) + bonus (+5 promotion de
+  boîte, +25 première maîtrise boîte≥4, +25 boîte 5). `quizLevel(xp)` =
+  `floor(xp/100)+1`, `quizXpInLevel(xp)` = `xp%100`. Affichés sur le dashboard
+  (badge ⭐ + barre) et dans le récap de fin (XP gagnés, cartes en progrès,
+  nouvelles maîtrisées, « Niveau N atteint ! » si montée).
+- **Filtres multi-sélection** : `notionFilters`/`typeFilters` (Sets) + `wrongOnly`,
+  OU intra-catégorie / ET inter-catégories (`cardsForFilter`).
+- **Reprise de session** : `active` persisté + avertissement « nouvelle session »
+  avec case « ne plus afficher » (cf. § Reprise de session).
 
 ## Pièges connus
 
