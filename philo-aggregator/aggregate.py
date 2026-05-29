@@ -42,6 +42,60 @@ def cmd_ingest(args):
     ingest.run(args.dir)
 
 
+def cmd_pull(args):
+    """
+    Récupère les propositions empilées dans la boîte aux lettres en ligne,
+    les ingère dans la base locale, puis confirme leur réception (`ack`)
+    pour que la boîte ne les renvoie pas au prochain pull.
+
+    Déroulé :
+      1. GET /api/pull (secret) → liste d'items {id, body, …}.
+      2. Pour chaque item : ingest_text(body) → insertion en base, ou
+         sauvegarde en quarantaine si le corps est mal formé (rare : la
+         boîte exige déjà les marqueurs avant d'accepter un dépôt).
+      3. POST /api/ack avec TOUS les ids récupérés. On confirme même les
+         items mis en quarantaine : ils sont déjà sauvegardés sur le
+         disque, inutile de les re-télécharger à chaque fois.
+
+    `pipeline` (et, à travers lui, `mailbox_client`) n'est importé qu'ici
+    (import local) : `pull` est la seule commande à parler au réseau, on
+    évite donc de charger ces modules pour les commandes hors-ligne.
+    """
+    import pipeline
+
+    s = pipeline.pull_and_ingest(limit=args.limit)
+    if s["items"] == 0:
+        print("(boîte vide : rien à récupérer)")
+        return
+
+    # Détail par item (même rendu OK/KO que la commande `ingest`).
+    for d in s["details"]:
+        box_id, kind = d[0], d[1]
+        if kind == "ok":
+            n_boxes, n_dupes = d[2], d[3]
+            extra = (f" ({n_dupes} doublon(s) probable(s))" if n_dupes else "")
+            print(f"  OK   pull#{box_id} -> {n_boxes} boîte(s){extra}")
+        else:
+            print(f"  KO   pull#{box_id} -> quarantaine : {d[2]}")
+
+    print()
+    print(f"Récupération terminée : {s['ok']} OK, {s['quarantine']} en quarantaine.")
+    print(f"Boîtes ajoutées : {s['boxes']} (dont {s['dupes']} doublon(s) probable(s)).")
+    print(f"Confirmées auprès de la boîte (ack) : {s['acked']}.")
+
+
+def cmd_review(args):
+    """
+    Lance la pré-vérification IA (Gemini) des boîtes en attente.
+
+    `review` est importé localement : il ne sert qu'ici et tire la
+    dépendance google-generativeai, qu'on ne veut pas charger pour les
+    commandes hors-ligne.
+    """
+    import review
+    review.run(limit=args.limit, redo=args.redo, status=args.status)
+
+
 def cmd_list(args):
     # `--status all` → pas de filtre (None).
     status = None if args.status == "all" else args.status
@@ -164,6 +218,16 @@ def cmd_stats(args):
     view.cmd_stats()
 
 
+def cmd_dashboard(args):
+    """
+    Démarre le tableau de bord local (Flask) pour trier/valider les
+    propositions dans le navigateur. Import local : Flask n'est tiré que
+    si l'on lance vraiment le dashboard.
+    """
+    import dashboard
+    dashboard.run(port=args.port)
+
+
 # ────────── Construction du parseur CLI ──────────
 
 def build_parser():
@@ -179,6 +243,25 @@ def build_parser():
     p.add_argument("--dir", type=pathlib.Path, default=None,
                    help="Dossier d'entrée alternatif (défaut : ./inbox).")
     p.set_defaults(func=cmd_ingest)
+
+    # ── pull ──
+    p = sub.add_parser("pull",
+                       help="Récupérer les propositions de la boîte en ligne.")
+    p.add_argument("--limit", type=int, default=200,
+                   help="Nombre maxi à récupérer en une fois (défaut : 200).")
+    p.set_defaults(func=cmd_pull)
+
+    # ── review ──
+    p = sub.add_parser("review",
+                       help="Pré-vérifier les boîtes en attente avec Gemini.")
+    p.add_argument("--limit", type=int, default=None,
+                   help="Nombre maxi de boîtes à relire (ménage le quota).")
+    p.add_argument("--redo", action="store_true",
+                   help="Re-relire même les boîtes ayant déjà un verdict IA.")
+    p.add_argument("--status", default="en_attente",
+                   choices=list(db.STATUSES),
+                   help="Statut des boîtes à relire (défaut : en_attente).")
+    p.set_defaults(func=cmd_review)
 
     # ── list ──
     p = sub.add_parser("list", help="Lister les boîtes (groupé par section).")
@@ -255,6 +338,13 @@ def build_parser():
     # ── stats ──
     p = sub.add_parser("stats", help="Compteurs globaux.")
     p.set_defaults(func=cmd_stats)
+
+    # ── dashboard ──
+    p = sub.add_parser("dashboard",
+                       help="Lancer le tableau de bord local (navigateur).")
+    p.add_argument("--port", type=int, default=None,
+                   help="Port d'écoute local (défaut : DASHBOARD_PORT ou 5002).")
+    p.set_defaults(func=cmd_dashboard)
 
     return parser
 

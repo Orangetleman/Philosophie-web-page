@@ -2,6 +2,13 @@
 proposals.db
 proposals.db-journal
 
+# Secrets du cerveau local (URL + secret de la boîte, clé Gemini).
+# Le .env n'est JAMAIS publié ; seul .env.example (le modèle) l'est.
+.env
+
+# Environnement virtuel Python local éventuel.
+.venv/
+
 # Exports — artefacts générés par `aggregate.py export`
 review_*.txt
 

@@ -348,6 +348,32 @@ def write_err_file(dst_txt, reason, src_name):
     return err_path
 
 
+def quarantine_text(raw_text, label, reason):
+    """
+    Sauvegarde en quarantaine une proposition reçue SANS fichier d'origine
+    (cas du `pull` depuis la boîte en ligne, qui travaille en mémoire).
+
+    On écrit deux fichiers dans QUARANTINE_DIR : un `.txt` avec le corps
+    brut reçu, et un `.err.txt` avec la raison — exactement comme pour un
+    fichier déposé manuellement. Ainsi rien n'est perdu : une proposition
+    mal formée reste consultable et diagnosticable sur le disque.
+
+    `label` sert à nommer le fichier (ex. « pull-12 »). On nettoie les
+    caractères gênants pour un nom de fichier.
+    """
+    QUARANTINE_DIR.mkdir(parents=True, exist_ok=True)
+    safe = "".join(c if c.isalnum() or c in "-_" else "_" for c in label)
+    dst = QUARANTINE_DIR / f"{safe}.txt"
+    # Réutilise move_unique-like : éviter d'écraser un homonyme.
+    i = 1
+    while dst.exists():
+        dst = QUARANTINE_DIR / f"{safe}_{i}.txt"
+        i += 1
+    dst.write_text(raw_text, encoding="utf-8")
+    write_err_file(dst, reason, label)
+    return dst
+
+
 # ────────── Point d'entrée du module ──────────
 
 def run(dir_arg=None):

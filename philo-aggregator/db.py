@@ -289,6 +289,24 @@ def get_box(conn, box_id):
     ).fetchone()
 
 
+def get_unreviewed_boxes(conn, status="en_attente", limit=None):
+    """
+    Renvoie les boîtes au statut donné que l'IA n'a PAS encore relues
+    (colonne `ai_verdict` à NULL). C'est la file d'attente de la commande
+    `review` : on ne re-soumet pas à Gemini ce qui a déjà un verdict
+    (sauf demande explicite de re-relecture, gérée côté review.py).
+
+    `limit` (optionnel) borne le nombre de boîtes renvoyées — utile pour
+    ménager le quota gratuit de l'API en traitant par petits lots.
+    """
+    q = BOX_SELECT + " WHERE b.status = ? AND b.ai_verdict IS NULL ORDER BY b.id"
+    params = [status]
+    if limit:
+        q += " LIMIT ?"
+        params.append(int(limit))
+    return list(conn.execute(q, params))
+
+
 def get_boxes_by_signature(conn, signature, exclude_id=None):
     """Toutes les boîtes ayant cette signature, sauf éventuellement une."""
     q = BOX_SELECT + " WHERE b.signature = ?"

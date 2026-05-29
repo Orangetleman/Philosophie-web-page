@@ -1,0 +1,14 @@
+# Dépendances du « cerveau » local.
+#
+# Le CŒUR de l'agrégateur (ingest / list / show / dupes / export / mark /
+# note / archive / purge / stats) reste en bibliothèque standard : aucune
+# de ces commandes n'a besoin des paquets ci-dessous.
+#
+# Ces dépendances ne servent qu'aux nouvelles commandes :
+#   - `review`    → google-generativeai (appel à Gemini)
+#   - `dashboard` → Flask (le tableau de bord local)
+#   - `pull`      → n'utilise QUE urllib (stdlib), rien à installer.
+#
+# Installation :  pip install -r requirements.txt
+Flask>=3.0
+google-generativeai>=0.7

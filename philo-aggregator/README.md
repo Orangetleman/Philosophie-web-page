@@ -15,10 +15,15 @@ généré par le formulaire de contribution du site). Ce programme :
 
 ## Prérequis
 
-- Python 3.7 ou plus récent
-- Aucune dépendance externe : tout est en bibliothèque standard
-  (`argparse`, `sqlite3`, `json`, `re`, `hashlib`, `difflib`,
-  `unicodedata`, `pathlib`).
+- Python 3.7 ou plus récent.
+- **Cœur de l'outil** (`ingest`, `list`, `show`, `dupes`, `export`,
+  `mark`, `note`, `archive`, `purge`, `stats`) : **aucune dépendance**,
+  tout est en bibliothèque standard (`argparse`, `sqlite3`, `json`, `re`,
+  `hashlib`, `difflib`, `unicodedata`, `pathlib`, `urllib`).
+- **Cerveau local** (`pull`, `review`, `dashboard`) : nécessite deux
+  paquets, installés via `pip install -r requirements.txt` (Flask pour le
+  dashboard, google-generativeai pour la relecture IA). `pull` seul
+  n'utilise qu'`urllib` (stdlib).
 
 ## Utilisation rapide
 
@@ -47,11 +52,47 @@ python aggregate.py archive --yes
 python aggregate.py purge --before 2026-12-01 --yes
 ```
 
+## Le cerveau local (en ligne → base → tri)
+
+Au lieu de déposer des `.txt` à la main, on peut récupérer les
+propositions directement depuis la **boîte aux lettres** en ligne (dossier
+`philo-mailbox`, déployée sur PythonAnywhere), les faire **pré-vérifier
+par Gemini**, puis les trier dans un **tableau de bord local**.
+
+### Configuration (une fois)
+
+```powershell
+# 1. Installer les dépendances du cerveau
+pip install -r requirements.txt
+
+# 2. Créer le fichier de secrets (jamais publié : ignoré par Git)
+copy .env.example .env
+#    …puis ouvrir .env et coller : le secret de la boîte (MAILBOX_SECRET)
+#    et la clé Gemini (GEMINI_API_KEY).
+```
+
+### Flux
+
+```powershell
+python aggregate.py pull        # récupère la boîte en ligne -> base + ack
+python aggregate.py review      # pré-vérifie avec Gemini (verdict par boîte)
+python aggregate.py dashboard   # ouvre le tri dans le navigateur (localhost)
+```
+
+Dans le dashboard : un clic **Valider** (statut `validee`), **Rejeter**,
+**Archiver**. Comme pour le reste de l'outil, **valider n'écrit rien dans
+`data.js`** : c'est juste un changement de statut en base. La recopie
+finale dans le site reste une étape manuelle séparée (via `export` puis
+intégration dans une session Claude).
+
 ## Commandes
 
 | Commande | Rôle |
 |---|---|
 | `ingest [--dir D]` | parse les `.txt` de `inbox/`, insère, déplace |
+| `pull [--limit N]` | récupère les propositions de la boîte en ligne, ingère, confirme (`ack`) |
+| `review [--limit N] [--redo] [--status S]` | pré-vérifie les boîtes avec Gemini (verdict IA) |
+| `dashboard [--port P]` | lance le tableau de bord local (navigateur) |
 | `list [--status S] [--cible C] [--notion N] [--no-preview]` | liste groupée (3 sections : Notions/Auteurs/Concepts) |
 | `show <id>` | détail complet d'une boîte |
 | `dupes [--threshold 0.80] [--status S]` | rapport doublons (signature + difflib + inclusion de noms) |
@@ -71,6 +112,14 @@ philo-aggregator/
   ingest.py           parsing + validation
   view.py             affichage terminal
   export.py           génération .txt
+  localenv.py         lecture du .env (cerveau local)
+  mailbox_client.py   client HTTP de la boîte en ligne (pull/ack)
+  pipeline.py         orchestration pull → ingestion
+  review.py           relecture IA (Gemini)
+  dashboard.py        tableau de bord local (Flask)
+  requirements.txt    dépendances du cerveau (Flask, google-generativeai)
+  .env.example        modèle de configuration (à copier en .env)
+  .env                secrets locaux (gitignored — jamais publié)
   inbox/              à déposer ici (gitignored)
   processed/          fichiers ingérés avec succès (gitignored)
   quarantine/         fichiers rejetés + .err (gitignored)
