@@ -232,29 +232,6 @@ a ses champs d'idée à plat (v1) ou dans `ideas[]` sans `notion`/`citations`
 - **Onboarding** 1ʳᵉ visite (overlay `.onb-overlay`, drapeau localStorage
   `philo-onboarded`).
 
-## Mode quiz (révision active) — À IMPLÉMENTER
-
-Outil de révision type Quizlet/Anki, **100 % frontend** (état en
-`localStorage`). Bouton d'entrée **« 🎯 Réviser » (thème bleu)** dans la
-sidebar, au-dessus de `.sb-propose`, toujours visible (en mode révision il est
-seul ; en mode édition « Réviser » puis « Proposer du contenu »). Ouvre un
-**overlay plein écran** distinct du rendu notion/auteur/concept.
-
-- **Cartes** — `buildQuizCards()` dérive tout de `CONCEPTS`/`D`/`AI` :
-  C1 concept→définition · C2 définition→concept · C3 citation↔auteur+œuvre
-  (2 sens) · C4 notion→auteurs majeurs et leur idée.
-- **Moteur Leitner 5 boîtes, DOUBLE HORIZON** (chacun garde sa progression) :
-  `sprint` (~2 sem.) intervalles `[0,1,2,4,7]` j ; `long` (~2 mois)
-  `[0,2,5,14,30]` j. localStorage `philo-quiz` =
-  `{horizon, byHorizon:{sprint:{cardId:{box,lastSeen,seen,correct}}, long:{…}}, daily:{…}}`.
-  « Maîtrisé » = boîte ≥ 4.
-- **Vues** : dashboard (% maîtrise, sélecteur d'horizon, session du jour,
-  filtres notion/type/ratés, streak + objectif, réinitialiser) → session
-  (carte → révéler → su/pas su, X/N) → fin (score + refaire les ratés).
-- **v2** : flip CSS 3D, **QCM** (distracteurs auto) pour C2/C3, stats par
-  notion, mode *Match* optionnel. **v3** : streak, objectif quotidien, badges.
-- Réglages : afficher *Anki 4 boutons* et *Simple binaire* **grisés (« bientôt »)**.
-
 ## Mode quiz (révision active — section JS « K. »)
 
 Overlay plein écran de révision par cartes à **répétition espacée** (Leitner),
