@@ -913,7 +913,11 @@ body.sb-open .sb-backdrop{display:block;opacity:1}
 <div class="sb-backdrop" id="sb-backdrop" aria-hidden="true"></div>
 <div class="wrap">
 <div class="sidebar" id="sb"></div>
-<div class="main" id="main">
+<!-- new: <main> (et non plus <div>) pour fournir le repère « main landmark »
+     attendu par les lecteurs d'écran et l'audit d'accessibilité. L'id et la
+     classe restent identiques : le CSS et le JS (getElementById('main'))
+     ne changent pas. -->
+<main class="main" id="main">
   <!-- Bande d'en-tête : burger (mobile uniquement) + fil d'Ariane, alignés. -->
   <div class="topbar">
     <button class="sb-burger" id="sb-burger" aria-label="Ouvrir le menu" aria-controls="sb">☰</button>
@@ -921,7 +925,7 @@ body.sb-open .sb-backdrop{display:block;opacity:1}
   </div>
   <div class="tabs"></div>
   <div class="main-content"></div>
-</div>
+</main>
 </div>
 
 <!-- Interface de contribution : modale (le bouton d'ouverture .sb-propose est créé dans la sidebar par renderSB) -->
@@ -1944,7 +1948,10 @@ function renderContent(){
       const allNew=a.ideas.length>0&&a.ideas.every(it=>it.new);
       const anyNewOrMod=a.ideas.some(it=>it.new||it.modified);
       const statusClass=allNew?' is-new':anyNewOrMod?' is-modified':'';
-      const nameColor=allNew?'var(--color-new)':anyNewOrMod?'var(--color-mod)':c;
+      // Couleur du nom : accent « nouveau »/« modifié » si la carte l'est,
+      // sinon la couleur de la notion ÉCLAIRCIE (inkOnDark) pour rester
+      // lisible sur fond sombre — la couleur brute échouait le contraste AA.
+      const nameColor=allNew?'var(--color-new)':anyNewOrMod?'var(--color-mod)':inkOnDark(c);
       const safeN=a.n.replace(/'/g,"\\'");
       // Rendu de chaque idée (œuvre / idée / citation + badges + bouton +)
       let ideasHTML='';
@@ -2193,6 +2200,41 @@ const LINK_REGEX=new RegExp(
      .map(t=>t.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|')
   +')(?![A-Za-zÀ-ÖØ-öø-ÿ0-9])','gi');
 
+/* new: inkOnDark(hex) — éclaircit une couleur de notion pour qu'elle reste
+   LISIBLE quand on l'emploie comme couleur de TEXTE sur le fond sombre des
+   cartes. Les couleurs de notion (ex. Conscience #534AB7, Langage #6B4FA0)
+   sont volontairement foncées ; utilisées telles quelles en texte sur un
+   fond ~#1e1e1e, leur contraste tombe sous le seuil WCAG 2 AA (4.5:1), ce
+   que signalait l'audit d'accessibilité. On mélange donc la couleur vers le
+   blanc, par petits paliers, JUSQU'À atteindre un contraste sûr — sans
+   changer sa teinte : l'identité colorée de la notion est préservée, juste
+   un peu plus claire. Renvoie une chaîne « #rrggbb ».
+   On vise le seuil contre la surface la PLUS CLAIRE où ces liens
+   apparaissent (#2a2a2a, ex. .cit-card) : le contraste est alors garanti
+   sur toutes les cartes plus sombres. La fonction est pure (sans effet de
+   bord) et mémoïse ses résultats, car linkTerms l'appelle très souvent. */
+const _inkCache={};
+function inkOnDark(hex){
+  if(_inkCache[hex]) return _inkCache[hex];
+  // Normaliser « #abc » ou « #aabbcc » en composantes 0..255.
+  let h=hex.replace('#','');
+  if(h.length===3) h=h.split('').map(x=>x+x).join('');
+  let r=parseInt(h.slice(0,2),16), g=parseInt(h.slice(2,4),16), b=parseInt(h.slice(4,6),16);
+  // Luminance relative WCAG (linéarisation sRGB d'un canal, puis pondération).
+  const lin=v=>{ v/=255; return v<=0.03928 ? v/12.92 : Math.pow((v+0.055)/1.055,2.4); };
+  const lum=(r,g,b)=>0.2126*lin(r)+0.7152*lin(g)+0.0722*lin(b);
+  const BG=lum(0x2a,0x2a,0x2a);                       // surface claire de référence
+  const ratio=l=>(Math.max(l,BG)+0.05)/(Math.min(l,BG)+0.05);
+  // Éclaircir vers le blanc (+8 % par palier) jusqu'au seuil 4.5:1, ou blanc.
+  for(let i=0; i<14 && ratio(lum(r,g,b))<4.5; i++){
+    r=Math.round(r+(255-r)*0.08);
+    g=Math.round(g+(255-g)*0.08);
+    b=Math.round(b+(255-b)*0.08);
+  }
+  const hx=v=>v.toString(16).padStart(2,'0');
+  return _inkCache[hex]='#'+hx(r)+hx(g)+hx(b);
+}
+
 /* linkTerms(html) — cf. section H ci-dessus : rend cliquables les notions,
    concepts et auteurs détectés dans un fragment HTML. */
 function linkTerms(html){
@@ -2206,8 +2248,11 @@ function linkTerms(html){
     return chunk.replace(LINK_REGEX,(m)=>{
       const e=LINK_MAP[m.toLowerCase()];
       if(!e) return m;
-      if(e.t==='n'){ // lien notion — coloré avec la couleur de la notion
-        const col=D[e.v].c;
+      if(e.t==='n'){ // lien notion — coloré avec la couleur (éclaircie) de la notion
+        // inkOnDark : version assez claire de la couleur de notion pour rester
+        // lisible en texte sur fond sombre (WCAG AA). On l'applique au texte ET
+        // au soulignement, qui restent ainsi de la même teinte que la notion.
+        const col=inkOnDark(D[e.v].c);
         return `<span class="nterm" style="color:${col};border-color:${col}" onclick="openNotion('${e.v}')" title="Voir la notion : ${D[e.v].l}">${m}</span>`;
       }
       if(e.t==='a'){ // lien auteur
