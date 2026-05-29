@@ -2242,8 +2242,13 @@ function linkTerms(html){
      addProposalBox / removeProposalBox — ajoute / retire une boîte (min. 1)
      setProposalField — change type/cible d'une boîte puis re-rend          */
 
-// Adresse de réception des propositions (étape 3 — envoi par mailto:)
+// Adresse de réception des propositions — repli si l'envoi en ligne échoue.
 const PROPOSAL_EMAIL='compte.secondaire.toi@gmail.com';
+
+// new: Boîte aux lettres en ligne (déployée sur PythonAnywhere). Le bouton
+// « Envoyer en ligne » y poste la proposition (route publique). En cas
+// d'échec (hors-ligne, service endormi…), on retombe sur le mailto:.
+const MAILBOX_URL='https://orangentleman.pythonanywhere.com';
 
 // Libellés des deux menus déroulants
 const PROPOSAL_TYPES=[
@@ -3001,6 +3006,50 @@ function sendProposal(){
     +'&body='+encodeURIComponent(generateProposalText());
 }
 
+/* new: Envoie la proposition à la boîte aux lettres en ligne (POST sur
+   MAILBOX_URL/api/proposals). Voie principale depuis l'étape 4.
+
+   On poste le texte BRUT (Content-Type text/plain) : c'est une « requête
+   simple » au sens CORS — pas de préflight OPTIONS — et la boîte sait
+   lire ce corps (elle y cherche les marqueurs du bloc JSON). En cas
+   d'échec (hors-ligne, service endormi, erreur serveur), on n'ouvre PAS
+   l'email automatiquement (cela quitterait la page) : on affiche un
+   message clair invitant à utiliser le bouton « Envoyer par email », qui
+   reste disponible juste à côté. La contribution n'est donc jamais perdue.
+
+   Les éléments #psend-btn et #psend-status sont rendus par renderProposal
+   (vue aperçu) ; on les met à jour pour refléter l'état (envoi/succès/échec). */
+function sendProposalOnline(){
+  const btn=document.getElementById('psend-btn');
+  const status=document.getElementById('psend-status');
+  const txt=generateProposalText();
+  const setStatus=function(msg,color){
+    if(status){ status.textContent=msg; status.style.color=color||''; }
+  };
+  if(btn){ btn.disabled=true; btn.textContent='Envoi…'; }
+  setStatus('Envoi en cours…','');
+  fetch(MAILBOX_URL+'/api/proposals',{
+    method:'POST',
+    headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body:txt
+  }).then(function(r){
+    // La boîte répond toujours du JSON ; on tolère une réponse non-JSON.
+    return r.json().catch(function(){return {};}).then(function(data){
+      if(r.ok && data.ok){
+        if(btn){ btn.textContent='✓ Envoyé'; }   // reste désactivé : évite le double envoi
+        setStatus('Merci ! Ta proposition a bien été reçue. 🎉','#2ecc71');
+      } else {
+        // Réponse reçue mais refus (format, débit…) : on remonte le motif.
+        throw new Error((data && data.error) || ('HTTP '+r.status));
+      }
+    });
+  }).catch(function(err){
+    if(btn){ btn.disabled=false; btn.textContent='Réessayer en ligne'; }
+    setStatus('Envoi en ligne impossible ('+err.message
+      +'). Utilise « Envoyer par email » ci-dessous, ou réessaie.','#e74c3c');
+  });
+}
+
 /* Reconstruit le corps de la modale : vue d'ÉDITION (boîtes + nom du
    contributeur + bouton Aperçu) ou vue d'APERÇU (texte généré). */
 function renderProposal(){
@@ -3010,11 +3059,15 @@ function renderProposal(){
   if(proposalView==='preview'){
     body.innerHTML='<div class="ppreview-head">Aperçu — ce texte sera transmis tel quel :</div>'
       +'<textarea class="ppreview" readonly>'+pEsc(generateProposalText())+'</textarea>'
-      +'<div class="phint" style="margin-top:8px">« Envoyer » ouvre votre application mail. Si rien ne s\'ouvre ou si le texte est tronqué, utilisez « Copier le texte » et collez-le dans un message.</div>'
+      +'<div class="phint" style="margin-top:8px">« Envoyer en ligne » transmet directement ta proposition. En cas d\'échec, utilise « Envoyer par email » (ouvre ton appli mail) ou « Copier le texte ».</div>'
+      // new: ligne de retour d'état de l'envoi en ligne (succès / erreur).
+      +'<div id="psend-status" class="phint" style="margin-top:8px;min-height:1.1em"></div>'
       +'<div class="pactions">'
       +'<button class="pbtn" onclick="showProposalEdit()">← Modifier</button>'
       +'<button class="pbtn" id="pcopy-btn" onclick="copyProposal()">Copier le texte</button>'
-      +'<button class="pbtn pbtn-primary" onclick="sendProposal()">Envoyer par email</button>'
+      +'<button class="pbtn" onclick="sendProposal()">Envoyer par email</button>'
+      // new: voie principale depuis l'étape 4 — POST vers la boîte en ligne.
+      +'<button class="pbtn pbtn-primary" id="psend-btn" onclick="sendProposalOnline()">Envoyer en ligne</button>'
       +'</div>';
     return;
   }
