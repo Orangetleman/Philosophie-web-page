@@ -32,8 +32,11 @@ from export import render_box
 
 # Modèle Gemini par défaut : « flash » est le plus rapide et largement
 # suffisant pour un avis de tri ; il est disponible en offre gratuite.
-# Surchargé par la variable GEMINI_MODEL dans .env si besoin.
-DEFAULT_MODEL = "gemini-1.5-flash"
+# On vise l'ALIAS « -latest » plutôt qu'une version datée (gemini-1.5-flash,
+# gemini-2.0-flash…) : Google retire régulièrement les versions datées
+# (erreur 404 « model is not found »), alors que l'alias suit toujours le
+# flash courant. Surchargé par la variable GEMINI_MODEL dans .env si besoin.
+DEFAULT_MODEL = "gemini-flash-latest"
 
 # Pause (secondes) entre deux appels, pour rester sous la limite de débit
 # du palier gratuit (quelques requêtes par minute). Surchargée par
@@ -75,7 +78,14 @@ def _configure_model():
     ImportError brut.
     """
     try:
-        import google.generativeai as genai
+        # Le paquet google.generativeai émet un FutureWarning bruyant à
+        # l'import (Google le marque « déprécié » au profit de google.genai).
+        # Il reste fonctionnel ; on masque juste l'avertissement le temps de
+        # l'import pour garder une sortie lisible.
+        import warnings
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", FutureWarning)
+            import google.generativeai as genai
     except ImportError:
         raise SystemExit(
             "Le paquet 'google-generativeai' n'est pas installé.\n"
