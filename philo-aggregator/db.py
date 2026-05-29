@@ -23,9 +23,15 @@ SCRIPT_DIR = pathlib.Path(__file__).resolve().parent
 DB_PATH = SCRIPT_DIR / "proposals.db"
 
 
-# Les quatre statuts possibles d'une boîte. Stockés en TEXT dans SQLite
+# Les cinq statuts possibles d'une boîte. Stockés en TEXT dans SQLite
 # (SQLite n'a pas de type ENUM ; on contrôle côté Python).
-STATUSES = ("en_attente", "integree", "rejetee", "archivee")
+#   en_attente : fraîchement ingérée, pas encore triée.
+#   validee    : retenue par le mainteneur dans le dashboard — prête à être
+#                recopiée plus tard dans data.js (étape manuelle, à part).
+#   integree   : effectivement intégrée à data.js (fin du parcours).
+#   rejetee    : écartée (hors-sujet, fausse, spam…).
+#   archivee   : mise de côté, candidate à la purge.
+STATUSES = ("en_attente", "validee", "integree", "rejetee", "archivee")
 
 
 # Catégories principales (niveau 1 du menu, schéma v3).
@@ -43,6 +49,14 @@ CIBLES = (
 
 # Les trois types de boîte.
 TYPES = ("ajout", "correction", "remarque")
+
+
+# Verdicts possibles de la pré-vérification par IA (Gemini), stockés dans
+# la colonne boxes.ai_verdict. None (NULL) = pas encore vérifiée par l'IA.
+#   valide  : l'IA n'a rien relevé de bloquant.
+#   douteux : à regarder de près (erreur factuelle possible, doublon, flou).
+#   rejet   : manifestement hors-sujet / faux / spam.
+AI_VERDICTS = ("valide", "douteux", "rejet")
 
 
 # Schéma SQL exécuté à chaque démarrage. Les `IF NOT EXISTS` rendent
@@ -72,7 +86,13 @@ CREATE TABLE IF NOT EXISTS boxes (
     signature           TEXT NOT NULL,
     status              TEXT NOT NULL DEFAULT 'en_attente',
     status_changed_at   TEXT,
-    note                TEXT
+    note                TEXT,
+    -- Pré-vérification IA. Ajoutées par migration sur les bases déjà
+    -- créées (voir _migrate_boxes) ; NULL tant que la boîte n'a pas été
+    -- vérifiée par l'IA.
+    ai_verdict          TEXT,
+    ai_review           TEXT,
+    ai_reviewed_at      TEXT
 );
 
 CREATE INDEX IF NOT EXISTS idx_boxes_status
@@ -109,10 +129,42 @@ def connect():
     return conn
 
 
+# Colonnes ajoutées après coup à la table `boxes` (pré-vérification IA).
+# On les liste ici pour pouvoir migrer les bases déjà créées : un
+# CREATE TABLE IF NOT EXISTS ne modifie pas une table existante, donc on
+# ajoute les colonnes manquantes à la main (voir _migrate_boxes).
+_BOXES_ADDED_COLUMNS = (
+    ("ai_verdict", "TEXT"),
+    ("ai_review", "TEXT"),
+    ("ai_reviewed_at", "TEXT"),
+)
+
+
+def _migrate_boxes(conn):
+    """
+    Ajoute à `boxes` les colonnes manquantes — idempotent.
+
+    SQLite ne connaît pas « ADD COLUMN IF NOT EXISTS » : on lit donc les
+    colonnes existantes via `PRAGMA table_info(boxes)` (qui renvoie une
+    ligne par colonne, avec son nom dans le champ `name`), et on n'ALTER
+    que ce qui manque. Sans valeur par défaut, les lignes déjà présentes
+    auront NULL sur ces colonnes — c'est exactement « pas encore vérifié
+    par l'IA ».
+    """
+    existing = {row["name"] for row in conn.execute("PRAGMA table_info(boxes)")}
+    for col, col_type in _BOXES_ADDED_COLUMNS:
+        if col not in existing:
+            conn.execute(f"ALTER TABLE boxes ADD COLUMN {col} {col_type}")
+
+
 def init_db():
-    """Crée les tables et index si la base n'existe pas encore."""
+    """
+    Crée les tables et index si besoin, puis applique les migrations de
+    colonnes (idempotent). Sûr à appeler à chaque démarrage.
+    """
     with connect() as conn:
         conn.executescript(SCHEMA)
+        _migrate_boxes(conn)   # ajoute les colonnes IA aux bases anciennes
 
 
 def now_iso():
@@ -196,7 +248,8 @@ BOX_SELECT = """
         b.id, b.submission_id, b.position, b.type, b.cible,
         b.notion, b.extra_notions, b.key_term, b.fields_json,
         b.signature, b.status, b.status_changed_at, b.note,
-        s.contributor, s.received_at, s.source_file, s.ingested_at
+        s.contributor, s.received_at, s.source_file, s.ingested_at,
+        b.ai_verdict, b.ai_review, b.ai_reviewed_at
     FROM boxes b
     JOIN submissions s ON b.submission_id = s.id
 """
@@ -297,6 +350,32 @@ def update_note(conn, box_id, note):
     cur = conn.execute(
         "UPDATE boxes SET note = ? WHERE id = ?",
         (note, box_id),
+    )
+    return cur.rowcount
+
+
+def set_ai_review(conn, box_id, verdict, review):
+    """
+    Enregistre le résultat de la pré-vérification IA d'une boîte : le
+    `verdict` (valide / douteux / rejet) et le texte d'explication
+    `review`. Met aussi à jour l'horodatage `ai_reviewed_at`.
+
+    `verdict` doit appartenir à AI_VERDICTS (ou None pour effacer la
+    vérification). On valide comme dans update_status : mieux vaut lever
+    une erreur ici que de stocker un verdict que le dashboard ne saurait
+    pas afficher. Renvoie le nombre de lignes modifiées (0 si l'id
+    n'existe pas).
+    """
+    if verdict is not None and verdict not in AI_VERDICTS:
+        raise ValueError(
+            f"Verdict IA inconnu : {verdict!r}. "
+            f"Attendu : {AI_VERDICTS} (ou None)."
+        )
+    review = (review or "").strip() or None
+    cur = conn.execute(
+        "UPDATE boxes SET ai_verdict = ?, ai_review = ?, ai_reviewed_at = ? "
+        "WHERE id = ?",
+        (verdict, review, now_iso(), box_id),
     )
     return cur.rowcount
 

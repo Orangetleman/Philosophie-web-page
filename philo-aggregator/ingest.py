@@ -219,57 +219,53 @@ def compute_signature(type_, cible, notion, key_term):
 
 # ────────── Traitement d'un fichier ──────────
 
-def process_file(path):
+def ingest_text(raw_text, source_file):
     """
-    Traite un fichier .txt. Renvoie un dico de résultat :
-      {'status': 'ok',        'submission_id': N, 'boxes_inserted': K,
-                              'dupes_detected': D}
+    Ingère une proposition déjà en mémoire (chaîne de caractères) au lieu
+    d'un fichier sur disque. C'est le cœur partagé de l'ingestion :
+    `process_file` lit un .txt puis appelle cette fonction ; l'API en
+    ligne (mailbox) et le `pull` local l'appelleront, eux, directement
+    avec le corps reçu — sans jamais écrire de fichier intermédiaire.
+
+    `source_file` : étiquette de provenance rangée dans la submission
+    (nom du .txt, « api », « pull »…), pour la traçabilité.
+
+    Renvoie un dico de résultat :
+      {'status': 'ok',         'submission_id': N, 'boxes_inserted': K,
+                               'dupes_detected': D}
       {'status': 'quarantine', 'reason': '...'}
-
-    En cas d'erreur de validation ou d'extraction, on laisse l'appelant
-    (run) décider du déplacement vers `quarantine/`. Ici on se contente
-    de signaler.
     """
-    # 1) Lire le fichier en UTF-8 (le site génère en UTF-8 ; il ne faut
-    #    surtout pas laisser Python choisir l'encodage par défaut qui,
-    #    sur Windows, peut être cp1252).
-    try:
-        raw_text = path.read_text(encoding="utf-8")
-    except UnicodeDecodeError as e:
-        return {"status": "quarantine",
-                "reason": f"Fichier non-UTF-8 : {e}"}
-
-    # 2) Extraire le bloc JSON.
+    # 1) Extraire le bloc JSON.
     try:
         raw_json = extract_json_block(raw_text)
     except ValueError as e:
         return {"status": "quarantine", "reason": str(e)}
 
-    # 3) Parser le JSON.
+    # 2) Parser le JSON.
     try:
         payload = json.loads(raw_json)
     except json.JSONDecodeError as e:
         return {"status": "quarantine",
                 "reason": f"JSON invalide : {e}"}
 
-    # 4) Valider le schéma.
+    # 3) Valider le schéma.
     try:
         validate_payload(payload)
     except ValueError as e:
         return {"status": "quarantine", "reason": str(e)}
 
-    # 5) Préparer les métadonnées de la soumission.
+    # 4) Préparer les métadonnées de la soumission.
     received_at = str(payload.get("date") or db.now_iso())
     contributor = str(payload.get("contributor") or "anonyme").strip() or "anonyme"
 
-    # 6) Insérer en base — submission + chaque boîte. On fait tout
+    # 5) Insérer en base — submission + chaque boîte. On fait tout
     #    dans un seul `with` pour que ce soit transactionnel : si une
     #    insertion plante au milieu, le `with` rollback automatiquement
     #    et la base reste cohérente (pas de submission orpheline).
     dupes_detected = 0
     with db.connect() as conn:
         submission_id = db.insert_submission(
-            conn, received_at, contributor, str(path.name),
+            conn, received_at, contributor, str(source_file),
             raw_text, raw_json,
         )
         for i, b in enumerate(payload["boxes"]):
@@ -297,6 +293,26 @@ def process_file(path):
         "boxes_inserted": len(payload["boxes"]),
         "dupes_detected": dupes_detected,
     }
+
+
+def process_file(path):
+    """
+    Traite un fichier .txt : lit son contenu en UTF-8, puis délègue tout
+    le reste à `ingest_text`. Renvoie le même dico de résultat.
+
+    La lecture du fichier reste ici car c'est la seule partie propre au
+    disque : l'encodage doit être forcé en UTF-8 — le site génère en
+    UTF-8 et il ne faut pas laisser Python retomber sur l'encodage par
+    défaut qui, sur Windows, peut être cp1252. En cas d'erreur, l'appelant
+    (`run`) déplacera le fichier en quarantaine ; ici on se contente de
+    signaler.
+    """
+    try:
+        raw_text = path.read_text(encoding="utf-8")
+    except UnicodeDecodeError as e:
+        return {"status": "quarantine",
+                "reason": f"Fichier non-UTF-8 : {e}"}
+    return ingest_text(raw_text, path.name)
 
 
 # ────────── Déplacement de fichiers ──────────

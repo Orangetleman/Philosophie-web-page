@@ -1,0 +1,13 @@
+# Base SQLite locale — propositions reçues, jamais commitées.
+mailbox.db
+mailbox.db-journal
+
+# Secrets / configuration locale (le secret de la boîte n'est JAMAIS sur Git).
+.env
+
+# Environnement virtuel Python local.
+.venv/
+
+# Artefacts Python.
+__pycache__/
+*.pyc

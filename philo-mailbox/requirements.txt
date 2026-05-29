@@ -1,0 +1,5 @@
+# Dépendances de la boîte aux lettres.
+# Seul Flask est requis : le CORS est géré à la main (un en-tête dans
+# app.py), inutile d'ajouter flask-cors. Tout le reste est dans la
+# bibliothèque standard de Python (sqlite3, etc.).
+Flask>=3.0
