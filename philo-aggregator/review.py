@@ -174,6 +174,11 @@ def run(limit=None, redo=False, status="en_attente"):
     with db.connect() as conn:
         if redo:
             rows = db.get_boxes(conn, status=status)
+            # Les retours sur le site ne sont pas du contenu philosophique :
+            # Gemini n'a rien à y vérifier. get_unreviewed_boxes les exclut
+            # déjà côté SQL ; pour le chemin --redo (get_boxes = tout), on
+            # les écarte ici afin que la consigne reste cohérente.
+            rows = [r for r in rows if r["cible"] not in db.SITE_CIBLES]
             if limit:
                 rows = rows[:int(limit)]
         else:

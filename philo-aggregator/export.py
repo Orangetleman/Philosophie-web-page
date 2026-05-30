@@ -104,6 +104,15 @@ FIELD_LABELS = {
     "reltype":    "Type de relation",
     "relcible":   "Concept / terme en relation",
     "reldesc":    "Description du lien",
+    # retours sur le site — bug
+    "bugou":       "Où dans le site",
+    "bugdesc":     "Problème",
+    "bugrepro":    "Étapes pour reproduire",
+    "bugappareil": "Appareil / navigateur",
+    # retours sur le site — fonctionnalité
+    "fonctitre":  "Idée (en une phrase)",
+    "foncdesc":   "Description de la fonctionnalité",
+    "foncusage":  "Besoin / usage",
 }
 
 TYPE_LABELS = {
@@ -125,6 +134,8 @@ CIBLE_LABELS = {
     "dissertation":      "sujet de dissertation",
     "concept":           "concept (définition)",
     "concept-relation":  "concept (relation)",
+    "site-bug":          "site — bug / erreur",
+    "site-fonction":     "site — fonctionnalité",
 }
 
 

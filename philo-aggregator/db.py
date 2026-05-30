@@ -35,17 +35,26 @@ STATUSES = ("en_attente", "validee", "integree", "rejetee", "archivee")
 
 
 # Catégories principales (niveau 1 du menu, schéma v3).
-CATEGORIES = ("notion", "auteur", "concept")
+# 'site' : retours sur l'outil lui-même (bug / fonctionnalité), pas sur le
+# contenu philosophique. Ces boîtes ne sont PAS destinées à data.js.
+CATEGORIES = ("notion", "auteur", "concept", "site")
 
 # Les sous-cibles possibles (box.cible), telles que définies par le site.
 # v3 a introduit le menu à 2 niveaux : la plupart des cibles existaient déjà
 # (rétro-compat v1/v2), on y a ajouté les sous-cibles auteur (citation /
 # dialogue / bio) et concept (relation). 'axe' reste pour les anciens .txt.
+# site-bug / site-fonction : retours sur le site (ajout ultérieur).
 CIBLES = (
     "notion", "texte", "plan", "axe", "exemple", "dissertation",
     "auteur", "auteur-citation", "auteur-dialogue", "auteur-bio",
     "concept", "concept-relation",
+    "site-bug", "site-fonction",
 )
+
+# Cibles « retour sur le site » : ni du contenu philosophique, ni destinées
+# à data.js. Elles sont exclues de la relecture Gemini (rien à corriger) —
+# cf. get_unreviewed_boxes et review.py.
+SITE_CIBLES = ("site-bug", "site-fonction")
 
 # Les trois types de boîte.
 TYPES = ("ajout", "correction", "remarque")
@@ -298,9 +307,17 @@ def get_unreviewed_boxes(conn, status="en_attente", limit=None):
 
     `limit` (optionnel) borne le nombre de boîtes renvoyées — utile pour
     ménager le quota gratuit de l'API en traitant par petits lots.
+
+    Les retours sur le site (SITE_CIBLES) sont EXCLUS : ce ne sont pas des
+    contenus à corriger. Les inclure les ferait stagner en tête de file
+    (verdict toujours NULL) et bloquerait la relecture des vraies boîtes.
     """
-    q = BOX_SELECT + " WHERE b.status = ? AND b.ai_verdict IS NULL ORDER BY b.id"
-    params = [status]
+    # Clause d'exclusion des cibles « site » (valeurs constantes, pas de
+    # risque d'injection — on génère juste les placeholders).
+    site_ph = ", ".join("?" for _ in SITE_CIBLES)
+    q = (BOX_SELECT + f" WHERE b.status = ? AND b.ai_verdict IS NULL "
+         f"AND b.cible NOT IN ({site_ph}) ORDER BY b.id")
+    params = [status, *SITE_CIBLES]
     if limit:
         q += " LIMIT ?"
         params.append(int(limit))

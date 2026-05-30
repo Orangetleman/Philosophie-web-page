@@ -93,7 +93,7 @@ intégration dans une session Claude).
 | `pull [--limit N]` | récupère les propositions de la boîte en ligne, ingère, confirme (`ack`) |
 | `review [--limit N] [--redo] [--status S]` | pré-vérifie les boîtes avec Gemini (verdict IA) |
 | `dashboard [--port P]` | lance le tableau de bord local (navigateur) |
-| `list [--status S] [--cible C] [--notion N] [--no-preview]` | liste groupée (3 sections : Notions/Auteurs/Concepts) |
+| `list [--status S] [--cible C] [--notion N] [--no-preview]` | liste groupée (4 sections : Notions/Auteurs/Concepts/Retours site) |
 | `show <id>` | détail complet d'une boîte |
 | `dupes [--threshold 0.80] [--status S]` | rapport doublons (signature + difflib + inclusion de noms) |
 | `export [-o fichier.txt] [--status S]` | gros `.txt` daté pour Claude |
@@ -145,12 +145,33 @@ totale — les anciens `.txt` restent ingestibles).
 
 - **v2** : multi-idées pour la cible `auteur` (`fields.ideas[]`).
 - **v3** : menu à 2 niveaux — chaque boîte porte `categorie`
-  (`notion`/`auteur`/`concept`) + `cible` (sous-cible) + `type`. Les idées
-  d'un auteur portent leur **notion** et un tableau **`citations[]`** :
+  (`notion`/`auteur`/`concept`/`site`) + `cible` (sous-cible) + `type`. Les
+  idées d'un auteur portent leur **notion** et un tableau **`citations[]`** :
   `fields.ideas[] = {notion, oeuvre, date, idee, citations:[…], concepts}`.
   Nouvelles sous-cibles : `auteur-citation`, `auteur-dialogue`, `auteur-bio`,
   `concept-relation`. Pour la cible `auteur`, `extract_notions` lit les
   notions dans `ideas[].notion` (pas `fields.notion`).
+
+## Catégorie `site` (retours sur l'outil, pas sur le contenu)
+
+En plus du contenu philosophique, le formulaire accepte deux **retours sur
+le site lui-même** :
+
+- `site-bug` — signaler une erreur / un bug d'usage ;
+- `site-fonction` — proposer une nouvelle fonctionnalité.
+
+Ces boîtes traversent toute la chaîne (ingestion, base, dashboard) mais avec
+deux particularités, car elles ne visent **pas** `data.js` :
+
+- **Pas de relecture Gemini** : `review` les ignore (rien de philosophique à
+  vérifier). Elles gardent un `ai_verdict` NULL sans bloquer la file de
+  relecture (exclues directement dans le SQL de `get_unreviewed_boxes`).
+- **Section dédiée** : dans `list` (et l'export), elles sont regroupées sous
+  **« RETOURS SITE »**, après Notions / Auteurs / Concepts.
+
+Côté front, leur `type` est figé sur `remarque` (le menu « Type d'action »
+est masqué) pour ne pas avoir à propager un nouveau type dans toute la
+pipeline ; seules les deux nouvelles cibles distinguent ces retours.
 
 Voir `CLAUDE.md` à la racine du projet pour la spécification détaillée
 (catégories, sous-cibles, champs par sous-cible).

@@ -2342,6 +2342,14 @@ function linkTerms(html){
    Les champs propres à chaque (type × cible) seront ajoutés à l'étape 1c
    dans le conteneur .pbox-fields.
 
+   CAS PARTICULIER — RETOURS SUR LE SITE (catégorie 'site') : sous-cibles
+   'site-bug' (signaler une erreur) et 'site-fonction' (proposer une
+   fonctionnalité). Ces retours ne portent PAS sur le contenu philosophique
+   mais sur l'outil. Le 3e menu « Type d'action » n'a alors aucun sens : il
+   est masqué et le type est fixé en interne sur 'remarque' (valeur déjà
+   connue de la pipeline d'agrégation, donc rien de neuf à propager côté
+   base de données). La cible suffit à les distinguer.
+
    ÉTAT
      proposalBoxes — tableau des boîtes : { id, type, cible }
      proposalSeq   — compteur d'id uniques
@@ -2372,7 +2380,9 @@ const PROPOSAL_TYPES=[
 const PROPOSAL_CATS=[
   {v:'notion', l:'Notion'},
   {v:'auteur', l:'Auteur'},
-  {v:'concept',l:'Concept'}
+  {v:'concept',l:'Concept'},
+  // new: 4e catégorie — retours sur le site lui-même (pas sur le contenu philo).
+  {v:'site',   l:'Le site / l’appli'}
 ];
 const PROPOSAL_SOUSCIBLES={
   notion:[
@@ -2391,13 +2401,22 @@ const PROPOSAL_SOUSCIBLES={
   concept:[
     {v:'concept',         l:'Définition'},
     {v:'concept-relation',l:'Relation'}
+  ],
+  // new: retours sur l'outil. Pas de « type d'action » associé (voir
+  // renderProposal/setProposalField : le 3e menu est masqué et le type
+  // est fixé en interne sur 'remarque', valeur déjà connue de la pipeline).
+  site:[
+    {v:'site-bug',     l:'Signaler une erreur / un bug'},
+    {v:'site-fonction',l:'Proposer une fonctionnalité'}
   ]
 };
 // Catégorie d'une sous-cible (dispatch + rétro-compat des anciennes cibles).
 const CIBLE_CAT={
   notion:'notion',texte:'notion',plan:'notion',dissertation:'notion',exemple:'notion',
   auteur:'auteur','auteur-citation':'auteur','auteur-dialogue':'auteur','auteur-bio':'auteur',
-  concept:'concept','concept-relation':'concept'
+  concept:'concept','concept-relation':'concept',
+  // new: cibles de retour sur le site.
+  'site-bug':'site','site-fonction':'site'
 };
 function cibleCat(cible){return CIBLE_CAT[cible]||'notion';}
 /* Libellés lisibles d'un type / d'une catégorie / d'une sous-cible. */
@@ -2449,6 +2468,9 @@ function setProposalField(id,key,val){
     b.categorie=val;
     const list=PROPOSAL_SOUSCIBLES[val];
     b.cible=(list&&list[0])?list[0].v:'notion';
+    // Catégorie 'site' : le « type d'action » n'a pas de sens — on fixe une
+    // valeur valide ('remarque') car le menu correspondant est masqué.
+    if(val==='site') b.type='remarque';
   }else if(key==='cible'){
     b.cible=val;
     b.categorie=cibleCat(val);
@@ -2594,6 +2616,19 @@ const PROPOSAL_FIELDS={
     {k:"reltype",l:"Type de relation",t:"reltype",r:true},
     {k:"relcible",l:"Concept / terme en relation",t:"text",r:true,ph:"ex. concordisme (ou « A ≠ B » pour une distinction)"},
     {k:"reldesc",l:"Description du lien",t:"area",r:false}
+  ],
+  // new: 'site-bug' — signalement d'une erreur d'usage du site (pas du contenu).
+  "site-bug":[
+    {k:"bugou",     l:"Où, dans le site ?",t:"text",r:false,ph:"ex. la fiche Conscience, le quiz, le menu latéral…"},
+    {k:"bugdesc",   l:"Décrivez le problème",t:"area",r:true,ph:"Ce qui ne va pas, et ce à quoi vous vous attendiez."},
+    {k:"bugrepro",  l:"Comment le reproduire (étapes)",t:"area",r:false,ph:"1. … 2. … (si vous savez comment le refaire apparaître)"},
+    {k:"bugappareil",l:"Appareil / navigateur",t:"text",r:false,ph:"ex. iPhone Safari, PC Chrome"}
+  ],
+  // new: 'site-fonction' — proposition d'une nouvelle fonctionnalité de l'outil.
+  "site-fonction":[
+    {k:"fonctitre",l:"L’idée en une phrase",t:"text",r:true,ph:"ex. Pouvoir surligner un passage d’une fiche"},
+    {k:"foncdesc", l:"Décrivez la fonctionnalité",t:"area",r:true,ph:"Comment imaginez-vous que ça marche ?"},
+    {k:"foncusage",l:"À quoi cela vous servirait-il ?",t:"area",r:false,ph:"Le besoin auquel ça répond (facultatif)."}
   ]
 };
 
@@ -2810,6 +2845,16 @@ function renderBoxFields(box){
   const cat=box.categorie||cibleCat(box.cible);
   const isAjout=box.type==='ajout';
 
+  // ── RETOUR SUR LE SITE (catégorie 'site') ──
+  // Pas de notion, pas d'auteur, pas de menu « type » : juste les champs
+  // libres de la sous-cible (bug / fonctionnalité). Le caractère
+  // obligatoire vient directement de d.r (le type est figé sur 'remarque').
+  if(cat==='site'){
+    let h='';
+    (PROPOSAL_FIELDS[box.cible]||[]).forEach(d=>{ h+=pField(box.id,d,f[d.k],d.r); });
+    return h;
+  }
+
   // ── REMARQUE : ciblage selon la catégorie + texte libre ──
   if(box.type==="remarque"){
     let h='';
@@ -2979,9 +3024,31 @@ function generateAjout(b,f){
   return '(cible inconnue)\n';
 }
 
+/* generateSiteBody — corps lisible d'un retour sur le site (catégorie
+   'site'). Pas de notion ni d'auteur : on liste simplement les champs
+   renseignés de la sous-cible (bug / fonctionnalité). */
+function generateSiteBody(b,f){
+  if(b.cible==='site-bug'){
+    let s='Type de retour : bug / erreur d\'usage du site\n';
+    if(gv(f,'bugou'))       s+='Où : '+gv(f,'bugou')+'\n';
+    s+='\nProblème :\n'+(gv(f,'bugdesc')||'(vide)')+'\n';
+    if(gv(f,'bugrepro'))    s+='\nÉtapes pour reproduire :\n'+gv(f,'bugrepro')+'\n';
+    if(gv(f,'bugappareil')) s+='\nAppareil / navigateur : '+gv(f,'bugappareil')+'\n';
+    return s;
+  }
+  // site-fonction
+  let s='Type de retour : proposition de fonctionnalité\n';
+  s+='\nIdée : '+(gv(f,'fonctitre')||'(vide)')+'\n';
+  s+='\nDescription :\n'+(gv(f,'foncdesc')||'(vide)')+'\n';
+  if(gv(f,'foncusage')) s+='\nBesoin / usage :\n'+gv(f,'foncusage')+'\n';
+  return s;
+}
+
 /* Corps généré pour une boîte (remarque / correction / ajout). */
 function generateBoxBody(b){
   const f=b.f||{};
+  // Retour sur le site : corps dédié, sans ligne « Notion » (hors-sujet).
+  if((b.categorie||cibleCat(b.cible))==='site') return generateSiteBody(b,f);
   // Ligne « notion » adaptée à la catégorie / sous-cible :
   //  · concept def → notions liées (f.cnotions) ;
   //  · auteur idée → notions DISTINCTES des idées (f.ideas[].notion) ;
@@ -3081,10 +3148,14 @@ function generateProposalText(){
     +'Contributeur : '+name+'\n'
     +'Nombre de boîtes : '+proposalBoxes.length+'\n';
   proposalBoxes.forEach((b,i)=>{
+    const cat=b.categorie||cibleCat(b.cible);
+    // Pour un retour sur le site, le « type d'action » est masqué dans l'UI
+    // et figé en interne : on n'affiche donc pas la ligne « Action ».
+    const actionLine=cat==='site' ? '' : 'Action    : '+proposalTypeLabel(b.type)+'\n';
     out+='\n──────────  BOÎTE '+(i+1)+'  ──────────\n'
-      +'Catégorie : '+proposalCatLabel(b.categorie||cibleCat(b.cible))+'\n'
+      +'Catégorie : '+proposalCatLabel(cat)+'\n'
       +'Préciser  : '+proposalCibleLabel(b.cible)+'\n'
-      +'Action    : '+proposalTypeLabel(b.type)+'\n\n'
+      +actionLine+'\n'
       +generateBoxBody(b);
   });
   out+='\n══════════════════════════════════════════\n';
@@ -3190,6 +3261,12 @@ function renderProposal(){
     const catOpts=PROPOSAL_CATS.map(o=>`<option value="${o.v}"${cat===o.v?' selected':''}>${o.l}</option>`).join('');
     const subOpts=(PROPOSAL_SOUSCIBLES[cat]||[]).map(o=>`<option value="${o.v}"${b.cible===o.v?' selected':''}>${o.l}</option>`).join('');
     const typeOpts=PROPOSAL_TYPES.map(o=>`<option value="${o.v}"${b.type===o.v?' selected':''}>${o.l}</option>`).join('');
+    // Catégorie 'site' : un retour bug/fonctionnalité n'a pas de « type
+    // d'action » — on masque ce 3e menu (le type est figé sur 'remarque').
+    const typeField=cat==='site' ? '' : `<div class="pfield">
+        <label class="plabel">Type d'action</label>
+        <select class="psel" onchange="setProposalField(${b.id},'type',this.value)">${typeOpts}</select>
+      </div>`;
     html+=`<div class="pbox" id="pbox-${b.id}">
       <div class="pbox-head">
         <span class="pbox-num">Boîte ${i+1}</span>
@@ -3204,10 +3281,7 @@ function renderProposal(){
         <label class="plabel">Préciser</label>
         <select class="psel" onchange="setProposalField(${b.id},'cible',this.value)">${subOpts}</select>
       </div>
-      <div class="pfield">
-        <label class="plabel">Type d'action</label>
-        <select class="psel" onchange="setProposalField(${b.id},'type',this.value)">${typeOpts}</select>
-      </div>
+      ${typeField}
       <div class="pbox-fields">${renderBoxFields(b)}</div>
     </div>`;
   });

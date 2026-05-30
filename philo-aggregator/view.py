@@ -37,9 +37,14 @@ BUCKETS = {
     "auteur-bio":        "AUTEURS",
     "concept":           "CONCEPTS",
     "concept-relation":  "CONCEPTS",
+    # Retours sur l'outil — section à part, pas du contenu philosophique.
+    "site-bug":          "RETOURS SITE",
+    "site-fonction":     "RETOURS SITE",
 }
 
-SECTION_ORDER = ("NOTIONS", "AUTEURS", "CONCEPTS")
+# L'affichage (list/dashboard) n'itère QUE sur SECTION_ORDER : toute section
+# manquante ici serait silencieusement masquée. D'où l'ajout de RETOURS SITE.
+SECTION_ORDER = ("NOTIONS", "AUTEURS", "CONCEPTS", "RETOURS SITE")
 
 
 def bucket_of(cible):
@@ -83,6 +88,12 @@ def main_text_field(row):
     f = json.loads(row["fields_json"]) if row["fields_json"] else {}
     t = row["type"]
     c = row["cible"]
+    # Retours sur le site : type='remarque' mais SANS remtexte → on doit
+    # traiter ces cibles avant la branche 'remarque' ci-dessous.
+    if c == "site-bug":
+        return f.get("bugdesc") or f.get("bugou") or ""
+    if c == "site-fonction":
+        return f.get("fonctitre") or f.get("foncdesc") or ""
     if t == "remarque":
         return f.get("remtexte") or ""
     # Cas particulier auteur v2 : les idées sont dans fields.ideas[]. On

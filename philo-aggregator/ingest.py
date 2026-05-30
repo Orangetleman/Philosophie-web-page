@@ -137,6 +137,15 @@ def compute_key_term(type_, cible, fields):
     discriminant (cibleref / remelement).
     """
     f = fields or {}
+    # Retours sur le site : le discriminant est le résumé du bug / de l'idée.
+    # À traiter AVANT les branches par type : ces boîtes portent type='remarque'
+    # (le site masque le menu « type » pour la catégorie 'site'), or leur
+    # discriminant n'est pas remelement mais leurs champs propres.
+    if cible == "site-bug":
+        s = (f.get("bugou") or f.get("bugdesc") or "").strip()
+        return (s[:60] + "…") if len(s) > 60 else s
+    if cible == "site-fonction":
+        return (f.get("fonctitre") or "").strip()
     if type_ == "correction":
         return (f.get("cibleref") or "").strip()
     if type_ == "remarque":
@@ -173,6 +182,7 @@ def extract_notions(cible, fields):
         (`fields.ideas[].notion`) — 1re + extras.
       - autres cibles : `fields.notion` (chaîne), et None.
       - dialogue / bio / concept-relation : aucune notion (None, None).
+      - retours site (site-bug / site-fonction) : aucune notion (None, None).
 
     Le tri rend l'ordre déterministe — deux soumissions identiques
     aboutissent à la même `notion_principale`.
@@ -195,7 +205,8 @@ def extract_notions(cible, fields):
         ideas = f.get("ideas") if isinstance(f.get("ideas"), list) else []
         notions = [it.get("notion") for it in ideas if isinstance(it, dict)]
         return pack(notions)
-    if cible in ("auteur-dialogue", "auteur-bio", "concept-relation"):
+    if cible in ("auteur-dialogue", "auteur-bio", "concept-relation",
+                 "site-bug", "site-fonction"):
         return (None, None)
     n = f.get("notion")
     if n is None or not str(n).strip():

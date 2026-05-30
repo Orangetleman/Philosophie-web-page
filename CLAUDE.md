@@ -164,12 +164,20 @@ d'ouverture `.sb-propose` (« 💡 Proposer du contenu ») intégré à la sideb
 
 - **Modèle « boîte »** : une soumission = une ou plusieurs boîtes empilées.
   Chaque boîte a un **menu à 2 niveaux** + une action :
-  - `categorie` (niveau 1) : `notion` / `auteur` / `concept` ;
+  - `categorie` (niveau 1) : `notion` / `auteur` / `concept` / `site` ;
   - `cible` (niveau 2 = sous-cible, clé de dispatch) :
     - notion → `notion` (définition) / `texte` / `plan` / `dissertation` (sujet) / `exemple` ;
     - auteur → `auteur` (idée/œuvre) / `auteur-citation` / `auteur-dialogue` / `auteur-bio` ;
     - concept → `concept` (définition) / `concept-relation` ;
+    - site → `site-bug` (signaler une erreur) / `site-fonction` (proposer une fonctionnalité) ;
   - `type` (action) : `ajout` / `correction` / `remarque`.
+
+  **Catégorie `site` (retours sur l'outil, pas sur le contenu)** : le menu
+  « Type d'action » est **masqué** et le `type` figé sur `remarque` (valeur
+  déjà connue de la pipeline → rien de neuf à propager côté base). La cible
+  (`site-bug` / `site-fonction`) suffit à distinguer les deux. Ces boîtes
+  ne visent **pas** `data.js` : elles ont leur propre section « RETOURS SITE »
+  dans le dashboard de l'agrégateur et sont **exclues de la relecture Gemini**.
 
   État dans `proposalBoxes` (`{id, categorie, cible, type, f}`) ; valeurs de
   champ dans `box.f`. `PROPOSAL_SOUSCIBLES` mappe catégorie→sous-cibles ;
