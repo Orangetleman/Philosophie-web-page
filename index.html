@@ -738,10 +738,18 @@ body:not(.mode-edition) .sb-propose{display:none!important}
 .tour-title{font-size:15px;font-weight:600;margin-bottom:6px}
 .tour-text{font-size:12.5px;color:var(--color-text-secondary);line-height:1.55}
 .tour-text b{color:var(--color-text-primary);font-weight:600}
-.tour-progress{display:flex;gap:4px;flex-wrap:wrap;margin:13px 0 11px}
-.tour-dot{width:7px;height:7px;border-radius:50%;background:var(--color-border-tertiary)}
-.tour-dot.done{background:var(--color-text-info);opacity:.45}
-.tour-dot.cur{background:var(--color-text-info)}
+.tour-progress{display:flex;gap:5px;flex-wrap:wrap;margin:13px 0 11px}
+/* Progression ENCADRÉE par thème : chaque partie de la visite (cf.
+   TOUR_PART_COLORS) forme un petit cadre arrondi à sa couleur — fond très
+   transparent + contour léger ; la partie en cours reçoit la classe .cur
+   (contour plus net), posée en JS. La couleur de la partie est passée en
+   variable inline --pc, réutilisée par les pastilles à l'intérieur. */
+.tour-pgroup{display:inline-flex;align-items:center;gap:4px;padding:3px 6px;
+  border-radius:999px;transition:border-color .2s,background .2s}
+.tour-dot{width:7px;height:7px;border-radius:50%;
+  background:var(--pc,var(--color-border-tertiary));opacity:.3;transition:opacity .2s,transform .2s}
+.tour-dot.done{opacity:.6}
+.tour-dot.cur{opacity:1;transform:scale(1.25)}
 .tour-ctrl{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 .tour-btn{font-family:inherit;font-size:12px;font-weight:500;cursor:pointer;
   border-radius:var(--border-radius-md);padding:7px 12px;outline:none;
@@ -3429,8 +3437,11 @@ function togglePhiloMode(){
    Principe « visite pilotée » : pendant la visite, la PAGE N'EST PAS
    interactive (le voile .tour-blocker capte les clics) ; c'est la visite
    qui met l'appli dans le bon état à chaque étape (sélection d'une notion,
-   ouverture du tiroir sur mobile, passage temporaire en mode édition…),
-   puis pointe l'élément réel.
+   ouverture du tiroir sur mobile, passage temporaire en mode édition,
+   OUVERTURE du mode révision ou de la modale de contribution pour les
+   détailler de l'intérieur…), puis pointe l'élément réel. Le ménage des
+   fenêtres ainsi ouvertes est fait par tourCloseOverlays() à chaque
+   changement d'étape et à la fin.
 
    Déclenchement : automatiquement à la 1re visite (drapeau localStorage
    'philo-tour-v1'), et à la demande via le bouton « ? » (haut-droite).
@@ -3459,12 +3470,66 @@ function togglePhiloMode(){
 const TOUR_PARTS={welcome:'Bienvenue',fiches:'Les fiches',liens:'Les liens',
   nav:'Naviguer',reviser:'Réviser',proposer:'Proposer',end:''};
 
+// Couleur d'accent par partie : sert à ENCADRER les pastilles de progression
+// (un cadre coloré par thème, cf. tourProgressHTML). Teintes distinctes et
+// lisibles sur fond sombre — une par partie de TOUR_PARTS.
+const TOUR_PART_COLORS={welcome:"#9aa0b5",fiches:"#5b8def",liens:"#3fb6a8",
+  nav:"#e0a458",reviser:"#e06b9b",proposer:"#b07fe0",end:"#6fcf97"};
+
 // Garantit qu'une fiche de NOTION est affichée (état de départ commun à la
 // plupart des étapes : sidebar en mode « notions », contenu d'une notion).
 function tourShowNotion(){
   sbMode='notions';
   if(!D[cur]) cur=KEYS[0];
   renderSB(); renderContent();
+}
+
+/* ── Étapes qui ENTRENT dans une fenêtre (quiz / contribution) ───────────
+   La visite reste « pilotée » : le voile capte les clics, mais on ouvre
+   réellement la fenêtre concernée pour la détailler de l'intérieur. Ces
+   setups sont idempotents (rappelés à chaque étape de la partie) ; le
+   ménage entre parties est fait par tourCloseOverlays(). */
+
+/* tourOpenQuiz() — ouvre le mode révision sur son tableau de bord. openQuiz
+   lit l'état sauvegardé et n'écrit rien : la progression de l'élève n'est
+   jamais modifiée par la visite. */
+function tourOpenQuiz(){ openQuiz(); }
+
+/* tourOpenProposal() — ouvre la modale de contribution en vue ÉDITION. On
+   force le mode édition le temps de la visite (champs et bouton visibles) ;
+   openProposal garantit au moins une boîte SANS effacer une saisie existante. */
+function tourOpenProposal(){
+  document.body.classList.add('mode-edition');
+  proposalView='edit';
+  openProposal();
+}
+
+/* tourOpenProposalPreview() — comme tourOpenProposal mais bascule sur la vue
+   APERÇU (étape « Aperçu et envoi »). */
+function tourOpenProposalPreview(){
+  tourOpenProposal();
+  proposalView='preview';
+  renderProposal();
+}
+
+/* tourProposalSelect(n) — renvoie le n-ième menu déroulant (.psel) de la
+   1re boîte de la modale (0 = Catégorie, 1 = Préciser, 2 = Type d'action).
+   Repli sur la boîte entière si ce menu n'existe pas (ex. catégorie « site »
+   où le 3e menu est masqué), pour toujours mettre en valeur quelque chose. */
+function tourProposalSelect(n){
+  const b=document.querySelector('#proposal-overlay .pbox');
+  if(!b) return null;
+  return b.querySelectorAll('.psel')[n] || b;
+}
+
+/* tourCloseOverlays() — referme les fenêtres que la visite a pu ouvrir
+   (contribution, mode révision) avant de changer d'étape, pour repartir
+   d'un écran propre. Idempotent ; les étapes qui en ont besoin les
+   rouvrent ensuite via leur `setup` (close + open dans la même frame =
+   aucun clignotement). */
+function tourCloseOverlays(){
+  const pov=document.getElementById('proposal-overlay'); if(pov) pov.classList.remove('open');
+  const qov=document.getElementById('quiz-overlay');     if(qov) qov.classList.remove('open');
 }
 
 const TOUR_STEPS=[
@@ -3520,25 +3585,89 @@ const TOUR_STEPS=[
         +"et les <b>liens du texte</b> (de proche en proche). À toi de choisir." },
 
   // ── Partie 4 : Réviser (le quiz) ──
+  // On OUVRE réellement le mode révision pendant la visite : la 1re étape
+  // pointe le bouton (quiz fermé), les suivantes pilotent l'overlay ouvert
+  // (setup:tourOpenQuiz) et mettent en valeur chaque réglage du tableau de bord.
   { part:'reviser', side:'sidebar', title:'Réviser activement',
-    text:"Le bouton <b>🎯 Réviser</b> lance un <b>quiz en cartes</b> : le site fabrique les questions "
-        +"à partir des fiches et <b>espace les révisions</b> (répétition espacée) pour ancrer ce que "
-        +"tu retiens le moins bien.",
+    text:"Le bouton <b>🎯 Réviser</b> ouvre le <b>mode révision</b> : un quiz en cartes que le site "
+        +"fabrique tout seul à partir des fiches. Ouvrons-le pour le visiter.",
     setup:tourShowNotion, target:()=>document.querySelector('.sb-quiz') },
+  { part:'reviser', side:'main', title:'Ton niveau et tes points',
+    text:"Tout en haut, ton <b>niveau</b> et tes <b>XP</b> : tu en gagnes à chaque bonne réponse. "
+        +"Un petit ressort de jeu pour réviser un peu chaque jour.",
+    setup:tourOpenQuiz, target:()=>document.querySelector('#quiz-overlay .quiz-level') },
+  { part:'reviser', side:'main', title:'Ta mémorisation',
+    text:"Ce pourcentage, c’est la part de tes cartes <b>bien ancrées</b>. Chaque carte gravit "
+        +"<b>5 paliers</b> : une bonne réponse la fait monter (elle revient moins souvent), une "
+        +"erreur la fait redescendre. C’est la <b>répétition espacée</b>.",
+    setup:tourOpenQuiz, target:()=>document.querySelector('#quiz-overlay .quiz-mastery') },
+  { part:'reviser', side:'main', title:'Sprint ou long terme',
+    text:"Choisis ton <b>rythme</b> : <b>⚡ Sprint</b> resserre les révisions (avant un contrôle), "
+        +"<b>📅 Long terme</b> les espace pour ancrer durablement. Chaque rythme garde sa propre "
+        +"progression.",
+    setup:tourOpenQuiz, target:()=>document.querySelector('#quiz-overlay .quiz-horizon') },
+  { part:'reviser', side:'main', title:'Cartes ou QCM',
+    text:"Deux formats au choix : <b>🃏 Cartes</b> (tu retournes la carte pour vérifier) ou "
+        +"<b>📝 QCM</b> (choix multiples). Prends celui qui t’aide le plus à mémoriser.",
+    setup:tourOpenQuiz, target:()=>document.querySelector('#quiz-overlay .quiz-mode-toggle') },
+  { part:'reviser', side:'main', title:'Cibler une révision',
+    text:"Tu peux <b>filtrer</b> : une ou plusieurs notions, un type de question, ou seulement "
+        +"<b>tes ratés</b>. Idéal pour retravailler un point précis.",
+    setup:tourOpenQuiz, target:()=>document.querySelector('#quiz-overlay .quiz-filters') },
+  { part:'reviser', side:'main', title:'Lancer la session',
+    text:"Ce bouton démarre la <b>session du jour</b> : le site choisit les cartes à revoir "
+        +"maintenant. Une session interrompue se <b>reprend</b> là où tu l’avais laissée.",
+    setup:tourOpenQuiz, target:()=>document.querySelector('#quiz-overlay .quiz-start') },
+  { part:'reviser', side:'main', title:'Un objectif par jour',
+    text:"Fixe un <b>objectif quotidien</b> (10, 20 ou 50 cartes) et garde ta <b>série</b> 🔥 en "
+        +"révisant un peu chaque jour. Le vrai secret, c’est la régularité.",
+    setup:tourOpenQuiz, target:()=>document.querySelector('#quiz-overlay .quiz-goal-pick') },
 
   // ── Partie 5 : Proposer / éditer ──
+  // Les 2 premières étapes restent dans la barre latérale (mode édition +
+  // bouton) ; les suivantes OUVRENT la modale de contribution (tourOpenProposal)
+  // et détaillent les 3 menus en cascade, les champs, l'empilement et l'envoi.
   { part:'proposer', side:'sidebar', title:'Le mode édition',
     text:"Ce bouton bascule en <b>mode édition</b> : il fait apparaître partout de petits boutons "
         +"<b>+</b> sur les cartes (cachés par défaut pour un rendu épuré).",
     setup:tourShowNotion, target:()=>document.querySelector('.sb-mode') },
   { part:'proposer', side:'sidebar', title:'Proposer du contenu',
-    text:"En mode édition, <b>💡 Proposer du contenu</b> (et les <b>+</b> des cartes) te permettent de "
-        +"suggérer un <b>ajout</b>, une <b>correction</b> ou une <b>remarque</b> sur n’importe quel "
-        +"élément du site. Ta proposition est relue avant d’être publiée.",
+    text:"En mode édition, <b>💡 Proposer du contenu</b> ouvre une fenêtre pour suggérer un "
+        +"<b>ajout</b>, une <b>correction</b> ou une <b>remarque</b>. Ouvrons-la pour la découvrir.",
     // On force l'affichage du bouton (caché en mode révision) le temps de
     // l'étape ; endTour()/renderTourStep() restaurent le mode réel ensuite.
     setup:()=>{ tourShowNotion(); document.body.classList.add('mode-edition'); },
     target:()=>document.querySelector('.sb-propose') },
+  { part:'proposer', side:'main', title:'Une « boîte » = une idée',
+    text:"Chaque proposition tient dans une <b>boîte</b>. Tu peux en <b>empiler plusieurs</b> dans "
+        +"un même envoi (par exemple un auteur et un exemple).",
+    setup:tourOpenProposal, target:()=>document.querySelector('#proposal-overlay .pbox') },
+  { part:'proposer', side:'main', title:'À quoi ça touche ?',
+    text:"Premier menu, la <b>catégorie</b> : une <b>notion</b>, un <b>auteur</b>, un <b>concept</b>, "
+        +"ou un retour sur <b>le site</b> lui-même (un bug, une idée de fonctionnalité).",
+    setup:tourOpenProposal, target:()=>tourProposalSelect(0) },
+  { part:'proposer', side:'main', title:'Préciser',
+    text:"Le deuxième menu <b>précise</b> : pour un auteur, par exemple, s’agit-il d’une citation, "
+        +"d’un dialogue avec un autre auteur, de sa biographie… La fenêtre adapte alors les champs "
+        +"à remplir.",
+    setup:tourOpenProposal, target:()=>tourProposalSelect(1) },
+  { part:'proposer', side:'main', title:'Que veux-tu faire ?',
+    text:"Le troisième menu, l’<b>action</b> : <b>ajouter</b> du contenu, <b>corriger</b> une erreur "
+        +"ou laisser une <b>remarque</b>. (Pour un retour sur le site, ce menu disparaît : c’est "
+        +"toujours une remarque.)",
+    setup:tourOpenProposal, target:()=>tourProposalSelect(2) },
+  { part:'proposer', side:'main', title:'Remplir les champs',
+    text:"En dessous s’affichent les <b>champs</b> correspondants. Remplis seulement ce que tu sais : "
+        +"pas besoin d’être exhaustif, l’essentiel suffit.",
+    setup:tourOpenProposal, target:()=>{ const b=document.querySelector('#proposal-overlay .pbox'); return b?(b.querySelector('.pbox-fields')||b):null; } },
+  { part:'proposer', side:'main', title:'Empiler des boîtes',
+    text:"Avec <b>+ Ajouter une boîte</b>, tu proposes plusieurs choses d’un coup. Chaque boîte "
+        +"reste indépendante des autres.",
+    setup:tourOpenProposal, target:()=>document.querySelector('#proposal-overlay .pbox-add') },
+  { part:'proposer', side:'main', title:'Aperçu et envoi',
+    text:"Enfin, l’<b>aperçu</b> te montre exactement ce qui sera transmis, puis tu <b>envoies</b> "
+        +"(en ligne, ou par email en repli). Ta proposition est <b>relue</b> avant d’être publiée.",
+    setup:tourOpenProposalPreview, target:()=>document.querySelector('#proposal-overlay .pactions') },
 
   // ── Fin (carte centrée) ──
   { part:'end', center:true, title:'C’est parti 🎓',
@@ -3601,6 +3730,7 @@ function endTour(){
     tourState.dom.bubble.style.display='none';
   }
   tourState.i=-1;
+  tourCloseOverlays();                           // referme quiz/contribution ouverts par la visite
   applyPhiloMode();                              // restaure le mode (édition tempo)
   try{ localStorage.setItem('philo-tour-v1','1'); }catch(e){}
 }
@@ -3637,10 +3767,12 @@ function tourReposition(){ if(tourState.i>=0) positionTourStep(); }
 function renderTourStep(){
   const step=TOUR_STEPS[tourState.i]; if(!step) return endTour();
   const {blocker,bubble}=buildTourDOM();
-  // 1. Repartir du mode réel (annule un mode édition temporaire éventuel),
-  //    puis gérer le tiroir mobile selon que la cible est dans la sidebar
-  //    ou la zone principale, puis appliquer l'état propre à l'étape.
+  // 1. Repartir du mode réel (annule un mode édition temporaire éventuel) et
+  //    refermer les fenêtres ouvertes par une étape précédente (quiz /
+  //    contribution) ; l'étape rouvrira la sienne via son `setup`. Puis gérer
+  //    le tiroir mobile selon la cible, et appliquer l'état propre à l'étape.
   applyPhiloMode();
+  tourCloseOverlays();
   if(window.innerWidth<=700){
     if(step.side==='sidebar') document.body.classList.add('sb-open');
     else document.body.classList.remove('sb-open');
@@ -3654,12 +3786,39 @@ function renderTourStep(){
   requestAnimationFrame(positionTourStep);
 }
 
+/* tourProgressHTML(curIdx) — pastilles de progression GROUPÉES par partie :
+   chaque thème forme un cadre arrondi à sa couleur (cf. TOUR_PART_COLORS),
+   fond très transparent + contour léger ; la partie en cours reçoit un
+   contour plus net (classe .cur). Une pastille par étape, à l'état
+   done / cur / à venir. Les couleurs translucides sont obtenues en suffixant
+   un alpha hexadécimal à la couleur de la partie (ex. #5b8def + "26"). */
+function tourProgressHTML(curIdx){
+  // 1. Regrouper les étapes consécutives de même partie.
+  const groups=[];
+  TOUR_STEPS.forEach((s,k)=>{
+    const last=groups[groups.length-1];
+    if(!last || last.part!==s.part) groups.push({part:s.part, dots:[k]});
+    else last.dots.push(k);
+  });
+  // 2. Un cadre coloré par groupe ; pastilles done/cur/à venir à l'intérieur.
+  return groups.map(grp=>{
+    const c=TOUR_PART_COLORS[grp.part]||"#9aa0b5";
+    const isCur=grp.dots.indexOf(curIdx)>=0;
+    // Cadre : contour net + fond plus marqué pour la partie courante.
+    const frame=isCur ? `border:1px solid ${c};background:${c}26`
+                      : `border:0.5px solid ${c}59;background:${c}12`;
+    const dots=grp.dots.map(k=>`<span class="tour-dot${k<curIdx?' done':k===curIdx?' cur':''}"></span>`).join('');
+    return `<span class="tour-pgroup${isCur?' cur':''}" style="--pc:${c};${frame}">${dots}</span>`;
+  }).join('');
+}
+
 /* tourBubbleHTML(step) — HTML de la bulle : en-tête de partie, titre, texte,
-   pastilles de progression (une par étape) et barre de contrôles. */
+   pastilles de progression (encadrées par thème, cf. tourProgressHTML) et
+   barre de contrôles. */
 function tourBubbleHTML(step){
   const i=tourState.i, last=i===TOUR_STEPS.length-1, first=i===0;
   const partLabel=TOUR_PARTS[step.part]||'';
-  const dots=TOUR_STEPS.map((s,k)=>`<span class="tour-dot${k<i?' done':k===i?' cur':''}"></span>`).join('');
+  const dots=tourProgressHTML(i);
   // Existe-t-il une partie suivante (pour proposer « Passer cette partie ») ?
   let hasNextPart=false;
   for(let j=i+1;j<TOUR_STEPS.length;j++){ if(TOUR_STEPS[j].part!==step.part){ hasNextPart=true; break; } }
