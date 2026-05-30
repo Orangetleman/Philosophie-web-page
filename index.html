@@ -532,6 +532,45 @@ body:not(.mode-edition) .sb-propose{display:none!important}
   text-align:center;cursor:pointer;outline:none;transition:filter .15s}
 .sb-quiz:hover{filter:brightness(1.3)}
 
+/* new (comptes) : bouton compte (bas de sidebar) + éléments de la modale
+   de connexion. Discret par défaut ; teinte verte quand on est connecté. */
+.sb-account{flex-shrink:0;margin:0 8px 10px;padding:7px 8px;
+  display:flex;align-items:center;justify-content:center;gap:5px;
+  background:transparent;border:0.5px solid var(--color-border-tertiary);
+  border-radius:var(--border-radius-md);color:var(--color-text-tertiary);
+  font-family:inherit;font-size:10.5px;font-weight:500;line-height:1.3;
+  text-align:center;cursor:pointer;outline:none;transition:all .15s}
+.sb-account:hover{color:var(--color-text-info);border-color:var(--color-border-info)}
+body.is-signed-in .sb-account{color:#7bd88f;border-color:rgba(123,216,143,.45)}
+.auth-tabs{display:flex;gap:6px;margin-bottom:14px}
+.auth-tab{flex:1;padding:8px;text-align:center;cursor:pointer;font-size:12px;
+  border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);
+  background:transparent;color:var(--color-text-tertiary);font-family:inherit;transition:all .15s}
+.auth-tab.active{background:var(--color-background-info);border-color:var(--color-border-info);
+  color:var(--color-text-info);font-weight:600}
+.auth-form{display:flex;flex-direction:column;gap:9px}
+.auth-input{width:100%;padding:9px 10px;font-family:inherit;font-size:13px;
+  background:var(--color-background-secondary);color:var(--color-text-primary);
+  border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);outline:none}
+.auth-input:focus{border-color:var(--color-border-info)}
+.auth-btn{width:100%;padding:10px;font-family:inherit;font-size:13px;font-weight:600;
+  border-radius:var(--border-radius-md);cursor:pointer;outline:none;
+  border:0.5px solid transparent;transition:filter .15s}
+.auth-btn:hover{filter:brightness(1.1)}
+.auth-btn[disabled]{opacity:.55;cursor:default;filter:none}
+.auth-btn-primary{background:var(--color-background-info);
+  border-color:var(--color-border-info);color:var(--color-text-info)}
+.auth-btn-google{background:#fff;color:#3c4043;display:flex;
+  align-items:center;justify-content:center;gap:8px}
+.auth-sep{display:flex;align-items:center;gap:10px;margin:14px 0;
+  color:var(--color-text-tertiary);font-size:11px}
+.auth-sep::before,.auth-sep::after{content:"";flex:1;height:0.5px;background:var(--color-border-tertiary)}
+.auth-status{margin-top:10px;font-size:12px;line-height:1.5;min-height:1em}
+.auth-status.err{color:#f0a3a3}
+.auth-status.ok{color:#7bd88f}
+.auth-meta{font-size:12px;color:var(--color-text-secondary);line-height:1.6}
+.auth-meta b{color:var(--color-text-primary)}
+
 #quiz-overlay{position:fixed;inset:0;background:rgba(10,14,20,.92);z-index:850;
   display:none;flex-direction:column;padding:16px;overflow-y:auto}
 #quiz-overlay.open{display:flex}
@@ -1009,6 +1048,20 @@ body.sb-open .sb-backdrop{display:block;opacity:1}
   </div>
 </div>
 
+<!-- new (comptes) : modale de connexion / création de compte. Même
+     ossature que #proposal-overlay (voile .modal-overlay + panneau). Le
+     bouton d'ouverture .sb-account est créé dans la sidebar par renderSB ;
+     le corps (#auth-body) est injecté en JS par renderAuth(). -->
+<div class="modal-overlay" id="auth-overlay">
+  <div class="modal-panel" role="dialog" aria-modal="true" aria-label="Compte" style="width:min(420px,94vw)">
+    <div class="modal-head">
+      <div class="modal-title" id="auth-title">👤 Mon compte</div>
+      <button class="modal-close" id="auth-close" aria-label="Fermer">×</button>
+    </div>
+    <div class="modal-body" id="auth-body"></div>
+  </div>
+</div>
+
 <!-- Mode quiz : overlay plein écran (le bouton d'ouverture .sb-quiz est
      créé dans la sidebar par renderSB). Le contenu (dashboard / session /
      fin) est injecté en JS dans #quiz-body par renderQuiz(). -->
@@ -1034,6 +1087,11 @@ body.sb-open .sb-backdrop{display:block;opacity:1}
 </div>
 
 <script src="data.js"></script>
+<!-- new (comptes) : bibliothèque cliente Supabase (authentification +
+     base en ligne). Chargée AVANT le script principal pour exposer le
+     global « supabase » (porteur de createClient), dont on se sert plus
+     bas pour créer le client SB. Build UMD via le CDN jsDelivr. -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 /* ══════════════════════════════════════════════════════════════════
    A. DONNÉES — NOTIONS
@@ -1392,6 +1450,17 @@ function renderSB(){
     modeBtn.onclick=togglePhiloMode;
     sb.appendChild(modeBtn);
   }
+  // new (comptes) : bouton compte (connexion / déconnexion), tout en bas,
+  // persistant comme les autres. Libellé et visibilité gérés par
+  // renderAccountBtn() (masqué si Supabase est indisponible).
+  let acctBtn=sb.querySelector('.sb-account');
+  if(!acctBtn){
+    acctBtn=document.createElement('button');
+    acctBtn.className='sb-account';
+    acctBtn.onclick=onAccountClick;
+    sb.appendChild(acctBtn);
+  }
+  renderAccountBtn();   // libellé selon l'état (déconnecté / nom d'utilisateur)
   applyPhiloMode();   // met à jour le libellé selon l'état actuel
 
   if(sbMode==='notions'){
@@ -2375,6 +2444,21 @@ const PROPOSAL_EMAIL='compte.secondaire.toi@gmail.com';
 // « Envoyer en ligne » y poste la proposition (route publique). En cas
 // d'échec (hors-ligne, service endormi…), on retombe sur le mailto:.
 const MAILBOX_URL='https://orangentleman.pythonanywhere.com';
+
+// new (comptes) : configuration Supabase (BaaS = Backend-as-a-Service —
+// base PostgreSQL + authentification hébergées en ligne). Ces deux valeurs
+// sont PUBLIQUES par conception :
+//   • SUPABASE_URL      : l'adresse du projet.
+//   • SUPABASE_ANON_KEY : la clé « anon/publishable », prévue pour vivre
+//     dans le navigateur. Elle n'autorise QUE ce que les règles RLS (Row
+//     Level Security — permissions ligne par ligne, côté base) permettent.
+// La clé SECRÈTE (service_role) ne figure JAMAIS ici : elle reste sur le PC.
+const SUPABASE_URL='https://fipdatwirklhgdbujobz.supabase.co';
+const SUPABASE_ANON_KEY='sb_publishable_7A5cSXlmufU1mDfjs1hIIA_PSHpXOdB';
+// Client unique, nommé SB pour ne pas masquer le global « supabase » du CDN.
+// Si le CDN n'a pas pu se charger (hors-ligne) ou si l'URL manque, SB reste
+// null et toute la couche compte se désactive proprement (repli mail/local).
+const SB=(window.supabase&&SUPABASE_URL)?window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY):null;
 
 // Libellés des deux menus déroulants
 const PROPOSAL_TYPES=[
@@ -3925,11 +4009,200 @@ document.addEventListener('click',e=>{
   });
 })();
 
+/* ── K. COMPTES — authentification (Supabase) ───────────────────────
+   Couche « compte » FACULTATIVE : se connecter (Google ou e-mail + mot de
+   passe) pour, plus tard, synchroniser quiz/préférences et suivre ses
+   propositions. Si SB est null (CDN non chargé, hors-ligne…), rien ne
+   casse : le site reste pleinement utilisable en anonyme.
+
+   Quelques termes :
+     • OAuth   : « se connecter avec Google » sans confier son mot de passe
+                 au site ; Google nous renvoie un jeton de session.
+     • session : la preuve qu'on est connecté — un jeton que Supabase range
+                 dans le navigateur et renouvelle tout seul.
+   authUser : l'utilisateur courant (objet Supabase) ou null si déconnecté.
+   authView : onglet affiché dans la modale, 'signin' ou 'signup'.        */
+let authUser=null;
+let authView='signin';
+
+/* initAuth() — au démarrage : lit la session existante (si l'on était déjà
+   connecté), puis s'abonne aux changements (connexion, retour d'un login
+   Google, déconnexion, renouvellement de jeton). À chaque changement, on
+   rafraîchit le bouton de la sidebar. */
+async function initAuth(){
+  if(!SB) return;                       // pas de client → couche compte inactive
+  try{
+    const {data}=await SB.auth.getSession();
+    authUser=(data&&data.session)?data.session.user:null;
+  }catch(e){ authUser=null; }
+  renderAccountBtn();
+  SB.auth.onAuthStateChange((_event,session)=>{
+    authUser=session?session.user:null;
+    renderAccountBtn();
+    // Modale ouverte au moment d'une connexion réussie → on la ferme ;
+    // sinon (déconnexion) → on la re-rend pour revenir au formulaire.
+    const ov=document.getElementById('auth-overlay');
+    if(ov&&ov.classList.contains('open')){ if(authUser) closeAuth(); else renderAuth(); }
+  });
+}
+
+/* authLabel() — nom lisible : prénom/nom Google si dispo, sinon la partie
+   avant « @ » de l'e-mail, sinon « Mon compte ». */
+function authLabel(){
+  if(!authUser) return '';
+  const m=authUser.user_metadata||{};
+  if(m.full_name) return m.full_name;
+  if(m.name) return m.name;
+  if(authUser.email) return authUser.email.split('@')[0];
+  return 'Mon compte';
+}
+
+/* renderAccountBtn() — met à jour le bouton .sb-account selon l'état :
+   masqué si SB indisponible ; « se connecter » si déconnecté ; nom de
+   l'utilisateur si connecté. Pose aussi body.is-signed-in (repère pour le
+   CSS et, plus tard, pour les modules de synchronisation). */
+function renderAccountBtn(){
+  const btn=document.querySelector('.sb-account');
+  if(!btn) return;
+  if(!SB){ btn.style.display='none'; return; }   // aucun compte possible
+  btn.style.display='';
+  document.body.classList.toggle('is-signed-in',!!authUser);
+  if(authUser){
+    btn.innerHTML='👤 '+pEsc(authLabel());
+    btn.title='Connecté — cliquer pour gérer le compte ou se déconnecter';
+  }else{
+    btn.innerHTML='👤 Créer un compte / se connecter';
+    btn.title='Se connecter (Google ou e-mail) pour synchroniser ses données';
+  }
+}
+
+/* onAccountClick() — clic sur le bouton compte : ouvre la modale. */
+function onAccountClick(){ openAuth(); }
+
+/* openAuth / closeAuth — affiche / masque la modale de compte. */
+function openAuth(){ authView='signin'; renderAuth(); document.getElementById('auth-overlay').classList.add('open'); }
+function closeAuth(){ document.getElementById('auth-overlay').classList.remove('open'); }
+
+/* renderAuth() — construit le corps de la modale (#auth-body) : connecté →
+   profil + « Se déconnecter » ; déconnecté → onglets Connexion/Création,
+   bouton Google, formulaire e-mail + mot de passe, et ligne de statut. */
+function renderAuth(){
+  const body=document.getElementById('auth-body');
+  const titleEl=document.getElementById('auth-title');
+  if(!body) return;
+  if(authUser){                                  // ── déjà connecté : profil ──
+    if(titleEl) titleEl.textContent='👤 Mon compte';
+    const prov=(authUser.app_metadata&&authUser.app_metadata.provider)||'e-mail';
+    body.innerHTML=`<div class="auth-meta">
+        Connecté en tant que <b>${pEsc(authLabel())}</b>.<br>
+        ${authUser.email?('E-mail : <b>'+pEsc(authUser.email)+'</b><br>'):''}
+        Méthode de connexion : <b>${pEsc(prov)}</b>.
+      </div>
+      <div class="auth-form" style="margin-top:14px">
+        <button class="auth-btn auth-btn-primary" onclick="authSignOut()">Se déconnecter</button>
+      </div>`;
+    return;
+  }
+  if(titleEl) titleEl.textContent='👤 Créer un compte / se connecter';
+  const isSignup=authView==='signup';            // ── déconnecté : connexion ──
+  body.innerHTML=`
+    <div class="auth-tabs">
+      <div class="auth-tab${isSignup?'':' active'}" onclick="authSetView('signin')">Connexion</div>
+      <div class="auth-tab${isSignup?' active':''}" onclick="authSetView('signup')">Créer un compte</div>
+    </div>
+    <button class="auth-btn auth-btn-google" onclick="authSignInGoogle()"><span style="font-weight:700;color:#4285f4">G</span> Continuer avec Google</button>
+    <div class="auth-sep">ou avec un e-mail</div>
+    <form class="auth-form" onsubmit="authSubmit(event)">
+      <input class="auth-input" id="auth-email" type="email" placeholder="Adresse e-mail" autocomplete="email" required>
+      <input class="auth-input" id="auth-pw" type="password" placeholder="Mot de passe (6 caractères min.)" autocomplete="${isSignup?'new-password':'current-password'}" minlength="6" required>
+      <button class="auth-btn auth-btn-primary" type="submit">${isSignup?'Créer mon compte':'Se connecter'}</button>
+    </form>
+    <div class="auth-status" id="auth-status"></div>`;
+}
+
+/* authSetView() — bascule Connexion / Création puis re-rend. */
+function authSetView(v){ authView=v; renderAuth(); }
+
+/* authStatus() — message sous le formulaire (kind : 'err' | 'ok' | ''). */
+function authStatus(msg,kind){
+  const el=document.getElementById('auth-status');
+  if(!el) return;
+  el.className='auth-status'+(kind?(' '+kind):'');
+  el.textContent=msg||'';
+}
+
+/* authSubmit() — soumission du formulaire e-mail : crée le compte (signUp)
+   ou connecte (signInWithPassword) selon l'onglet actif. */
+async function authSubmit(ev){
+  ev.preventDefault();
+  if(!SB){ authStatus('Service indisponible (hors-ligne ?).','err'); return; }
+  const email=(document.getElementById('auth-email')||{}).value||'';
+  const pw=(document.getElementById('auth-pw')||{}).value||'';
+  authStatus('Un instant…','');
+  try{
+    if(authView==='signup'){
+      const {error}=await SB.auth.signUp({email,password:pw});
+      if(error) throw error;
+      // Si la confirmation par e-mail est activée côté Supabase, pas encore
+      // de session : on invite à confirmer. Sinon, onAuthStateChange ferme.
+      authStatus('Compte créé. Si une confirmation par e-mail est demandée, valide-la puis reviens te connecter.','ok');
+    }else{
+      const {error}=await SB.auth.signInWithPassword({email,password:pw});
+      if(error) throw error;             // succès → onAuthStateChange ferme la modale
+    }
+  }catch(e){ authStatus(authHumanError(e),'err'); }
+}
+
+/* authSignInGoogle() — connexion Google (OAuth) : le navigateur part sur
+   Google puis revient sur la même page (redirectTo). Au retour, le client
+   Supabase détecte la session dans l'URL et onAuthStateChange se déclenche. */
+async function authSignInGoogle(){
+  if(!SB){ authStatus('Service indisponible (hors-ligne ?).','err'); return; }
+  authStatus('Redirection vers Google…','');
+  try{
+    const {error}=await SB.auth.signInWithOAuth({provider:'google',options:{redirectTo:location.origin+location.pathname}});
+    if(error) throw error;
+  }catch(e){ authStatus(authHumanError(e),'err'); }
+}
+
+/* authSignOut() — déconnexion ; onAuthStateChange remet l'UI à zéro. */
+async function authSignOut(){
+  if(!SB) return;
+  try{ await SB.auth.signOut(); }catch(e){}
+  renderAuth();                          // retour à l'écran de connexion
+}
+
+/* authHumanError() — traduit les messages Supabase (anglais) en phrases
+   courtes ; repli sur le message brut si on ne reconnaît pas. */
+function authHumanError(e){
+  const m=((e&&e.message)||'').toLowerCase();
+  if(m.includes('invalid login')) return 'E-mail ou mot de passe incorrect.';
+  if(m.includes('already registered')||m.includes('already exists')) return 'Un compte existe déjà avec cet e-mail.';
+  if(m.includes('password')&&m.includes('6')) return 'Le mot de passe doit faire au moins 6 caractères.';
+  if(m.includes('confirm')) return 'E-mail non confirmé : vérifie ta boîte de réception.';
+  if(m.includes('rate limit')||m.includes('too many')) return 'Trop de tentatives, réessaie dans un moment.';
+  return (e&&e.message)?e.message:'Une erreur est survenue.';
+}
+
+/* Câblage des fermetures de la modale compte (une fois au chargement) —
+   même garde anti-fermeture-accidentelle que la modale de contribution. */
+(function initAuthUI(){
+  const closeBtn=document.getElementById('auth-close');
+  if(!closeBtn) return;                  // sécurité si le HTML est absent
+  closeBtn.addEventListener('click',closeAuth);
+  const _ov=document.getElementById('auth-overlay');
+  let _down=false;
+  _ov.addEventListener('mousedown',e=>{ _down=(e.target===_ov); });
+  _ov.addEventListener('click',e=>{ if(e.target===_ov&&_down) closeAuth(); });
+  document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeAuth(); });
+})();
+
 /* ── I. INITIALISATION ───────────────────────────────────────────────
    Appel initial au chargement de la page :
    renderSB()      → construit la sidebar avec la première notion active
    renderContent() → affiche le contenu de cette première notion        */
 renderSB();renderContent();
+initAuth();           // new (comptes) : récupère la session + s'abonne aux changements d'état
 tourStartIfFirst();   // visite guidée auto à la 1re venue (cf. module « Visite guidée »)
 
 /* ── PWA — enregistrement du service worker ─────────────────────────
