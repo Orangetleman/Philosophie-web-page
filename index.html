@@ -3511,6 +3511,7 @@ function togglePhiloMode(){
   const cur=localStorage.getItem('philo-mode')||'revision';
   localStorage.setItem('philo-mode', cur==='edition'?'revision':'edition');
   applyPhiloMode();
+  syncOnPrefsChange();        // new (Phase 2) : reporte la préférence vers le compte si connecté
 }
 
 /* ══════════════════════════════════════════════════════════════════
@@ -3820,6 +3821,7 @@ function endTour(){
   tourCloseOverlays();                           // referme quiz/contribution ouverts par la visite
   applyPhiloMode();                              // restaure le mode (édition tempo)
   try{ localStorage.setItem('philo-tour-v1','1'); }catch(e){}
+  syncOnPrefsChange();                           // new (Phase 2) : « visite vue » suit le compte
 }
 
 function tourNext(){ if(tourState.i>=TOUR_STEPS.length-1) return endTour(); tourState.i++; renderTourStep(); }
@@ -4039,9 +4041,11 @@ async function initAuth(){
     authUser=(data&&data.session)?data.session.user:null;
   }catch(e){ authUser=null; }
   renderAccountBtn();
+  maybeStartSync();                     // new (Phase 2) : si déjà connecté au chargement, on synchronise
   SB.auth.onAuthStateChange((event,session)=>{
     authUser=session?session.user:null;
     renderAccountBtn();
+    if(authUser) maybeStartSync(); else syncResetState();   // new (Phase 2) : (dé)clenche la synchro selon l'état
     const ov=document.getElementById('auth-overlay');
     if(!ov||!ov.classList.contains('open')) return;   // modale fermée : rien à faire
     // Modale ouverte : on ne ferme QUE sur une connexion réussie ; une
@@ -4051,6 +4055,9 @@ async function initAuth(){
     if(event==='SIGNED_IN') closeAuth();
     else if(event==='SIGNED_OUT') renderAuth();
   });
+  // new (Phase 2) : au retour sur l'onglet, on récupère ce qu'un autre appareil
+  // aurait pu écrire entre-temps (fusion non destructive).
+  document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') syncOnFocus(); });
 }
 
 /* authLabel() — nom lisible : prénom/nom Google si dispo, sinon la partie
@@ -4250,6 +4257,242 @@ function authHumanError(e){
   document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeAuth(); });
 })();
 
+/* ══════════════════════════════════════════════════════════════════
+   L. SYNCHRONISATION DU COMPTE (Phase 2)
+   ──────────────────────────────────────────────────────────────────
+   Quand l'utilisateur est connecté, sa progression au quiz et ses
+   préférences (mode révision/édition, visite guidée déjà vue) sont
+   sauvegardées dans Supabase (deux tables : quiz_progress, preferences),
+   sous forme d'un « blob » JSON par utilisateur. Il retrouve ainsi sa
+   progression sur n'importe quel appareil.
+
+   Principes :
+   • À la PREMIÈRE connexion, on FUSIONNE le travail déjà fait hors-compte
+     (le localStorage anonyme) avec ce qui est éventuellement déjà en ligne,
+     pour ne RIEN perdre. Pour le quiz : fusion carte par carte (on garde la
+     révision la plus récente) ; pour l'XP et la série : on garde le meilleur.
+   • Ensuite, chaque changement local est repoussé en ligne (avec un petit
+     délai « anti-rafale » pour grouper les clics rapprochés).
+   • Au retour sur l'onglet, on relit l'en-ligne : si un AUTRE appareil a
+     progressé entre-temps, on fusionne.
+   • Règle de conflit globale : « dernière écriture gagne » via la colonne
+     updated_at — mais comme le quiz FUSIONNE au lieu d'écraser, aucune
+     progression n'est jamais perdue.
+   • Non connecté / hors-ligne : tout continue de marcher en localStorage ;
+     la synchro est un PLUS, jamais un prérequis. La moindre erreur réseau
+     est avalée (console.warn) sans gêner l'usage.
+
+   Sécurité : les tables sont protégées par RLS côté Supabase (chaque
+   utilisateur ne lit et n'écrit que SA ligne, via auth.uid() = user_id).
+   La clé publique du site ne donne accès à rien d'autre.
+
+   [Notion hors-programme NSI] RLS (« Row Level Security ») = filtre de
+   sécurité au niveau de CHAQUE ligne d'une table : la base elle-même
+   refuse de renvoyer/modifier les lignes qui ne t'appartiennent pas, même
+   si quelqu'un trafiquait la requête. C'est la barrière côté serveur. */
+
+let syncReady=false;        // true une fois la fusion de 1re connexion faite
+let syncInFlight=false;     // évite deux fusions simultanées
+let syncSuspend=false;      // true pendant qu'on APPLIQUE le distant (ne pas re-pousser)
+const syncMeta={quiz:null,prefs:null};   // dernier updated_at serveur connu (anti-réapplication)
+let syncQuizTimer=null, syncPrefsTimer=null;
+const SYNC_DEBOUNCE=1500;   // ms : regroupe les écritures rapprochées avant l'envoi
+
+function syncUid(){ return authUser?authUser.id:null; }
+
+/* quizBlobForSync() — l'objet quiz à envoyer en ligne : tout SAUF la
+   session en cours (« active »), qui est propre à cet appareil. */
+function quizBlobForSync(){
+  const c=Object.assign({},loadQuizState());
+  delete c.active;
+  return c;
+}
+
+/* prefsBlobForSync() — préférences synchronisées (petites). */
+function prefsBlobForSync(){
+  return {
+    mode: localStorage.getItem('philo-mode')||'revision',
+    tour: localStorage.getItem('philo-tour-v1')||''
+  };
+}
+
+/* applyPrefsBlob() — applique des préférences reçues du serveur. */
+function applyPrefsBlob(p){
+  if(!p) return;
+  if(p.mode) localStorage.setItem('philo-mode',p.mode);
+  if(p.tour) localStorage.setItem('philo-tour-v1',p.tour);
+  applyPhiloMode();
+}
+
+/* mergeQuiz(a,b) — fusionne deux états de quiz sans rien perdre (a = local).
+   - byHorizon : union carte par carte, on garde la révision la plus récente
+     (lastSeen le plus grand).
+   - gamif.xp : on garde le maximum (et on recalcule le niveau).
+   - daily : meilleure série conservée ; le reste suit la date la plus récente.
+   - prefs.dontWarnNewSession : vrai si vrai d'au moins un côté. */
+function mergeQuiz(a,b){
+  a=a||{}; b=b||{};
+  const out=JSON.parse(JSON.stringify(a));     // base = état local
+  out.byHorizon=out.byHorizon||{};
+  const bh=b.byHorizon||{};
+  ['sprint','long'].forEach(h=>{
+    out.byHorizon[h]=out.byHorizon[h]||{};
+    const src=bh[h]||{};
+    for(const id in src){
+      const cur=out.byHorizon[h][id], cand=src[id];
+      if(!cur || (((cand&&cand.lastSeen)||0) > ((cur&&cur.lastSeen)||0))) out.byHorizon[h][id]=cand;
+    }
+  });
+  const ax=(a.gamif&&a.gamif.xp)||0, bx=(b.gamif&&b.gamif.xp)||0, mx=Math.max(ax,bx);
+  out.gamif={xp:mx, level:quizLevel(mx)};
+  const ad=a.daily||{}, bd=b.daily||{};
+  out.daily=((bd.lastDate||'')>(ad.lastDate||'')) ? Object.assign({},ad,bd) : Object.assign({},bd,ad);
+  out.daily.streak=Math.max(ad.streak||0, bd.streak||0);
+  out.prefs=out.prefs||{};
+  out.prefs.dontWarnNewSession=!!(((a.prefs||{}).dontWarnNewSession)||((b.prefs||{}).dontWarnNewSession));
+  if(!out.horizon) out.horizon=b.horizon||'sprint';
+  return out;
+}
+
+function quizOverlayOpen(){
+  const o=document.getElementById('quiz-overlay');
+  return !!(o && o.classList.contains('open'));
+}
+
+/* syncOnLogin() — au moment où l'on devient connecté : lit le distant,
+   fusionne avec le local, ré-écrit localement, puis pousse le résultat. */
+async function syncOnLogin(){
+  if(!SB||!authUser) return;
+  const uid=syncUid();
+  try{
+    const [q,p]=await Promise.all([
+      SB.from('quiz_progress').select('data,updated_at').eq('user_id',uid).maybeSingle(),
+      SB.from('preferences').select('data,updated_at').eq('user_id',uid).maybeSingle()
+    ]);
+    if(q.error) throw q.error;
+    if(p.error) throw p.error;
+
+    syncSuspend=true;   // on écrit en localStorage sans déclencher de push en retour
+
+    // QUIZ : fusion si le distant a déjà des données, sinon on garde le local.
+    const remoteQ=q.data&&q.data.data;
+    if(remoteQ && remoteQ.byHorizon){
+      const merged=mergeQuiz(quizBlobForSync(), remoteQ);
+      merged.active=loadQuizState().active;     // on conserve la session locale en cours
+      saveQuizState(merged);
+    }
+    syncMeta.quiz=(q.data&&q.data.updated_at)||null;
+
+    // PRÉFÉRENCES : si le distant existe, il fait foi ; sinon on garde le local.
+    const remoteP=p.data&&p.data.data;
+    if(remoteP){ applyPrefsBlob(remoteP); }
+    syncMeta.prefs=(p.data&&p.data.updated_at)||null;
+
+    syncSuspend=false;
+
+    // On pousse l'état fusionné : il devient la référence partagée entre appareils.
+    await syncPushQuiz(true);
+    await syncPushPrefs(true);
+
+    syncReady=true;
+    applyPhiloMode();
+    if(quizOverlayOpen()){ try{ renderQuiz(); }catch(e){} }
+  }catch(e){
+    syncSuspend=false;
+    console.warn("[sync] synchro initiale impossible :", (e&&e.message)||e);
+    // syncReady reste false : on réessaiera à la prochaine connexion ; entre-temps
+    // tout fonctionne en local (la synchro n'est jamais un prérequis).
+  }
+}
+
+/* syncPushQuiz(immediate) — envoie le quiz en ligne (upsert sur user_id). En
+   mode différé, regroupe les appels rapprochés (anti-rafale).
+   [Notion hors-programme NSI] « upsert » = UPDATE-or-INSERT : si la ligne de
+   cet utilisateur existe déjà on la met à jour, sinon on la crée — en une
+   seule requête, sans avoir à tester l'existence au préalable. */
+async function syncPushQuiz(immediate){
+  if(!SB||!authUser) return;
+  const doPush=async()=>{
+    const uid=syncUid(); if(!uid) return;
+    const now=new Date().toISOString();
+    try{
+      const {error}=await SB.from('quiz_progress')
+        .upsert({user_id:uid,data:quizBlobForSync(),updated_at:now},{onConflict:'user_id'});
+      if(error){ console.warn("[sync] envoi du quiz :", error.message); return; }
+      syncMeta.quiz=now;
+    }catch(e){ console.warn("[sync] envoi du quiz :", (e&&e.message)||e); }
+  };
+  clearTimeout(syncQuizTimer);
+  if(immediate){ await doPush(); }
+  else { syncQuizTimer=setTimeout(doPush, SYNC_DEBOUNCE); }
+}
+
+async function syncPushPrefs(immediate){
+  if(!SB||!authUser) return;
+  const doPush=async()=>{
+    const uid=syncUid(); if(!uid) return;
+    const now=new Date().toISOString();
+    try{
+      const {error}=await SB.from('preferences')
+        .upsert({user_id:uid,data:prefsBlobForSync(),updated_at:now},{onConflict:'user_id'});
+      if(error){ console.warn("[sync] envoi des préférences :", error.message); return; }
+      syncMeta.prefs=now;
+    }catch(e){ console.warn("[sync] envoi des préférences :", (e&&e.message)||e); }
+  };
+  clearTimeout(syncPrefsTimer);
+  if(immediate){ await doPush(); }
+  else { syncPrefsTimer=setTimeout(doPush, SYNC_DEBOUNCE); }
+}
+
+/* Hooks appelés depuis le code existant après une écriture locale. Ils ne
+   font rien tant que la fusion de 1re connexion n'est pas finie (syncReady),
+   ni pendant qu'on applique le distant (syncSuspend). */
+function syncOnQuizChange(){ if(syncReady && !syncSuspend) syncPushQuiz(false); }
+function syncOnPrefsChange(){ if(syncReady && !syncSuspend) syncPushPrefs(false); }
+
+/* syncOnFocus() — au retour sur l'onglet : si un autre appareil a écrit
+   depuis (updated_at différent du dernier connu), on récupère et on
+   fusionne (le quiz) / on adopte (les préférences). */
+async function syncOnFocus(){
+  if(!SB||!authUser||!syncReady) return;
+  const uid=syncUid();
+  try{
+    const [q,p]=await Promise.all([
+      SB.from('quiz_progress').select('data,updated_at').eq('user_id',uid).maybeSingle(),
+      SB.from('preferences').select('data,updated_at').eq('user_id',uid).maybeSingle()
+    ]);
+    syncSuspend=true;
+    if(q.data && q.data.updated_at && q.data.updated_at!==syncMeta.quiz){
+      const merged=mergeQuiz(quizBlobForSync(), q.data.data||{});
+      merged.active=loadQuizState().active;
+      saveQuizState(merged);
+      syncMeta.quiz=q.data.updated_at;
+      if(quizOverlayOpen()){ try{ renderQuiz(); }catch(e){} }
+    }
+    if(p.data && p.data.updated_at && p.data.updated_at!==syncMeta.prefs){
+      applyPrefsBlob(p.data.data||{});
+      syncMeta.prefs=p.data.updated_at;
+    }
+    syncSuspend=false;
+  }catch(e){ syncSuspend=false; }
+}
+
+/* maybeStartSync() — lance la fusion initiale une seule fois, dès qu'on est
+   connecté. Appelé après getSession et à chaque événement « connecté ». */
+function maybeStartSync(){
+  if(!SB||!authUser||syncReady||syncInFlight) return;
+  syncInFlight=true;
+  syncOnLogin().finally(()=>{ syncInFlight=false; });
+}
+
+/* syncResetState() — à la déconnexion : on coupe la synchro. Le localStorage
+   reste intact (l'utilisateur peut continuer en mode anonyme). */
+function syncResetState(){
+  syncReady=false;
+  syncMeta.quiz=null; syncMeta.prefs=null;
+  clearTimeout(syncQuizTimer); clearTimeout(syncPrefsTimer);
+}
+
 /* ── I. INITIALISATION ───────────────────────────────────────────────
    Appel initial au chargement de la page :
    renderSB()      → construit la sidebar avec la première notion active
@@ -4383,7 +4626,7 @@ function loadQuizState(){
   if(s.active===undefined) s.active=null;              // session reprenable
   return s;
 }
-function saveQuizState(s){ localStorage.setItem('philo-quiz',JSON.stringify(s)); }
+function saveQuizState(s){ localStorage.setItem('philo-quiz',JSON.stringify(s)); syncOnQuizChange(); }   // new (Phase 2) : reporte la progression vers le compte si connecté
 function todayStr(){ return new Date().toISOString().slice(0,10); }
 
 /* ── Gamification : XP → niveau (100 XP par niveau). ──────────────── */
