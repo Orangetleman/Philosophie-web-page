@@ -1012,6 +1012,23 @@ body.sb-open .sb-backdrop{display:block;opacity:1}
   border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);
   padding:10px;outline:none;white-space:pre-wrap}
 
+/* new (Phase 3 — « Mes propositions ») : liste des contributions du compte
+   avec leur statut (en attente / validée / refusée) et l'explication. */
+.pmine-list{display:flex;flex-direction:column;gap:10px;margin-top:6px}
+.pmine-item{border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);
+  padding:10px 12px;background:var(--color-background-secondary)}
+.pmine-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:space-between}
+.pmine-sum{font-size:12px;font-weight:600;color:var(--color-text-primary)}
+.pmine-date{font-size:10.5px;color:var(--color-text-tertiary);margin-top:3px}
+.pmine-expl{font-size:11.5px;color:var(--color-text-secondary);line-height:1.5;margin-top:7px;
+  padding-top:7px;border-top:0.5px solid var(--color-border-tertiary);white-space:pre-wrap}
+/* Pastille de statut (couleur = état). */
+.pst{font-size:10.5px;font-weight:600;padding:2px 8px;border-radius:999px;white-space:nowrap}
+.pst-wait{background:rgba(255,193,7,.14);color:#e0a800}
+.pst-prog{background:var(--color-background-info);color:var(--color-text-info)}
+.pst-ok{background:rgba(46,204,113,.15);color:#2ecc71}
+.pst-no{background:rgba(231,76,60,.14);color:#e74c3c}
+
 /* ── Barres de défilement assorties au thème sombre ───────────
    Corrige les scrollbars blanches par défaut (Windows). Purement additif. */
 *{scrollbar-width:thin;scrollbar-color:var(--color-border-secondary) transparent}
@@ -3326,24 +3343,135 @@ function sendProposalOnline(){
   });
 }
 
+/* new (Phase 3) : envoi de la proposition RATTACHÉE AU COMPTE.
+   Quand l'utilisateur est connecté, « Envoyer en ligne » insère la
+   proposition dans la table Supabase « contributions » (au lieu de la boîte
+   anonyme PythonAnywhere). Avantage : on peut ensuite suivre son statut dans
+   « Mes propositions ». La sécurité RLS impose user_id = auth.uid() : on le
+   renseigne donc explicitement. Le statut prend sa valeur par défaut côté
+   base ('en_attente'). En cas d'échec : on n'ouvre PAS l'email (cela
+   quitterait la page) ; on invite à réessayer ou à utiliser « Envoyer par
+   email », tout proche — la contribution n'est jamais perdue. */
+function sendProposalToSupabase(){
+  const btn=document.getElementById('psend-btn');
+  const status=document.getElementById('psend-status');
+  const setStatus=function(msg,color){ if(status){ status.textContent=msg; status.style.color=color||''; } };
+  if(btn){ btn.disabled=true; btn.textContent='Envoi…'; }
+  setStatus('Envoi en cours…','');
+  SB.from('contributions').insert({
+    user_id: authUser.id,            // exigé par la règle RLS (auth.uid() = user_id)
+    payload: generateProposalJSON()  // ton JSON v3, stocké tel quel (colonne jsonb)
+  }).then(function(res){
+    if(res.error) throw res.error;
+    if(btn){ btn.textContent='✓ Envoyé'; }   // reste désactivé : évite le double envoi
+    setStatus('Merci ! Ta proposition est enregistrée sur ton compte. Suis son statut dans « Mes propositions ». 🎉','#2ecc71');
+  }).catch(function(err){
+    if(btn){ btn.disabled=false; btn.textContent='Réessayer en ligne'; }
+    setStatus('Envoi impossible ('+((err&&err.message)||err)
+      +'). Utilise « Envoyer par email » ci-dessous, ou réessaie.','#e74c3c');
+  });
+}
+
+/* new (Phase 3) : aiguillage du bouton « Envoyer en ligne ».
+   - Connecté → Supabase (suivi du statut possible).
+   - Non connecté → ancienne boîte PythonAnywhere (envoi anonyme, sans suivi). */
+function submitProposalOnline(){
+  if(SB && authUser) sendProposalToSupabase();
+  else sendProposalOnline();
+}
+
+/* new (Phase 3) : bascule vers la vue « Mes propositions ». */
+function showProposalMine(){ proposalView='mine'; renderProposal(); }
+
+/* Étiquette + classe CSS de pastille pour un statut de contribution.
+   Les quatre valeurs viennent de l'enum SQL contrib_status. */
+function contribStatusLabel(s){
+  switch(s){
+    case 'validee_integree': return {txt:'Validée — intégrée au site', cls:'pst-ok'};
+    case 'validee_en_cours': return {txt:'Validée — intégration en cours', cls:'pst-prog'};
+    case 'refusee':          return {txt:'Non retenue', cls:'pst-no'};
+    default:                 return {txt:'En attente de relecture', cls:'pst-wait'};   // 'en_attente'
+  }
+}
+
+/* Résumé court d'une proposition à partir de son payload v3 (pour la liste). */
+function contribSummary(payload){
+  try{
+    const boxes=(payload&&payload.boxes)||[];
+    if(!boxes.length) return 'Proposition';
+    const parts=boxes.slice(0,3).map(b=>proposalCibleLabel(b.cible)||b.cible||'boîte');
+    let s=parts.join(', ');
+    if(boxes.length>3) s+=' …';
+    return s+' ('+boxes.length+' boîte'+(boxes.length>1?'s':'')+')';
+  }catch(e){ return 'Proposition'; }
+}
+
+/* new (Phase 3) : charge et affiche les propositions du compte connecté.
+   La règle RLS contrib_select ne renvoie QUE les lignes de l'utilisateur ;
+   on ajoute tout de même le filtre user_id par clarté. */
+async function renderMyContributions(){
+  const wrap=document.getElementById('pmine-list');
+  if(!wrap) return;
+  if(!SB || !authUser){ wrap.innerHTML='<div class="phint">Connecte-toi pour retrouver tes propositions ici.</div>'; return; }
+  try{
+    const {data,error}=await SB.from('contributions')
+      .select('payload,statut,explication,created_at')
+      .eq('user_id',authUser.id)
+      .order('created_at',{ascending:false});
+    if(error) throw error;
+    if(!data || !data.length){ wrap.innerHTML='<div class="phint">Tu n\'as pas encore envoyé de proposition en ligne depuis ce compte.</div>'; return; }
+    wrap.innerHTML=data.map(c=>{
+      const st=contribStatusLabel(c.statut);
+      const d=c.created_at?new Date(c.created_at).toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'}):'';
+      const expl=c.explication ? '<div class="pmine-expl">'+pEsc(c.explication)+'</div>' : '';
+      return '<div class="pmine-item">'
+        +'<div class="pmine-top"><span class="pmine-sum">'+pEsc(contribSummary(c.payload))+'</span>'
+        +'<span class="pst '+st.cls+'">'+pEsc(st.txt)+'</span></div>'
+        +(d?'<div class="pmine-date">Envoyée le '+pEsc(d)+'</div>':'')
+        +expl
+        +'</div>';
+    }).join('');
+  }catch(e){
+    wrap.innerHTML='<div class="phint" style="color:#e74c3c">Impossible de charger tes propositions ('+pEsc((e&&e.message)||String(e))+').</div>';
+  }
+}
+
 /* Reconstruit le corps de la modale : vue d'ÉDITION (boîtes + nom du
-   contributeur + bouton Aperçu) ou vue d'APERÇU (texte généré). */
+   contributeur + bouton Aperçu), vue d'APERÇU (texte généré) ou vue
+   « MES PROPOSITIONS » (suivi des contributions du compte). */
 function renderProposal(){
   const body=document.getElementById('proposal-body');
   if(!body) return;
+  const logged=!!(SB && authUser);
+  // ── Vue MES PROPOSITIONS (compte connecté) ──
+  if(proposalView==='mine'){
+    body.innerHTML='<div class="ppreview-head">Mes propositions envoyées — leur statut et l\'explication.</div>'
+      +'<div id="pmine-list" class="pmine-list">Chargement…</div>'
+      +'<div class="pactions"><button class="pbtn" onclick="showProposalEdit()">← Nouvelle proposition</button></div>';
+    renderMyContributions();   // remplit #pmine-list de façon asynchrone
+    return;
+  }
   // ── Vue APERÇU ──
   if(proposalView==='preview'){
+    // Le message d'aide dépend de l'état de connexion : connecté → suivi du
+    // statut sur le compte ; sinon → envoi anonyme (repli PythonAnywhere).
+    const onlineHint = logged
+      ? 'Connecté : « Envoyer en ligne » enregistre ta proposition sur ton compte — tu pourras suivre son statut dans « Mes propositions ».'
+      : 'Astuce : connecte-toi avant d\'envoyer pour suivre le statut de ta proposition. Sinon, « Envoyer en ligne » la transmet de façon anonyme.';
+    // Bouton « Mes propositions » réservé aux comptes connectés.
+    const mineBtn = logged ? '<button class="pbtn" onclick="showProposalMine()">Mes propositions</button>' : '';
     body.innerHTML='<div class="ppreview-head">Aperçu — ce texte sera transmis tel quel :</div>'
       +'<textarea class="ppreview" readonly>'+pEsc(generateProposalText())+'</textarea>'
-      +'<div class="phint" style="margin-top:8px">« Envoyer en ligne » transmet directement ta proposition. En cas d\'échec, utilise « Envoyer par email » (ouvre ton appli mail) ou « Copier le texte ».</div>'
+      +'<div class="phint" style="margin-top:8px">'+onlineHint+' En cas d\'échec, utilise « Envoyer par email » (ouvre ton appli mail) ou « Copier le texte ».</div>'
       // new: ligne de retour d'état de l'envoi en ligne (succès / erreur).
       +'<div id="psend-status" class="phint" style="margin-top:8px;min-height:1.1em"></div>'
       +'<div class="pactions">'
       +'<button class="pbtn" onclick="showProposalEdit()">← Modifier</button>'
       +'<button class="pbtn" id="pcopy-btn" onclick="copyProposal()">Copier le texte</button>'
       +'<button class="pbtn" onclick="sendProposal()">Envoyer par email</button>'
-      // new: voie principale depuis l'étape 4 — POST vers la boîte en ligne.
-      +'<button class="pbtn pbtn-primary" id="psend-btn" onclick="sendProposalOnline()">Envoyer en ligne</button>'
+      +mineBtn
+      // new (Phase 3): voie principale — Supabase si connecté, sinon boîte PythonAnywhere.
+      +'<button class="pbtn pbtn-primary" id="psend-btn" onclick="submitProposalOnline()">Envoyer en ligne</button>'
       +'</div>';
     return;
   }
@@ -3385,7 +3513,9 @@ function renderProposal(){
       <label class="plabel">Votre nom / pseudo <span class="popt">facultatif</span></label>
       <input class="pinput" type="text" value="${pEsc(proposalContributor)}" placeholder="ex : anonyme" oninput="proposalContributor=this.value">
     </div>`;
-  html+=`<div class="pactions"><button class="pbtn pbtn-primary" onclick="showProposalPreview()">Aperçu de la proposition</button></div>`;
+  // new (Phase 3) : accès « Mes propositions » depuis l'édition (connecté).
+  const mineBtnEdit = logged ? `<button class="pbtn" onclick="showProposalMine()">Mes propositions</button>` : '';
+  html+=`<div class="pactions">${mineBtnEdit}<button class="pbtn pbtn-primary" onclick="showProposalPreview()">Aperçu de la proposition</button></div>`;
   body.innerHTML=html;
 }
 
