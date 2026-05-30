@@ -709,27 +709,89 @@ body:not(.mode-edition) .sb-propose{display:none!important}
 .quiz-end-num{font-size:20px;font-weight:700;color:var(--color-text-quiz)}
 .quiz-end-level{display:flex;flex-direction:column;gap:0}
 
-/* Onboarding 1re visite — overlay centré avec 4 conseils. */
-.onb-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:900;
-  display:none;align-items:center;justify-content:center;padding:20px}
-.onb-overlay.open{display:flex}
-.onb-card{max-width:480px;width:100%;background:var(--color-background-primary);
-  border:0.5px solid var(--color-border-secondary);
-  border-radius:var(--border-radius-lg);padding:24px 22px;color:var(--color-text-primary)}
-.onb-title{font-size:18px;font-weight:500;margin-bottom:6px}
-.onb-sub{font-size:12px;color:var(--color-text-secondary);margin-bottom:14px;line-height:1.5}
-.onb-tip{display:flex;gap:10px;align-items:flex-start;margin:10px 0;font-size:13px;
-  color:var(--color-text-secondary);line-height:1.55}
-.onb-tip-num{flex-shrink:0;width:22px;height:22px;border-radius:50%;
-  background:var(--color-background-info);color:var(--color-text-info);
-  display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;
-  border:0.5px solid var(--color-border-info)}
-.onb-actions{margin-top:18px;display:flex;justify-content:flex-end}
-.onb-ok{padding:8px 18px;background:var(--color-background-info);
-  border:0.5px solid var(--color-border-info);color:var(--color-text-info);
-  border-radius:var(--border-radius-md);font-family:inherit;font-size:12px;
-  font-weight:500;cursor:pointer;transition:filter .15s}
-.onb-ok:hover{filter:brightness(1.3)}
+/* ── Visite guidée (onboarding) + bouton d'aide ─────────────────────
+   Remplace l'ancien overlay « 4 conseils » par une vraie visite pas-à-pas
+   à projecteur (spotlight), pilotée par le module TOUR du <script>.
+   - .tour-blocker : voile plein écran qui CAPTURE tous les clics — la page
+     n'est pas interactive pendant la visite (on avance avec les boutons).
+     Transparent par défaut ; .dim l'assombrit uniformément (étapes
+     « carte centrée » : bienvenue / récap / fin, sans cible).
+   - .tour-spot : rectangle posé sur l'élément ciblé. Sa GRANDE ombre
+     portée assombrit tout SAUF ce rectangle → effet projecteur. Il ne capte
+     pas les clics (pointer-events:none) ; c'est .tour-blocker, dessous, qui
+     bloque (z-index : blocker < spot < bulle).
+   - .tour-bubble : la bulle d'explication + les contrôles (cliquables). */
+.tour-blocker{position:fixed;inset:0;z-index:1300;display:none;background:transparent}
+.tour-blocker.open{display:block}
+.tour-blocker.dim{background:rgba(0,0,0,.72)}
+.tour-spot{position:fixed;z-index:1301;border-radius:var(--border-radius-md);
+  pointer-events:none;display:none;
+  box-shadow:0 0 0 9999px rgba(0,0,0,.72),0 0 0 2px var(--color-border-info);
+  transition:top .22s ease,left .22s ease,width .22s ease,height .22s ease}
+.tour-bubble{position:fixed;z-index:1302;width:min(330px,90vw);display:none;
+  background:var(--color-background-primary);border:0.5px solid var(--color-border-info);
+  border-radius:var(--border-radius-lg);padding:16px 16px 12px;
+  box-shadow:0 8px 30px rgba(0,0,0,.5);color:var(--color-text-primary);
+  transition:top .2s ease,left .2s ease}
+.tour-part{font-size:10px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;
+  color:var(--color-text-info);margin-bottom:5px}
+.tour-title{font-size:15px;font-weight:600;margin-bottom:6px}
+.tour-text{font-size:12.5px;color:var(--color-text-secondary);line-height:1.55}
+.tour-text b{color:var(--color-text-primary);font-weight:600}
+.tour-progress{display:flex;gap:4px;flex-wrap:wrap;margin:13px 0 11px}
+.tour-dot{width:7px;height:7px;border-radius:50%;background:var(--color-border-tertiary)}
+.tour-dot.done{background:var(--color-text-info);opacity:.45}
+.tour-dot.cur{background:var(--color-text-info)}
+.tour-ctrl{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.tour-btn{font-family:inherit;font-size:12px;font-weight:500;cursor:pointer;
+  border-radius:var(--border-radius-md);padding:7px 12px;outline:none;
+  transition:filter .15s,background .15s,color .15s}
+.tour-btn-next{background:var(--color-background-info);border:0.5px solid var(--color-border-info);
+  color:var(--color-text-info)}
+.tour-btn-next:hover{filter:brightness(1.3)}
+.tour-btn-prev{background:transparent;border:0.5px solid var(--color-border-tertiary);
+  color:var(--color-text-secondary)}
+.tour-btn-prev:hover{color:var(--color-text-primary);border-color:var(--color-border-secondary)}
+.tour-skip{margin-left:auto;display:flex;gap:10px}
+.tour-link{background:none;border:0;font-family:inherit;font-size:11px;cursor:pointer;
+  color:var(--color-text-tertiary);padding:4px 2px;text-decoration:underline;text-underline-offset:2px}
+.tour-link:hover{color:var(--color-text-secondary)}
+/* Croix de fermeture de la bulle — n'apparaît qu'en accès direct à une
+   partie (cf. tourBubbleHTML : seulement si tourState.jumped). */
+.tour-close{position:absolute;top:9px;right:9px;width:22px;height:22px;
+  border-radius:var(--border-radius-md);background:transparent;
+  border:0.5px solid var(--color-border-tertiary);color:var(--color-text-tertiary);
+  font-size:14px;line-height:1;cursor:pointer;font-family:inherit;outline:none;
+  display:flex;align-items:center;justify-content:center;transition:all .15s}
+.tour-close:hover{background:var(--color-background-secondary);color:var(--color-text-primary)}
+
+/* Bouton d'aide « ? » fixé en haut à droite (rouvre la visite). z-index 200 :
+   au-dessus du contenu, mais sous le quiz (850) et la modale (1000). */
+.help-btn{position:fixed;top:22px;right:28px;z-index:200;width:30px;height:30px;
+  border-radius:50%;background:var(--color-background-secondary);
+  border:0.5px solid var(--color-border-secondary);color:var(--color-text-secondary);
+  font-size:15px;font-weight:600;cursor:pointer;line-height:1;font-family:inherit;
+  display:flex;align-items:center;justify-content:center;transition:all .15s}
+.help-btn:hover{color:var(--color-text-info);border-color:var(--color-border-info)}
+/* Menu déroulant du bouton d'aide. */
+.help-menu{position:fixed;top:58px;right:28px;z-index:210;width:235px;display:none;
+  background:var(--color-background-primary);border:0.5px solid var(--color-border-secondary);
+  border-radius:var(--border-radius-lg);padding:6px;box-shadow:0 8px 30px rgba(0,0,0,.5)}
+.help-menu.open{display:block}
+.help-menu-title{font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--color-text-tertiary);padding:7px 8px 4px}
+.help-item{display:block;width:100%;text-align:left;font-family:inherit;font-size:12.5px;
+  background:none;border:0;border-radius:var(--border-radius-md);color:var(--color-text-secondary);
+  padding:8px 10px;cursor:pointer;transition:background .15s,color .15s}
+.help-item:hover{background:var(--color-background-secondary);color:var(--color-text-primary)}
+.help-item.primary{color:var(--color-text-info);font-weight:500}
+.help-sep{height:0.5px;background:var(--color-border-tertiary);margin:5px 4px}
+/* Sur mobile, le burger est en haut à gauche : on garde le « ? » dans
+   l'angle opposé, légèrement resserré. */
+@media (max-width:700px){
+  .help-btn{top:12px;right:12px}
+  .help-menu{top:48px;right:12px}
+}
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.62);z-index:1000;
   display:none;align-items:center;justify-content:center;padding:20px}
 .modal-overlay.open{display:flex}
@@ -946,18 +1008,21 @@ body.sb-open .sb-backdrop{display:block;opacity:1}
   <div class="quiz-shell" id="quiz-body"></div>
 </div>
 
-<!-- Onboarding : 4 conseils à la 1re visite. Affiché si localStorage
-     'philo-onboarded' est vide ; masqué après clic sur « C'est parti ». -->
-<div class="onb-overlay" id="onb-overlay" role="dialog" aria-modal="true" aria-label="Bienvenue">
-  <div class="onb-card">
-    <div class="onb-title">🏛️ Bienvenue dans Graphe Philosophie</div>
-    <div class="onb-sub">Outil de révision pour le bac de philo — quelques repères en 20 secondes :</div>
-    <div class="onb-tip"><div class="onb-tip-num">1</div><div>Trois grands modes en haut de la <b>sidebar</b> : <b>Notions</b>, <b>Auteurs</b>, <b>Concepts</b>.</div></div>
-    <div class="onb-tip"><div class="onb-tip-num">2</div><div>Les <b>termes colorés</b> sont cliquables partout — concepts, auteurs et notions sont reliés en un graphe.</div></div>
-    <div class="onb-tip"><div class="onb-tip-num">3</div><div>Le <b>fil d'Ariane</b> en haut te ramène à n'importe quel niveau en un clic.</div></div>
-    <div class="onb-tip"><div class="onb-tip-num">4</div><div>Sur téléphone, le bouton <b>☰</b> en haut à gauche ouvre la sidebar.</div></div>
-    <div class="onb-actions"><button class="onb-ok" onclick="dismissOnboarding()">C'est parti</button></div>
-  </div>
+<!-- new: bouton d'aide « ? » (haut-droite) + son menu : rouvre la visite
+     guidée, en entier ou directement sur une partie. La visite elle-même
+     (voile + projecteur + bulle) est créée à la volée en JS — voir le
+     module « Visite guidée » du <script> (buildTourDOM). -->
+<button class="help-btn" id="help-btn" aria-label="Aide et visite guidée" onclick="toggleHelpMenu(event)">?</button>
+<div class="help-menu" id="help-menu" role="menu" aria-label="Aide">
+  <div class="help-menu-title">Visite guidée</div>
+  <button class="help-item primary" role="menuitem" onclick="startTour(0)">↻ Refaire toute la visite</button>
+  <div class="help-sep"></div>
+  <div class="help-menu-title">Aller à une partie</div>
+  <button class="help-item" role="menuitem" onclick="tourGoPart('fiches')">Les fiches</button>
+  <button class="help-item" role="menuitem" onclick="tourGoPart('liens')">Les liens dynamiques</button>
+  <button class="help-item" role="menuitem" onclick="tourGoPart('nav')">Naviguer / revenir</button>
+  <button class="help-item" role="menuitem" onclick="tourGoPart('reviser')">Réviser (le quiz)</button>
+  <button class="help-item" role="menuitem" onclick="tourGoPart('proposer')">Proposer / éditer</button>
 </div>
 
 <script src="data.js"></script>
@@ -3279,19 +3344,329 @@ function togglePhiloMode(){
   applyPhiloMode();
 }
 
-/* ── Onboarding 1re visite (4 conseils) ────────────────────────────
-   Affiché une seule fois (drapeau localStorage 'philo-onboarded').
-   Le clic « C'est parti » le masque et marque le drapeau.            */
-function showOnboardingIfFirst(){
-  if(localStorage.getItem('philo-onboarded')) return;
-  const el=document.getElementById('onb-overlay');
-  if(el) el.classList.add('open');
+/* ══════════════════════════════════════════════════════════════════
+   VISITE GUIDÉE (onboarding nouvelle génération)
+   ──────────────────────────────────────────────────────────────────
+   Remplace l'ancien overlay « 4 conseils ». Visite pas-à-pas à projecteur :
+   un voile assombrit toute la page, un « trou » lumineux met en valeur
+   l'élément décrit, une bulle explique + propose Précédent / Suivant /
+   Passer cette partie / Tout passer.
+
+   Principe « visite pilotée » : pendant la visite, la PAGE N'EST PAS
+   interactive (le voile .tour-blocker capte les clics) ; c'est la visite
+   qui met l'appli dans le bon état à chaque étape (sélection d'une notion,
+   ouverture du tiroir sur mobile, passage temporaire en mode édition…),
+   puis pointe l'élément réel.
+
+   Déclenchement : automatiquement à la 1re visite (drapeau localStorage
+   'philo-tour-v1'), et à la demande via le bouton « ? » (haut-droite).
+
+   Deux façons d'entrer, deux jeux de sorties (pour rester clair) :
+     · Déroulé guidé (1re visite / « Refaire tout ») : on avance aux boutons.
+       Le clic dans le sombre est inerte SAUF sur la dernière page (où il
+       ferme), et il n'y a pas de croix.
+     · Accès direct à une partie via le menu « ? » (tourState.jumped) : on
+       est en révision ciblée → une CROIX sur la bulle et le clic dans le
+       sombre ferment la visite à tout moment.
+
+   Chaque étape de TOUR_STEPS :
+     part      → identifiant de « partie » (progression + saut de partie +
+                 accès direct depuis le menu d'aide)
+     title     → titre court de la bulle
+     text      → explication (HTML simple : <b> autorisé)
+     side       → 'sidebar' | 'main' : gère le tiroir burger sur mobile
+     center    → true : carte centrée sans cible (bienvenue / récap / fin)
+     setup     → met l'appli dans l'état voulu avant de pointer
+     target    → fonction renvoyant l'élément à mettre en valeur (ou null)
+     nextLabel → libellé personnalisé du bouton Suivant
+   ══════════════════════════════════════════════════════════════════ */
+
+// Libellés lisibles des parties (sert d'en-tête de bulle + menu d'aide).
+const TOUR_PARTS={welcome:'Bienvenue',fiches:'Les fiches',liens:'Les liens',
+  nav:'Naviguer',reviser:'Réviser',proposer:'Proposer',end:''};
+
+// Garantit qu'une fiche de NOTION est affichée (état de départ commun à la
+// plupart des étapes : sidebar en mode « notions », contenu d'une notion).
+function tourShowNotion(){
+  sbMode='notions';
+  if(!D[cur]) cur=KEYS[0];
+  renderSB(); renderContent();
 }
-function dismissOnboarding(){
-  localStorage.setItem('philo-onboarded','1');
-  const el=document.getElementById('onb-overlay');
-  if(el) el.classList.remove('open');
+
+const TOUR_STEPS=[
+  // ── Partie 0 : Bienvenue (carte centrée, sans projecteur) ──
+  { part:'welcome', center:true, title:'🏛️ Bienvenue !',
+    text:"Tu viens d'arriver sur un <b>outil de fiches de philo</b> pour le bac : "
+        +"notions, auteurs et concepts du programme de Terminale, reliés entre eux, "
+        +"avec une <b>révision active</b> en cartes. Petit tour du propriétaire ?",
+    nextLabel:'Commencer ▶' },
+
+  // ── Partie 1 : Les fiches ──
+  { part:'fiches', side:'sidebar', title:'Trois portes d’entrée',
+    text:"Tout en haut de la barre latérale, <b>trois onglets</b> ouvrent le même "
+        +"savoir sous trois angles : <b>Notions</b>, <b>Auteurs</b> et <b>Concepts</b>.",
+    setup:tourShowNotion, target:()=>document.querySelector('.sb-tabs') },
+  { part:'fiches', side:'sidebar', title:'Les Notions',
+    text:"Les <b>notions</b> du programme (la conscience, la nature, l’art…). "
+        +"C’est le point de départ le plus naturel.",
+    setup:tourShowNotion, target:()=>document.querySelector('.sb-tabs .sb-tab:nth-child(1)') },
+  { part:'fiches', side:'sidebar', title:'Les Auteurs',
+    text:"Tu préfères entrer par un <b>philosophe</b> ? Cet onglet liste les auteurs et, pour "
+        +"chacun, ses idées clés et les notions qu’il a traitées.",
+    setup:tourShowNotion, target:()=>document.querySelector('.sb-tabs .sb-tab:nth-child(2)') },
+  { part:'fiches', side:'sidebar', title:'Les Concepts',
+    text:"Le <b>glossaire</b> des termes techniques (le déterminisme, l’aliénation…), avec leur "
+        +"définition et leurs liens vers les notions et les autres concepts.",
+    setup:tourShowNotion, target:()=>document.querySelector('.sb-tabs .sb-tab:nth-child(3)') },
+  { part:'fiches', side:'main', title:'À l’intérieur d’une fiche',
+    text:"Une fois dans une notion, ces <b>onglets</b> organisent le contenu : auteurs, textes du "
+        +"cours, <b>plans de dissertation</b> et exemples mobilisables.",
+    setup:tourShowNotion, target:()=>document.querySelector('.tabs') },
+
+  // ── Partie 2 : Les liens dynamiques ──
+  { part:'liens', side:'main', title:'Tout est relié',
+    text:"Les <b>termes colorés</b> dans les textes sont cliquables : notions, auteurs et concepts "
+        +"forment un <b>graphe</b>. Un clic t’emmène à la fiche correspondante — explore de proche "
+        +"en proche, sans jamais te perdre.",
+    setup:tourShowNotion,
+    target:()=>document.querySelector('.main-content .nterm, .main-content .cterm, .main-content .aterm')
+            ||document.querySelector('.def-box') },
+
+  // ── Partie 3 : Naviguer / revenir en arrière ──
+  { part:'nav', side:'main', title:'Le fil d’Ariane',
+    text:"En haut, ce <b>fil d’Ariane</b> indique où tu te trouves. Clique n’importe quel niveau "
+        +"pour y remonter en un clic.",
+    setup:tourShowNotion, target:()=>document.getElementById('crumbs') },
+  { part:'nav', side:'main', title:'Revenir en arrière',
+    text:"Le bouton <b>← Retour</b> te ramène à la page précédente (il s’active dès que tu as "
+        +"navigué). Pratique pour suivre un lien puis revenir.",
+    setup:tourShowNotion, target:()=>document.querySelector('.back-btn') },
+  { part:'nav', center:true, title:'Trois façons de circuler',
+    text:"Pour résumer : la <b>barre latérale</b> (les listes), le <b>fil d’Ariane</b> (ta position) "
+        +"et les <b>liens du texte</b> (de proche en proche). À toi de choisir." },
+
+  // ── Partie 4 : Réviser (le quiz) ──
+  { part:'reviser', side:'sidebar', title:'Réviser activement',
+    text:"Le bouton <b>🎯 Réviser</b> lance un <b>quiz en cartes</b> : le site fabrique les questions "
+        +"à partir des fiches et <b>espace les révisions</b> (répétition espacée) pour ancrer ce que "
+        +"tu retiens le moins bien.",
+    setup:tourShowNotion, target:()=>document.querySelector('.sb-quiz') },
+
+  // ── Partie 5 : Proposer / éditer ──
+  { part:'proposer', side:'sidebar', title:'Le mode édition',
+    text:"Ce bouton bascule en <b>mode édition</b> : il fait apparaître partout de petits boutons "
+        +"<b>+</b> sur les cartes (cachés par défaut pour un rendu épuré).",
+    setup:tourShowNotion, target:()=>document.querySelector('.sb-mode') },
+  { part:'proposer', side:'sidebar', title:'Proposer du contenu',
+    text:"En mode édition, <b>💡 Proposer du contenu</b> (et les <b>+</b> des cartes) te permettent de "
+        +"suggérer un <b>ajout</b>, une <b>correction</b> ou une <b>remarque</b> sur n’importe quel "
+        +"élément du site. Ta proposition est relue avant d’être publiée.",
+    // On force l'affichage du bouton (caché en mode révision) le temps de
+    // l'étape ; endTour()/renderTourStep() restaurent le mode réel ensuite.
+    setup:()=>{ tourShowNotion(); document.body.classList.add('mode-edition'); },
+    target:()=>document.querySelector('.sb-propose') },
+
+  // ── Fin (carte centrée) ──
+  { part:'end', center:true, title:'C’est parti 🎓',
+    text:"Voilà l’essentiel ! Le bouton <b>?</b> en haut à droite rouvre cette visite quand tu veux — "
+        +"en entier ou directement sur une partie. Bonnes révisions !",
+    nextLabel:'Terminer' },
+];
+
+// État interne : index de l'étape courante (-1 = visite fermée), cache du
+// DOM, et `jumped` (true = entrée par accès direct à une partie → croix +
+// clic sombre pour sortir).
+const tourState={i:-1, dom:null, jumped:false};
+
+/* buildTourDOM() — crée (une seule fois) les éléments de la visite :
+   le voile bloquant, le projecteur et la bulle. Réutilisés ensuite. */
+function buildTourDOM(){
+  if(tourState.dom) return tourState.dom;
+  const blocker=document.createElement('div'); blocker.className='tour-blocker';
+  const spot=document.createElement('div'); spot.className='tour-spot';
+  const bubble=document.createElement('div'); bubble.className='tour-bubble';
+  // Clic dans le sombre → fermeture conditionnelle (cf. tourBlockerClick).
+  blocker.addEventListener('click',tourBlockerClick);
+  document.body.appendChild(blocker);
+  document.body.appendChild(spot);
+  document.body.appendChild(bubble);
+  return tourState.dom={blocker,spot,bubble};
 }
+
+/* startTour(i, jumped) — démarre la visite à l'index i (0 = depuis le début).
+   `jumped` (défaut false) = entrée par accès direct à une partie : active la
+   croix et le clic-sombre pour sortir. Ferme le menu d'aide et le tiroir
+   pour partir d'un état propre. */
+function startTour(i, jumped){
+  closeHelpMenu();
+  closeSidebar();
+  buildTourDOM();
+  tourState.i=(i|0);
+  tourState.jumped=!!jumped;
+  document.addEventListener('keydown',tourKey);
+  window.addEventListener('resize',tourReposition);
+  renderTourStep();
+}
+
+/* tourGoPart(part) — va directement à la 1re étape d'une partie (menu d'aide).
+   Entrée « ciblée » → jumped=true (croix + clic-sombre pour sortir). */
+function tourGoPart(part){
+  const idx=TOUR_STEPS.findIndex(s=>s.part===part);
+  if(idx>=0) startTour(idx, true);
+}
+
+/* endTour() — termine la visite : masque le DOM, retire les écouteurs,
+   restaure le mode réel (un mode édition temporaire a pu être posé) et
+   mémorise que la visite a été vue (plus d'auto-affichage). */
+function endTour(){
+  document.removeEventListener('keydown',tourKey);
+  window.removeEventListener('resize',tourReposition);
+  if(tourState.dom){
+    tourState.dom.blocker.classList.remove('open','dim');
+    tourState.dom.spot.style.display='none';
+    tourState.dom.bubble.style.display='none';
+  }
+  tourState.i=-1;
+  applyPhiloMode();                              // restaure le mode (édition tempo)
+  try{ localStorage.setItem('philo-tour-v1','1'); }catch(e){}
+}
+
+function tourNext(){ if(tourState.i>=TOUR_STEPS.length-1) return endTour(); tourState.i++; renderTourStep(); }
+function tourPrev(){ if(tourState.i<=0) return; tourState.i--; renderTourStep(); }
+function tourSkipAll(){ endTour(); }
+/* tourSkipPart() — saute jusqu'à la 1re étape de la PARTIE SUIVANTE
+   (ou termine la visite s'il n'en reste pas). */
+function tourSkipPart(){
+  const curStep=TOUR_STEPS[tourState.i]; if(!curStep) return;
+  let j=tourState.i+1;
+  while(j<TOUR_STEPS.length && TOUR_STEPS[j].part===curStep.part) j++;
+  if(j>=TOUR_STEPS.length) return endTour();
+  tourState.i=j; renderTourStep();
+}
+/* tourKey(e) — Échap quitte la visite. */
+function tourKey(e){ if(e.key==='Escape') endTour(); }
+/* tourBlockerClick() — clic sur le voile sombre. Ne ferme la visite que
+   dans les cas voulus (sinon on ignore, pour ne pas sortir par accident
+   pendant le déroulé guidé) : sur la DERNIÈRE étape, ou en accès direct à
+   une partie (tourState.jumped). */
+function tourBlockerClick(){
+  if(tourState.i<0) return;
+  const last=tourState.i===TOUR_STEPS.length-1;
+  if(tourState.jumped || last) endTour();
+}
+/* tourReposition() — recalcule la position de l'étape courante (resize). */
+function tourReposition(){ if(tourState.i>=0) positionTourStep(); }
+
+/* renderTourStep() — affiche l'étape courante : prépare l'état de l'appli,
+   remplit la bulle, puis (au frame suivant, le rendu/scroll étant à jour)
+   positionne projecteur + bulle. */
+function renderTourStep(){
+  const step=TOUR_STEPS[tourState.i]; if(!step) return endTour();
+  const {blocker,bubble}=buildTourDOM();
+  // 1. Repartir du mode réel (annule un mode édition temporaire éventuel),
+  //    puis gérer le tiroir mobile selon que la cible est dans la sidebar
+  //    ou la zone principale, puis appliquer l'état propre à l'étape.
+  applyPhiloMode();
+  if(window.innerWidth<=700){
+    if(step.side==='sidebar') document.body.classList.add('sb-open');
+    else document.body.classList.remove('sb-open');
+  }
+  if(step.setup) step.setup();
+  // 2. Construire la bulle (contenu + contrôles).
+  blocker.classList.add('open');
+  bubble.style.display='block';
+  bubble.innerHTML=tourBubbleHTML(step);
+  // 3. Positionner au prochain frame (le DOM/scroll doit être à jour).
+  requestAnimationFrame(positionTourStep);
+}
+
+/* tourBubbleHTML(step) — HTML de la bulle : en-tête de partie, titre, texte,
+   pastilles de progression (une par étape) et barre de contrôles. */
+function tourBubbleHTML(step){
+  const i=tourState.i, last=i===TOUR_STEPS.length-1, first=i===0;
+  const partLabel=TOUR_PARTS[step.part]||'';
+  const dots=TOUR_STEPS.map((s,k)=>`<span class="tour-dot${k<i?' done':k===i?' cur':''}"></span>`).join('');
+  // Existe-t-il une partie suivante (pour proposer « Passer cette partie ») ?
+  let hasNextPart=false;
+  for(let j=i+1;j<TOUR_STEPS.length;j++){ if(TOUR_STEPS[j].part!==step.part){ hasNextPart=true; break; } }
+  const prevBtn=first?'':`<button class="tour-btn tour-btn-prev" onclick="tourPrev()">◀ Précédent</button>`;
+  const nextBtn=`<button class="tour-btn tour-btn-next" onclick="tourNext()">${step.nextLabel||(last?'Terminer':'Suivant ▶')}</button>`;
+  const skipPart=(step.part!=='welcome'&&step.part!=='end'&&hasNextPart)
+    ?`<button class="tour-link" onclick="tourSkipPart()">Passer cette partie</button>`:'';
+  const skipAll=last?'':`<button class="tour-link" onclick="tourSkipAll()">${first?'Passer la visite':'Tout passer'}</button>`;
+  // Croix : seulement en accès direct à une partie (révision ciblée).
+  const closeBtn=tourState.jumped?`<button class="tour-close" onclick="endTour()" aria-label="Fermer la visite" title="Fermer">×</button>`:'';
+  return `${closeBtn}${partLabel?`<div class="tour-part">${partLabel}</div>`:''}
+    <div class="tour-title">${step.title}</div>
+    <div class="tour-text">${step.text}</div>
+    <div class="tour-progress">${dots}</div>
+    <div class="tour-ctrl">${prevBtn}${nextBtn}<span class="tour-skip">${skipPart}${skipAll}</span></div>`;
+}
+
+/* positionTourStep() — place le projecteur autour de la cible et la bulle
+   à côté. Étape « center » (ou cible introuvable) : voile assombri uniforme
+   + bulle centrée. */
+function positionTourStep(){
+  const step=TOUR_STEPS[tourState.i]; if(!step) return;
+  const {blocker,spot,bubble}=tourState.dom;
+  const el=(!step.center&&step.target)?step.target():null;
+  if(el){ try{ el.scrollIntoView({block:'center',inline:'nearest'}); }catch(e){} }
+  const vw=window.innerWidth, vh=window.innerHeight;
+  const bw=bubble.offsetWidth, bh=bubble.offsetHeight;
+  if(!el){
+    // Carte centrée : pas de projecteur, voile uniforme.
+    blocker.classList.add('dim'); spot.style.display='none';
+    bubble.style.left=Math.max(8,(vw-bw)/2)+'px';
+    bubble.style.top=Math.max(8,(vh-bh)/2)+'px';
+    return;
+  }
+  blocker.classList.remove('dim');
+  const r=el.getBoundingClientRect();
+  const pad=6;
+  spot.style.display='block';
+  spot.style.top=(r.top-pad)+'px';
+  spot.style.left=(r.left-pad)+'px';
+  spot.style.width=(r.width+pad*2)+'px';
+  spot.style.height=(r.height+pad*2)+'px';
+  // Choix du placement de la bulle : à droite si la cible est à gauche
+  // (sidebar), sinon dessous, sinon dessus, sinon centré.
+  const gap=14;
+  let top, left;
+  const roomRight=r.right+gap+bw<=vw-8, roomBelow=r.bottom+gap+bh<=vh-8, roomAbove=r.top-gap-bh>=8;
+  if(r.left<vw*0.34 && roomRight){
+    left=r.right+gap; top=tourClamp(r.top,8,vh-bh-8);
+  } else if(roomBelow){
+    top=r.bottom+gap; left=tourClamp(r.left,8,vw-bw-8);
+  } else if(roomAbove){
+    top=r.top-gap-bh; left=tourClamp(r.left,8,vw-bw-8);
+  } else {
+    top=Math.max(8,(vh-bh)/2); left=Math.max(8,(vw-bw)/2);
+  }
+  bubble.style.top=top+'px';
+  bubble.style.left=left+'px';
+}
+function tourClamp(v,min,max){ return Math.max(min,Math.min(max,v)); }
+
+/* tourStartIfFirst() — auto-affichage de la visite à la toute 1re venue
+   (drapeau localStorage 'philo-tour-v1'). En navigation privée où l'accès
+   au stockage lève, on considère « déjà vu » pour ne pas gêner. */
+function tourStartIfFirst(){
+  let seen; try{ seen=localStorage.getItem('philo-tour-v1'); }catch(e){ seen='1'; }
+  if(!seen) startTour(0);
+}
+
+/* ── Bouton d'aide « ? » : ouvre/ferme le menu ─────────────────────── */
+function toggleHelpMenu(e){
+  if(e) e.stopPropagation();
+  const m=document.getElementById('help-menu');
+  if(m) m.classList.toggle('open');
+}
+function closeHelpMenu(){ const m=document.getElementById('help-menu'); if(m) m.classList.remove('open'); }
+// Un clic hors du menu (et hors du bouton) le referme.
+document.addEventListener('click',e=>{
+  const m=document.getElementById('help-menu');
+  if(m&&m.classList.contains('open')&&!m.contains(e.target)&&e.target.id!=='help-btn') closeHelpMenu();
+});
 (function initSidebarDrawer(){
   document.getElementById('sb-burger').addEventListener('click',toggleSidebar);
   document.getElementById('sb-backdrop').addEventListener('click',closeSidebar);
@@ -3322,7 +3697,7 @@ function dismissOnboarding(){
    renderSB()      → construit la sidebar avec la première notion active
    renderContent() → affiche le contenu de cette première notion        */
 renderSB();renderContent();
-showOnboardingIfFirst();
+tourStartIfFirst();   // visite guidée auto à la 1re venue (cf. module « Visite guidée »)
 
 /* ── PWA — enregistrement du service worker ─────────────────────────
    Une fois le service worker enregistré, le site fonctionne hors-ligne
