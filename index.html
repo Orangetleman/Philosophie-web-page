@@ -2545,7 +2545,66 @@ function proposalCibleLabel(v){
 let proposalBoxes=[];        // boîtes de la soumission en cours
 let proposalSeq=0;           // compteur d'id uniques
 let proposalContributor='';  // nom/pseudo du contributeur (facultatif)
-let proposalView='edit';     // vue de la modale : 'edit' | 'preview'
+let proposalView='edit';     // vue de la modale : 'edit' | 'preview' | 'mine'
+
+/* new (Phase 3) : BROUILLON de proposition — persistant + synchronisé.
+   Les boîtes en cours de saisie n'étaient qu'en mémoire : perdues au
+   rechargement et jamais reportées sur le compte. On les sauvegarde en
+   localStorage ('philo-drafts') et on les fait voyager dans le bloc
+   « préférences » synchronisé (pas de nouvelle table à créer). */
+function proposalOpen(){
+  const o=document.getElementById('proposal-overlay');
+  return !!(o && o.classList.contains('open'));
+}
+function draftsBlobForSync(){
+  return { boxes:proposalBoxes, contributor:proposalContributor, seq:proposalSeq };
+}
+function saveDrafts(){
+  try{ localStorage.setItem('philo-drafts', JSON.stringify(draftsBlobForSync())); }catch(e){}
+}
+/* draftChanged — à appeler après CHAQUE modification du brouillon : on
+   persiste localement, puis on programme un envoi (différé) vers le compte. */
+function draftChanged(){ saveDrafts(); if(typeof syncOnPrefsChange==='function') syncOnPrefsChange(); }
+/* applyDraftsBlob — recharge un brouillon (depuis le stockage ou le compte)
+   dans l'état d'exécution. On NE touche à rien si la modale est ouverte, pour
+   ne pas effacer une saisie en cours sous les doigts du contributeur. */
+function applyDraftsBlob(d){
+  if(!d || proposalOpen()) return;
+  if(Array.isArray(d.boxes)) proposalBoxes=d.boxes;
+  proposalContributor=d.contributor||'';
+  let maxId=0; proposalBoxes.forEach(b=>{ if(b && b.id>maxId) maxId=b.id; });
+  proposalSeq=Math.max(d.seq||0, maxId);   // jamais réutiliser un id déjà pris
+}
+/* restoreDraftsFromStorage — au démarrage : recharge le brouillon local. */
+function restoreDraftsFromStorage(){
+  try{ applyDraftsBlob(JSON.parse(localStorage.getItem('philo-drafts')||'null')); }catch(e){}
+}
+/* draftIsEmpty — vrai si le brouillon ne contient rien de saisi. Sert à
+   décider, à la 1re connexion, si l'on peut adopter le brouillon du compte
+   sans rien écraser. */
+function draftIsEmpty(){
+  if((proposalContributor||'').trim()) return false;
+  if(!proposalBoxes.length) return true;
+  if(proposalBoxes.length>1) return false;
+  const f=(proposalBoxes[0]||{}).f||{};
+  return !Object.keys(f).some(k=>{
+    const v=f[k];
+    if(Array.isArray(v)) return v.some(it=> it && (typeof it==='object'
+      ? Object.keys(it).some(ik=>String(it[ik]==null?'':it[ik]).trim())
+      : String(it).trim()));
+    return String(v==null?'':v).trim();
+  });
+}
+/* clearDrafts — vide le brouillon après un envoi en ligne réussi : une boîte
+   neuve, le NOM du contributeur conservé (réutilisable). On persiste et on
+   synchronise, mais on NE re-rend PAS (pour garder le message « Envoyé » à
+   l'écran) : la prochaine ouverture repartira sur une boîte vierge. */
+function clearDrafts(){
+  proposalBoxes=[{id:++proposalSeq,categorie:'auteur',type:'ajout',cible:'auteur',f:{ideas:[{}]}}];
+  draftChanged();
+}
+/* setProposalContributor — écrit le nom du contributeur + persiste le brouillon. */
+function setProposalContributor(v){ proposalContributor=v; draftChanged(); }
 
 /* ensureIdeas — garantit que box.f.ideas existe (au moins une idée vide).
    Une boîte cible 'auteur' utilise box.f.ideas[] pour permettre N idées
@@ -2614,6 +2673,7 @@ function setIdeaF(id,idx,key,val,rerender){
   ensureIdeas(b);
   const it=b.f.ideas[idx]||(b.f.ideas[idx]={});
   it[key]=val;
+  draftChanged();              // new (Phase 3) : persiste + synchronise le brouillon
   if(rerender) renderProposal();
 }
 /* toggleIdeaRemove — (mode modif) marque une idée « à retirer » et révèle
@@ -2645,6 +2705,7 @@ function setIdeaCitation(id,idx,ci,val){
   const b=proposalBoxes.find(x=>x.id===id); if(!b) return;
   const it=b.f.ideas[idx]; if(!it||!Array.isArray(it.citations)) return;
   it.citations[ci]=val;
+  draftChanged();              // new (Phase 3) : persiste + synchronise le brouillon
 }
 
 /* ── Champs d'une boîte selon (type × cible) — étape 1c ──────────────
@@ -2777,6 +2838,7 @@ function setBoxF(id,key,val,rerender){
   const b=proposalBoxes.find(x=>x.id===id);
   if(!b) return;
   (b.f||(b.f={}))[key]=val;
+  draftChanged();              // new (Phase 3) : persiste + synchronise le brouillon
   if(rerender) renderProposal();
 }
 /* Coche / décoche une notion liée (cible « concept »). Sans re-rendu. */
@@ -2785,6 +2847,7 @@ function toggleBoxNotion(id,k,on){
   const arr=b.f.cnotions||(b.f.cnotions=[]);
   const i=arr.indexOf(k);
   if(on&&i<0) arr.push(k); else if(!on&&i>=0) arr.splice(i,1);
+  draftChanged();              // new (Phase 3) : persiste + synchronise le brouillon
 }
 
 /* pField — rend un champ générique (input texte ou textarea). */
@@ -3331,6 +3394,7 @@ function sendProposalOnline(){
       if(r.ok && data.ok){
         if(btn){ btn.textContent='✓ Envoyé'; }   // reste désactivé : évite le double envoi
         setStatus('Merci ! Ta proposition a bien été reçue. 🎉','#2ecc71');
+        clearDrafts();   // new (Phase 3) : proposition soumise → on vide le brouillon
       } else {
         // Réponse reçue mais refus (format, débit…) : on remonte le motif.
         throw new Error((data && data.error) || ('HTTP '+r.status));
@@ -3365,6 +3429,7 @@ function sendProposalToSupabase(){
     if(res.error) throw res.error;
     if(btn){ btn.textContent='✓ Envoyé'; }   // reste désactivé : évite le double envoi
     setStatus('Merci ! Ta proposition est enregistrée sur ton compte. Suis son statut dans « Mes propositions ». 🎉','#2ecc71');
+    clearDrafts();   // new (Phase 3) : la proposition étant soumise, on vide le brouillon
   }).catch(function(err){
     if(btn){ btn.disabled=false; btn.textContent='Réessayer en ligne'; }
     setStatus('Envoi impossible ('+((err&&err.message)||err)
@@ -3511,12 +3576,16 @@ function renderProposal(){
   html+=`<button class="pbox-add" onclick="addProposalBox()">+ Ajouter une boîte</button>`;
   html+=`<div class="pfield" style="margin-top:16px">
       <label class="plabel">Votre nom / pseudo <span class="popt">facultatif</span></label>
-      <input class="pinput" type="text" value="${pEsc(proposalContributor)}" placeholder="ex : anonyme" oninput="proposalContributor=this.value">
+      <input class="pinput" type="text" value="${pEsc(proposalContributor)}" placeholder="ex : anonyme" oninput="setProposalContributor(this.value)">
     </div>`;
   // new (Phase 3) : accès « Mes propositions » depuis l'édition (connecté).
   const mineBtnEdit = logged ? `<button class="pbtn" onclick="showProposalMine()">Mes propositions</button>` : '';
   html+=`<div class="pactions">${mineBtnEdit}<button class="pbtn pbtn-primary" onclick="showProposalPreview()">Aperçu de la proposition</button></div>`;
   body.innerHTML=html;
+  // new (Phase 3) : toute modification de structure passe par ce rendu — on en
+  // profite pour persister/synchroniser le brouillon (les saisies de texte, qui
+  // ne re-rendent pas, sont couvertes par setBoxF/setIdeaF).
+  draftChanged();
 }
 
 /* ── « + » de proposition injectés dans les vues (étape 1d) ──────────
@@ -4456,20 +4525,35 @@ function quizBlobForSync(){
   return Object.assign({},loadQuizState());
 }
 
-/* prefsBlobForSync() — préférences synchronisées (petites). */
+/* prefsBlobForSync() — préférences synchronisées (petites) + le brouillon de
+   proposition en cours (philo-drafts), qui voyage ici faute de table dédiée. */
 function prefsBlobForSync(){
+  let drafts=null;
+  try{ drafts=JSON.parse(localStorage.getItem('philo-drafts')||'null'); }catch(e){}
   return {
     mode: localStorage.getItem('philo-mode')||'revision',
-    tour: localStorage.getItem('philo-tour-v1')||''
+    tour: localStorage.getItem('philo-tour-v1')||'',
+    drafts: drafts
   };
 }
 
-/* applyPrefsBlob() — applique des préférences reçues du serveur. */
+/* applyPrefsBlob() — applique mode + tour reçus du serveur. Le brouillon est
+   traité à part (adoptRemoteDrafts), pour pouvoir le CONSERVER à la 1re
+   connexion si l'utilisateur en avait déjà un en cours. */
 function applyPrefsBlob(p){
   if(!p) return;
   if(p.mode) localStorage.setItem('philo-mode',p.mode);
   if(p.tour) localStorage.setItem('philo-tour-v1',p.tour);
   applyPhiloMode();
+}
+
+/* adoptRemoteDrafts() — recopie le brouillon du compte dans le stockage local
+   et l'état d'exécution (applyDraftsBlob protège une saisie en cours). */
+function adoptRemoteDrafts(p){
+  const d=p && p.drafts;
+  if(!d) return;
+  try{ localStorage.setItem('philo-drafts', JSON.stringify(d)); }catch(e){}
+  applyDraftsBlob(d);
 }
 
 /* mergeQuiz(a,b) — fusionne deux états de quiz sans rien perdre (a = local).
@@ -4567,11 +4651,17 @@ async function syncOnLogin(){
     const remoteP=p.data&&p.data.data;
     const remotePAt=(p.data&&p.data.updated_at)||null;
     if(firstEver){
-      if(remoteP){ applyPrefsBlob(remoteP); }
+      if(remoteP){
+        applyPrefsBlob(remoteP);
+        // Brouillon : on n'adopte celui du compte que si le local est vide
+        // (sinon on garderait ce que l'utilisateur était en train d'écrire).
+        if(draftIsEmpty()) adoptRemoteDrafts(remoteP);
+      }
     } else if(sameAccount && remotePAt===marker.prefs){
-      // local fait foi
+      // local fait foi (mode, tour ET brouillon local conservés)
     } else if(remoteP){
       applyPrefsBlob(remoteP);
+      adoptRemoteDrafts(remoteP);
     }
     syncMeta.prefs=remotePAt;
 
@@ -4659,6 +4749,7 @@ async function syncOnFocus(){
     }
     if(p.data && p.data.updated_at && p.data.updated_at!==syncMeta.prefs){
       applyPrefsBlob(p.data.data||{});
+      adoptRemoteDrafts(p.data.data||{});   // brouillon écrit depuis un autre appareil
       syncMeta.prefs=p.data.updated_at; saveSyncMarker();
     }
     syncSuspend=false;
@@ -4685,6 +4776,7 @@ function syncResetState(){
    Appel initial au chargement de la page :
    renderSB()      → construit la sidebar avec la première notion active
    renderContent() → affiche le contenu de cette première notion        */
+restoreDraftsFromStorage();   // new (Phase 3) : recharge le brouillon de proposition local
 renderSB();renderContent();
 initAuth();           // new (comptes) : récupère la session + s'abonne aux changements d'état
 tourStartIfFirst();   // visite guidée auto à la 1re venue (cf. module « Visite guidée »)
