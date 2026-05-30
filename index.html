@@ -4300,12 +4300,11 @@ const SYNC_DEBOUNCE=1500;   // ms : regroupe les écritures rapprochées avant l
 
 function syncUid(){ return authUser?authUser.id:null; }
 
-/* quizBlobForSync() — l'objet quiz à envoyer en ligne : tout SAUF la
-   session en cours (« active »), qui est propre à cet appareil. */
+/* quizBlobForSync() — l'objet quiz à envoyer en ligne. On synchronise TOUT,
+   y compris la session en cours (« active »), pour pouvoir la reprendre sur
+   un autre appareil (téléphone → PC, etc.). */
 function quizBlobForSync(){
-  const c=Object.assign({},loadQuizState());
-  delete c.active;
-  return c;
+  return Object.assign({},loadQuizState());
 }
 
 /* prefsBlobForSync() — préférences synchronisées (petites). */
@@ -4346,7 +4345,11 @@ function mergeQuiz(a,b){
   const ax=(a.gamif&&a.gamif.xp)||0, bx=(b.gamif&&b.gamif.xp)||0, mx=Math.max(ax,bx);
   out.gamif={xp:mx, level:quizLevel(mx)};
   const ad=a.daily||{}, bd=b.daily||{};
-  out.daily=((bd.lastDate||'')>(ad.lastDate||'')) ? Object.assign({},ad,bd) : Object.assign({},bd,ad);
+  // On garde le « daily » du jour le plus récent. ATTENTION : le quiz
+  // renseigne .date (le dernier jour actif), pas .lastDate (champ historique
+  // resté vide) — c'est donc bien .date qui sert d'arbitre. Puis on conserve
+  // la meilleure série (streak), pour ne jamais la faire reculer à la fusion.
+  out.daily=((bd.date||'')>(ad.date||'')) ? Object.assign({},ad,bd) : Object.assign({},bd,ad);
   out.daily.streak=Math.max(ad.streak||0, bd.streak||0);
   out.prefs=out.prefs||{};
   out.prefs.dontWarnNewSession=!!(((a.prefs||{}).dontWarnNewSession)||((b.prefs||{}).dontWarnNewSession));
@@ -4378,7 +4381,9 @@ async function syncOnLogin(){
     const remoteQ=q.data&&q.data.data;
     if(remoteQ && remoteQ.byHorizon){
       const merged=mergeQuiz(quizBlobForSync(), remoteQ);
-      merged.active=loadQuizState().active;     // on conserve la session locale en cours
+      // Session en cours : on garde celle de CET appareil si elle existe (ne pas
+      // interrompre une session démarrée ici), sinon on adopte la distante.
+      merged.active=loadQuizState().active || remoteQ.active || null;
       saveQuizState(merged);
     }
     syncMeta.quiz=(q.data&&q.data.updated_at)||null;
@@ -4464,7 +4469,7 @@ async function syncOnFocus(){
     syncSuspend=true;
     if(q.data && q.data.updated_at && q.data.updated_at!==syncMeta.quiz){
       const merged=mergeQuiz(quizBlobForSync(), q.data.data||{});
-      merged.active=loadQuizState().active;
+      merged.active=loadQuizState().active || (q.data.data&&q.data.data.active) || null;
       saveQuizState(merged);
       syncMeta.quiz=q.data.updated_at;
       if(quizOverlayOpen()){ try{ renderQuiz(); }catch(e){} }
@@ -4890,8 +4895,14 @@ function renderQuizDashboard(){
   </details>
   <details class="quiz-help"><summary>💾 Ma progression est-elle sauvegardée&nbsp;?</summary>
     <div class="quiz-help-body">
-      <p><b>Oui, automatiquement</b>, sur cet appareil et dans ce navigateur. Elle est enregistrée <b>à chaque réponse</b> et survit si tu <b>actualises la page, fermes l'onglet ou éteins l'appareil</b> (puis reviens sur le site).</p>
-      <p>⚠️ Tu la <b>perdrais</b> si tu&nbsp;: effaces les données de navigation / l'historique de ce site, utilises la <b>navigation privée</b>, ou ouvres le site depuis un <b>autre navigateur ou un autre appareil</b>. Il n'y a pas encore de compte pour synchroniser&nbsp;: reste sur le même navigateur pour ne rien perdre.</p>
+      ${authUser ? `
+      <p><b>Oui, et elle te suit partout&nbsp;!</b> Tu es connecté&nbsp;: ta progression complète (niveau, cartes, série, objectif <b>et même la session en cours</b>) est enregistrée <b>sur ton compte</b> à chaque réponse.</p>
+      <p>📱💻 Tu la retrouves <b>sur tous tes appareils</b> — téléphone, tablette, ordinateur — simplement en te connectant avec le même compte. Une copie reste aussi sur cet appareil, donc <b>même hors-ligne tout fonctionne</b>&nbsp;: la synchro se fait dès le retour en ligne.</p>
+      ` : `
+      <p><b>Oui — mais pour l'instant sur cet appareil uniquement</b> (ce navigateur). Elle est enregistrée <b>à chaque réponse</b> et survit si tu actualises la page, fermes l'onglet ou éteins l'appareil.</p>
+      <p>🔗 <b>Pour la garder sur tous tes appareils</b> (téléphone, ordinateur, autre navigateur) et ne <b>jamais</b> la perdre&nbsp;: <b>crée un compte ou connecte-toi</b> (boutons en bas de la barre latérale). Bonne nouvelle&nbsp;: ta progression actuelle sera <b>fusionnée</b> avec ton compte — rien n'est perdu.</p>
+      <p>⚠️ Sans compte, tu perdrais ta progression en cas d'effacement des données de navigation, de <b>navigation privée</b>, ou de changement de navigateur/appareil.</p>
+      `}
     </div>
   </details>
   <button class="quiz-reset" onclick="resetQuizHorizon()">Réinitialiser le rythme «&nbsp;${quizState.horizon==='sprint'?'Sprint':'Long terme'}&nbsp;»</button>
