@@ -4300,6 +4300,25 @@ const SYNC_DEBOUNCE=1500;   // ms : regroupe les écritures rapprochées avant l
 
 function syncUid(){ return authUser?authUser.id:null; }
 
+/* new (Phase 2 — correctif « dernière version gagne ») :
+   ── Le « marqueur de synchro » (persisté en localStorage) ───────────────
+   On retient, POUR CET APPAREIL, le dernier updated_at serveur qu'on a vu
+   pour chaque table, ET le compte (uid) auquel il appartient. Ce marqueur
+   permet de distinguer deux situations au chargement :
+     • le distant a un updated_at DIFFÉRENT du marqueur → un AUTRE appareil a
+       écrit depuis → on adopte le distant (plus récent) ;
+     • le distant a le MÊME updated_at que le marqueur → rien n'a bougé en
+       ligne depuis notre dernière synchro → c'est le LOCAL qui fait foi, y
+       compris une remise à zéro (sinon une suppression « reviendrait »).
+   Sans ce marqueur, l'ancienne version fusionnait à chaque chargement, ce
+   qui ressuscitait les cartes qu'on venait d'effacer. */
+function loadSyncMarker(){
+  try{ return JSON.parse(localStorage.getItem('philo-sync')||'null'); }catch(e){ return null; }
+}
+function saveSyncMarker(){
+  try{ localStorage.setItem('philo-sync',JSON.stringify({uid:syncUid(),quiz:syncMeta.quiz,prefs:syncMeta.prefs})); }catch(e){}
+}
+
 /* quizBlobForSync() — l'objet quiz à envoyer en ligne. On synchronise TOUT,
    y compris la session en cours (« active »), pour pouvoir la reprendre sur
    un autre appareil (téléphone → PC, etc.). */
@@ -4362,11 +4381,24 @@ function quizOverlayOpen(){
   return !!(o && o.classList.contains('open'));
 }
 
-/* syncOnLogin() — au moment où l'on devient connecté : lit le distant,
-   fusionne avec le local, ré-écrit localement, puis pousse le résultat. */
+/* syncOnLogin() — au moment où l'on devient connecté : lit le distant, puis
+   décide quoi faire selon le « marqueur de synchro » de cet appareil :
+
+     • AUCUN marqueur (vraie 1re connexion / appareil tout neuf) → on FUSIONNE
+       une fois les données anonymes locales avec le compte (rien n'est perdu).
+     • marqueur présent ET distant inchangé depuis (même updated_at) → le LOCAL
+       fait foi (y compris une remise à zéro) → on POUSSE le local.
+     • marqueur présent MAIS distant différent (autre appareil) OU compte
+       différent (changement de session) → on ADOPTE le distant tel quel.
+
+   C'est ce qui fait que « la version la plus récente gagne » : on ne fusionne
+   plus à chaque chargement (ce qui ressuscitait les cartes effacées). */
 async function syncOnLogin(){
   if(!SB||!authUser) return;
   const uid=syncUid();
+  const marker=loadSyncMarker();
+  const firstEver = !marker;                          // jamais synchronisé sur cet appareil
+  const sameAccount = !!marker && marker.uid===uid;   // même compte qu'au dernier passage
   try{
     const [q,p]=await Promise.all([
       SB.from('quiz_progress').select('data,updated_at').eq('user_id',uid).maybeSingle(),
@@ -4377,25 +4409,46 @@ async function syncOnLogin(){
 
     syncSuspend=true;   // on écrit en localStorage sans déclencher de push en retour
 
-    // QUIZ : fusion si le distant a déjà des données, sinon on garde le local.
+    // ── QUIZ ──
     const remoteQ=q.data&&q.data.data;
-    if(remoteQ && remoteQ.byHorizon){
-      const merged=mergeQuiz(quizBlobForSync(), remoteQ);
-      // Session en cours : on garde celle de CET appareil si elle existe (ne pas
-      // interrompre une session démarrée ici), sinon on adopte la distante.
-      merged.active=loadQuizState().active || remoteQ.active || null;
-      saveQuizState(merged);
+    const remoteQAt=(q.data&&q.data.updated_at)||null;
+    if(firstEver){
+      // FUSION unique : on combine local (anonyme) + distant, sans rien perdre.
+      if(remoteQ && remoteQ.byHorizon){
+        const merged=mergeQuiz(quizBlobForSync(), remoteQ);
+        // Session en cours : on garde celle de cet appareil si elle existe,
+        // sinon on adopte la distante.
+        merged.active=loadQuizState().active || remoteQ.active || null;
+        saveQuizState(merged);
+      }
+      // (si le distant est vide : on garde le local, il sera poussé ci-dessous)
+    } else if(sameAccount && remoteQAt===marker.quiz){
+      // Rien n'a changé en ligne depuis notre dernier passage → le local fait
+      // foi (on ne touche à rien ; on poussera l'état local plus bas).
+    } else {
+      // Le distant a changé (autre appareil) ou on change de compte → on adopte
+      // le distant TEL QUEL — y compris s'il a été remis à zéro ailleurs.
+      if(remoteQ){ saveQuizState(remoteQ); }
+      else { localStorage.removeItem('philo-quiz'); }
     }
-    syncMeta.quiz=(q.data&&q.data.updated_at)||null;
+    syncMeta.quiz=remoteQAt;
 
-    // PRÉFÉRENCES : si le distant existe, il fait foi ; sinon on garde le local.
+    // ── PRÉFÉRENCES ── (même logique, en plus simple : pas de fusion fine)
     const remoteP=p.data&&p.data.data;
-    if(remoteP){ applyPrefsBlob(remoteP); }
-    syncMeta.prefs=(p.data&&p.data.updated_at)||null;
+    const remotePAt=(p.data&&p.data.updated_at)||null;
+    if(firstEver){
+      if(remoteP){ applyPrefsBlob(remoteP); }
+    } else if(sameAccount && remotePAt===marker.prefs){
+      // local fait foi
+    } else if(remoteP){
+      applyPrefsBlob(remoteP);
+    }
+    syncMeta.prefs=remotePAt;
 
     syncSuspend=false;
 
-    // On pousse l'état fusionné : il devient la référence partagée entre appareils.
+    // On pousse l'état local courant : il devient la référence partagée. Le push
+    // met à jour syncMeta puis persiste le marqueur (cf. syncPushQuiz/Prefs).
     await syncPushQuiz(true);
     await syncPushPrefs(true);
 
@@ -4424,7 +4477,7 @@ async function syncPushQuiz(immediate){
       const {error}=await SB.from('quiz_progress')
         .upsert({user_id:uid,data:quizBlobForSync(),updated_at:now},{onConflict:'user_id'});
       if(error){ console.warn("[sync] envoi du quiz :", error.message); return; }
-      syncMeta.quiz=now;
+      syncMeta.quiz=now; saveSyncMarker();   // notre local devient la dernière version connue
     }catch(e){ console.warn("[sync] envoi du quiz :", (e&&e.message)||e); }
   };
   clearTimeout(syncQuizTimer);
@@ -4441,7 +4494,7 @@ async function syncPushPrefs(immediate){
       const {error}=await SB.from('preferences')
         .upsert({user_id:uid,data:prefsBlobForSync(),updated_at:now},{onConflict:'user_id'});
       if(error){ console.warn("[sync] envoi des préférences :", error.message); return; }
-      syncMeta.prefs=now;
+      syncMeta.prefs=now; saveSyncMarker();   // notre local devient la dernière version connue
     }catch(e){ console.warn("[sync] envoi des préférences :", (e&&e.message)||e); }
   };
   clearTimeout(syncPrefsTimer);
@@ -4455,9 +4508,10 @@ async function syncPushPrefs(immediate){
 function syncOnQuizChange(){ if(syncReady && !syncSuspend) syncPushQuiz(false); }
 function syncOnPrefsChange(){ if(syncReady && !syncSuspend) syncPushPrefs(false); }
 
-/* syncOnFocus() — au retour sur l'onglet : si un autre appareil a écrit
-   depuis (updated_at différent du dernier connu), on récupère et on
-   fusionne (le quiz) / on adopte (les préférences). */
+/* syncOnFocus() — au retour sur l'onglet : si un autre appareil a écrit depuis
+   (updated_at différent du dernier connu), on ADOPTE le distant tel quel (c'est
+   la version la plus récente). On ne fusionne PAS : fusionner ferait revenir
+   des cartes effacées ailleurs. */
 async function syncOnFocus(){
   if(!SB||!authUser||!syncReady) return;
   const uid=syncUid();
@@ -4468,15 +4522,14 @@ async function syncOnFocus(){
     ]);
     syncSuspend=true;
     if(q.data && q.data.updated_at && q.data.updated_at!==syncMeta.quiz){
-      const merged=mergeQuiz(quizBlobForSync(), q.data.data||{});
-      merged.active=loadQuizState().active || (q.data.data&&q.data.data.active) || null;
-      saveQuizState(merged);
-      syncMeta.quiz=q.data.updated_at;
+      if(q.data.data){ saveQuizState(q.data.data); }
+      else { localStorage.removeItem('philo-quiz'); }
+      syncMeta.quiz=q.data.updated_at; saveSyncMarker();
       if(quizOverlayOpen()){ try{ renderQuiz(); }catch(e){} }
     }
     if(p.data && p.data.updated_at && p.data.updated_at!==syncMeta.prefs){
       applyPrefsBlob(p.data.data||{});
-      syncMeta.prefs=p.data.updated_at;
+      syncMeta.prefs=p.data.updated_at; saveSyncMarker();
     }
     syncSuspend=false;
   }catch(e){ syncSuspend=false; }
@@ -4941,6 +4994,10 @@ function resetAllQuiz(){
   quizState.horizon='sprint'; quizState.mode='cards'; quizState.revealed=false;
   quizState.view='dashboard';
   renderQuiz();
+  // new (Phase 2 — correctif) : propager la remise à zéro au compte. Sans cela,
+  // removeItem n'appelle pas saveQuizState → aucun envoi → au prochain
+  // chargement le distant ré-importait l'ancienne progression.
+  syncOnQuizChange();
 }
 
 /* renderNewSessionWarning() — panneau d'avertissement avant d'écraser une
