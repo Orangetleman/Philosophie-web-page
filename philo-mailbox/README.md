@@ -40,7 +40,7 @@ sur GitHub.
 | Variable | Défaut | Rôle |
 |---|---|---|
 | `MAILBOX_SECRET` | *(vide)* | **Obligatoire.** Secret partagé pour `pull`/`ack`. Vide ⇒ ces routes restent fermées. |
-| `ALLOWED_ORIGIN` | `*` | Origine autorisée pour le CORS (ex. `https://mon-site.vercel.app`). |
+| `ALLOWED_ORIGIN` | `*` | Liste blanche d'origines CORS, séparées par des virgules (ex. `https://mon-site.vercel.app,https://preview.vercel.app`). `*` = tout accepter. Une origine hors liste est refusée par le navigateur. |
 | `MAX_BODY_BYTES` | `65536` | Taille maxi d'une proposition (64 Kio). |
 | `RATE_MAX` | `20` | Nb maxi de POST par IP et par fenêtre. |
 | `RATE_WINDOW_S` | `600` | Durée de la fenêtre anti-spam (secondes). |

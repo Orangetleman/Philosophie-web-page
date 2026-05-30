@@ -17,7 +17,9 @@ Quatre routes :
 
 Configuration par variables d'environnement (jamais en dur dans le code) :
   MAILBOX_SECRET   — secret partagé pour /api/pull et /api/ack (OBLIGATOIRE).
-  ALLOWED_ORIGIN   — origine autorisée pour le CORS (défaut « * »).
+  ALLOWED_ORIGIN   — liste blanche d'origines autorisées pour le CORS,
+                     séparées par des virgules (défaut « * » = tout accepter).
+                     Ex. « https://mon-site.vercel.app,https://preview.vercel.app ».
   MAX_BODY_BYTES   — taille maxi d'une proposition (défaut 65536 = 64 Kio).
   RATE_MAX         — nb maxi de POST par IP et par fenêtre (défaut 20).
   RATE_WINDOW_S    — durée de la fenêtre anti-spam en secondes (défaut 600).
@@ -36,7 +38,9 @@ app = Flask(__name__)
 
 # ── Configuration (lue dans l'environnement au démarrage) ────────────────
 SECRET = os.environ.get("MAILBOX_SECRET", "")
-ALLOWED_ORIGIN = os.environ.get("ALLOWED_ORIGIN", "*")
+# Liste blanche d'origines : on découpe la variable sur les virgules et on
+# retire les espaces. « * » (valeur par défaut) = mode ouvert, tout accepter.
+ALLOWED_ORIGINS = [o.strip() for o in os.environ.get("ALLOWED_ORIGIN", "*").split(",") if o.strip()]
 MAX_BODY_BYTES = int(os.environ.get("MAX_BODY_BYTES", "65536"))
 RATE_MAX = int(os.environ.get("RATE_MAX", "20"))
 RATE_WINDOW_S = int(os.environ.get("RATE_WINDOW_S", "600"))
@@ -56,9 +60,25 @@ store.init_db()
 # Par sécurité, le navigateur bloque les requêtes JS vers un AUTRE domaine
 # (« same-origin policy »). Ces en-têtes disent « j'autorise telle origine
 # à m'appeler ». On les ajoute à CHAQUE réponse (succès comme erreur).
+#
+# L'en-tête « Access-Control-Allow-Origin » ne peut renvoyer qu'UNE seule
+# valeur (jamais une liste). Pour une vraie liste blanche, on lit donc
+# l'origine de la requête (en-tête « Origin ») et on ne la renvoie que si
+# elle figure dans ALLOWED_ORIGINS. Sinon : aucun en-tête → le navigateur
+# bloque l'appel cross-site.
 @app.after_request
 def add_cors_headers(resp):
-    resp.headers["Access-Control-Allow-Origin"] = ALLOWED_ORIGIN
+    origin = request.headers.get("Origin", "")
+    if "*" in ALLOWED_ORIGINS:
+        # Mode ouvert : on autorise n'importe quelle origine.
+        resp.headers["Access-Control-Allow-Origin"] = "*"
+    elif origin and origin in ALLOWED_ORIGINS:
+        # Origine présente dans la liste blanche : on la renvoie telle quelle.
+        resp.headers["Access-Control-Allow-Origin"] = origin
+        # « Vary: Origin » prévient les caches que la réponse dépend de
+        # l'origine demandée (sinon un cache pourrait servir le mauvais en-tête).
+        resp.headers["Vary"] = "Origin"
+    # (origine absente de la liste → on ne pose pas d'en-tête : appel refusé)
     resp.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
     resp.headers["Access-Control-Allow-Headers"] = "Content-Type, X-Mailbox-Secret"
     return resp
