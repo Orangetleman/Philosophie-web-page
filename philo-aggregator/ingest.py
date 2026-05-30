@@ -259,25 +259,58 @@ def ingest_text(raw_text, source_file):
         return {"status": "quarantine",
                 "reason": f"JSON invalide : {e}"}
 
-    # 3) Valider le schéma.
+    # 3) Valider le schéma puis stocker (étapes communes avec le pull
+    #    Supabase, factorisées dans _store_payload).
+    return _store_payload(payload, raw_text, raw_json, source_file)
+
+
+def ingest_payload(payload, source_file, remote_id=None):
+    """
+    Ingère une proposition déjà PARSÉE (objet Python), sans marqueurs ni
+    extraction. C'est la porte d'entrée du pull Supabase (phase 4) : la
+    contribution arrive sous forme d'objet JSON (`payload` jsonb), pas de
+    texte brut avec marqueurs.
+
+    `remote_id` : UUID de la contribution côté Supabase, stocké dans la
+    submission pour pouvoir écrire le statut en retour.
+
+    On reconstitue un `raw_json` / `raw_text` à partir de l'objet (pour
+    garder une trace lisible et homogène avec les .txt), puis on délègue à
+    _store_payload. Renvoie le même dico de résultat qu'`ingest_text`.
+    """
+    raw_json = json.dumps(payload, ensure_ascii=False, indent=2)
+    return _store_payload(payload, raw_json, raw_json, source_file,
+                          remote_id=remote_id)
+
+
+def _store_payload(payload, raw_text, raw_json, source_file, remote_id=None):
+    """
+    Cœur commun : valide le schéma puis insère la soumission et ses boîtes.
+
+    Partagé par `ingest_text` (texte avec marqueurs → payload) et
+    `ingest_payload` (payload déjà parsé venu de Supabase). Renvoie :
+      {'status': 'ok', 'submission_id': N, 'boxes_inserted': K,
+       'dupes_detected': D}  ou  {'status': 'quarantine', 'reason': '...'}
+    """
+    # Valider le schéma.
     try:
         validate_payload(payload)
     except ValueError as e:
         return {"status": "quarantine", "reason": str(e)}
 
-    # 4) Préparer les métadonnées de la soumission.
+    # Préparer les métadonnées de la soumission.
     received_at = str(payload.get("date") or db.now_iso())
     contributor = str(payload.get("contributor") or "anonyme").strip() or "anonyme"
 
-    # 5) Insérer en base — submission + chaque boîte. On fait tout
-    #    dans un seul `with` pour que ce soit transactionnel : si une
-    #    insertion plante au milieu, le `with` rollback automatiquement
-    #    et la base reste cohérente (pas de submission orpheline).
+    # Insérer en base — submission + chaque boîte. On fait tout dans un
+    # seul `with` pour que ce soit transactionnel : si une insertion plante
+    # au milieu, le `with` rollback automatiquement et la base reste
+    # cohérente (pas de submission orpheline).
     dupes_detected = 0
     with db.connect() as conn:
         submission_id = db.insert_submission(
             conn, received_at, contributor, str(source_file),
-            raw_text, raw_json,
+            raw_text, raw_json, remote_id=remote_id,
         )
         for i, b in enumerate(payload["boxes"]):
             type_ = b["type"]

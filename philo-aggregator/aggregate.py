@@ -84,6 +84,87 @@ def cmd_pull(args):
     print(f"Confirmées auprès de la boîte (ack) : {s['acked']}.")
 
 
+def cmd_pull_cloud(args):
+    """
+    Récupère les contributions « en_attente » depuis Supabase (comptes des
+    visiteurs connectés) et les ingère en base locale.
+
+    À la différence de `pull` (boîte PythonAnywhere), rien n'est « consommé »
+    en ligne : la contribution reste « en_attente » côté Supabase jusqu'à ce
+    qu'on la traite et qu'on renvoie son statut (commande `push`). Le pull
+    est rejouable : une contribution déjà en base est simplement ignorée
+    (dédoublonnage sur l'UUID Supabase).
+
+    `pipeline` (et `supabase_client`) ne sont importés qu'ici : seules les
+    commandes en ligne parlent au réseau.
+    """
+    import pipeline
+
+    s = pipeline.pull_cloud_and_ingest(limit=args.limit)
+    if s["items"] == 0:
+        print("(aucune contribution en attente sur Supabase)")
+        return
+
+    for d in s["details"]:
+        rid, kind = d[0], d[1]
+        short = str(rid)[:8]
+        if kind == "ok":
+            n_boxes, n_dupes = d[2], d[3]
+            extra = (f" ({n_dupes} doublon(s) probable(s))" if n_dupes else "")
+            print(f"  OK   {short} -> {n_boxes} boîte(s){extra}")
+        elif kind == "skip":
+            print(f"  ··   {short} -> déjà en base (ignorée)")
+        else:
+            print(f"  KO   {short} -> quarantaine : {d[2]}")
+
+    print()
+    print(f"Récupération Supabase : {s['ok']} OK, {s['skipped']} ignorée(s), "
+          f"{s['quarantine']} en quarantaine.")
+    print(f"Boîtes ajoutées : {s['boxes']} (dont {s['dupes']} doublon(s) probable(s)).")
+
+
+def cmd_push(args):
+    """
+    Renvoie vers Supabase le statut des contributions concernées, pour que
+    leurs auteurs voient l'avancement dans « Mes propositions » du site.
+
+    On passe des ids de BOÎTE (comme partout dans l'outil) ; chaque boîte
+    est résolue vers SA contribution (une contribution = une soumission =
+    plusieurs boîtes). On dédoublonne : une contribution n'est poussée
+    qu'une fois, avec le statut déduit de l'ensemble de ses boîtes
+    (intégrée > retenue > rejetée > en attente).
+
+    Le typique : après avoir marqué des boîtes (`mark … --as integree`),
+    on `push` pour propager. Une explication facultative (`--explication`)
+    est jointe (utile pour un refus : « doublon de la fiche X »).
+    """
+    import pipeline
+
+    # Résoudre chaque id de boîte vers sa soumission (en préservant l'ordre,
+    # sans doublon : on ne pousse chaque contribution qu'une fois).
+    sub_ids = []
+    with db.connect() as conn:
+        for bid in args.ids:
+            row = conn.execute(
+                "SELECT submission_id FROM boxes WHERE id = ?", (bid,)
+            ).fetchone()
+            if row is None:
+                print(f"  (aucune boîte #{bid})")
+            elif row["submission_id"] not in sub_ids:
+                sub_ids.append(row["submission_id"])
+
+    pushed = 0
+    for sid in sub_ids:
+        r = pipeline.push_contribution_status(sid, explication=args.explication)
+        if r["pushed"]:
+            print(f"  contribution (soumission #{sid}) -> {r['statut']}")
+            pushed += 1
+        else:
+            print(f"  soumission #{sid} : non poussée ({r['reason']})")
+    print()
+    print(f"{pushed} contribution(s) mise(s) à jour sur Supabase.")
+
+
 def cmd_review(args):
     """
     Lance la pré-vérification IA (Gemini) des boîtes en attente.
@@ -250,6 +331,22 @@ def build_parser():
     p.add_argument("--limit", type=int, default=200,
                    help="Nombre maxi à récupérer en une fois (défaut : 200).")
     p.set_defaults(func=cmd_pull)
+
+    # ── pull-cloud ──
+    p = sub.add_parser("pull-cloud",
+                       help="Récupérer les contributions Supabase (comptes).")
+    p.add_argument("--limit", type=int, default=200,
+                   help="Nombre maxi à récupérer en une fois (défaut : 200).")
+    p.set_defaults(func=cmd_pull_cloud)
+
+    # ── push ──
+    p = sub.add_parser("push",
+                       help="Renvoyer le statut des contributions vers Supabase.")
+    p.add_argument("ids", nargs="+", type=int, metavar="id",
+                   help="Un ou plusieurs ids de boîte (résolus en contribution).")
+    p.add_argument("--explication", default=None,
+                   help="Explication facultative jointe (ex. motif d'un refus).")
+    p.set_defaults(func=cmd_push)
 
     # ── review ──
     p = sub.add_parser("review",

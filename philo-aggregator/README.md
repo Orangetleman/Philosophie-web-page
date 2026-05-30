@@ -20,10 +20,11 @@ généré par le formulaire de contribution du site). Ce programme :
   `mark`, `note`, `archive`, `purge`, `stats`) : **aucune dépendance**,
   tout est en bibliothèque standard (`argparse`, `sqlite3`, `json`, `re`,
   `hashlib`, `difflib`, `unicodedata`, `pathlib`, `urllib`).
-- **Cerveau local** (`pull`, `review`, `dashboard`) : nécessite deux
-  paquets, installés via `pip install -r requirements.txt` (Flask pour le
-  dashboard, google-generativeai pour la relecture IA). `pull` seul
-  n'utilise qu'`urllib` (stdlib).
+- **Cerveau local** (`review`, `dashboard`) : nécessite deux paquets,
+  installés via `pip install -r requirements.txt` (Flask pour le dashboard,
+  google-generativeai pour la relecture IA). Les commandes réseau
+  `pull-cloud`, `push` et `pull` n'utilisent qu'`urllib` (stdlib) ; seuls
+  les secrets du `.env` leur sont nécessaires.
 
 ## Utilisation rapide
 
@@ -54,10 +55,20 @@ python aggregate.py purge --before 2026-12-01 --yes
 
 ## Le cerveau local (en ligne → base → tri)
 
-Au lieu de déposer des `.txt` à la main, on peut récupérer les
-propositions directement depuis la **boîte aux lettres** en ligne (dossier
-`philo-mailbox`, déployée sur PythonAnywhere), les faire **pré-vérifier
-par Gemini**, puis les trier dans un **tableau de bord local**.
+Au lieu de déposer des `.txt` à la main, on récupère les propositions
+directement depuis le **cloud**, on les fait **pré-vérifier par Gemini**,
+puis on les trie dans un **tableau de bord local**.
+
+Deux sources en ligne coexistent (la bascule complète vers Supabase est
+prévue plus tard) :
+
+- **Supabase** (`pull-cloud`) — les visiteurs **connectés** envoient leur
+  proposition dans la table `contributions` de Supabase, rattachée à leur
+  compte. On peut alors leur **renvoyer le statut** (`push`) : ils le
+  voient dans « Mes propositions » sur le site.
+- **Boîte PythonAnywhere** (`pull`) — repli **anonyme** pour les visiteurs
+  non connectés (dossier `philo-mailbox`). Pas de compte, donc pas de
+  renvoi de statut.
 
 ### Configuration (une fois)
 
@@ -67,16 +78,28 @@ pip install -r requirements.txt
 
 # 2. Créer le fichier de secrets (jamais publié : ignoré par Git)
 copy .env.example .env
-#    …puis ouvrir .env et coller : le secret de la boîte (MAILBOX_SECRET)
-#    et la clé Gemini (GEMINI_API_KEY).
+#    …puis ouvrir .env et coller :
+#      - SUPABASE_URL + SUPABASE_SERVICE_KEY (source Supabase) ;
+#      - MAILBOX_SECRET (repli boîte anonyme) ;
+#      - GEMINI_API_KEY (relecture IA).
 ```
+
+> ⚠ **`SUPABASE_SERVICE_KEY`** est la clé « service_role » : toute-puissante
+> (elle ignore les règles RLS). Elle ne doit **jamais** finir dans le site
+> ni sur GitHub — uniquement dans ce `.env`, qui reste sur ton PC.
 
 ### Flux
 
 ```powershell
-python aggregate.py pull        # récupère la boîte en ligne -> base + ack
+python aggregate.py pull-cloud  # récupère les contributions Supabase -> base
+python aggregate.py pull        # (repli) récupère la boîte anonyme -> base + ack
 python aggregate.py review      # pré-vérifie avec Gemini (verdict par boîte)
 python aggregate.py dashboard   # ouvre le tri dans le navigateur (localhost)
+
+# Après tri (ex. on a marqué des boîtes « integree »), renvoyer le statut
+# aux contributeurs connectés (ne concerne que les boîtes venues de Supabase) :
+python aggregate.py mark 12 17 --as integree
+python aggregate.py push 12 17  --explication "Intégré, merci !"
 ```
 
 Dans le dashboard : un clic **Valider** (statut `validee`), **Rejeter**,
@@ -90,7 +113,9 @@ intégration dans une session Claude).
 | Commande | Rôle |
 |---|---|
 | `ingest [--dir D]` | parse les `.txt` de `inbox/`, insère, déplace |
-| `pull [--limit N]` | récupère les propositions de la boîte en ligne, ingère, confirme (`ack`) |
+| `pull-cloud [--limit N]` | récupère les contributions Supabase (comptes), ingère (dédoublonné sur l'UUID, rejouable) |
+| `push <id>... [--explication T]` | renvoie le statut des contributions vers Supabase (ids de boîte → contribution) |
+| `pull [--limit N]` | (repli) récupère les propositions de la boîte anonyme, ingère, confirme (`ack`) |
 | `review [--limit N] [--redo] [--status S]` | pré-vérifie les boîtes avec Gemini (verdict IA) |
 | `dashboard [--port P]` | lance le tableau de bord local (navigateur) |
 | `list [--status S] [--cible C] [--notion N] [--no-preview]` | liste groupée (4 sections : Notions/Auteurs/Concepts/Retours site) |
@@ -113,8 +138,9 @@ philo-aggregator/
   view.py             affichage terminal
   export.py           génération .txt
   localenv.py         lecture du .env (cerveau local)
-  mailbox_client.py   client HTTP de la boîte en ligne (pull/ack)
-  pipeline.py         orchestration pull → ingestion
+  mailbox_client.py   client HTTP de la boîte anonyme (pull/ack)
+  supabase_client.py  client HTTP de Supabase (pull-cloud / push statut)
+  pipeline.py         orchestration pull → ingestion + écriture-retour
   review.py           relecture IA (Gemini)
   dashboard.py        tableau de bord local (Flask)
   requirements.txt    dépendances du cerveau (Flask, google-generativeai)

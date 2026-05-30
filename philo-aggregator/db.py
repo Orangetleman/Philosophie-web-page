@@ -78,7 +78,12 @@ CREATE TABLE IF NOT EXISTS submissions (
     source_file     TEXT NOT NULL,
     raw_text        TEXT NOT NULL,
     raw_json        TEXT NOT NULL,
-    ingested_at     TEXT NOT NULL
+    ingested_at     TEXT NOT NULL,
+    -- UUID de la contribution côté Supabase (phase 4). NULL pour les
+    -- soumissions venues d'un .txt ou de la boîte PythonAnywhere : elles
+    -- n'ont pas de pendant en ligne où renvoyer le statut. Ajoutée par
+    -- migration sur les bases déjà créées (voir _migrate_submissions).
+    remote_id       TEXT
 );
 
 CREATE TABLE IF NOT EXISTS boxes (
@@ -111,6 +116,20 @@ CREATE INDEX IF NOT EXISTS idx_boxes_cible_notion
 CREATE INDEX IF NOT EXISTS idx_boxes_signature
     ON boxes(signature);
 """
+
+
+# Index UNIQUE partiel créé À PART (après les migrations de colonnes) : sur
+# une base ancienne, la colonne `remote_id` n'existe qu'une fois la
+# migration passée, donc on ne peut poser cet index qu'ensuite — pas dans
+# le SCHEMA ci-dessus. Deux soumissions ne peuvent pas partager le même
+# remote_id (on n'ingère donc qu'une fois chaque contribution Supabase,
+# même si on relance le pull). Le « WHERE remote_id IS NOT NULL » rend
+# l'index PARTIEL : les NULL (soumissions locales sans pendant en ligne)
+# échappent à la contrainte d'unicité — on peut en avoir autant qu'on veut.
+REMOTE_INDEX_SQL = (
+    "CREATE UNIQUE INDEX IF NOT EXISTS idx_submissions_remote "
+    "ON submissions(remote_id) WHERE remote_id IS NOT NULL"
+)
 
 
 def connect():
@@ -166,14 +185,37 @@ def _migrate_boxes(conn):
             conn.execute(f"ALTER TABLE boxes ADD COLUMN {col} {col_type}")
 
 
+# Colonnes ajoutées après coup à la table `submissions` (lien Supabase,
+# phase 4). Même logique que _BOXES_ADDED_COLUMNS.
+_SUBMISSIONS_ADDED_COLUMNS = (
+    ("remote_id", "TEXT"),
+)
+
+
+def _migrate_submissions(conn):
+    """
+    Ajoute à `submissions` les colonnes manquantes — idempotent.
+    Même technique que `_migrate_boxes` (PRAGMA table_info + ALTER ciblé).
+    """
+    existing = {row["name"] for row in conn.execute("PRAGMA table_info(submissions)")}
+    for col, col_type in _SUBMISSIONS_ADDED_COLUMNS:
+        if col not in existing:
+            conn.execute(f"ALTER TABLE submissions ADD COLUMN {col} {col_type}")
+
+
 def init_db():
     """
     Crée les tables et index si besoin, puis applique les migrations de
     colonnes (idempotent). Sûr à appeler à chaque démarrage.
     """
     with connect() as conn:
+        # 1) Créer les tables et index « simples » (idempotent).
         conn.executescript(SCHEMA)
-        _migrate_boxes(conn)   # ajoute les colonnes IA aux bases anciennes
+        # 2) Migrer les bases anciennes : ajouter les colonnes manquantes.
+        _migrate_submissions(conn)  # ajoute remote_id (lien Supabase)
+        _migrate_boxes(conn)        # ajoute les colonnes IA
+        # 3) Une fois remote_id garantie présente, poser son index unique.
+        conn.execute(REMOTE_INDEX_SQL)
 
 
 def now_iso():
@@ -188,9 +230,13 @@ def now_iso():
 # ────────── Insertion ──────────
 
 def insert_submission(conn, received_at, contributor, source_file,
-                      raw_text, raw_json):
+                      raw_text, raw_json, remote_id=None):
     """
     Insère une soumission et renvoie son id.
+
+    `remote_id` (facultatif) est l'UUID de la contribution côté Supabase,
+    pour les soumissions venues du pull en ligne (phase 4). NULL pour les
+    .txt et la boîte PythonAnywhere : aucun pendant en ligne à mettre à jour.
 
     `conn.execute(...)` retourne un curseur ; `lastrowid` donne l'id
     AUTOINCREMENT que SQLite vient d'attribuer.
@@ -199,13 +245,57 @@ def insert_submission(conn, received_at, contributor, source_file,
         """
         INSERT INTO submissions
             (received_at, contributor, source_file, raw_text,
-             raw_json, ingested_at)
-        VALUES (?, ?, ?, ?, ?, ?)
+             raw_json, ingested_at, remote_id)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
         """,
         (received_at, contributor, source_file, raw_text,
-         raw_json, now_iso()),
+         raw_json, now_iso(), remote_id),
     )
     return cur.lastrowid
+
+
+def remote_exists(conn, remote_id):
+    """
+    Vrai si une soumission portant ce `remote_id` est déjà en base.
+    Sert au pull Supabase à NE PAS ré-ingérer une contribution déjà
+    récupérée (le pull est rejouable ; côté Supabase la ligne reste
+    « en_attente » tant que le mainteneur n'a pas tranché).
+    """
+    if not remote_id:
+        return False
+    row = conn.execute(
+        "SELECT 1 FROM submissions WHERE remote_id = ? LIMIT 1",
+        (remote_id,),
+    ).fetchone()
+    return row is not None
+
+
+def get_remote_id_for_box(conn, box_id):
+    """
+    Renvoie le `remote_id` (UUID Supabase) de la contribution dont relève
+    la boîte donnée, ou None si la boîte est locale (sans pendant en ligne)
+    ou n'existe pas. Sert à l'écriture-retour du statut.
+    """
+    row = conn.execute(
+        "SELECT s.remote_id FROM boxes b "
+        "JOIN submissions s ON b.submission_id = s.id "
+        "WHERE b.id = ?",
+        (box_id,),
+    ).fetchone()
+    return row["remote_id"] if row else None
+
+
+def get_submission_box_statuses(conn, submission_id):
+    """
+    Renvoie la liste des statuts des boîtes d'une soumission. Sert à
+    déduire le statut « contributeur » d'une contribution (une contribution
+    Supabase = une soumission locale = plusieurs boîtes, chacune triée
+    indépendamment).
+    """
+    return [r["status"] for r in conn.execute(
+        "SELECT status FROM boxes WHERE submission_id = ?",
+        (submission_id,),
+    )]
 
 
 def insert_box(conn, submission_id, position, type_, cible, notion,
