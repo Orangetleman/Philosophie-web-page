@@ -392,11 +392,26 @@ def review_route():
     return _redirect_back(status, verdict_filter, msg)
 
 
-def run(port=None):
-    """Démarre le serveur local (127.0.0.1 uniquement)."""
+def run(port=None, open_browser=True):
+    """
+    Démarre le serveur local (127.0.0.1 uniquement).
+
+    open_browser=True : ouvre automatiquement le navigateur sur le
+    tableau de bord, peu après le démarrage. Pratique pour le raccourci
+    (.bat) : un double-clic lance le serveur ET ouvre la page. On utilise
+    un threading.Timer pour différer l'ouverture d'une seconde, car
+    app.run() est bloquant : il faut programmer l'ouverture AVANT, pour
+    qu'elle se déclenche une fois le serveur prêt à répondre.
+    """
     db.init_db()
     p = port or PORT
-    print(f"Dashboard local : http://127.0.0.1:{p}  (Ctrl+C pour arrêter)")
+    url = f"http://127.0.0.1:{p}"
+    print(f"Dashboard local : {url}  (Ctrl+C pour arrêter)")
+    if open_browser:
+        import threading
+        import webbrowser
+        # 1 s de délai : laisse à Flask le temps de se lier au port.
+        threading.Timer(1.0, lambda: webbrowser.open(url)).start()
     # debug=False : pas de rechargement auto ni de page d'erreur publique.
     app.run(host="127.0.0.1", port=p, debug=False)
 
