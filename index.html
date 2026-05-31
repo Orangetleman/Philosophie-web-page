@@ -1,94 +1,73 @@
 <!DOCTYPE html>
 <!--
 ╔══════════════════════════════════════════════════════════════════════════╗
-║        GRAPHE PHILOSOPHIE — TERMINALE  ·  index.html                   ║
-║        Application de révision mono-fichier HTML/CSS/JS                ║
+║        GRAPHE PHILOSOPHIE — TERMINALE  ·  index.html                       ║
+║        Révision (HTML/CSS/JS, sans build) · PWA hors-ligne · compte cloud  ║
 ╚══════════════════════════════════════════════════════════════════════════╝
+
+  Ce fichier est le SQUELETTE + la LOGIQUE ; les DONNÉES vivent dans data.js
+  (chargé juste AVANT le <script> principal). Pour la spécification détaillée
+  des structures et les règles d'édition, voir CLAUDE.md à la racine du projet.
 
   STRUCTURE DU FICHIER
   ────────────────────
-  1. <head>          Métadonnées, police Google Fonts (Inter)
-  2. <style>         Tout le CSS (variables, layout, composants UI)
-  3. <body> HTML     Squelette minimal : sidebar (#sb) + zone principale (#main)
-  4. <script>        Toute la logique JS, données et rendu
+  1. <head>                  Métadonnées, favicon SVG inline, manifeste PWA,
+                             theme-color, police Google Fonts (Inter)
+  2. <style>                 Tout le CSS (variables, layout, composants UI,
+                             thème quiz bleu, responsive ≤ 700 px)
+  3. <body> HTML             Squelette : sidebar (#sb) + zone principale (#main)
+                             + overlays (modale contribution, quiz, onboarding)
+  4. <script src="data.js">  Données GLOBALES : D, KEYS, AM, CONCEPTS
+  5. <script> Supabase CDN   Client @supabase/supabase-js (compte + sync)
+  6. <script> principal      const CC (couleurs par courant) + TOUTE la logique
+                             JS et le rendu (consomme les données globales)
 
-  ARCHITECTURE JS (dans l'ordre d'apparition)
-  ─────────────────────────────────────────────
-  A. DONNÉES
-     · const D        — Les 9 notions du programme (conscience, nature…)
-                        Chaque notion contient : auteurs, textes, axes, exemples,
-                        liens, questions de dissertation, définition enrichie.
-     · const AM       — Métadonnées des auteurs : bio, courant, période, thèmes,
-                        dialogues philosophiques (qui répond à qui, sur quoi).
-     · const CONCEPTS — Glossaire de ~70 concepts clés (cogito, aliénation…)
-                        avec définition, tensions, auteur, notions liées.
-     · const CC       — Couleurs par courant philosophique (Rationalisme → bleu…)
+  DONNÉES (dans data.js — globales ; script classique, pas de module)
+  ────────────────────────────────────────────────────────────────────
+  · const D        — Les 17 notions du programme (conscience, nature, bonheur,
+                     justice, devoir, travail, technique, état, liberté, art,
+                     langage, inconscient, raison, religion, science, temps,
+                     vérité). Chaque notion : def, auteurs, textes, plans,
+                     exemples, liens, diss. Onglets d'une notion : auteurs /
+                     textes / concepts / dissertations / exemples (l'ancien
+                     onglet « axes » est migré en « plans » au chargement).
+  · const KEYS     — Object.keys(D) (ordre des notions)
+  · const AM       — Métadonnées des ~77 auteurs : bio, courant, période,
+                     thèmes, dialogues (oppose / prolonge / répond, + sujet)
+  · const CONCEPTS — Glossaire de ~165 concepts : def, cat, auteur, notions,
+                     liens (par notion), relations unifiées (ex-« tensions »)
+  · const CC       — (resté dans index.html) couleurs par courant philosophique
 
-  B. ÉTAT DE L'APPLICATION
-     · cur            — Notion actuellement sélectionnée (clé de D)
-     · curTab         — Onglet actif dans la vue notion (auteurs/textes/axes…)
-     · sbMode         — Mode de la sidebar : 'notions' | 'auteurs' | 'concepts'
-     · curAuthor      — Auteur actuellement sélectionné
-     · curAuthorTab   — Onglet actif dans la fiche auteur (idées/citations…)
-     · curConcept     — Concept actuellement sélectionné
-     · historyStack   — Pile de navigation (bouton Retour)
+  NORMALISATION au chargement (rétro-compat des anciens formats de source) :
+  normalizeD (axes → plans), normalizeAuthor (auteur à plat {n,w,i,q} →
+  {n, ideas:[{w,i,citations:[…]}]}), normalizeConcepts (tensions → relations
+  {type:'distinction'}). La source n'est jamais réécrite.
 
-  C. FONCTIONS UTILITAIRES
-     · buildAI()         — Construit un index auteur → {notions, entries} depuis D
-     · authorsSorted()   — Trie les auteurs par nombre de notions couvertes
-     · pushHistory()     — Sauvegarde l'état actuel dans la pile de navigation
-     · backBtnHTML()     — Génère le HTML du bouton Retour (désactivé si pile vide)
-     · linkTerms(html)   — Détecte notions, concepts et auteurs dans un texte
-                           et les transforme en liens cliquables typés
-                           (.nterm notion · .cterm concept · .aterm auteur)
-
-  D. RENDU (fonctions render*)
-     · renderSB()              — Reconstruit toute la sidebar (tabs + liste)
-     · renderSBList()          — Liste des auteurs filtrée/recherchée
-     · renderSBConceptsList()  — Liste des concepts filtrée/recherchée
-     · renderContent()         — Vue principale d'une notion (5 onglets)
-     · renderAuthorContent()   — Fiche d'un auteur (idées/citations/œuvres/dialogues)
-     · renderConceptContent()  — Fiche d'un concept du glossaire
-
-  E. NAVIGATION
-     · tab(id)          — Change l'onglet actif dans la vue notion
-     · openAuthor(name) — Ouvre la fiche d'un auteur (depuis n'importe où)
-     · openConcept(id)  — Ouvre un concept ou redirige vers la notion liée
-     · openNotion(key)  — Ouvre une notion du programme (lien .nterm)
-
-  DONNÉES : STRUCTURE D'UNE NOTION (objet dans D)
-  ────────────────────────────────────────────────
-  {
-    c:       "#couleur hex",
-    l:       "Label affiché",
-    s:       "Sous-titre / question",
-    def:     "HTML de la définition (peut contenir <details>)",
-    auteurs: [ { n, w, i, q, new?, modified? }, … ],
-    textes:  [ { n, t, new?, modified? }, … ],
-    axes:    [ { n, t, pb, sps:[{l,c,r}], new?, modified? }, … ],
-    exemples:[ { tag, tit, body, lien, new?, modified? }, … ],
-    liens:   [ "AutreNotion", … ],
-    diss:    [ "Question ?", { q, new?, modified? }, … ]
-  }
-
-  DONNÉES : STRUCTURE D'UN AUTEUR DANS AM
-  ────────────────────────────────────────
-  {
-    bio:       "Présentation biographique",
-    courant:   "Courant philosophique",
-    periode:   "XVIIe siècle",
-    themes:    ["thème1", "thème2", …],
-    dialogues: [{ dir: "oppose"|"prolonge"|"repond", auteur, sujet, desc }, …]
-  }
-
-  CORRECTIONS APPLIQUÉES (vérifiées)
-  ───────────────────────────────────
-  Orthographe : "indubitable" (×5), "autoconscience" (×2), "Aurore" (×6),
-  "diligemment" (×2), "ennoblissent", "Redistribuer", "névrose".
-  Factuel : Merda d'artista (Manzoni), Salvatore Garau, Constitution
-  équatorienne 2008, Serres 1990, La Boétie ~1549, Saussure CLG 1916,
-  Schopenhauer 1819, Sartre 1946, Aristote ~335 av. J.-C., Boroditsky
-  TED 2017, Hobbes De Cive 1642.
+  GRANDES BRIQUES JS (sections repérées A., B., … ; détail dans CLAUDE.md)
+  ────────────────────────────────────────────────────────────────────────
+  · Index & liens   buildAI() (auteur → notions/idées) ; linkTerms() rend
+                    cliquables notions/concepts/auteurs cités dans tout texte
+                    (.nterm notion · .cterm concept · .aterm auteur)
+  · Rendu           renderSB (sidebar, 3 modes notions/auteurs/concepts),
+                    renderContent (notion, 5 onglets), renderAuthorContent,
+                    renderConceptContent
+  · Navigation      fil d'Ariane cliquable (renderCrumbs / goMode), pile
+                    d'historique, openNotion / openAuthor / openConcept
+  · Affichage       mode révision / édition (localStorage philo-mode : épuré
+                    par défaut) ; sidebar en tiroir burger ≤ 700 px ;
+                    onboarding 1re visite (.onb-overlay, flag philo-onboarded)
+  · Contribution    modale « Proposer du contenu » : boîtes empilables
+    (section J.)    (catégorie × cible × type) ; génère un texte lisible + un
+                    bloc JSON v3 ; envoi EN LIGNE (Supabase si connecté, sinon
+                    boîte anonyme PythonAnywhere) avec repli mailto automatique
+  · Quiz (sect. K.) révision active par cartes : Leitner (2 horizons), QCM,
+                    gamification XP/niveau, filtres, reprise de session ; tout
+                    est DÉRIVÉ de CONCEPTS / D / AI ; état localStorage philo-quiz
+  · Compte & sync   Supabase : authentification (e-mail + mot de passe, ou
+                    Google) ; synchronisation cross-appareil du quiz, des
+                    préférences et des brouillons de proposition ; suivi du
+                    statut des contributions dans « Mes propositions »
+  · PWA             manifest.json + sw.js (cache-first, hors-ligne) + icon.svg
 -->
 <html lang="fr"><head><meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -152,6 +131,11 @@
 body{font-family:'Inter',system-ui,sans-serif;background:#121212;height:100vh;padding:16px;overflow:hidden;}
 *{box-sizing:border-box;margin:0;padding:0}
 .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+/* Accessibilité clavier : anneau de focus visible UNIQUEMENT lors de la
+   navigation au clavier (:focus-visible). Les nombreux `outline:none` du
+   CSS suppriment l'anneau disgracieux au clic souris ; cette règle le
+   rétablit pour qui tabule, sans rien changer à l'apparence à la souris. */
+:focus-visible{outline:2px solid var(--color-text-quiz);outline-offset:2px}
 .wrap{height:calc(100vh - 32px);display:flex;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);overflow:hidden;}
 .sidebar{width:155px;flex-shrink:0;background:var(--color-background-secondary);border-right:0.5px solid var(--color-border-tertiary);display:flex;flex-direction:column;overflow:hidden;}
 .sb-fixed{flex-shrink:0;padding:0 7px;}
@@ -231,13 +215,23 @@ body{font-family:'Inter',system-ui,sans-serif;background:#121212;height:100vh;pa
 .sp-ref{font-size:10px;color:var(--color-text-tertiary);display:block;margin-top:1px}
 
 /* ── Plans de dissertation (onglet Dissertations) ──────────────────
-   .plan-card : carte d'un plan complet (1 sujet + 3 axes I/II/III)
+   .plan-card : carte d'un plan complet (1 sujet + 3 axes I/II/III), elle-
+   même DÉROULABLE (<details>) — on ne voit que le sujet (summary .plan-q)
+   et on déplie le plan qu'on veut travailler (divulgation progressive).
    .plan-axe  : un axe ; .plan-sp : une sous-partie DÉROULABLE (<details>)
    Les « limites » marquent les transitions : la limite de sous-partie est
    discrète, la limite d'axe (transition vers l'axe suivant) est plus
    marquée (encadré coloré).                                            */
 .plan-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:13px 15px;margin-bottom:12px}
 .plan-q{font-size:13.5px;font-weight:600;color:var(--color-text-primary);line-height:1.4;margin-bottom:9px}
+/* Sujet = résumé cliquable du plan déroulable. Marqueur ▶/▼ maison (comme
+   .plan-sp), puce native masquée ; pas de marge sous le sujet quand replié. */
+.plan-card>summary{list-style:none;cursor:pointer;margin-bottom:0}
+.plan-card>summary::-webkit-details-marker{display:none}
+.plan-card>summary::before{content:"▶ ";color:var(--color-text-tertiary);font-size:9px}
+.plan-card[open]>summary::before{content:"▼ "}
+.plan-card[open]>summary{margin-bottom:9px}
+.plan-card>summary:hover{color:var(--color-text-primary)}
 .plan-intro,.plan-pb{font-size:12px;color:var(--color-text-secondary);line-height:1.55;margin-bottom:6px}
 .plan-lbl{font-weight:600;color:var(--color-text-primary)}
 .plan-pb{margin-bottom:11px}
@@ -816,9 +810,10 @@ body.is-signed-in .sb-account{color:#7bd88f;border-color:rgba(123,216,143,.45)}
   display:flex;align-items:center;justify-content:center;transition:all .15s}
 .tour-close:hover{background:var(--color-background-secondary);color:var(--color-text-primary)}
 
-/* Bouton d'aide « ? » fixé en haut à droite (rouvre la visite). z-index 200 :
-   au-dessus du contenu, mais sous le quiz (850) et la modale (1000). */
-.help-btn{position:fixed;top:22px;right:28px;z-index:200;width:30px;height:30px;
+/* Bouton d'aide « ? » (rouvre la visite). Il vit dans .topbar-actions comme
+   simple élément flex (plus de position:fixed → aucun chevauchement avec la
+   recherche, y compris sur mobile). Le menu, lui, reste fixé (cf. .help-menu). */
+.help-btn{flex-shrink:0;width:30px;height:30px;
   border-radius:50%;background:var(--color-background-secondary);
   border:0.5px solid var(--color-border-secondary);color:var(--color-text-secondary);
   font-size:15px;font-weight:600;cursor:pointer;line-height:1;font-family:inherit;
@@ -837,10 +832,9 @@ body.is-signed-in .sb-account{color:#7bd88f;border-color:rgba(123,216,143,.45)}
 .help-item:hover{background:var(--color-background-secondary);color:var(--color-text-primary)}
 .help-item.primary{color:var(--color-text-info);font-weight:500}
 .help-sep{height:0.5px;background:var(--color-border-tertiary);margin:5px 4px}
-/* Sur mobile, le burger est en haut à gauche : on garde le « ? » dans
-   l'angle opposé, légèrement resserré. */
+/* Sur mobile, le bouton « ? » reste dans le groupe d'actions à droite de la
+   barre d'en-tête ; on ne resserre que le menu déroulant (toujours fixé). */
 @media (max-width:700px){
-  .help-btn{top:12px;right:12px}
   .help-menu{top:48px;right:12px}
 }
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.62);z-index:1000;
@@ -858,6 +852,62 @@ body.is-signed-in .sb-account{color:#7bd88f;border-color:rgba(123,216,143,.45)}
   display:flex;align-items:center;justify-content:center;transition:all .15s}
 .modal-close:hover{background:var(--color-background-secondary);color:var(--color-text-primary)}
 .modal-body{padding:18px;overflow-y:auto;font-size:13px;color:var(--color-text-secondary);line-height:1.6}
+
+/* ── Palette de recherche globale (Ctrl/⌘+K) ──────────────────────
+   Recherche transversale (notions + auteurs + concepts) en superposition,
+   façon « command palette ». Elle COMPLÈTE — sans la remplacer — la
+   recherche par mode de la sidebar (qui garde ses filtres et modes de
+   circulation). Voile aligné en haut, z-index 1100 (au-dessus des
+   modales=1000), contenu rendu en JS par renderPalette(). */
+.cmdp-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:1100;
+  display:none;align-items:flex-start;justify-content:center;padding:12vh 16px 16px}
+.cmdp-overlay.open{display:flex}
+.cmdp-panel{background:var(--color-background-primary);
+  border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-lg);
+  width:min(560px,96vw);max-height:72vh;display:flex;flex-direction:column;overflow:hidden;
+  box-shadow:0 18px 60px rgba(0,0,0,.5)}
+.cmdp-search{display:flex;align-items:center;gap:8px;padding:12px 14px;
+  border-bottom:0.5px solid var(--color-border-tertiary);flex-shrink:0}
+.cmdp-ico{font-size:15px;color:var(--color-text-tertiary);flex-shrink:0}
+.cmdp-input{flex:1;min-width:0;background:transparent;border:none;outline:none;
+  color:var(--color-text-primary);font-size:15px;font-family:inherit}
+.cmdp-input::placeholder{color:var(--color-text-tertiary)}
+.cmdp-results{overflow-y:auto;padding:6px}
+.cmdp-group{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;
+  color:var(--color-text-tertiary);padding:9px 10px 4px}
+.cmdp-item{display:flex;align-items:center;gap:10px;padding:8px 10px;cursor:pointer;
+  border-radius:var(--border-radius-md);color:var(--color-text-secondary)}
+.cmdp-item.sel,.cmdp-item:hover{background:var(--color-background-secondary);color:var(--color-text-primary)}
+.cmdp-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;border:1px solid rgba(255,255,255,.12)}
+.cmdp-label{flex:1;min-width:0;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cmdp-sub{font-size:11px;color:var(--color-text-tertiary);flex-shrink:0;max-width:42%;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cmdp-tag{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;
+  padding:2px 6px;border-radius:6px;background:var(--color-background-secondary);
+  color:var(--color-text-tertiary);flex-shrink:0}
+.cmdp-empty{padding:22px 14px;text-align:center;color:var(--color-text-tertiary);font-size:13px}
+.cmdp-foot{display:flex;gap:14px;padding:8px 14px;flex-shrink:0;flex-wrap:wrap;
+  border-top:0.5px solid var(--color-border-tertiary);font-size:11px;color:var(--color-text-tertiary)}
+.cmdp-foot kbd,.topbar-search kbd{background:var(--color-background-secondary);
+  border:0.5px solid var(--color-border-tertiary);border-radius:4px;padding:1px 5px;
+  font-family:inherit;font-size:10px}
+/* Groupe d'actions à droite de la barre d'en-tête : « Mes propositions »,
+   recherche globale et bouton d'aide. margin-left:auto le pousse à droite ;
+   tous ses enfants sont des éléments flex → pas de chevauchement. */
+.topbar-actions{margin:6px 12px 0 auto;display:flex;align-items:center;gap:8px;flex-shrink:0}
+/* Déclencheurs « Mes propositions » et palette de recherche (même allure). */
+.topbar-search,.topbar-mine{display:flex;align-items:center;gap:7px;flex-shrink:0;
+  background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);
+  border-radius:var(--border-radius-md);color:var(--color-text-tertiary);
+  font-family:inherit;font-size:12px;padding:6px 10px;cursor:pointer;transition:all .15s}
+.topbar-search:hover,.topbar-mine:hover{border-color:var(--color-border-secondary);color:var(--color-text-secondary)}
+.topbar-search kbd{background:var(--color-background-primary)}
+/* « Mes propositions » réservé aux comptes connectés (classe posée sur body). */
+body:not(.is-signed-in) .topbar-mine{display:none}
+/* Sur mobile : icônes seules (libellés + raccourci masqués) pour rester compact. */
+@media(max-width:700px){.topbar-search .ts-label,.topbar-search kbd,.topbar-mine .ts-label{display:none}
+  .topbar-search,.topbar-mine{padding:7px 9px}
+  .topbar-actions{gap:6px;margin:6px 8px 0 auto}}
 
 /* Système de « boîtes » de la modale (une boîte = une proposition).
    .pbox = carte ; menus Type/Cible ; .pbox-fields recevra les champs (étape 1c). */
@@ -1043,7 +1093,7 @@ body.sb-open .sb-backdrop{display:block;opacity:1}
 ::-webkit-scrollbar-thumb:hover{background:var(--color-border-secondary)}
 </style>
 
-<div class="sr-only">Graphe de révision philosophie — 9 notions avec auteurs, exemples, axes développés et questions de dissertation</div>
+<div class="sr-only">Graphe de révision philosophie — 17 notions du programme de Terminale avec auteurs, citations, concepts, plans de dissertation et exemples ; mode quiz et proposition de contenu</div>
 <!-- Tiroir responsive : voile (visible uniquement ≤700px ; burger inline ci-dessous) -->
 <div class="sb-backdrop" id="sb-backdrop" aria-hidden="true"></div>
 <div class="wrap">
@@ -1057,6 +1107,23 @@ body.sb-open .sb-backdrop{display:block;opacity:1}
   <div class="topbar">
     <button class="sb-burger" id="sb-burger" aria-label="Ouvrir le menu" aria-controls="sb">☰</button>
     <div class="crumbs" id="crumbs"></div>
+    <!-- Groupe d'actions aligné à droite. Tous les boutons y sont des éléments
+         flex (donc aucun chevauchement possible, y compris sur mobile) :
+         « Mes propositions » (visible connecté), la recherche globale, puis
+         le bouton d'aide « ? » qui n'est PLUS en position:fixed. -->
+    <div class="topbar-actions">
+      <!-- Accès direct au suivi des propositions (réservé aux comptes
+           connectés via CSS body.is-signed-in). -->
+      <button class="topbar-mine" id="topbar-mine" aria-label="Mes propositions" onclick="openMyProposals()">
+        <span class="cmdp-ico" aria-hidden="true">📋</span><span class="ts-label">Mes propositions</span>
+      </button>
+      <!-- Déclencheur de la palette de recherche globale (Ctrl/⌘+K). Le
+           libellé et le raccourci se masquent ≤700px (icône seule). -->
+      <button class="topbar-search" id="topbar-search" aria-label="Recherche globale (Ctrl+K)" onclick="openPalette()">
+        <span class="cmdp-ico" aria-hidden="true">🔍</span><span class="ts-label">Rechercher</span><kbd>Ctrl K</kbd>
+      </button>
+      <button class="help-btn" id="help-btn" aria-label="Aide et visite guidée" onclick="toggleHelpMenu(event)">?</button>
+    </div>
   </div>
   <div class="tabs"></div>
   <div class="main-content"></div>
@@ -1095,11 +1162,34 @@ body.sb-open .sb-backdrop{display:block;opacity:1}
   <div class="quiz-shell" id="quiz-body"></div>
 </div>
 
-<!-- new: bouton d'aide « ? » (haut-droite) + son menu : rouvre la visite
-     guidée, en entier ou directement sur une partie. La visite elle-même
-     (voile + projecteur + bulle) est créée à la volée en JS — voir le
-     module « Visite guidée » du <script> (buildTourDOM). -->
-<button class="help-btn" id="help-btn" aria-label="Aide et visite guidée" onclick="toggleHelpMenu(event)">?</button>
+<!-- Palette de recherche globale (Ctrl/⌘+K) : recherche transversale
+     notions + auteurs + concepts, ouverte par le bouton .topbar-search ou
+     le raccourci clavier. La liste de résultats (#palette-results) est
+     rendue en JS par renderPalette() ; elle complète la recherche par mode
+     de la sidebar, qu'elle ne remplace pas. -->
+<div class="cmdp-overlay" id="palette-overlay">
+  <div class="cmdp-panel" role="dialog" aria-modal="true" aria-label="Recherche globale">
+    <div class="cmdp-search">
+      <span class="cmdp-ico" aria-hidden="true">🔍</span>
+      <input class="cmdp-input" id="palette-input" type="text" autocomplete="off"
+             placeholder="Rechercher une notion, un auteur, un concept…"
+             aria-label="Rechercher" aria-controls="palette-results" role="combobox" aria-expanded="true">
+    </div>
+    <div class="cmdp-results" id="palette-results" role="listbox" aria-label="Résultats"></div>
+    <div class="cmdp-foot">
+      <span><kbd>↑</kbd> <kbd>↓</kbd> naviguer</span>
+      <span><kbd>↵</kbd> ouvrir</span>
+      <span><kbd>Échap</kbd> fermer</span>
+    </div>
+  </div>
+</div>
+
+<!-- Menu du bouton d'aide « ? » : rouvre la visite guidée, en entier ou
+     directement sur une partie. Le BOUTON déclencheur vit désormais dans la
+     barre d'en-tête (.topbar-actions) ; ce menu reste ici car il est en
+     position:fixed (sa place dans le DOM n'influe pas sur son affichage). La
+     visite elle-même (voile + projecteur + bulle) est créée à la volée en JS
+     — voir le module « Visite guidée » du <script> (buildTourDOM). -->
 <div class="help-menu" id="help-menu" role="menu" aria-label="Aide">
   <div class="help-menu-title">Visite guidée</div>
   <button class="help-item primary" role="menuitem" onclick="startTour(0)">↻ Refaire toute la visite</button>
@@ -1109,6 +1199,7 @@ body.sb-open .sb-backdrop{display:block;opacity:1}
   <button class="help-item" role="menuitem" onclick="tourGoPart('liens')">Les liens dynamiques</button>
   <button class="help-item" role="menuitem" onclick="tourGoPart('nav')">Naviguer / revenir</button>
   <button class="help-item" role="menuitem" onclick="tourGoPart('reviser')">Réviser (le quiz)</button>
+  <button class="help-item" role="menuitem" onclick="tourGoPart('compte')">Mon compte (sync)</button>
   <button class="help-item" role="menuitem" onclick="tourGoPart('proposer')">Proposer / éditer</button>
 </div>
 
@@ -1120,29 +1211,34 @@ body.sb-open .sb-backdrop{display:block;opacity:1}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 /* ══════════════════════════════════════════════════════════════════
-   A. DONNÉES — NOTIONS
+   A. DONNÉES — chargées depuis data.js (script classique, globales)
    ──────────────────────────────────────────────────────────────────
-   const D  est le dictionnaire principal de l'application.
-   Chaque clé est l'identifiant d'une notion du programme de Terminale
-   (ex: "conscience", "nature", "bonheur"…).
+   Les données vivent dans data.js (chargé AVANT ce script) : on les
+   consomme ici directement comme variables globales.
+     const D        → dictionnaire des 17 notions du programme (clé =
+                      identifiant : "conscience", "nature", "bonheur"…).
+     const KEYS     → Object.keys(D) (ordre d'affichage des notions).
+     const AM       → métadonnées des auteurs (bio, courant, période,
+                      thèmes, dialogues).
+     const CONCEPTS → glossaire des concepts clés.
+     const CC       → couleurs par courant philosophique (resté ici).
 
-   Pour chaque notion, les propriétés sont :
-     c        → couleur hex utilisée partout (badge, pills, graphe…)
-     l        → label lisible ("Conscience")
-     s        → sous-titre / question d'accroche
-     def      → définition HTML (peut contenir un <details> dépliable)
-     auteurs  → tableau d'auteurs, chacun avec :
-                  n  = nom  ·  w = œuvre  ·  i = idée  ·  q = citation
-                  new? / modified? → affiche un badge coloré
-     textes   → textes du cours (n = titre, t = contenu)
-     axes     → 3 axes de dissertation, chacun avec :
-                  n = "Axe 1"  ·  t = titre  ·  pb = problématique
-                  sps = sous-parties [{l, c, r}] (lettre, contenu, référence)
-     exemples → exemples mobilisables (tag, tit, body, lien)
-     liens    → noms d'autres notions liées (navigables)
-     diss     → questions de dissertation (string ou {q, new?})
+   Forme d'une notion D[k] (champs principaux) :
+     c   → couleur hex (badge, pills, graphe…)   l → label lisible
+     s   → sous-titre / question d'accroche       def → définition HTML
+     auteurs → [{n, ideas:[{w, i, citations:[…], new?, modified?}]}]
+               (multi-idées + multi-citations ; ancien {n,w,i,q} migré)
+     textes  → [{n, t}]  ·  exemples → [{tag, tit, body, lien}]
+     plans   → plans de dissertation [{q, intro, pb, axes:[…]}]
+               (l'ancien onglet/champ « axes » est migré en plans au
+                chargement par normalizeD)
+     liens   → noms d'autres notions liées (navigables)
+     diss    → sujets de dissertation (string ou {q, new?})
+
+   Normalisation au chargement (rétro-compat, ne réécrit pas la source) :
+     normalizeD / normalizeAuthor / normalizeConcepts — convertissent les
+     anciens formats à plat, buildAI() construit l'index AI des auteurs.
    ══════════════════════════════════════════════════════════════════ */
-/* Données (D, KEYS, AM, CONCEPTS) chargées depuis data.js (voir ce fichier). */
 
 
 /* ── Concept state ───────────────────────────────────────────── */
@@ -1679,8 +1775,11 @@ function relTypeLabel(t){
 }
 
 /* planCardHTML(p) — rend une carte « plan de dissertation ».
-   Structure : sujet (q) → problématisation (intro) → problématique (pb)
-   → 3 axes I/II/III. Chaque axe a des sous-parties (A/B/C) rendues en
+   La carte est elle-même un <details> DÉROULABLE : on ne voit que le sujet
+   (summary), et on déplie le plan pour lire son développement (divulgation
+   progressive — évite le mur de texte quand une notion a plusieurs plans).
+   Structure dépliée : sujet (q) → problématisation (intro) → problématique
+   (pb) → 3 axes I/II/III. Chaque axe a des sous-parties (A/B/C) rendues en
    <details> DÉROULABLE (arguments, auteurs, référence, mini-limite) et se
    clôt par sa LIMITE (transition marquée vers l'axe suivant).
    Tolère tous les champs vides : les plans issus de la migration
@@ -1693,39 +1792,49 @@ function planCardHTML(p){
   const nb=p.new?`<span class="new-badge">✦ Nouveau</span>`:'';
   const mb=p.modified?`<span class="modified-badge">✎ Modifié</span>`:'';
   const mig=p.migrated?`<span class="plan-migr" title="Plan converti automatiquement depuis l'ancien format — à enrichir (problématisation, titres d'axes, limites)">↻ à enrichir</span>`:'';
-  let h=`<div class="plan-card${statusCls}">
-    <div class="plan-q">${linkTerms('<span>'+(p.q||'(sujet à préciser)')+'</span>')} ${nb}${mb}${mig}</div>`;
-  if(p.intro) h+=`<div class="plan-intro"><span class="plan-lbl">Problématisation —</span> ${linkTerms('<span>'+p.intro+'</span>')}</div>`;
-  if(p.pb) h+=`<div class="plan-pb"><span class="plan-lbl">Problématique —</span> ${linkTerms('<span>'+p.pb+'</span>')}</div>`;
+  // CORPS du plan (problématisation + problématique + axes). Construit à
+  // part car la carte est désormais DÉROULABLE : le développement est
+  // replié par défaut, on ne montre que le sujet (summary). Divulgation
+  // progressive — on déplie le plan qu'on veut réellement travailler.
+  let body='';
+  if(p.intro) body+=`<div class="plan-intro"><span class="plan-lbl">Problématisation —</span> ${linkTerms('<span>'+p.intro+'</span>')}</div>`;
+  if(p.pb) body+=`<div class="plan-pb"><span class="plan-lbl">Problématique —</span> ${linkTerms('<span>'+p.pb+'</span>')}</div>`;
   (p.axes||[]).forEach((ax,i)=>{
-    h+=`<div class="plan-axe">
+    body+=`<div class="plan-axe">
       <div class="plan-axe-head">${ROMAN[i]||(i+1)}. ${ax.t?linkTerms('<span>'+ax.t+'</span>'):'<span class="plan-todo">(titre de l\'axe à préciser)</span>'}</div>`;
     (ax.sps||[]).forEach((sp,j)=>{
       const letter=LETTERS[j]||(j+1);
       // Corps COMPLET de la sous-partie (jamais tronqué) : arguments +
       // auteurs + référence + mini-limite.
-      let body='';
-      if(sp.args) body+=`<div class="plan-sp-args">${linkTerms('<span>'+sp.args+'</span>')}</div>`;
-      if(sp.auteurs) body+=`<div class="plan-sp-meta"><span class="plan-lbl">Auteurs —</span> ${linkTerms('<span>'+sp.auteurs+'</span>')}</div>`;
-      if(sp.ref) body+=`<div class="plan-sp-ref">${linkTerms('<span>'+sp.ref+'</span>')}</div>`;
-      if(sp.limite) body+=`<div class="plan-sp-limite"><span class="plan-lbl">Limite —</span> ${linkTerms('<span>'+sp.limite+'</span>')}</div>`;
+      let spBody='';
+      if(sp.args) spBody+=`<div class="plan-sp-args">${linkTerms('<span>'+sp.args+'</span>')}</div>`;
+      if(sp.auteurs) spBody+=`<div class="plan-sp-meta"><span class="plan-lbl">Auteurs —</span> ${linkTerms('<span>'+sp.auteurs+'</span>')}</div>`;
+      if(sp.ref) spBody+=`<div class="plan-sp-ref">${linkTerms('<span>'+sp.ref+'</span>')}</div>`;
+      if(sp.limite) spBody+=`<div class="plan-sp-limite"><span class="plan-lbl">Limite —</span> ${linkTerms('<span>'+sp.limite+'</span>')}</div>`;
       if(sp.t){
         // Sous-partie TITRÉE → repliable (<details>) : le titre, entier, sert
         // de résumé. Aucune troncature.
-        h+=`<details class="plan-sp"><summary><span class="plan-sp-letter">${letter}.</span> ${linkTerms('<span>'+sp.t+'</span>')}</summary>
-          <div class="plan-sp-body">${body}</div></details>`;
+        body+=`<details class="plan-sp"><summary><span class="plan-sp-letter">${letter}.</span> ${linkTerms('<span>'+sp.t+'</span>')}</summary>
+          <div class="plan-sp-body">${spBody}</div></details>`;
       }else{
         // Sous-partie SANS titre (ex. plan migré) → contenu affiché EN ENTIER,
         // directement, sans repli ni « … ».
-        h+=`<div class="plan-sp plan-sp-flat"><span class="plan-sp-letter">${letter}.</span>
-          <div class="plan-sp-body">${body||'<span class="plan-todo">(sous-partie à compléter)</span>'}</div></div>`;
+        body+=`<div class="plan-sp plan-sp-flat"><span class="plan-sp-letter">${letter}.</span>
+          <div class="plan-sp-body">${spBody||'<span class="plan-todo">(sous-partie à compléter)</span>'}</div></div>`;
       }
     });
-    if(ax.limite) h+=`<div class="plan-axe-limite"><span class="plan-lbl">Limite de l'axe —</span> ${linkTerms('<span>'+ax.limite+'</span>')}</div>`;
-    h+=`</div>`;
+    if(ax.limite) body+=`<div class="plan-axe-limite"><span class="plan-lbl">Limite de l'axe —</span> ${linkTerms('<span>'+ax.limite+'</span>')}</div>`;
+    body+=`</div>`;
   });
-  h+=`${pPlus('correction','plan',cur,p.q||'plan')}</div>`;
-  return h;
+  body+=pPlus('correction','plan',cur,p.q||'plan');
+  // Carte DÉROULABLE : le sujet (plan-q) sert de résumé cliquable ; le
+  // <details> est replié par défaut. Tout le contenu reste intact à
+  // l'intérieur (rien n'est tronqué), seulement masqué tant qu'on ne
+  // déplie pas. Le bouton « + » de correction vit dans le corps déplié.
+  return `<details class="plan-card${statusCls}">
+    <summary class="plan-q">${linkTerms('<span>'+(p.q||'(sujet à préciser)')+'</span>')} ${nb}${mb}${mig}</summary>
+    <div class="plan-card-body">${body}</div>
+  </details>`;
 }
 
 /* ── G. RENDU — FICHES ───────────────────────────────────────────────
@@ -3691,6 +3800,14 @@ function openProposal(){
   renderProposal();
   document.getElementById('proposal-overlay').classList.add('open');
 }
+/* new : ouvre la modale de contribution directement sur « Mes propositions »
+   (déclencheur .topbar-mine de la barre d'en-tête, visible seulement connecté).
+   renderProposal() en vue 'mine' charge la liste des contributions du compte. */
+function openMyProposals(){
+  proposalView='mine';
+  renderProposal();
+  document.getElementById('proposal-overlay').classList.add('open');
+}
 /* closeProposal() — masque la modale de contribution (la saisie est conservée). */
 function closeProposal(){
   document.getElementById('proposal-overlay').classList.remove('open');
@@ -3786,13 +3903,13 @@ function togglePhiloMode(){
 
 // Libellés lisibles des parties (sert d'en-tête de bulle + menu d'aide).
 const TOUR_PARTS={welcome:'Bienvenue',fiches:'Les fiches',liens:'Les liens',
-  nav:'Naviguer',reviser:'Réviser',proposer:'Proposer',end:''};
+  nav:'Naviguer',reviser:'Réviser',compte:'Mon compte',proposer:'Proposer',end:''};
 
 // Couleur d'accent par partie : sert à ENCADRER les pastilles de progression
 // (un cadre coloré par thème, cf. tourProgressHTML). Teintes distinctes et
 // lisibles sur fond sombre — une par partie de TOUR_PARTS.
 const TOUR_PART_COLORS={welcome:"#9aa0b5",fiches:"#5b8def",liens:"#3fb6a8",
-  nav:"#e0a458",reviser:"#e06b9b",proposer:"#b07fe0",end:"#6fcf97"};
+  nav:"#e0a458",reviser:"#e06b9b",compte:"#57bfd6",proposer:"#b07fe0",end:"#6fcf97"};
 
 // Garantit qu'une fiche de NOTION est affichée (état de départ commun à la
 // plupart des étapes : sidebar en mode « notions », contenu d'une notion).
@@ -3898,9 +4015,16 @@ const TOUR_STEPS=[
     text:"Le bouton <b>← Retour</b> te ramène à la page précédente (il s’active dès que tu as "
         +"navigué). Pratique pour suivre un lien puis revenir.",
     setup:tourShowNotion, target:()=>document.querySelector('.back-btn') },
-  { part:'nav', center:true, title:'Trois façons de circuler',
-    text:"Pour résumer : la <b>barre latérale</b> (les listes), le <b>fil d’Ariane</b> (ta position) "
-        +"et les <b>liens du texte</b> (de proche en proche). À toi de choisir." },
+  { part:'nav', side:'main', title:'Chercher partout (Ctrl + K)',
+    text:"Ce bouton — ou le raccourci <b>Ctrl + K</b> (⌘ + K sur Mac) — ouvre une "
+        +"<b>recherche globale</b> : tape les premières lettres d’une notion, d’un auteur ou "
+        +"d’un concept et saute droit à sa fiche. Le plus rapide quand tu sais déjà ce que "
+        +"tu cherches.",
+    setup:tourShowNotion, target:()=>document.getElementById('topbar-search') },
+  { part:'nav', center:true, title:'Plusieurs façons de circuler',
+    text:"Pour résumer : la <b>barre latérale</b> (les listes), le <b>fil d’Ariane</b> (ta position), "
+        +"les <b>liens du texte</b> (de proche en proche) et la <b>recherche globale</b> "
+        +"(Ctrl + K, pour aller droit au but). À toi de choisir." },
 
   // ── Partie 4 : Réviser (le quiz) ──
   // On OUVRE réellement le mode révision pendant la visite : la 1re étape
@@ -3941,7 +4065,22 @@ const TOUR_STEPS=[
         +"révisant un peu chaque jour. Le vrai secret, c’est la régularité.",
     setup:tourOpenQuiz, target:()=>document.querySelector('#quiz-overlay .quiz-goal-pick') },
 
-  // ── Partie 5 : Proposer / éditer ──
+  // ── Partie 5 : Mon compte (facultatif — synchronisation & suivi) ──
+  // Pointe le bouton .sb-account (toujours visible) puis récapitule les deux
+  // bénéfices. La visite ne CLIQUE pas le bouton : aucun risque si Supabase
+  // n'est pas encore configuré, on ne fait que le désigner.
+  { part:'compte', side:'sidebar', title:'Un compte (facultatif)',
+    text:"Tout en bas de la barre latérale, tu peux <b>créer un compte</b>. Ce n’est pas "
+        +"obligatoire pour réviser, mais ça débloque deux choses bien pratiques.",
+    setup:tourShowNotion, target:()=>document.querySelector('.sb-account') },
+  { part:'compte', center:true, title:'Sync & suivi',
+    text:"<b>1.</b> Ta <b>révision</b> (progression, série, objectif) te suit sur <b>tous tes "
+        +"appareils</b> — commence sur l’ordi, continue sur le téléphone.<br>"
+        +"<b>2.</b> Tes <b>propositions</b> de contenu sont reliées à ton compte : suis leur "
+        +"<b>statut</b> (en attente, intégrée, refusée) via le bouton <b>📋 Mes propositions</b>, "
+        +"qui apparaît en haut de la page — à côté de la recherche — une fois connecté." },
+
+  // ── Partie 6 : Proposer / éditer ──
   // Les 2 premières étapes restent dans la barre latérale (mode édition +
   // bouton) ; les suivantes OUVRENT la modale de contribution (tourOpenProposal)
   // et détaillent les 3 menus en cascade, les champs, l'empilement et l'envoi.
@@ -3988,9 +4127,13 @@ const TOUR_STEPS=[
     setup:tourOpenProposalPreview, target:()=>document.querySelector('#proposal-overlay .pactions') },
 
   // ── Fin (carte centrée) ──
+  // Mentionne la PWA (installable + hors-ligne), ajoutée récemment et absente
+  // du reste de la visite, avant de renvoyer vers le bouton « ? ».
   { part:'end', center:true, title:'C’est parti 🎓',
-    text:"Voilà l’essentiel ! Le bouton <b>?</b> en haut à droite rouvre cette visite quand tu veux — "
-        +"en entier ou directement sur une partie. Bonnes révisions !",
+    text:"Voilà l’essentiel ! 💡 Astuce : le site s’<b>installe</b> comme une appli "
+        +"(menu du navigateur → « Installer ») et fonctionne <b>hors-ligne</b> — pratique "
+        +"pour réviser dans le train. Le bouton <b>?</b> en haut à droite rouvre cette visite "
+        +"quand tu veux — en entier ou directement sur une partie. Bonnes révisions !",
     nextLabel:'Terminer' },
 ];
 
@@ -5593,6 +5736,180 @@ function redoWrong(){
 document.addEventListener('keydown',e=>{
   if(e.key==='Escape'&&document.getElementById('quiz-overlay').classList.contains('open')) closeQuiz();
 });
+
+/* ══════════════════════════════════════════════════════════════════
+   L. PALETTE DE RECHERCHE GLOBALE (Ctrl/⌘+K)
+   ──────────────────────────────────────────────────────────────────
+   Recherche transversale et instantanée sur les notions (D), les auteurs
+   (AI) et les concepts (CONCEPTS). Ouverte par le bouton .topbar-search ou
+   le raccourci Ctrl/⌘+K ; navigation clavier ↑/↓/Entrée/Échap. Activer un
+   résultat route vers openNotion / openAuthor / openConcept puis ferme la
+   palette. Elle COMPLÈTE la recherche par mode de la sidebar (conservée
+   telle quelle, avec ses filtres et ses modes de circulation).
+   ══════════════════════════════════════════════════════════════════ */
+
+/* paletteNorm(s) — normalise pour comparaison : minuscules + accents
+   retirés (NFD), espaces conservés. Même principe que slugify, sans
+   compacter les espaces (on veut comparer « jean paul sartre »). */
+function paletteNorm(s){
+  return String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+}
+
+/* paletteEsc(s) — échappe les caractères HTML sensibles avant injection
+   via innerHTML (les libellés sont des données de confiance, mais on
+   reste prudent pour & < > et les guillemets dans un attribut). */
+function paletteEsc(s){
+  return String(s==null?'':s).replace(/[&<>"']/g,
+    c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+/* PALETTE_INDEX — index plat construit UNE fois au chargement : une entrée
+   par notion / auteur / concept, avec libellé, sous-titre, pastille de
+   couleur et chaîne de recherche normalisée (norm). */
+const PALETTE_INDEX=(function(){
+  const out=[];
+  // Notions : couleur = D[k].c ; sous-titre = question d'accroche (texte nu).
+  KEYS.forEach(k=>{
+    const sub=stripHtml(D[k].s||'');
+    out.push({type:'notion', id:k, label:D[k].l, sub:sub,
+      color:D[k].c, norm:paletteNorm(D[k].l+' '+sub)});
+  });
+  // Auteurs : couleur = courant (CC) ; sous-titre = courant philosophique.
+  Object.keys(AI).forEach(name=>{
+    const courant=(AM[name]||{}).courant||'';
+    out.push({type:'auteur', id:name, label:name, sub:courant,
+      color:CC[courant]||'#888', norm:paletteNorm(name+' '+courant)});
+  });
+  // Concepts : couleur = 1re notion liée (si fichée) ; sous-titre = catégorie.
+  CONCEPTS.forEach(c=>{
+    const col=(c.notions&&c.notions[0]&&D[c.notions[0]])?D[c.notions[0]].c:'#888';
+    out.push({type:'concept', id:c.id, label:c.term, sub:c.cat||'',
+      color:col, norm:paletteNorm(c.term+' '+(c.cat||''))});
+  });
+  return out;
+})();
+
+const PALETTE_GROUPS={notion:'Notions', auteur:'Auteurs', concept:'Concepts'};
+const PALETTE_ORDER={notion:0, auteur:1, concept:2};
+
+/* État runtime. paletteResults = liste à plat des résultats affichés (dans
+   l'ordre des groupes) ; paletteSel = index sélectionné au clavier. */
+let paletteResults=[]; let paletteSel=0;
+
+/* paletteQuery() — lit la saisie courante du champ. */
+function paletteQuery(){ const i=document.getElementById('palette-input'); return i?i.value:''; }
+
+/* paletteSearch(q) — entrées correspondant à q, classées par pertinence
+   (libellé qui COMMENCE par q, puis match en tête de la chaîne, puis
+   simple inclusion), regroupées par type (notion → auteur → concept).
+   Sans requête : tout l'index, dans son ordre naturel. Plafonné à 40. */
+function paletteSearch(q){
+  const n=paletteNorm(q.trim());
+  let hits;
+  if(!n){
+    hits=PALETTE_INDEX.slice();
+  } else {
+    hits=PALETTE_INDEX
+      .map(e=>{ const i=e.norm.indexOf(n);
+        return i<0?null:{e, rank:(paletteNorm(e.label).startsWith(n)?0:(i===0?1:2))}; })
+      .filter(Boolean)
+      .sort((a,b)=>a.rank-b.rank)   // sort stable : conserve l'ordre d'index à rang égal
+      .map(x=>x.e);
+  }
+  // Regroupe par type (sort stable → pertinence conservée dans chaque groupe).
+  return hits.sort((a,b)=>PALETTE_ORDER[a.type]-PALETTE_ORDER[b.type]).slice(0,40);
+}
+
+/* renderPalette() — recalcule les résultats selon la saisie et peint la
+   liste groupée ; borne la sélection et fait défiler l'élément choisi. */
+function renderPalette(){
+  const box=document.getElementById('palette-results');
+  paletteResults=paletteSearch(paletteQuery());
+  if(paletteSel>=paletteResults.length) paletteSel=paletteResults.length-1;
+  if(paletteSel<0) paletteSel=0;
+  if(!paletteResults.length){
+    box.innerHTML='<div class="cmdp-empty">Aucun résultat.</div>';
+    return;
+  }
+  let html=''; let lastType=null;
+  paletteResults.forEach((e,ix)=>{
+    if(e.type!==lastType){ html+=`<div class="cmdp-group">${PALETTE_GROUPS[e.type]}</div>`; lastType=e.type; }
+    const sel=ix===paletteSel?' sel':'';
+    const sub=e.sub?`<span class="cmdp-sub">${paletteEsc(e.sub)}</span>`:'';
+    html+=`<div class="cmdp-item${sel}" role="option" data-ix="${ix}" aria-selected="${ix===paletteSel}">`
+      +`<span class="cmdp-dot" style="background:${paletteEsc(e.color)}"></span>`
+      +`<span class="cmdp-label">${paletteEsc(e.label)}</span>${sub}</div>`;
+  });
+  box.innerHTML=html;
+  const cur=box.querySelector('.cmdp-item.sel');
+  if(cur) cur.scrollIntoView({block:'nearest'});
+}
+
+/* openPalette() — ouvre la palette : reset saisie + sélection, rend la
+   liste (tout l'index au départ), focus le champ. */
+function openPalette(){
+  const ov=document.getElementById('palette-overlay');
+  const inp=document.getElementById('palette-input');
+  inp.value=''; paletteSel=0;
+  ov.classList.add('open');
+  renderPalette();
+  inp.focus();
+}
+
+/* closePalette() — referme la palette. */
+function closePalette(){ document.getElementById('palette-overlay').classList.remove('open'); }
+
+/* paletteIsOpen() — la palette est-elle visible ? */
+function paletteIsOpen(){ return document.getElementById('palette-overlay').classList.contains('open'); }
+
+/* paletteMove(d) — déplace la sélection clavier de d (±1), avec bouclage. */
+function paletteMove(d){
+  if(!paletteResults.length) return;
+  paletteSel=(paletteSel+d+paletteResults.length)%paletteResults.length;
+  renderPalette();
+}
+
+/* paletteActivate() — ouvre le résultat sélectionné via le bon point
+   d'entrée (notion / auteur / concept) puis ferme la palette. */
+function paletteActivate(){
+  const e=paletteResults[paletteSel];
+  if(!e) return;
+  closePalette();
+  if(e.type==='notion') openNotion(e.id);
+  else if(e.type==='auteur') openAuthor(e.id);
+  else if(e.type==='concept') openConcept(e.id);
+}
+
+/* Câblage des interactions de la palette (saisie, clavier, clic, raccourci). */
+(function(){
+  const inp=document.getElementById('palette-input');
+  const res=document.getElementById('palette-results');
+  const ov=document.getElementById('palette-overlay');
+  if(!inp||!res||!ov) return;   // garde-fou si le DOM change
+  // Saisie : recalcule et repart du 1er résultat.
+  inp.addEventListener('input',()=>{ paletteSel=0; renderPalette(); });
+  // Clavier DANS le champ : flèches, Entrée, Échap.
+  inp.addEventListener('keydown',e=>{
+    if(e.key==='ArrowDown'){ e.preventDefault(); paletteMove(1); }
+    else if(e.key==='ArrowUp'){ e.preventDefault(); paletteMove(-1); }
+    else if(e.key==='Enter'){ e.preventDefault(); paletteActivate(); }
+    else if(e.key==='Escape'){ e.preventDefault(); closePalette(); }
+  });
+  // Clic sur un résultat (délégué) : sélectionne puis active.
+  res.addEventListener('click',e=>{
+    const it=e.target.closest('.cmdp-item'); if(!it) return;
+    paletteSel=+it.dataset.ix; paletteActivate();
+  });
+  // Clic sur le voile (hors panneau) : ferme.
+  ov.addEventListener('click',e=>{ if(e.target===ov) closePalette(); });
+  // Raccourci global Ctrl/⌘+K : bascule l'ouverture de la palette.
+  document.addEventListener('keydown',e=>{
+    if((e.ctrlKey||e.metaKey)&&(e.key==='k'||e.key==='K')){
+      e.preventDefault();
+      paletteIsOpen()?closePalette():openPalette();
+    }
+  });
+})();
 </script>
 
 
