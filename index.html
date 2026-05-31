@@ -2566,10 +2566,12 @@ function saveDrafts(){
    persiste localement, puis on programme un envoi (différé) vers le compte. */
 function draftChanged(){ saveDrafts(); if(typeof syncOnPrefsChange==='function') syncOnPrefsChange(); }
 /* applyDraftsBlob — recharge un brouillon (depuis le stockage ou le compte)
-   dans l'état d'exécution. On NE touche à rien si la modale est ouverte, pour
-   ne pas effacer une saisie en cours sous les doigts du contributeur. */
-function applyDraftsBlob(d){
-  if(!d || proposalOpen()) return;
+   dans l'état d'exécution. Par défaut on NE touche à rien si la modale est
+   ouverte, pour ne pas effacer une saisie en cours sous les doigts du
+   contributeur. `force` lève ce garde-fou (cf. adoptRemoteDrafts : la modale
+   est ouverte MAIS rien n'est saisi localement → on peut adopter sans risque). */
+function applyDraftsBlob(d, force){
+  if(!d || (proposalOpen() && !force)) return;
   if(Array.isArray(d.boxes)) proposalBoxes=d.boxes;
   proposalContributor=d.contributor||'';
   let maxId=0; proposalBoxes.forEach(b=>{ if(b && b.id>maxId) maxId=b.id; });
@@ -4548,12 +4550,24 @@ function applyPrefsBlob(p){
 }
 
 /* adoptRemoteDrafts() — recopie le brouillon du compte dans le stockage local
-   et l'état d'exécution (applyDraftsBlob protège une saisie en cours). */
+   ET dans l'état d'exécution.
+   Cas délicat : la modale de proposition est OUVERTE sur cet appareil.
+     • si rien n'est saisi localement (draftIsEmpty) → on adopte quand même et on
+       RE-REND la modale, sinon le brouillon venu d'un autre appareil resterait
+       invisible (on ne voit le brouillon qu'en ouvrant la modale… qui bloquait
+       justement la mise à jour) ;
+     • si une saisie est en cours → on garde la saisie locale (on n'écrase pas
+       ce que le contributeur est en train d'écrire), le stockage local ayant
+       déjà reçu la copie distante pour un prochain chargement.
+   (Appelé sous syncSuspend : le draftChanged de renderProposal ne re-pousse pas.) */
 function adoptRemoteDrafts(p){
   const d=p && p.drafts;
   if(!d) return;
   try{ localStorage.setItem('philo-drafts', JSON.stringify(d)); }catch(e){}
-  applyDraftsBlob(d);
+  const modalOpen=proposalOpen();
+  if(modalOpen && !draftIsEmpty()) return;     // saisie en cours : on ne touche pas au runtime
+  applyDraftsBlob(d, modalOpen);               // force=true si modale ouverte mais vide
+  if(modalOpen && typeof renderProposal==='function') renderProposal();   // refléter à l'écran
 }
 
 /* mergeQuiz(a,b) — fusionne deux états de quiz sans rien perdre (a = local).
@@ -4674,6 +4688,9 @@ async function syncOnLogin(){
 
     syncReady=true;
     applyPhiloMode();
+    // Aligner le runtime du quiz sur l'état (fusionné/adopté) : horizon + session
+    // reprenable, pour que « Reprendre » apparaisse sans rouvrir l'overlay.
+    syncRuntimeQuizFromStorage({keepLive:true});
     if(quizOverlayOpen()){ try{ renderQuiz(); }catch(e){} }
   }catch(e){
     syncSuspend=false;
@@ -4745,6 +4762,9 @@ async function syncOnFocus(){
       if(q.data.data){ saveQuizState(q.data.data); }
       else { localStorage.removeItem('philo-quiz'); }
       syncMeta.quiz=q.data.updated_at; saveSyncMarker();
+      // Aligner le runtime sur l'état adopté (horizon + session reprenable) afin
+      // que « Reprendre » et le bon rythme apparaissent même overlay déjà ouvert.
+      syncRuntimeQuizFromStorage({keepLive:true});
       if(quizOverlayOpen()){ try{ renderQuiz(); }catch(e){} }
     }
     if(p.data && p.data.updated_at && p.data.updated_at!==syncMeta.prefs){
@@ -5032,21 +5052,39 @@ function quizStats(){
 }
 
 /* ── K.3 OUVERTURE / FERMETURE ───────────────────────────────────── */
-/* openQuiz() — ouvre l'overlay sur le dashboard. Si une session était en
-   cours (sauvegardée dans philo-quiz.active), elle est RECONSTRUITE pour
-   pouvoir être reprise — y compris après un refresh de la page. */
-function openQuiz(){
+/* syncRuntimeQuizFromStorage(opts) — aligne l'état RUNTIME du quiz (quizState)
+   sur ce qui est en localStorage : horizon courant + RECONSTRUCTION de la
+   session en cours (« active »).
+   Indispensable après une ADOPTION distante (un autre appareil a poussé sa
+   progression) : sans cela, la session reprise et le bon horizon n'apparaissent
+   qu'après avoir refermé puis rouvert l'overlay (seul openQuiz reconstruisait).
+   opts.keepLive : ne casse PAS une session déjà en cours de lecture sur CET
+   appareil (on n'interrompt pas le joueur). */
+function syncRuntimeQuizFromStorage(opts){
+  opts=opts||{};
+  if(opts.keepLive && quizSessionActive()) return;   // une partie est jouée ici : on n'y touche pas
   const st=loadQuizState();
   quizState.horizon=st.horizon||'sprint';
-  quizState.confirmNew=false;
   const a=st.active;
   if(a && a.ids && a.idx<a.ids.length){
+    // Session reprenable (la nôtre après refresh, ou celle d'un autre appareil).
     quizState.session=a.ids.map(id=>QUIZ_BY_ID[id]).filter(Boolean);
     quizState.idx=Math.min(a.idx,quizState.session.length);
     quizState.mode=a.mode||quizState.mode;
     quizState.horizon=a.horizon||quizState.horizon;
     quizState.results=a.results||{ok:0,ko:0,wrongIds:[],xp:0,promoted:0,mastered:0,leveledUp:false};
+  } else {
+    // Plus rien à reprendre (session terminée / effacée ailleurs) : on nettoie
+    // le runtime pour ne pas afficher un « Reprendre » fantôme.
+    quizState.session=null; quizState.idx=0;
   }
+}
+/* openQuiz() — ouvre l'overlay sur le dashboard. Si une session était en
+   cours (sauvegardée dans philo-quiz.active), elle est RECONSTRUITE pour
+   pouvoir être reprise — y compris après un refresh de la page. */
+function openQuiz(){
+  quizState.confirmNew=false;
+  syncRuntimeQuizFromStorage();   // horizon + reconstruction de la session en cours
   quizState.view='dashboard';
   document.getElementById('quiz-overlay').classList.add('open');
   renderQuiz();
@@ -5171,11 +5209,12 @@ function renderQuizDashboard(){
   <details class="quiz-help"><summary>💾 Ma progression est-elle sauvegardée&nbsp;?</summary>
     <div class="quiz-help-body">
       ${authUser ? `
-      <p><b>Oui, et elle te suit partout&nbsp;!</b> Tu es connecté&nbsp;: ta progression complète (niveau, cartes, série, objectif <b>et même la session en cours</b>) est enregistrée <b>sur ton compte</b> à chaque réponse.</p>
-      <p>📱💻 Tu la retrouves <b>sur tous tes appareils</b> — téléphone, tablette, ordinateur — simplement en te connectant avec le même compte. Une copie reste aussi sur cet appareil, donc <b>même hors-ligne tout fonctionne</b>&nbsp;: la synchro se fait dès le retour en ligne.</p>
+      <p><b>Oui — et surtout, elle te suit d'un appareil à l'autre&nbsp;!</b> Tu es connecté&nbsp;: ta progression complète (niveau, cartes, série, objectif <b>et même la session en cours</b>) est enregistrée <b>sur ton compte</b> à chaque réponse.</p>
+      <p>📱➡️💻 C'est tout l'intérêt du compte&nbsp;: commence à réviser sur ton <b>téléphone</b> dans le bus, reprends <b>exactement où tu en étais</b> sur l'<b>ordinateur</b> à la maison — il suffit d'être connecté avec le même compte. Une copie reste aussi sur cet appareil, donc <b>même hors-ligne tout fonctionne</b>&nbsp;: la synchro se fait dès le retour en ligne, et c'est <b>la version la plus récente qui gagne</b>.</p>
+      <p>👉 Pareil pour tes <b>brouillons de proposition</b> et tes <b>réglages</b> (mode, objectif)&nbsp;: ils voyagent avec ton compte.</p>
       ` : `
       <p><b>Oui — mais pour l'instant sur cet appareil uniquement</b> (ce navigateur). Elle est enregistrée <b>à chaque réponse</b> et survit si tu actualises la page, fermes l'onglet ou éteins l'appareil.</p>
-      <p>🔗 <b>Pour la garder sur tous tes appareils</b> (téléphone, ordinateur, autre navigateur) et ne <b>jamais</b> la perdre&nbsp;: <b>crée un compte ou connecte-toi</b> (boutons en bas de la barre latérale). Bonne nouvelle&nbsp;: ta progression actuelle sera <b>fusionnée</b> avec ton compte — rien n'est perdu.</p>
+      <p>📱➡️💻 <b>Pour la retrouver sur TOUS tes appareils</b> — réviser sur le téléphone puis continuer sur l'ordinateur, sans rien reperdre — il n'y a qu'une chose à faire&nbsp;: <b>crée un compte ou connecte-toi</b> (boutons en bas de la barre latérale). Ta progression complète (cartes, série, session en cours), tes brouillons et tes réglages sont alors <b>sauvegardés en ligne et synchronisés partout</b>. Bonne nouvelle&nbsp;: ta progression actuelle sera <b>fusionnée</b> avec ton compte — rien n'est perdu.</p>
       <p>⚠️ Sans compte, tu perdrais ta progression en cas d'effacement des données de navigation, de <b>navigation privée</b>, ou de changement de navigateur/appareil.</p>
       `}
     </div>
