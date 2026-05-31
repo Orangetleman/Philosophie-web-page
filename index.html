@@ -1005,6 +1005,11 @@ body.sb-open .sb-backdrop{display:block;opacity:1}
 .pbtn:hover{border-color:var(--color-text-tertiary);color:var(--color-text-primary)}
 .pbtn-primary{background:var(--color-background-info);border-color:var(--color-border-info);color:var(--color-text-info)}
 .pbtn-primary:hover{filter:brightness(1.3);color:var(--color-text-info)}
+/* Bouton discret (repli) : « Envoyer par email » n'est plus une voie
+   principale — mailto sert de repli automatique. On le rend léger (sans
+   bordure, texte tertiaire) pour ne pas concurrencer « Envoyer en ligne ». */
+.pbtn-ghost{border-color:transparent;color:var(--color-text-tertiary);font-size:11px;padding:7px 8px}
+.pbtn-ghost:hover{border-color:transparent;color:var(--color-text-secondary)}
 .ppreview-head{font-size:11px;color:var(--color-text-tertiary);margin-bottom:8px}
 .ppreview{width:100%;box-sizing:border-box;min-height:300px;resize:vertical;
   font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11px;line-height:1.55;
@@ -3356,12 +3361,35 @@ function copyProposal(){
   }
 }
 /* Ouvre l'application mail du contributeur, pré-remplie vers PROPOSAL_EMAIL,
-   avec le texte de la proposition en corps de message (étape 3). */
+   avec le texte de la proposition en corps de message (étape 3).
+   Note : affecter window.location.href à une URL mailto: NE quitte PAS la
+   page (le navigateur délègue au gestionnaire de courrier) ; la modale
+   reste donc ouverte derrière. */
 function sendProposal(){
   const subject='Proposition — Graphe Philosophie Terminale';
   window.location.href='mailto:'+PROPOSAL_EMAIL
     +'?subject='+encodeURIComponent(subject)
     +'&body='+encodeURIComponent(generateProposalText());
+}
+
+/* new (Phase 5) : repli mailto AUTOMATIQUE et silencieux.
+   Quand l'envoi en ligne échoue (hors-ligne, service endormi, RLS, etc.),
+   on ne laisse plus l'utilisateur faire l'effort de cliquer : on bascule
+   tout de suite sur son application mail (sendProposal), en l'annonçant
+   d'une ligne. Le bouton « Envoyer par email » reste là, discret, pour
+   relancer le mail à la main si le gestionnaire ne s'est pas ouvert.
+   `reason` = message technique de l'échec (affiché entre parenthèses). */
+function proposalMailtoFallback(reason){
+  const btn=document.getElementById('psend-btn');
+  const status=document.getElementById('psend-status');
+  if(btn){ btn.disabled=false; btn.textContent='Réessayer en ligne'; }
+  if(status){
+    status.style.color='#e0c170';
+    status.textContent='Envoi en ligne impossible ('+reason
+      +'). On ouvre ton application mail en repli — il te reste à appuyer sur « Envoyer ».';
+  }
+  // Bascule effective vers le client mail (ne quitte pas la page).
+  sendProposal();
 }
 
 /* new: Envoie la proposition à la boîte aux lettres en ligne (POST sur
@@ -3403,9 +3431,8 @@ function sendProposalOnline(){
       }
     });
   }).catch(function(err){
-    if(btn){ btn.disabled=false; btn.textContent='Réessayer en ligne'; }
-    setStatus('Envoi en ligne impossible ('+err.message
-      +'). Utilise « Envoyer par email » ci-dessous, ou réessaie.','#e74c3c');
+    // new (Phase 5) : repli mailto automatique (plus de message « clique ici »).
+    proposalMailtoFallback(err.message);
   });
 }
 
@@ -3433,9 +3460,8 @@ function sendProposalToSupabase(){
     setStatus('Merci ! Ta proposition est enregistrée sur ton compte. Suis son statut dans « Mes propositions ». 🎉','#2ecc71');
     clearDrafts();   // new (Phase 3) : la proposition étant soumise, on vide le brouillon
   }).catch(function(err){
-    if(btn){ btn.disabled=false; btn.textContent='Réessayer en ligne'; }
-    setStatus('Envoi impossible ('+((err&&err.message)||err)
-      +'). Utilise « Envoyer par email » ci-dessous, ou réessaie.','#e74c3c');
+    // new (Phase 5) : repli mailto automatique (plus de message « clique ici »).
+    proposalMailtoFallback((err&&err.message)||err);
   });
 }
 
@@ -3529,13 +3555,16 @@ function renderProposal(){
     const mineBtn = logged ? '<button class="pbtn" onclick="showProposalMine()">Mes propositions</button>' : '';
     body.innerHTML='<div class="ppreview-head">Aperçu — ce texte sera transmis tel quel :</div>'
       +'<textarea class="ppreview" readonly>'+pEsc(generateProposalText())+'</textarea>'
-      +'<div class="phint" style="margin-top:8px">'+onlineHint+' En cas d\'échec, utilise « Envoyer par email » (ouvre ton appli mail) ou « Copier le texte ».</div>'
+      // new (Phase 5) : le mailto n'est plus une voie à choisir mais un repli
+      // automatique → on n'évoque plus « clique sur Envoyer par email ».
+      +'<div class="phint" style="margin-top:8px">'+onlineHint+' En cas de problème (hors-ligne, service indisponible), l\'envoi bascule automatiquement sur ton application mail.</div>'
       // new: ligne de retour d'état de l'envoi en ligne (succès / erreur).
       +'<div id="psend-status" class="phint" style="margin-top:8px;min-height:1.1em"></div>'
       +'<div class="pactions">'
       +'<button class="pbtn" onclick="showProposalEdit()">← Modifier</button>'
       +'<button class="pbtn" id="pcopy-btn" onclick="copyProposal()">Copier le texte</button>'
-      +'<button class="pbtn" onclick="sendProposal()">Envoyer par email</button>'
+      // new (Phase 5) : « Envoyer par email » devient un repli discret (pbtn-ghost).
+      +'<button class="pbtn pbtn-ghost" onclick="sendProposal()">Envoyer par email</button>'
       +mineBtn
       // new (Phase 3): voie principale — Supabase si connecté, sinon boîte PythonAnywhere.
       +'<button class="pbtn pbtn-primary" id="psend-btn" onclick="submitProposalOnline()">Envoyer en ligne</button>'

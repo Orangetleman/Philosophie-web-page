@@ -119,6 +119,23 @@ def status_pill(status):
     return pill(color, label)
 
 
+def source_pill(row):
+    """
+    Pastille de PROVENANCE de la boîte, pour distinguer d'un coup d'œil les
+    trois canaux d'arrivée (le statut n'est renvoyé à l'auteur QUE pour le
+    canal « compte ») :
+      - compte Supabase  → ☁ compte  (remote_id présent ; statut renvoyé) ;
+      - boîte anonyme     → ⬇ anonyme (source_file « pull#… » ; pas de suivi) ;
+      - fichier .txt local→ 📄 fichier (dépôt manuel dans inbox/).
+    """
+    if row["remote_id"]:
+        return pill("#8e7cc3", "☁ compte")
+    src = row["source_file"] or ""
+    if src.startswith("pull#"):
+        return pill("#5d8aa8", "⬇ anonyme")
+    return pill("#6b7280", "📄 fichier")
+
+
 # ── Feuille de style (chaîne simple : surtout pas d'f-string ici, les
 #    accolades CSS entreraient en conflit avec la syntaxe f-string) ────────
 
@@ -230,8 +247,9 @@ def _card(row, status, verdict_filter):
     parts.append('<div class="head">')
     parts.append(f'<strong>#{bid}</strong>')
     parts.append(status_pill(row["status"]))
-    if is_cloud:
-        parts.append(pill("#8e7cc3", "☁ compte"))
+    # Provenance (compte / anonyme / fichier) : rend visible que seul le
+    # canal « compte » reçoit un renvoi de statut.
+    parts.append(source_pill(row))
     parts.append(verdict_pill(row["ai_verdict"]))
     parts.append(f'<span>{esc(type_lbl)} • {esc(cible_lbl)} '
                  f'« {esc(key_term)} »</span>')

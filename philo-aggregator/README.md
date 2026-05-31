@@ -102,11 +102,28 @@ python aggregate.py mark 12 17 --as integree
 python aggregate.py push 12 17  --explication "Intégré, merci !"
 ```
 
-Dans le dashboard : un clic **Valider** (statut `validee`), **Rejeter**,
-**Archiver**. Comme pour le reste de l'outil, **valider n'écrit rien dans
-`data.js`** : c'est juste un changement de statut en base. La recopie
-finale dans le site reste une étape manuelle séparée (via `export` puis
-intégration dans une session Claude).
+Le dashboard est un **cockpit** : toutes les commandes sont des boutons
+(plus besoin du terminal).
+
+- **Barre d'outils** (actions globales) : ☁ Récupérer (Supabase / `pull-cloud`),
+  ⬇ Récupérer (anonyme / `pull`), 🤖 Relire (IA / `review`),
+  📤 Exporter (`export` du statut filtré), 🗄 Archiver intégrées
+  (`integree` → `archivee`), 🗑 Purger archivées (destructeur, confirmation).
+- **Panneau de stats** : compteurs par statut, dans l'en-tête.
+- **Tri par carte** : **Valider** (`validee`), **Intégrer** (`integree`),
+  **Rejeter** (`rejetee`), **Archiver** (`archivee`), **En attente**.
+- **Provenance visible** : une pastille distingue les trois canaux —
+  **☁ compte** (Supabase, statut renvoyé à l'auteur), **⬇ anonyme** (boîte
+  PythonAnywhere, pas de suivi), **📄 fichier** (`.txt` déposé à la main).
+
+**Écriture-retour automatique** : changer le statut d'une boîte issue d'un
+**compte** (pastille ☁) pousse aussitôt le statut « contributeur » vers
+Supabase (Valider → « en cours d'intégration », Intégrer → « intégrée »,
+Rejeter → « refusée »), avec une **explication facultative** saisie sur la
+carte. Rien n'est poussé pour les canaux anonyme / fichier (pas de pendant
+en ligne). Comme pour le reste de l'outil, **rien n'est écrit dans `data.js`**
+ici : la recopie finale dans le site reste une étape manuelle séparée (via
+`export` puis intégration dans une session Claude).
 
 ## Commandes
 

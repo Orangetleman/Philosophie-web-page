@@ -196,7 +196,15 @@ d'ouverture `.sb-propose` (« 💡 Proposer du contenu ») intégré à la sideb
 - **Génération** (`generateProposalText`) : une partie lisible **+** un
   bloc JSON délimité par `[PHILO-PROPOSAL-JSON-START]` /
   `[PHILO-PROPOSAL-JSON-END]`, destiné à un programme d'agrégation externe.
-- **Envoi** : `mailto:` vers la constante `PROPOSAL_EMAIL`.
+- **Envoi** — `submitProposalOnline()` aiguille la **voie principale** : si
+  connecté → table Supabase `contributions` (`sendProposalToSupabase`, suivi
+  du statut dans « Mes propositions ») ; sinon → boîte anonyme PythonAnywhere
+  (`sendProposalOnline`). Le **`mailto:`** (constante `PROPOSAL_EMAIL`,
+  `sendProposal`) n'est **plus une voie à choisir** mais un **repli
+  automatique** : en cas d'échec en ligne, `proposalMailtoFallback(reason)`
+  ouvre l'appli mail du contributeur (sans quitter la page) et l'annonce
+  d'une ligne. Le bouton « Envoyer par email » subsiste, discret
+  (`.pbtn-ghost`), pour relancer le mail à la main.
 
 ### Schéma JSON « philo-proposal/v3 »
 
