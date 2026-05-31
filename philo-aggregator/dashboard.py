@@ -289,7 +289,9 @@ def _card(row, status, verdict_filter):
     # On masque le bouton correspondant au statut actuel (inutile).
     if row["status"] != "validee":
         parts.append('<button class="b-val" name="to" value="validee">✓ Valider</button>')
-    if row["status"] != "integree":
+    # « Intégrer » n'apparaît QUE pour une boîte déjà validée : on n'intègre
+    # rien qui n'ait d'abord été retenu (en_attente → validee → integree).
+    if row["status"] == "validee":
         parts.append('<button class="b-int" name="to" value="integree">⤓ Intégrer</button>')
     if row["status"] != "rejetee":
         parts.append('<button class="b-rej" name="to" value="rejetee">✗ Rejeter</button>')

@@ -185,6 +185,15 @@ def render_box(row, dup_first_id=None):
         meta_bits.append(f"note = {row['note']!r}")
     lines.append("   " + " • ".join(meta_bits))
 
+    # Avis de l'IA (Gemini), s'il existe : repris ici comme AIDE À LA
+    # DÉCISION seulement. Il ne remplace pas les vérifications (exactitude,
+    # pertinence, niveau Terminale), qui restent à faire — la consigne
+    # d'en-tête le rappelle. Présent uniquement si la boîte a été relue.
+    if row["ai_verdict"] or row["ai_review"]:
+        verdict = row["ai_verdict"] or "?"
+        review = row["ai_review"] or "(pas de commentaire)"
+        lines.append(f"   🤖 Avis IA (indicatif, À VÉRIFIER) [{verdict}] : {review}")
+
     # Pour un concept, on met cnotions en première ligne après le méta.
     if row["cible"] == "concept":
         notions_liees = [row["notion"]] if row["notion"] else []
@@ -259,6 +268,13 @@ CONSIGNE — Voici les propositions qui attendent intégration. Pour chacune :
   4. Proposer une intégration au format des structures D / AM / CONCEPTS
      décrites dans CLAUDE.md, en marquant tout ajout/modif avec `new:true`
      ou `modified:true`.
+
+⚠ AVIS IA — Certaines boîtes portent une ligne « 🤖 Avis IA ». C'est une
+  AIDE À LA DÉCISION (relecture automatique par Gemini), PAS une vérité :
+  elle peut se tromper. Ne l'utilise jamais comme seule source. Mène
+  systématiquement tes propres vérifications (exactitude philosophique,
+  exactitude des citations et de leur attribution, pertinence, niveau
+  Terminale) avant toute intégration.
 
 Référence : chaque boîte est préfixée par un marqueur [BOX <id>]. Une fois
 revue et intégrée, l'id sert à marquer la boîte en base via :

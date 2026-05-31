@@ -16,6 +16,7 @@ seule section, déterminée par sa `cible` (cf. `BUCKETS`).
 
 import json
 import difflib
+from datetime import datetime
 
 import db
 from ingest import normalize
@@ -71,8 +72,23 @@ def sub_key_of(row):
 # ────────── Petits utilitaires d'affichage ──────────
 
 def short_date(iso):
-    """ISO complet → 'YYYY-MM-DD' (les 10 premiers caractères)."""
-    return (iso or "")[:10] or "?"
+    """ISO complet → 'YYYY-MM-DD HH:MM' (date + heure).
+
+    Si l'horodatage porte un fuseau (cas de Supabase, en UTC : « …+00:00 »
+    ou « …Z »), on le convertit en heure LOCALE de la machine pour que
+    l'heure affichée corresponde à celle vécue. Repli robuste : les 16
+    premiers caractères de l'ISO (T → espace) si la conversion échoue ;
+    « ? » si vide."""
+    if not iso:
+        return "?"
+    try:
+        # 'Z' (UTC) n'est accepté par fromisoformat qu'à partir de Python 3.11.
+        dt = datetime.fromisoformat(iso.replace("Z", "+00:00"))
+        if dt.tzinfo is not None:
+            dt = dt.astimezone()          # → heure locale (sinon on garde tel quel)
+        return dt.strftime("%Y-%m-%d %H:%M")
+    except (ValueError, TypeError):
+        return iso[:16].replace("T", " ") or "?"
 
 
 def main_text_field(row):
