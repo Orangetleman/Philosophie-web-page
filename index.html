@@ -900,19 +900,50 @@ body.is-signed-in .sb-account{color:#7bd88f;border-color:rgba(123,216,143,.45)}
    recherche globale et bouton d'aide. margin-left:auto le pousse à droite ;
    tous ses enfants sont des éléments flex → pas de chevauchement. */
 .topbar-actions{margin:6px 12px 0 auto;display:flex;align-items:center;gap:8px;flex-shrink:0}
-/* Déclencheurs « Mes propositions » et palette de recherche (même allure). */
-.topbar-search,.topbar-mine{display:flex;align-items:center;gap:7px;flex-shrink:0;
+/* Déclencheurs « Mes propositions », palette de recherche, partage (même allure). */
+.topbar-search,.topbar-mine,.topbar-share{display:flex;align-items:center;gap:7px;flex-shrink:0;
   background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);
   border-radius:var(--border-radius-md);color:var(--color-text-tertiary);
   font-family:inherit;font-size:12px;padding:6px 10px;cursor:pointer;transition:all .15s}
-.topbar-search:hover,.topbar-mine:hover{border-color:var(--color-border-secondary);color:var(--color-text-secondary)}
+.topbar-search:hover,.topbar-mine:hover,.topbar-share:hover{border-color:var(--color-border-secondary);color:var(--color-text-secondary)}
 .topbar-search kbd{background:var(--color-background-primary)}
 /* « Mes propositions » réservé aux comptes connectés (classe posée sur body). */
 body:not(.is-signed-in) .topbar-mine{display:none}
 /* Sur mobile : icônes seules (libellés + raccourci masqués) pour rester compact. */
-@media(max-width:700px){.topbar-search .ts-label,.topbar-search kbd,.topbar-mine .ts-label{display:none}
-  .topbar-search,.topbar-mine{padding:7px 9px}
+@media(max-width:700px){.topbar-search .ts-label,.topbar-search kbd,.topbar-mine .ts-label,.topbar-share .ts-label{display:none}
+  .topbar-search,.topbar-mine,.topbar-share{padding:7px 9px}
   .topbar-actions{gap:6px;margin:6px 8px 0 auto}}
+
+/* ── Modale de partage (#share-overlay) ───────────────────────────
+   Réutilise l'ossature .modal-overlay/.modal-panel. Contenu propre :
+   .share-* (intro, QR, lien copiable, boutons). Pensée mobile : le
+   partage natif (navigator.share) apparaît en tête quand l'appareil
+   le supporte ; sinon, QR + copie restent toujours disponibles. */
+.share-intro{font-size:12px;color:var(--color-text-tertiary);line-height:1.5;margin-bottom:14px;text-align:center}
+.share-qr-wrap{display:flex;flex-direction:column;align-items:center;gap:8px;margin-bottom:16px}
+.share-qr{width:200px;height:200px;border-radius:var(--border-radius-md);
+  background:#fff;padding:10px;box-sizing:border-box;display:block}
+.share-qr-cap{font-size:11px;color:var(--color-text-tertiary);text-align:center}
+/* Lien copiable : champ en lecture seule + bouton « Copier ». */
+.share-linkrow{display:flex;gap:8px;margin-bottom:12px}
+.share-link{flex:1;min-width:0;padding:9px 10px;font-family:inherit;font-size:12.5px;
+  background:var(--color-background-secondary);color:var(--color-text-primary);
+  border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);
+  outline:none;text-overflow:ellipsis}
+.share-link:focus{border-color:var(--color-border-info)}
+.share-btn{width:100%;padding:11px;font-family:inherit;font-size:13px;font-weight:600;
+  border-radius:var(--border-radius-md);cursor:pointer;outline:none;
+  border:0.5px solid transparent;transition:filter .15s;
+  display:flex;align-items:center;justify-content:center;gap:8px}
+.share-btn:hover{filter:brightness(1.1)}
+.share-btn-primary{background:var(--color-background-info);
+  border-color:var(--color-border-info);color:var(--color-text-info)}
+.share-btn-copy{flex-shrink:0;width:auto;padding:9px 14px;font-size:12.5px;
+  background:var(--color-background-secondary);color:var(--color-text-secondary);
+  border-color:var(--color-border-tertiary)}
+.share-btn-copy.ok{background:rgba(123,216,143,.15);border-color:rgba(123,216,143,.45);color:#7bd88f}
+.share-native{margin-bottom:16px}
+.share-status{margin-top:10px;font-size:12px;line-height:1.5;min-height:1em;text-align:center;color:#7bd88f}
 
 /* Système de « boîtes » de la modale (une boîte = une proposition).
    .pbox = carte ; menus Type/Cible ; .pbox-fields recevra les champs (étape 1c). */
@@ -1138,6 +1169,12 @@ body.sb-open .sb-backdrop{display:block;opacity:1}
       <button class="topbar-search" id="topbar-search" aria-label="Recherche globale (Ctrl+K)" onclick="openPalette()">
         <span class="cmdp-ico" aria-hidden="true">🔍</span><span class="ts-label">Rechercher</span><kbd>Ctrl K</kbd>
       </button>
+      <!-- Bouton de partage : ouvre la modale (QR + copier le lien) ; sur
+           mobile la modale propose en plus le partage natif de l'appareil.
+           Libellé masqué ≤700px (icône seule), comme la recherche. -->
+      <button class="topbar-share" id="topbar-share" aria-label="Partager le site" onclick="openShare()">
+        <span class="cmdp-ico" aria-hidden="true">🔗</span><span class="ts-label">Partager</span>
+      </button>
       <button class="help-btn" id="help-btn" aria-label="Aide et visite guidée" onclick="toggleHelpMenu(event)">?</button>
     </div>
   </div>
@@ -1168,6 +1205,20 @@ body.sb-open .sb-backdrop{display:block;opacity:1}
       <button class="modal-close" id="auth-close" aria-label="Fermer">×</button>
     </div>
     <div class="modal-body" id="auth-body"></div>
+  </div>
+</div>
+
+<!-- new (partage) : modale de partage. Même ossature que #auth-overlay.
+     Le bouton d'ouverture est .topbar-share (dans la topbar). Le corps
+     (#share-body) est injecté en JS par renderShare() : partage natif si
+     l'appareil le permet, QR code + lien copiable toujours. -->
+<div class="modal-overlay" id="share-overlay">
+  <div class="modal-panel" role="dialog" aria-modal="true" aria-label="Partager le site" style="width:min(420px,94vw)">
+    <div class="modal-head">
+      <div class="modal-title">🔗 Partager l'outil</div>
+      <button class="modal-close" id="share-close" aria-label="Fermer">×</button>
+    </div>
+    <div class="modal-body" id="share-body"></div>
   </div>
 </div>
 
@@ -4001,6 +4052,24 @@ function tourShowNotion(){
   renderSB(); renderContent();
 }
 
+/* tourShowTab(tab) — comme tourShowNotion, mais bascule EN PLUS sur un onglet
+   précis de la fiche (curTab) afin que la visite détaille chaque onglet en
+   montrant réellement son contenu (Auteurs, Textes, Concepts, Diss, Exemples). */
+function tourShowTab(tab){
+  sbMode='notions';
+  if(!D[cur]) cur=KEYS[0];
+  curTab=tab;
+  renderSB(); renderContent();
+}
+
+/* tourTabEl(label) — renvoie le bouton d'onglet de la fiche dont le libellé
+   correspond. Robuste à l'ordre et au bouton « ← Retour » qui précède les
+   onglets. Repli sur la barre d'onglets entière si introuvable. */
+function tourTabEl(label){
+  return Array.from(document.querySelectorAll('.tabs .tab'))
+    .find(t=>t.textContent.trim()===label) || document.querySelector('.tabs');
+}
+
 /* ── Étapes qui ENTRENT dans une fenêtre (quiz / contribution) ───────────
    La visite reste « pilotée » : le voile capte les clics, mais on ouvre
    réellement la fenêtre concernée pour la détailler de l'intérieur. Ces
@@ -4074,10 +4143,47 @@ const TOUR_STEPS=[
     text:"Le <b>glossaire</b> des termes techniques (le déterminisme, l’aliénation…), avec leur "
         +"définition et leurs liens vers les notions et les autres concepts.",
     setup:tourShowNotion, target:()=>document.querySelector('.sb-tabs .sb-tab:nth-child(3)') },
-  { part:'fiches', side:'main', title:'À l’intérieur d’une fiche',
-    text:"Une fois dans une notion, ces <b>onglets</b> organisent le contenu : auteurs, textes du "
-        +"cours, <b>plans de dissertation</b> et exemples mobilisables.",
+  // — Au cœur du projet : le DÉTAIL d'une fiche de notion. On montre la
+  //   définition, le volet « Approfondir », puis CHAQUE onglet (en basculant
+  //   réellement dessus via tourShowTab) avec ce qu'on y trouve. Pensé mobile :
+  //   textes courts ; positionTourStep recentre chaque cible à l'écran.
+  { part:'fiches', side:'main', title:'Le cœur : la fiche de notion',
+    text:"Voici une <b>fiche de notion</b>, le cœur de l’outil. Tout en haut, sa "
+        +"<b>définition</b> pose les bases : sens du mot, enjeux et premières distinctions.",
+    setup:tourShowNotion, target:()=>document.querySelector('.def-box') },
+  { part:'fiches', side:'main', title:'Approfondir la notion',
+    text:"Sous la définition, le volet <b>« Approfondir la notion »</b> se déroule : "
+        +"précisions, distinctions fines et repères pour aller plus loin que l’essentiel.",
+    setup:()=>{ tourShowNotion(); const d=document.querySelector('.def-box details'); if(d) d.open=true; },
+    target:()=>document.querySelector('.def-box details')||document.querySelector('.def-box') },
+  { part:'fiches', side:'main', title:'Les onglets de la fiche',
+    text:"Sous la définition, <b>cinq onglets</b> organisent tout le reste : <b>Auteurs</b>, "
+        +"<b>Textes du cours</b>, <b>Concepts</b>, <b>Dissertations</b> et <b>Exemples</b>. "
+        +"Passons-les en revue.",
     setup:tourShowNotion, target:()=>document.querySelector('.tabs') },
+  { part:'fiches', side:'main', title:'Onglet Auteurs',
+    text:"Les <b>philosophes majeurs</b> sur cette notion : pour chacun, ses <b>idées clés</b> "
+        +"(classées par œuvre) et ses <b>citations</b>. Ta matière première pour argumenter.",
+    setup:()=>tourShowTab('auteurs'), target:()=>tourTabEl('Auteurs') },
+  { part:'fiches', side:'main', title:'Onglet Textes du cours',
+    text:"Les <b>extraits étudiés</b> en classe, avec leur référence. À relire pour citer un "
+        +"texte précis et montrer que tu connais les œuvres au programme.",
+    setup:()=>tourShowTab('textes'), target:()=>tourTabEl('Textes du cours') },
+  { part:'fiches', side:'main', title:'Onglet Concepts',
+    text:"Les <b>concepts clés</b> liés à la notion, en <b>deux sous-onglets</b> : ceux qui "
+        +"<b>éclairent la notion</b>, puis les <b>liens entre concepts</b> (oppositions, "
+        +"distinctions…). Le vocabulaire technique attendu de toi.",
+    setup:()=>tourShowTab('concepts'), target:()=>tourTabEl('Concepts') },
+  { part:'fiches', side:'main', title:'Onglet Dissertations',
+    text:"De quoi <b>composer</b> : les <b>notions voisines</b> à mobiliser, des <b>plans "
+        +"détaillés</b> (problématique + 3 axes déroulables, avec sous-parties, auteurs et "
+        +"références) et des <b>sujets</b> pour t’entraîner.",
+    setup:()=>tourShowTab('diss'), target:()=>tourTabEl('Dissertations') },
+  { part:'fiches', side:'main', title:'Onglet Exemples',
+    text:"Des <b>exemples concrets</b> (œuvres, sciences, actualité…) prêts à être "
+        +"<b>réinvestis</b> en dissertation pour illustrer un argument — ce qui fait souvent "
+        +"la différence.",
+    setup:()=>tourShowTab('exemples'), target:()=>tourTabEl('Exemples') },
 
   // ── Partie 2 : Les liens dynamiques ──
   { part:'liens', side:'main', title:'Tout est relié',
@@ -4699,8 +4805,9 @@ async function authSubmit(ev){
       const {error}=await SB.auth.signUp({email,password:pw,options:opts});
       if(error) throw error;
       // Si la confirmation par e-mail est activée côté Supabase, pas encore
-      // de session : on invite à confirmer. Sinon, onAuthStateChange ferme.
-      authStatus('Compte créé. Si une confirmation par e-mail est demandée, valide-la puis reviens te connecter.','ok');
+      // de session : on invite à confirmer (et à regarder les spams, l'e-mail
+      // pouvant tarder ou y atterrir). Sinon, onAuthStateChange ferme.
+      authStatus('Compte créé. Si une confirmation par e-mail est demandée, valide-la (pense à vérifier tes spams) puis reviens te connecter.','ok');
     }else{
       const {error}=await SB.auth.signInWithPassword({email,password:pw});
       if(error) throw error;             // succès → onAuthStateChange ferme la modale
@@ -4808,6 +4915,109 @@ function authHumanError(e){
   _ov.addEventListener('mousedown',e=>{ _down=(e.target===_ov); });
   _ov.addEventListener('click',e=>{ if(e.target===_ov&&_down) closeAuth(); });
   document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeAuth(); });
+})();
+
+/* ══════════════════════════════════════════════════════════════════
+   PARTAGE DU SITE (bouton .topbar-share → modale #share-overlay)
+   ──────────────────────────────────────────────────────────────────
+   Le site est un simple lien : on le rend facile à diffuser. Approche
+   adaptative à l'appareil :
+   • Mobile / appareils compatibles → bouton « Partager… » qui ouvre la
+     feuille de partage native du système (navigator.share : SMS, mail,
+     messageries, AirDrop…). Affiché en tête seulement si supporté.
+   • Partout → un QR code (à scanner en personne) + le lien copiable en
+     un clic. Ces deux moyens marchent même hors-ligne (aucun compte
+     requis), le QR étant la seule ressource réseau (avec repli si KO).
+   ══════════════════════════════════════════════════════════════════ */
+
+// URL canonique à partager : origine + chemin, sans le hash de navigation
+// interne (#notion…) ni les paramètres, pour un lien propre et stable.
+function shareUrl(){ return location.origin + location.pathname; }
+
+// Ouverture / fermeture de la modale (même mécanique que les autres modales).
+function openShare(){ renderShare(); document.getElementById('share-overlay').classList.add('open'); }
+function closeShare(){ document.getElementById('share-overlay').classList.remove('open'); }
+
+/* renderShare() — construit le corps de la modale (#share-body).
+   Compose, dans l'ordre : intro, bouton de partage natif (si supporté),
+   QR code, lien copiable, ligne de statut. Tout est (re)généré à chaque
+   ouverture pour refléter l'URL courante. */
+function renderShare(){
+  const body=document.getElementById('share-body');
+  if(!body) return;
+  const url=shareUrl();
+  const urlAttr=url.replace(/"/g,'&quot;');                 // sûr en attribut HTML
+  // Le QR est rendu par un service externe (API publique) : pas de
+  // bibliothèque embarquée. onerror → on masque proprement le bloc.
+  const qr='https://api.qrserver.com/v1/create-qr-code/?size=200x200&margin=0&data='+encodeURIComponent(url);
+  // Bouton de partage natif : seulement si l'appareil le propose (mobiles
+  // surtout). Sinon on s'appuie sur le QR + la copie, toujours présents.
+  const nativeBtn = (typeof navigator!=='undefined' && navigator.share)
+    ? `<button class="share-btn share-btn-primary share-native" onclick="shareNative()">📲 Partager…</button>`
+    : '';
+  body.innerHTML=`
+    <div class="share-intro">Partage l'outil de révision à tes camarades : scanne le QR code, copie le lien, ou utilise le partage de ton appareil.</div>
+    ${nativeBtn}
+    <div class="share-qr-wrap">
+      <img class="share-qr" src="${qr}" alt="QR code vers le site" loading="lazy"
+        onerror="this.parentNode.style.display='none'">
+      <div class="share-qr-cap">Scanne pour ouvrir le site</div>
+    </div>
+    <div class="share-linkrow">
+      <input class="share-link" id="share-link" type="text" readonly value="${urlAttr}"
+        onclick="this.select()" aria-label="Lien du site">
+      <button class="share-btn share-btn-copy" id="share-copy" onclick="copyShareLink(this)">Copier</button>
+    </div>
+    <div class="share-status" id="share-status"></div>`;
+}
+
+/* shareNative() — ouvre la feuille de partage native du système.
+   Le rejet par annulation de l'utilisateur (AbortError) est silencieux ;
+   toute autre erreur retombe sur la copie du lien. */
+async function shareNative(){
+  const url=shareUrl();
+  try{
+    await navigator.share({ title:'Révision Philo — Terminale', text:'Outil de révision de philosophie (Terminale) : fiches, citations, dissertations et quiz.', url });
+  }catch(e){
+    if(e && e.name==='AbortError') return;   // l'utilisateur a simplement fermé la feuille
+    copyShareLink(document.getElementById('share-copy'));
+  }
+}
+
+/* copyShareLink(btn) — copie le lien dans le presse-papiers et confirme
+   visuellement (bouton « Copié ! » vert, 1,8 s). Repli execCommand pour les
+   navigateurs anciens ou les contextes non sécurisés (où clipboard est absent). */
+async function copyShareLink(btn){
+  const url=shareUrl();
+  let ok=false;
+  try{
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      await navigator.clipboard.writeText(url); ok=true;
+    } else throw new Error('no-clipboard-api');
+  }catch(e){
+    // Repli : sélection du champ + execCommand('copy').
+    const inp=document.getElementById('share-link');
+    if(inp){ inp.focus(); inp.select(); try{ ok=document.execCommand('copy'); }catch(_){ ok=false; } }
+  }
+  if(btn){
+    const old=btn.textContent;
+    btn.textContent = ok ? 'Copié !' : 'Échec';
+    btn.classList.toggle('ok', ok);
+    setTimeout(()=>{ btn.textContent=old; btn.classList.remove('ok'); }, 1800);
+  }
+}
+
+/* Câblage des fermetures de la modale de partage (croix, voile, Échap),
+   même garde anti-fermeture-accidentelle que les autres modales. */
+(function initShareUI(){
+  const closeBtn=document.getElementById('share-close');
+  if(!closeBtn) return;                  // sécurité si le HTML est absent
+  closeBtn.addEventListener('click',closeShare);
+  const _ov=document.getElementById('share-overlay');
+  let _down=false;
+  _ov.addEventListener('mousedown',e=>{ _down=(e.target===_ov); });
+  _ov.addEventListener('click',e=>{ if(e.target===_ov&&_down) closeShare(); });
+  document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeShare(); });
 })();
 
 /* ══════════════════════════════════════════════════════════════════
