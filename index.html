@@ -568,6 +568,11 @@ body.is-signed-in .sb-account{color:#7bd88f;border-color:rgba(123,216,143,.45)}
 .auth-intro{font-size:11.5px;color:var(--color-text-tertiary);line-height:1.5;margin-bottom:12px;text-align:center}
 .auth-note{font-size:11px;color:var(--color-text-tertiary);line-height:1.5;margin-top:10px;display:block}
 .auth-note b{color:var(--color-text-secondary)}
+/* Lien discret sous le formulaire (« Mot de passe oublié ? », « ← Retour »). */
+.auth-link-btn{display:block;width:100%;margin-top:10px;background:none;border:0;
+  font-family:inherit;font-size:12px;color:var(--color-text-tertiary);
+  text-align:center;cursor:pointer;transition:color .15s}
+.auth-link-btn:hover{color:var(--color-text-info)}
 
 #quiz-overlay{position:fixed;inset:0;background:rgba(10,14,20,.92);z-index:850;
   display:none;flex-direction:column;padding:16px;overflow-y:auto}
@@ -1987,7 +1992,10 @@ function renderCrumbs(){
   }else if(sbMode==='concepts'){
     segs.push(seg('Concepts','mode','concepts',false));
     if(curConcept){
-      const c=CONCEPTS.find(x=>x.id===curConcept);
+      // garde x&& : Array.find visite les trous de tableau comme undefined
+      // (contrairement à map/forEach), donc une virgule en trop dans CONCEPTS
+      // ferait planter sur x.id sans cette protection.
+      const c=CONCEPTS.find(x=>x&&x.id===curConcept);
       if(c) segs.push(seg(c.term,'',null,true));
     }
   }
@@ -4185,6 +4193,7 @@ function tourGoPart(part){
 function endTour(){
   document.removeEventListener('keydown',tourKey);
   window.removeEventListener('resize',tourReposition);
+  clearTimeout(tourState.posT1); clearTimeout(tourState.posT2);   // annule les repositionnements en attente
   if(tourState.dom){
     tourState.dom.blocker.classList.remove('open','dim');
     tourState.dom.spot.style.display='none';
@@ -4244,8 +4253,23 @@ function renderTourStep(){
   blocker.classList.add('open');
   bubble.style.display='block';
   bubble.innerHTML=tourBubbleHTML(step);
-  // 3. Positionner au prochain frame (le DOM/scroll doit être à jour).
+  // 3. Positionner en PLUSIEURS passes (cf. tourSchedulePosition) : le tiroir
+  //    mobile (transform .25s) et l'ouverture d'un overlay glissent encore au
+  //    prochain frame, ce qui fausserait getBoundingClientRect (projecteur hors
+  //    champ). On repositionne donc aussi APRÈS ces transitions.
+  tourSchedulePosition();
+}
+
+/* tourSchedulePosition() — planifie plusieurs recalculs de position : tout de
+   suite (frame courant), puis après le glissement du tiroir mobile (~0,25 s) et
+   un dernier filet de sécurité pour un reflow tardif. Sans ces passes, une
+   cible dans la barre latérale (mode mobile) était mesurée pendant que le
+   tiroir glissait encore → projecteur invisible jusqu'au changement d'étape. */
+function tourSchedulePosition(){
+  clearTimeout(tourState.posT1); clearTimeout(tourState.posT2);
   requestAnimationFrame(positionTourStep);
+  tourState.posT1=setTimeout(positionTourStep,140);  // milieu de transition
+  tourState.posT2=setTimeout(positionTourStep,340);  // après la fin (>250ms)
 }
 
 /* tourProgressHTML(curIdx) — pastilles de progression GROUPÉES par partie :
@@ -4318,22 +4342,30 @@ function positionTourStep(){
   blocker.classList.remove('dim');
   const r=el.getBoundingClientRect();
   const pad=6;
+  // Rectangle du projecteur, BORNÉ au viewport. Une cible plus grande que
+  // l'écran (ex. longue liste de filtres du quiz sur mobile) garderait sinon
+  // un projecteur débordant qui « éclaire tout » et pousse la bulle hors champ.
+  let st=r.top-pad, sl=r.left-pad, sw=r.width+pad*2, sh=r.height+pad*2;
+  if(st<6){ sh+=st-6; st=6; }
+  if(sl<6){ sw+=sl-6; sl=6; }
+  if(st+sh>vh-6) sh=vh-6-st;
+  if(sl+sw>vw-6) sw=vw-6-sl;
   spot.style.display='block';
-  spot.style.top=(r.top-pad)+'px';
-  spot.style.left=(r.left-pad)+'px';
-  spot.style.width=(r.width+pad*2)+'px';
-  spot.style.height=(r.height+pad*2)+'px';
-  // Choix du placement de la bulle : à droite si la cible est à gauche
-  // (sidebar), sinon dessous, sinon dessus, sinon centré.
+  spot.style.top=st+'px'; spot.style.left=sl+'px';
+  spot.style.width=Math.max(0,sw)+'px'; spot.style.height=Math.max(0,sh)+'px';
+  // Placement de la bulle, calculé sur le rectangle BORNÉ (rl/rr/rt/rb) : à
+  // droite si la cible est à gauche (sidebar), sinon dessous, sinon dessus,
+  // sinon centré.
   const gap=14;
   let top, left;
-  const roomRight=r.right+gap+bw<=vw-8, roomBelow=r.bottom+gap+bh<=vh-8, roomAbove=r.top-gap-bh>=8;
-  if(r.left<vw*0.34 && roomRight){
-    left=r.right+gap; top=tourClamp(r.top,8,vh-bh-8);
+  const rl=sl, rr=sl+sw, rt=st, rb=st+sh;
+  const roomRight=rr+gap+bw<=vw-8, roomBelow=rb+gap+bh<=vh-8, roomAbove=rt-gap-bh>=8;
+  if(rl<vw*0.34 && roomRight){
+    left=rr+gap; top=tourClamp(rt,8,vh-bh-8);
   } else if(roomBelow){
-    top=r.bottom+gap; left=tourClamp(r.left,8,vw-bw-8);
+    top=rb+gap; left=tourClamp(rl,8,vw-bw-8);
   } else if(roomAbove){
-    top=r.top-gap-bh; left=tourClamp(r.left,8,vw-bw-8);
+    top=rt-gap-bh; left=tourClamp(rl,8,vw-bw-8);
   } else {
     top=Math.max(8,(vh-bh)/2); left=Math.max(8,(vw-bw)/2);
   }
@@ -4420,6 +4452,16 @@ async function initAuth(){
     renderAccountBtn();
     if(authUser) maybeStartSync(); else syncResetState();   // new (Phase 2) : (dé)clenche la synchro selon l'état
     const ov=document.getElementById('auth-overlay');
+    // new : retour d'un lien « mot de passe oublié ». L'évènement arrive en
+    // général alors que la modale est fermée (la page vient de s'ouvrir depuis
+    // l'e-mail) → on l'ouvre nous-mêmes sur l'écran « nouveau mot de passe ».
+    // À placer AVANT le test « modale fermée » ci-dessous.
+    if(event==='PASSWORD_RECOVERY'){
+      authView='newpw';
+      if(ov) ov.classList.add('open');
+      renderAuth();
+      return;
+    }
     if(!ov||!ov.classList.contains('open')) return;   // modale fermée : rien à faire
     // Modale ouverte : on ne ferme QUE sur une connexion réussie ; une
     // déconnexion ramène au formulaire. Les autres événements (mise à jour
@@ -4482,6 +4524,20 @@ function renderAuth(){
   const body=document.getElementById('auth-body');
   const titleEl=document.getElementById('auth-title');
   if(!body) return;
+  // ── Écran « définir un nouveau mot de passe » (retour d'un lien de
+  //    récupération). PRIORITAIRE même si une session de récupération est
+  //    déjà ouverte (sinon on afficherait le profil). ──
+  if(authView==='newpw'){
+    if(titleEl) titleEl.textContent='🔑 Nouveau mot de passe';
+    body.innerHTML=`
+      <div class="auth-intro">Choisis un nouveau mot de passe pour ton compte.</div>
+      <form class="auth-form" onsubmit="authSetNewPassword(event)">
+        <input class="auth-input" id="auth-newpw" type="password" placeholder="Nouveau mot de passe (6 caractères min.)" autocomplete="new-password" minlength="6" required>
+        <button class="auth-btn auth-btn-primary" type="submit">Définir le mot de passe</button>
+      </form>
+      <div class="auth-status" id="auth-status"></div>`;
+    return;
+  }
   if(authUser){                                  // ── déjà connecté : profil ──
     if(titleEl) titleEl.textContent='👤 Mon compte';
     const rawProv=(authUser.app_metadata&&authUser.app_metadata.provider)||'email';
@@ -4507,6 +4563,19 @@ function renderAuth(){
       <div class="auth-status" id="auth-status"></div>`;
     return;
   }
+  // ── Écran « mot de passe oublié » : demande l'e-mail, envoie le lien. ──
+  if(authView==='reset'){
+    if(titleEl) titleEl.textContent='🔑 Mot de passe oublié';
+    body.innerHTML=`
+      <div class="auth-intro">Saisis ton adresse e-mail : on t’envoie un <b>lien</b> pour choisir un nouveau mot de passe.</div>
+      <form class="auth-form" onsubmit="authResetSend(event)">
+        <input class="auth-input" id="auth-email" type="email" placeholder="Adresse e-mail" autocomplete="email" required>
+        <button class="auth-btn auth-btn-primary" type="submit">Envoyer le lien</button>
+      </form>
+      <button class="auth-link-btn" onclick="authSetView('signin')">← Retour à la connexion</button>
+      <div class="auth-status" id="auth-status"></div>`;
+    return;
+  }
   if(titleEl) titleEl.textContent='👤 Créer un compte / se connecter';
   const isSignup=authView==='signup';            // ── déconnecté : connexion ──
   body.innerHTML=`
@@ -4523,6 +4592,7 @@ function renderAuth(){
       <input class="auth-input" id="auth-pw" type="password" placeholder="Mot de passe (6 caractères min.)" autocomplete="${isSignup?'new-password':'current-password'}" minlength="6" required>
       <button class="auth-btn auth-btn-primary" type="submit">${isSignup?'Créer mon compte':'Se connecter'}</button>
     </form>
+    ${isSignup?'':'<button class="auth-link-btn" onclick="authSetView(\'reset\')">Mot de passe oublié ?</button>'}
     ${isSignup?'<div class="auth-note">En créant un compte, seuls ton <b>pseudo</b> et ton <b>adresse e-mail</b> sont enregistrés (chez Supabase, l’hébergeur), pour retrouver ta progression et tes propositions sur tous tes appareils. Rien d’autre n’est collecté.</div>':''}
     <div class="auth-status" id="auth-status"></div>`;
 }
@@ -4573,6 +4643,42 @@ async function authSignInGoogle(){
   try{
     const {error}=await SB.auth.signInWithOAuth({provider:'google',options:{redirectTo:location.origin+location.pathname}});
     if(error) throw error;
+  }catch(e){ authStatus(authHumanError(e),'err'); }
+}
+
+/* authResetSend() — écran « mot de passe oublié » : envoie un e-mail
+   contenant un lien de récupération. Le lien ramène sur la même page
+   (redirectTo) ; au retour, le client Supabase détecte le jeton dans l'URL
+   et déclenche l'évènement PASSWORD_RECOVERY (cf. onAuthStateChange), qui
+   bascule la modale sur l'écran « nouveau mot de passe ». */
+async function authResetSend(ev){
+  ev.preventDefault();
+  if(!SB){ authStatus('Service indisponible (hors-ligne ?).','err'); return; }
+  const email=((document.getElementById('auth-email')||{}).value||'').trim();
+  authStatus('Envoi du lien…','');
+  try{
+    const {error}=await SB.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname});
+    if(error) throw error;
+    authStatus('Si un compte existe pour cette adresse, un e-mail vient d’être envoyé. Ouvre le lien qu’il contient pour choisir un nouveau mot de passe.','ok');
+  }catch(e){ authStatus(authHumanError(e),'err'); }
+}
+
+/* authSetNewPassword() — écran « nouveau mot de passe » (atteint via le lien
+   de récupération) : enregistre le nouveau mot de passe sur la session de
+   récupération en cours, puis revient à l'écran de connexion. */
+async function authSetNewPassword(ev){
+  ev.preventDefault();
+  if(!SB){ authStatus('Service indisponible (hors-ligne ?).','err'); return; }
+  const pw=((document.getElementById('auth-newpw')||{}).value||'');
+  authStatus('Enregistrement…','');
+  try{
+    const {error}=await SB.auth.updateUser({password:pw});
+    if(error) throw error;
+    authStatus('Mot de passe mis à jour. Tu es maintenant connecté.','ok');
+    // La session de récupération vaut connexion : on quitte l'écran spécial
+    // et on referme la modale au bout d'un instant (laisse lire le message).
+    authView='signin';
+    setTimeout(closeAuth,1400);
   }catch(e){ authStatus(authHumanError(e),'err'); }
 }
 
