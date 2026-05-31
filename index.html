@@ -789,8 +789,19 @@ body.is-signed-in .sb-account{color:#7bd88f;border-color:rgba(123,216,143,.45)}
    transparent + contour léger ; la partie en cours reçoit la classe .cur
    (contour plus net), posée en JS. La couleur de la partie est passée en
    variable inline --pc, réutilisée par les pastilles à l'intérieur. */
-.tour-pgroup{display:inline-flex;align-items:center;gap:4px;padding:3px 6px;
-  border-radius:999px;transition:border-color .2s,background .2s}
+/* Chaque cadre de partie est CLIQUABLE (saute à cette partie de la visite) et
+   affiche le NOM de la partie au survol/focus via ::after (étiquette instantanée
+   lue dans data-label). position:relative pour ancrer l'étiquette. */
+.tour-pgroup{position:relative;display:inline-flex;align-items:center;gap:4px;padding:3px 6px;
+  border-radius:999px;cursor:pointer;transition:border-color .2s,background .2s,filter .2s}
+.tour-pgroup:hover{filter:brightness(1.4)}
+.tour-pgroup:focus-visible{outline:2px solid var(--pc,var(--color-border-info));outline-offset:2px}
+.tour-pgroup[data-label]:hover::after,.tour-pgroup[data-label]:focus-visible::after{
+  content:attr(data-label);position:absolute;bottom:calc(100% + 6px);left:50%;
+  transform:translateX(-50%);white-space:nowrap;z-index:5;pointer-events:none;
+  background:var(--color-background-secondary);color:var(--color-text-primary);
+  border:0.5px solid var(--pc,var(--color-border-info));border-radius:6px;
+  padding:3px 7px;font-size:11px;font-weight:600;box-shadow:0 4px 14px rgba(0,0,0,.45)}
 .tour-dot{width:7px;height:7px;border-radius:50%;
   background:var(--pc,var(--color-border-tertiary));opacity:.3;transition:opacity .2s,transform .2s}
 .tour-dot.done{opacity:.6}
@@ -4500,15 +4511,32 @@ function tourProgressHTML(curIdx){
     else last.dots.push(k);
   });
   // 2. Un cadre coloré par groupe ; pastilles done/cur/à venir à l'intérieur.
+  //    Le cadre est CLIQUABLE (saute à cette partie) et porte data-label = nom
+  //    de la partie, affiché au survol/focus (cf. CSS .tour-pgroup::after).
+  //    role/tabindex/onkeydown rendent l'accès au clavier (Entrée/Espace) possible.
   return groups.map(grp=>{
     const c=TOUR_PART_COLORS[grp.part]||"#9aa0b5";
     const isCur=grp.dots.indexOf(curIdx)>=0;
+    const label=TOUR_PARTS[grp.part]||'Fin';   // 'end' a un libellé vide → « Fin »
     // Cadre : contour net + fond plus marqué pour la partie courante.
     const frame=isCur ? `border:1px solid ${c};background:${c}26`
                       : `border:0.5px solid ${c}59;background:${c}12`;
     const dots=grp.dots.map(k=>`<span class="tour-dot${k<curIdx?' done':k===curIdx?' cur':''}"></span>`).join('');
-    return `<span class="tour-pgroup${isCur?' cur':''}" style="--pc:${c};${frame}">${dots}</span>`;
+    return `<span class="tour-pgroup${isCur?' cur':''}" style="--pc:${c};${frame}" `
+      +`role="button" tabindex="0" data-label="${label}" aria-label="Aller à : ${label}" `
+      +`onclick="tourJumpPart('${grp.part}')" `
+      +`onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();tourJumpPart('${grp.part}')}">`
+      +`${dots}</span>`;
   }).join('');
+}
+
+/* tourJumpPart(part) — depuis les pastilles de progression : va directement à
+   la 1re étape de la partie cliquée, SANS changer le contexte (tourState.jumped)
+   ni redémarrer la visite. Permet de circuler librement entre les parties. */
+function tourJumpPart(part){
+  if(tourState.i<0) return;                 // visite fermée : rien à faire
+  const idx=TOUR_STEPS.findIndex(s=>s.part===part);
+  if(idx>=0){ tourState.i=idx; renderTourStep(); }
 }
 
 /* tourBubbleHTML(step) — HTML de la bulle : en-tête de partie, titre, texte,
