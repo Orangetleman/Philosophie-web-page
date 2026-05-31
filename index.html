@@ -4049,14 +4049,18 @@ function togglePhiloMode(){
    ══════════════════════════════════════════════════════════════════ */
 
 // Libellés lisibles des parties (sert d'en-tête de bulle + menu d'aide).
+// Ordre : on présente « Proposer » AVANT « Mon compte », car la partie compte
+// renvoie aux propositions (statut « Mes propositions ») — déjà vues alors.
 const TOUR_PARTS={welcome:'Bienvenue',fiches:'Les fiches',liens:'Les liens',
-  nav:'Naviguer',reviser:'Réviser',compte:'Mon compte',proposer:'Proposer',end:''};
+  nav:'Naviguer',partage:'Partager',reviser:'Réviser',proposer:'Proposer',
+  compte:'Mon compte',end:''};
 
 // Couleur d'accent par partie : sert à ENCADRER les pastilles de progression
 // (un cadre coloré par thème, cf. tourProgressHTML). Teintes distinctes et
 // lisibles sur fond sombre — une par partie de TOUR_PARTS.
 const TOUR_PART_COLORS={welcome:"#9aa0b5",fiches:"#5b8def",liens:"#3fb6a8",
-  nav:"#e0a458",reviser:"#e06b9b",compte:"#57bfd6",proposer:"#b07fe0",end:"#6fcf97"};
+  nav:"#e0a458",partage:"#d8c24a",reviser:"#e06b9b",proposer:"#b07fe0",
+  compte:"#57bfd6",end:"#6fcf97"};
 
 // Garantit qu'une fiche de NOTION est affichée (état de départ commun à la
 // plupart des étapes : sidebar en mode « notions », contenu d'une notion).
@@ -4228,7 +4232,17 @@ const TOUR_STEPS=[
         +"les <b>liens du texte</b> (de proche en proche) et la <b>recherche globale</b> "
         +"(Ctrl + K, pour aller droit au but). À toi de choisir." },
 
-  // ── Partie 4 : Réviser (le quiz) ──
+  // ── Partie 4 : Partager l'outil ──
+  // Pointe le bouton de partage de la barre du haut puis décrit la fenêtre
+  // (QR code à scanner, lien à copier, partage natif du téléphone). On ne fait
+  // que DÉSIGNER le bouton : la visite ne l'ouvre pas, pour rester simple.
+  { part:'partage', side:'main', title:'Partager l’outil',
+    text:"Le bouton <b>🔗 Partager</b> ouvre une fenêtre pour transmettre le site à un camarade : "
+        +"un <b>QR code</b> à scanner, le <b>lien à copier</b>, et — sur téléphone — le <b>partage "
+        +"direct</b> (messages, mail…). De quoi réviser à plusieurs.",
+    setup:tourShowNotion, target:()=>document.getElementById('topbar-share') },
+
+  // ── Partie 5 : Réviser (le quiz) ──
   // On OUVRE réellement le mode révision pendant la visite : la 1re étape
   // pointe le bouton (quiz fermé), les suivantes pilotent l'overlay ouvert
   // (setup:tourOpenQuiz) et mettent en valeur chaque réglage du tableau de bord.
@@ -4267,22 +4281,9 @@ const TOUR_STEPS=[
         +"révisant un peu chaque jour. Le vrai secret, c’est la régularité.",
     setup:tourOpenQuiz, target:()=>document.querySelector('#quiz-overlay .quiz-goal-pick') },
 
-  // ── Partie 5 : Mon compte (facultatif — synchronisation & suivi) ──
-  // Pointe le bouton .sb-account (toujours visible) puis récapitule les deux
-  // bénéfices. La visite ne CLIQUE pas le bouton : aucun risque si Supabase
-  // n'est pas encore configuré, on ne fait que le désigner.
-  { part:'compte', side:'sidebar', title:'Un compte (facultatif)',
-    text:"Tout en bas de la barre latérale, tu peux <b>créer un compte</b>. Ce n’est pas "
-        +"obligatoire pour réviser, mais ça débloque deux choses bien pratiques.",
-    setup:tourShowNotion, target:()=>document.querySelector('.sb-account') },
-  { part:'compte', center:true, title:'Sync & suivi',
-    text:"<b>1.</b> Ta <b>révision</b> (progression, série, objectif) te suit sur <b>tous tes "
-        +"appareils</b> — commence sur l’ordi, continue sur le téléphone.<br>"
-        +"<b>2.</b> Tes <b>propositions</b> de contenu sont reliées à ton compte : suis leur "
-        +"<b>statut</b> (en attente, intégrée, refusée) via le bouton <b>📋 Mes propositions</b>, "
-        +"qui apparaît en haut de la page — à côté de la recherche — une fois connecté." },
-
   // ── Partie 6 : Proposer / éditer ──
+  // Présentée AVANT « Mon compte » : la partie compte renvoie au suivi des
+  // propositions (« Mes propositions »), qu'il faut donc avoir déjà vues.
   // Les 2 premières étapes restent dans la barre latérale (mode édition +
   // bouton) ; les suivantes OUVRENT la modale de contribution (tourOpenProposal)
   // et détaillent les 3 menus en cascade, les champs, l'empilement et l'envoi.
@@ -4327,6 +4328,24 @@ const TOUR_STEPS=[
     text:"Enfin, l’<b>aperçu</b> te montre exactement ce qui sera transmis, puis tu <b>envoies</b> "
         +"(en ligne, ou par email en repli). Ta proposition est <b>relue</b> avant d’être publiée.",
     setup:tourOpenProposalPreview, target:()=>document.querySelector('#proposal-overlay .pactions') },
+
+  // ── Partie 7 : Mon compte (facultatif — synchronisation & suivi) ──
+  // Pointe le bouton .sb-account (toujours visible) puis récapitule les
+  // bénéfices, en renvoyant aux propositions VUES juste avant. La visite ne
+  // CLIQUE pas le bouton : aucun risque si Supabase n'est pas encore configuré,
+  // on ne fait que le désigner.
+  { part:'compte', side:'sidebar', title:'Un compte (facultatif)',
+    text:"Tout en bas de la barre latérale, tu peux <b>créer un compte</b>. Ce n’est pas "
+        +"obligatoire pour réviser, mais ça débloque deux choses bien pratiques.",
+    setup:tourShowNotion, target:()=>document.querySelector('.sb-account') },
+  { part:'compte', center:true, title:'Sync & suivi',
+    text:"<b>1.</b> Ta <b>révision</b> (progression, série, objectif) te suit sur <b>tous tes "
+        +"appareils</b> — commence sur l’ordi, continue sur le téléphone.<br>"
+        +"<b>2.</b> Les <b>propositions</b> qu’on vient de voir sont reliées à ton compte : suis "
+        +"leur <b>statut</b> (en attente, intégrée, refusée) via le bouton <b>📋 Mes propositions</b>, "
+        +"qui apparaît en haut de la page une fois connecté.<br>"
+        +"Tu restes maître de tes données : on peut se <b>déconnecter</b> ou <b>supprimer son "
+        +"compte</b> à tout moment." },
 
   // ── Fin (carte centrée) ──
   // Mentionne la PWA (installable + hors-ligne), ajoutée récemment et absente
