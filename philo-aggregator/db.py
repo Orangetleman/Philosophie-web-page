@@ -348,6 +348,7 @@ BOX_SELECT = """
         b.notion, b.extra_notions, b.key_term, b.fields_json,
         b.signature, b.status, b.status_changed_at, b.note,
         s.contributor, s.received_at, s.source_file, s.ingested_at,
+        s.remote_id,
         b.ai_verdict, b.ai_review, b.ai_reviewed_at
     FROM boxes b
     JOIN submissions s ON b.submission_id = s.id

@@ -1,28 +1,41 @@
 """
-dashboard.py — mini tableau de bord LOCAL de curation des propositions.
+dashboard.py — tableau de bord LOCAL de curation des propositions (cockpit).
 
-Une petite application Flask qui tourne UNIQUEMENT sur ta machine
-(http://127.0.0.1:5002 par défaut). Elle affiche les propositions
-stockées dans `proposals.db`, avec l'avis de l'IA (verdict Gemini), et
-te laisse les trier d'un clic :
-  - Valider  → statut « validee »  (retenue, à agréger plus tard)
-  - Rejeter  → statut « rejetee »
-  - Archiver → statut « archivee »
-  - Remettre « en attente »
+Une application Flask qui tourne UNIQUEMENT sur ta machine
+(http://127.0.0.1:5002 par défaut). Elle affiche les propositions stockées
+dans `proposals.db`, avec l'avis de l'IA (verdict Gemini), et regroupe en
+boutons toutes les commandes de l'outil — plus besoin du terminal.
 
-Deux boutons d'action en haut :
-  - « Récupérer » : va chercher les nouvelles propositions dans la boîte
-    en ligne (pull + ingestion), via pipeline.pull_and_ingest.
-  - « Relire (IA) » : soumet à Gemini les boîtes pas encore relues.
+Trier une boîte d'un clic (statut local) :
+  - Valider   → « validee »  (retenue, en cours d'intégration)
+  - Intégrer  → « integree » (effectivement recopiée dans le site)
+  - Rejeter   → « rejetee »
+  - Archiver  → « archivee »
+  - En attente → « en_attente »
+
+ÉCRITURE-RETOUR vers Supabase (phase 4) : pour une boîte issue d'un compte
+(elle porte un `remote_id`), changer son statut local POUSSE aussi le statut
+« contributeur » vers Supabase — l'auteur le voit dans « Mes propositions » :
+  Valider → « en cours d'intégration », Intégrer → « intégrée »,
+  Rejeter → « refusée » (avec une explication facultative jointe).
+Les boîtes anonymes (boîte PythonAnywhere ou .txt) n'ont pas de pendant en
+ligne : rien n'est poussé pour elles.
+
+Barre d'outils (actions globales) :
+  - ☁ Récupérer (Supabase) : pull-cloud → ingestion.
+  - ⬇ Récupérer (anonyme)  : pull de la boîte PythonAnywhere → ingestion + ack.
+  - 🤖 Relire (IA)          : soumet à Gemini les boîtes pas encore relues.
+  - 📤 Exporter (.txt)      : génère le review_*.txt pour une session Claude.
+  - 🗄 Archiver intégrées   : integree → archivee.
+  - 🗑 Purger archivées     : suppression définitive (confirmation requise).
 
 ⚠ Volontairement SANS authentification : le serveur n'écoute que sur
 127.0.0.1 (la machine locale), il n'est donc pas accessible de
 l'extérieur. Ne jamais l'exposer sur un vrai réseau tel quel.
 
-Comme partout dans le projet, rien n'est intégré à data.js ici :
-« valider » ne fait que marquer la boîte « validee » en base. La recopie
-finale dans le site reste une étape manuelle séparée (comme l'usage
-actuel de philo-aggregator).
+Comme partout dans le projet, rien n'est intégré à data.js ici : « intégrer »
+ne fait que marquer la boîte « integree » en base. La recopie finale dans le
+site (index.html / data.js) reste une étape manuelle séparée.
 """
 
 import html
@@ -67,6 +80,23 @@ STATUS_STYLE = {
     "rejetee":    ("#e74c3c", "rejetée"),
     "archivee":   ("#7f8c8d", "archivée"),
 }
+
+
+# Explications proposées par défaut quand on change un statut « poussable »
+# vers Supabase. L'utilisateur peut les remplacer via le champ de la carte.
+# 'en_attente' : None = ne pas écraser l'explication existante côté Supabase.
+DEFAULT_EXPL = {
+    "validee":    "Proposition retenue — en cours d'intégration au site.",
+    "integree":   "Intégrée au site. Merci pour ta contribution !",
+    "rejetee":    "Proposition non retenue.",
+    "archivee":   None,
+    "en_attente": None,
+}
+
+# Statuts dont le changement déclenche une écriture-retour vers Supabase
+# (seulement pour les boîtes issues d'un compte, c.-à-d. avec un remote_id).
+# 'archivee' est un rangement interne : on ne pousse rien.
+PUSHABLE_STATUSES = ("validee", "integree", "rejetee", "en_attente")
 
 
 def pill(color, label):
@@ -128,15 +158,28 @@ main { padding:16px 20px 60px; max-width:1000px; margin:0 auto; }
 details { margin:6px 0; }
 details pre { white-space:pre-wrap; background:#0f1115; padding:10px;
               border-radius:6px; font-size:12px; color:#c0c0c0; overflow:auto; }
-.actions { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+.actions { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px;
+           align-items:center; }
 .actions button { border:none; border-radius:6px; padding:6px 10px;
                   cursor:pointer; font-size:12px; color:#10131a; font-weight:600; }
-.b-val { background:#2ecc71; } .b-rej { background:#e74c3c; }
+.b-val { background:#2ecc71; } .b-int { background:#27ae60; color:#ecfff4; }
+.b-rej { background:#e74c3c; }
 .b-arc { background:#7f8c8d; } .b-att { background:#5dade2; }
+/* Champ « explication » envoyé au contributeur (boîtes issues d'un compte). */
+.expl { flex:1 1 200px; background:#0f1115; border:1px solid #3a3f4b;
+        color:#e6e6e6; border-radius:6px; padding:6px 8px; font-size:12px; }
 .noteform { margin-top:6px; display:flex; gap:6px; }
 .noteform input { flex:1; background:#0f1115; border:1px solid #3a3f4b;
                   color:#e6e6e6; border-radius:6px; padding:6px 8px; font-size:12px; }
 .empty { color:#8a909c; padding:30px 0; text-align:center; }
+/* Pastille « compte » (boîte issue de Supabase, statut renvoyé à l'auteur). */
+.pill-cloud { background:#8e7cc3; }
+/* Bouton d'action globale destructeur (purge). */
+.toolbtn.danger { border-color:#e74c3c; color:#ffd9d4; }
+.toolbtn.danger:hover { background:#3a2630; }
+/* Panneau de statistiques (compteurs par statut) dans l'en-tête. */
+.stats { margin-top:6px; font-size:12px; color:#8a909c; }
+.stats b { color:#cbd; }
 """
 
 
@@ -179,10 +222,16 @@ def _card(row, status, verdict_filter):
 
     parts = ['<div class="card">']
 
+    # Une boîte issue d'un compte (Supabase) porte un remote_id : son statut
+    # est renvoyé à l'auteur. On le signale par une pastille « ☁ compte ».
+    is_cloud = bool(row["remote_id"])
+
     # En-tête : id, pastilles, type • cible « titre ».
     parts.append('<div class="head">')
     parts.append(f'<strong>#{bid}</strong>')
     parts.append(status_pill(row["status"]))
+    if is_cloud:
+        parts.append(pill("#8e7cc3", "☁ compte"))
     parts.append(verdict_pill(row["ai_verdict"]))
     parts.append(f'<span>{esc(type_lbl)} • {esc(cible_lbl)} '
                  f'« {esc(key_term)} »</span>')
@@ -222,12 +271,20 @@ def _card(row, status, verdict_filter):
     # On masque le bouton correspondant au statut actuel (inutile).
     if row["status"] != "validee":
         parts.append('<button class="b-val" name="to" value="validee">✓ Valider</button>')
+    if row["status"] != "integree":
+        parts.append('<button class="b-int" name="to" value="integree">⤓ Intégrer</button>')
     if row["status"] != "rejetee":
         parts.append('<button class="b-rej" name="to" value="rejetee">✗ Rejeter</button>')
     if row["status"] != "archivee":
         parts.append('<button class="b-arc" name="to" value="archivee">▪ Archiver</button>')
     if row["status"] != "en_attente":
         parts.append('<button class="b-att" name="to" value="en_attente">↺ En attente</button>')
+    # Boîte issue d'un compte : un champ « explication » (facultatif) part
+    # avec le changement de statut vers Supabase (vu par l'auteur). Pour les
+    # boîtes anonymes, ce champ est inutile (rien n'est poussé) : on l'omet.
+    if is_cloud:
+        parts.append('<input class="expl" name="expl" '
+                     'placeholder="Explication pour l\'auteur (facultatif)…">')
     parts.append("</form>")
 
     # Formulaire de note (pose / remplace la note libre).
@@ -244,9 +301,26 @@ def _card(row, status, verdict_filter):
     return "".join(parts)
 
 
+def _stats_panel():
+    """Construit le panneau de compteurs (par statut) affiché dans l'en-tête."""
+    with db.connect() as conn:
+        st = db.get_stats(conn)
+    parts = [f'<b>{st["total"]}</b> boîte(s) au total']
+    for key in ("en_attente", "validee", "integree", "rejetee", "archivee"):
+        n = st["par_statut"].get(key, 0)
+        if n:
+            _, label = STATUS_STYLE.get(key, ("", key))
+            parts.append(f'{label} : <b>{n}</b>')
+    return '<div class="stats">' + " &nbsp;·&nbsp; ".join(parts) + "</div>"
+
+
 def _page(status, verdict_filter, rows, flash=None):
     """Assemble la page HTML complète."""
-    # En-tête + barre d'outils (récupérer / relire) + filtres.
+    # Champs cachés (statut/verdict courants) communs aux formulaires de la
+    # barre d'outils : ils permettent de revenir au même filtre après l'action.
+    keep = (f'<input type="hidden" name="status" value="{esc(status)}">'
+            f'<input type="hidden" name="verdict" value="{esc(verdict_filter)}">')
+    # En-tête + barre d'outils (cockpit : toutes les commandes) + stats + filtres.
     head = [
         "<!doctype html><html lang='fr'><head><meta charset='utf-8'>",
         "<meta name='viewport' content='width=device-width, initial-scale=1'>",
@@ -255,14 +329,27 @@ def _page(status, verdict_filter, rows, flash=None):
         "<header>",
         "<h1>🧠 Curation des propositions — Graphe Philosophie</h1>",
         '<div class="bar">',
-        # Boutons d'action globale.
+        # Récupération : Supabase (comptes) puis boîte anonyme (PythonAnywhere).
+        f'<form method="post" action="/pull-cloud">'
+        f'<button class="toolbtn" type="submit">☁ Récupérer (Supabase)</button></form>',
         '<form method="post" action="/pull">'
-        '<button class="toolbtn" type="submit">⬇ Récupérer (pull)</button></form>',
-        f'<form method="post" action="/review">'
-        f'<input type="hidden" name="status" value="{esc(status)}">'
-        f'<input type="hidden" name="verdict" value="{esc(verdict_filter)}">'
+        '<button class="toolbtn" type="submit">⬇ Récupérer (anonyme)</button></form>',
+        # Relecture IA (par lot borné).
+        f'<form method="post" action="/review">{keep}'
         f'<button class="toolbtn" type="submit">🤖 Relire (IA) — {REVIEW_BATCH} max</button></form>',
+        # Export .txt pour Claude (sur le statut filtré courant).
+        f'<form method="post" action="/export">{keep}'
+        f'<button class="toolbtn" type="submit">📤 Exporter (.txt)</button></form>',
+        # Rangement : archiver les intégrées.
+        f'<form method="post" action="/archive">{keep}'
+        f'<button class="toolbtn" type="submit">🗄 Archiver intégrées</button></form>',
+        # Purge destructrice (confirmation via onsubmit côté navigateur).
+        f'<form method="post" action="/purge" '
+        f'onsubmit="return confirm(\'Supprimer DÉFINITIVEMENT toutes les boîtes archivées ?\');">'
+        f'{keep}<input type="hidden" name="confirm" value="yes">'
+        f'<button class="toolbtn danger" type="submit">🗑 Purger archivées</button></form>',
         '</div>',
+        _stats_panel(),
         _filter_links(status, verdict_filter),
         "</header>",
     ]
@@ -333,16 +420,58 @@ def index():
 
 @app.route("/action", methods=["POST"])
 def action():
-    """Change le statut d'une boîte (valider / rejeter / archiver / attente)."""
+    """
+    Change le statut local d'une boîte (valider / intégrer / rejeter /
+    archiver / en attente) ET, si la boîte vient d'un compte (remote_id),
+    POUSSE le statut « contributeur » vers Supabase pour que l'auteur le
+    voie dans « Mes propositions ».
+
+    L'écriture-retour passe par `pipeline.push_contribution_status`, qui
+    raisonne au niveau de la SOUMISSION (une contribution = plusieurs
+    boîtes triées séparément) : il déduit le statut le plus avancé parmi
+    toutes les boîtes de la soumission, puis le publie. On lui transmet
+    l'explication saisie sur la carte (ou, à défaut, un texte par défaut).
+    """
     status = request.form.get("status", "en_attente")
     verdict_filter = request.form.get("verdict", "all")
     box_id = request.form.get("id", type=int)
     to = request.form.get("to", "")
+    expl = (request.form.get("expl", "") or "").strip()
     if box_id is None or to not in db.STATUSES:
         return _redirect_back(status, verdict_filter, "Action invalide.")
+
+    # 1. Changement de statut local.
     with db.connect() as conn:
         n = db.update_status(conn, [box_id], to)
-    msg = (f"Boîte #{box_id} → {to}." if n else f"Boîte #{box_id} introuvable.")
+        # Boîte issue d'un compte ? On résout sa soumission pour l'écriture-
+        # retour (push raisonne par soumission, pas par boîte).
+        remote_id = db.get_remote_id_for_box(conn, box_id)
+        sub_row = conn.execute(
+            "SELECT submission_id FROM boxes WHERE id = ?", (box_id,)
+        ).fetchone()
+    if not n:
+        return _redirect_back(status, verdict_filter, f"Boîte #{box_id} introuvable.")
+
+    msg = f"Boîte #{box_id} → {to}."
+
+    # 2. Écriture-retour vers Supabase (uniquement boîtes de compte + statut
+    #    publiable). On n'interrompt pas l'action locale si le push échoue :
+    #    on l'indique simplement dans le message.
+    if remote_id and to in PUSHABLE_STATUSES and sub_row:
+        import pipeline
+        explication = expl or DEFAULT_EXPL.get(to)
+        try:
+            res = pipeline.push_contribution_status(
+                sub_row["submission_id"], explication=explication)
+            if res.get("pushed"):
+                msg += f" ☁ Auteur prévenu (« {res['statut']} »)."
+            else:
+                msg += f" (pas d'envoi : {res.get('reason', '?')})"
+        except SystemExit as e:
+            msg += f" (envoi Supabase impossible : {e})"
+        except Exception as e:  # réseau coupé, etc. : ne pas planter la page.
+            msg += f" (erreur d'envoi : {e})"
+
     return _redirect_back(status, verdict_filter, msg)
 
 
@@ -390,6 +519,73 @@ def review_route():
            f"(✓{s['valide']} ?{s['douteux']} ✗{s['rejet']})"
            + (f", {s['skipped']} en échec" if s['skipped'] else "") + ".")
     return _redirect_back(status, verdict_filter, msg)
+
+
+@app.route("/pull-cloud", methods=["POST"])
+def pull_cloud_route():
+    """
+    Récupère les contributions des comptes depuis Supabase et les ingère.
+    Rejouable : on dédoublonne sur le remote_id (rien n'est « consommé »
+    en ligne, contrairement à la boîte anonyme).
+    """
+    import pipeline
+    try:
+        s = pipeline.pull_cloud_and_ingest(limit=200)
+    except SystemExit as e:
+        # localenv/supabase_client lèvent SystemExit si la config manque
+        # (SUPABASE_URL / SUPABASE_SERVICE_KEY absents du .env).
+        return _redirect_back("en_attente", "all", str(e))
+    msg = (f"Supabase : {s['items']} contribution(s) reçue(s), "
+           f"{s['ok']} ingérée(s) ({s['boxes']} boîte(s)), "
+           f"{s['skipped']} déjà connue(s), {s['quarantine']} en quarantaine.")
+    return _redirect_back("en_attente", "all", msg)
+
+
+@app.route("/export", methods=["POST"])
+def export_route():
+    """Génère le .txt de synthèse (review_*.txt) pour une session Claude."""
+    import export
+    status = request.form.get("status", "en_attente")
+    verdict_filter = request.form.get("verdict", "all")
+    # On exporte le statut filtré courant (ou en_attente si 'all', car
+    # exporter « tout » mélangerait l'archivé et n'a pas de sens pour Claude).
+    exp_status = status if status in db.STATUSES else "en_attente"
+    path = export.cmd_export(status=exp_status)
+    if path:
+        msg = f"Export écrit : {path}"
+    else:
+        msg = f"Rien à exporter au statut « {exp_status} »."
+    return _redirect_back(status, verdict_filter, msg)
+
+
+@app.route("/archive", methods=["POST"])
+def archive_route():
+    """Range les boîtes intégrées : integree → archivee."""
+    status = request.form.get("status", "en_attente")
+    verdict_filter = request.form.get("verdict", "all")
+    with db.connect() as conn:
+        ids = [r["id"] for r in db.get_boxes(conn, status="integree")]
+        n = db.update_status(conn, ids, "archivee") if ids else 0
+    msg = (f"{n} boîte(s) intégrée(s) archivée(s)." if n
+           else "Aucune boîte intégrée à archiver.")
+    return _redirect_back(status, verdict_filter, msg)
+
+
+@app.route("/purge", methods=["POST"])
+def purge_route():
+    """
+    Supprime DÉFINITIVEMENT les boîtes archivées. Destructeur : on exige
+    une case de confirmation (champ caché « confirm=yes ») envoyée par le
+    bouton, sinon on refuse.
+    """
+    status = request.form.get("status", "en_attente")
+    verdict_filter = request.form.get("verdict", "all")
+    if request.form.get("confirm") != "yes":
+        return _redirect_back(status, verdict_filter, "Purge annulée (non confirmée).")
+    with db.connect() as conn:
+        n = db.delete_archived(conn)
+    return _redirect_back(status, verdict_filter,
+                          f"{n} boîte(s) archivée(s) supprimée(s) définitivement.")
 
 
 def run(port=None, open_browser=True):
