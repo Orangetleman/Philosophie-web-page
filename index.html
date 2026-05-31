@@ -1082,6 +1082,17 @@ body.sb-open .sb-backdrop{display:block;opacity:1}
 .pmine-date{font-size:10.5px;color:var(--color-text-tertiary);margin-top:3px}
 .pmine-expl{font-size:11.5px;color:var(--color-text-secondary);line-height:1.5;margin-top:7px;
   padding-top:7px;border-top:0.5px solid var(--color-border-tertiary);white-space:pre-wrap}
+/* Détail repliable du contenu proposé (« Mes propositions »). */
+.pmine-det{margin-top:7px;font-size:11.5px}
+.pmine-det>summary{cursor:pointer;color:var(--color-text-tertiary);font-weight:600;list-style:none}
+.pmine-det>summary::-webkit-details-marker{display:none}
+.pmine-det>summary::before{content:"▸ ";color:var(--color-text-tertiary)}
+.pmine-det[open]>summary::before{content:"▾ "}
+.pmine-box{margin-top:8px;padding-top:8px;border-top:0.5px solid var(--color-border-tertiary)}
+.pmine-box:first-of-type{border-top:0;padding-top:0}
+.pmine-box-h{font-size:10.5px;font-weight:700;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.03em;margin-bottom:4px}
+.pmine-f{margin:3px 0;color:var(--color-text-secondary);line-height:1.5}
+.pmine-f b{color:var(--color-text-primary);font-weight:600}
 /* Pastille de statut (couleur = état). */
 .pst{font-size:10.5px;font-weight:600;padding:2px 8px;border-radius:999px;white-space:nowrap}
 .pst-wait{background:rgba(255,193,7,.14);color:#e0a800}
@@ -3616,6 +3627,63 @@ function contribSummary(payload){
   }catch(e){ return 'Proposition'; }
 }
 
+/* new : libellé lisible d'un champ d'une boîte, à partir de sa cible.
+   On réutilise PROPOSAL_FIELDS (mêmes intitulés qu'au moment de la saisie) ;
+   à défaut (champ méta ou inconnu), on retombe sur une petite table puis sur
+   la clé brute. */
+function contribFieldLabel(cible,key){
+  const defs=PROPOSAL_FIELDS[cible]||[];
+  const f=defs.find(x=>x.k===key);
+  if(f) return f.l;
+  // Champs transverses (méta de correction / remarque, notion d'attache…).
+  const META={notion:"Notion",cnotions:"Notions liées",nom:"Nom de l'auteur",
+    cibleref:"Élément ciblé",remelement:"Élément concerné",remtexte:"Remarque",
+    justif:"Justification du retrait",citations:"Citations"};
+  return META[key]||key;
+}
+
+/* new : rend le DÉTAIL d'une proposition (toutes ses boîtes et leurs champs)
+   à partir du payload v3 stocké. Permet au contributeur de revoir, dans
+   « Mes propositions », EXACTEMENT ce qu'il a proposé — et pas seulement le
+   résumé d'une ligne. Tolérant aux payloads v1/v2 (champs à plat). */
+function contribDetailHTML(payload){
+  const boxes=(payload&&payload.boxes)||[];
+  if(!boxes.length) return '';
+  // Rend une paire libellé/valeur ; ignore les valeurs vides.
+  const row=function(label,val){
+    if(val==null||val==='') return '';
+    return '<div class="pmine-f"><b>'+pEsc(label)+'</b> : '+pEsc(val)+'</div>';
+  };
+  const html=boxes.map(function(b){
+    const cible=b.cible||'';
+    const f=b.fields||{};
+    let inner='';
+    // En-tête de boîte : type + cible (ex. « Ajout — Idée d'auteur »).
+    const head=proposalTypeLabel(b.type)+' — '+(proposalCibleLabel(cible)||cible||'boîte');
+    // Cas auteur (idée) : les champs sont PAR IDÉE dans fields.ideas[].
+    if(Array.isArray(f.ideas)){
+      if(f.nom) inner+=row("Nom de l'auteur",f.nom);
+      f.ideas.forEach(function(it,j){
+        inner+='<div class="pmine-f" style="margin-top:5px"><b>Idée '+(j+1)+'</b></div>';
+        ['notion','oeuvre','date','idee','concepts'].forEach(function(k){
+          inner+=row(contribFieldLabel('auteur',k)||k,it[k]);
+        });
+        if(Array.isArray(it.citations)) it.citations.filter(Boolean).forEach(function(c){ inner+=row('Citation',c); });
+        if(it.justif) inner+=row('Justification du retrait',it.justif);
+      });
+    } else {
+      // Cas général : on parcourt les champs du formulaire.
+      Object.keys(f).forEach(function(k){
+        const v=f[k];
+        if(Array.isArray(v)){ v.filter(Boolean).forEach(function(item){ inner+=row(contribFieldLabel(cible,k),item); }); }
+        else inner+=row(contribFieldLabel(cible,k),v);
+      });
+    }
+    return '<div class="pmine-box"><div class="pmine-box-h">'+pEsc(head)+'</div>'+inner+'</div>';
+  }).join('');
+  return '<details class="pmine-det"><summary>Voir le détail proposé</summary>'+html+'</details>';
+}
+
 /* new (Phase 3) : charge et affiche les propositions du compte connecté.
    La règle RLS contrib_select ne renvoie QUE les lignes de l'utilisateur ;
    on ajoute tout de même le filtre user_id par clarté. */
@@ -3633,11 +3701,17 @@ async function renderMyContributions(){
     wrap.innerHTML=data.map(c=>{
       const st=contribStatusLabel(c.statut);
       const d=c.created_at?new Date(c.created_at).toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'}):'';
+      // Explication = justification de l'état (écrite par le mainteneur lors
+      // du changement de statut, renvoyée via Supabase). Présente seulement
+      // une fois la proposition triée.
       const expl=c.explication ? '<div class="pmine-expl">'+pEsc(c.explication)+'</div>' : '';
+      // new : détail repliable du contenu proposé (toutes les boîtes).
+      const detail=contribDetailHTML(c.payload);
       return '<div class="pmine-item">'
         +'<div class="pmine-top"><span class="pmine-sum">'+pEsc(contribSummary(c.payload))+'</span>'
         +'<span class="pst '+st.cls+'">'+pEsc(st.txt)+'</span></div>'
         +(d?'<div class="pmine-date">Envoyée le '+pEsc(d)+'</div>':'')
+        +detail
         +expl
         +'</div>';
     }).join('');
