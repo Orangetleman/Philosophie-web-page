@@ -573,6 +573,9 @@ body.is-signed-in .sb-account{color:#7bd88f;border-color:rgba(123,216,143,.45)}
   font-family:inherit;font-size:12px;color:var(--color-text-tertiary);
   text-align:center;cursor:pointer;transition:color .15s}
 .auth-link-btn:hover{color:var(--color-text-info)}
+/* Variante « danger » du lien discret : suppression de compte (irréversible). */
+.auth-link-btn.auth-danger{color:#d98a8a;margin-top:16px}
+.auth-link-btn.auth-danger:hover{color:#f0a3a3}
 
 #quiz-overlay{position:fixed;inset:0;background:rgba(10,14,20,.92);z-index:850;
   display:none;flex-direction:column;padding:16px;overflow-y:auto}
@@ -2664,6 +2667,17 @@ const SUPABASE_ANON_KEY='sb_publishable_7A5cSXlmufU1mDfjs1hIIA_PSHpXOdB';
 // null et toute la couche compte se désactive proprement (repli mail/local).
 const SB=(window.supabase&&SUPABASE_URL)?window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY):null;
 
+// new (mot de passe oublié) : le lien reçu par e-mail ramène sur le site avec
+// « type=recovery » dans l'URL. supabase-js consomme ce jeton puis NETTOIE
+// l'URL très tôt — souvent AVANT qu'initAuth ne s'abonne à onAuthStateChange
+// (initAuth est async : il attend getSession). L'évènement PASSWORD_RECOVERY
+// peut donc passer inaperçu, et l'utilisateur se retrouve « juste connecté »
+// sans écran de réinitialisation. On capture donc le drapeau ICI, de façon
+// SYNCHRONE (même tick que createClient, avant tout nettoyage), pour pouvoir
+// forcer l'écran « nouveau mot de passe » dans initAuth, quelle que soit la
+// course d'évènements. (Cherché dans le hash ET la query selon le flow.)
+const AUTH_RECOVERY_IN_URL=/type=recovery/.test(location.hash)||/type=recovery/.test(location.search);
+
 // Libellés des deux menus déroulants
 const PROPOSAL_TYPES=[
   {v:'ajout',      l:'Ajout'},
@@ -4650,6 +4664,18 @@ async function initAuth(){
     if(event==='SIGNED_IN') closeAuth();
     else if(event==='SIGNED_OUT') renderAuth();
   });
+  // new (mot de passe oublié) : repli ROBUSTE. Si l'URL au chargement portait
+  // « type=recovery » mais que l'évènement PASSWORD_RECOVERY a pu passer AVANT
+  // notre abonnement (course expliquée à la déclaration d'AUTH_RECOVERY_IN_URL),
+  // on ouvre nous-mêmes l'écran « nouveau mot de passe ». À ce stade getSession
+  // a fini de traiter l'URL : la session de récupération est prête, et
+  // renderAuth() priorise l'écran 'newpw' sur le profil.
+  if(AUTH_RECOVERY_IN_URL){
+    authView='newpw';
+    const ovr=document.getElementById('auth-overlay');
+    if(ovr) ovr.classList.add('open');
+    renderAuth();
+  }
   // new (Phase 2) : au retour sur l'onglet, on récupère ce qu'un autre appareil
   // aurait pu écrire entre-temps (fusion non destructive).
   document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') syncOnFocus(); });
@@ -4740,6 +4766,7 @@ function renderAuth(){
       <div class="auth-form" style="margin-top:14px">
         <button class="auth-btn auth-btn-primary" onclick="authSignOut()">Se déconnecter</button>
       </div>
+      <button class="auth-link-btn auth-danger" onclick="authDeleteAccount()" title="Supprimer définitivement le compte et toutes ses données">Supprimer mon compte</button>
       <div class="auth-status" id="auth-status"></div>`;
     return;
   }
@@ -4870,6 +4897,41 @@ async function authSignOut(){
   authUser=null;                         // état déconnecté garanti même si l'event tarde
   renderAccountBtn();
   renderAuth();                          // retour à l'écran de connexion
+}
+
+/* authDeleteAccount() — suppression DÉFINITIVE du compte, à la demande de
+   l'utilisateur. Le SDK client ne peut pas supprimer un compte (cela exige la
+   clé secrète, qui ne doit jamais vivre dans le navigateur) : on appelle donc
+   une fonction PostgreSQL « delete_own_account » (SECURITY DEFINER) qui efface
+   les données de l'utilisateur (contributions, progression, préférences) puis
+   sa ligne auth.users — toujours bornée à auth.uid(), donc à SON seul compte.
+   Voir le SQL à exécuter une fois côté Supabase (communiqué séparément).
+   Après suppression : on nettoie la session locale et on revient au formulaire. */
+async function authDeleteAccount(){
+  if(!SB||!authUser) return;
+  // Confirmation explicite : action irréversible (double sécurité native).
+  if(!confirm("Supprimer définitivement ton compte ?\n\nTa progression de révision, tes préférences et tes propositions seront effacées. Cette action est IRRÉVERSIBLE.")) return;
+  authStatus('Suppression du compte…','');
+  try{
+    const {error}=await SB.rpc('delete_own_account');
+    if(error) throw error;
+    // Le compte n'existe plus côté serveur → on coupe la session locale (le
+    // jeton est devenu caduc ; on avale une éventuelle erreur de signOut).
+    try{ await SB.auth.signOut(); }catch(e){}
+    authUser=null;
+    syncResetState();                    // stoppe la synchro et oublie l'utilisateur
+    renderAccountBtn();
+    authView='signin';
+    renderAuth();
+    authStatus('Ton compte a été supprimé. À bientôt !','ok');
+  }catch(e){
+    // Cas le plus courant : la fonction SQL n'a pas (encore) été créée côté
+    // Supabase → message clair plutôt que l'erreur brute.
+    const msg=(e&&/function|not exist|delete_own_account|404/i.test(e.message||''))
+      ? "La suppression n'est pas encore activée côté serveur. Réessaie plus tard."
+      : authHumanError(e);
+    authStatus(msg,'err');
+  }
 }
 
 /* authUpdateName() — change le nom affiché (pseudo) d'un compte e-mail.
