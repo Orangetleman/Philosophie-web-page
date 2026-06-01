@@ -129,6 +129,43 @@ section unique « Relations & distinctions » : relations **sortantes**
 `id` de concept existant (⚠ certains ids portent des accents, ex.
 `aliénation-religieuse`).
 
+### Repères du programme (`cat:'Repère'`)
+
+Les **repères conceptuels** officiels (paires/triades à distinguer :
+*absolu / relatif*, *en acte / en puissance*, *légal / légitime*…) sont
+des entrées de `CONCEPTS` **comme les autres**, distinguées par leur
+catégorie `cat:'Repère'` et un `id` préfixé `rep-…`. Conséquences :
+- ils sont **liés dynamiquement** par `linkTerms` (aucune modif nécessaire) ;
+- ils n'ont **pas** de champ `auteur` (ce sont des distinctions du programme,
+  pas des concepts d'un auteur précis) ;
+- leur `term` est la paire/triade littérale (`'Absolu / Relatif'`), leur `def`
+  décrit chaque pôle (`<strong>…</strong> : …`) et finit par un `<em>Ex.</em>` ;
+- ils portent au moins une `relations:[{type:'distinction', desc:'A ≠ B'}]`,
+  plus d'éventuels liens vers des concepts fichés (`{to:'sophisme', …}`).
+
+**Séparation des listes.** Helpers dans `index.html` :
+`isRepere(c)` (`c.cat==='Repère'`), `REPERES()` et `realConcepts()`. Les
+repères sont **exclus** du glossaire Concepts (sidebar `renderSBConceptsList`
++ comptage) **et** de l'onglet « Concepts » de chaque notion ; ils peuplent à
+la place l'onglet **Méthodo** (voir ci-dessous). La **fiche** est la même
+(`renderConceptContent` + `curConcept`) : un repère *est* un concept, donc
+aucun renderer dédié.
+
+## Onglet « Méthodo » (sidebar, `sbMode='methodo'`)
+
+La sidebar a **quatre modes** : `sbMode` ∈
+`'notions' | 'auteurs' | 'concepts' | 'methodo'`. Le mode `methodo` liste les
+**repères** (`REPERES()`, triés `localeCompare('fr')`), avec une **barre de
+recherche seule** (`methodoSearch`, `renderSBMethodoList()`) — pas de filtres
+par notion. Il **réutilise** `curConcept` et la fiche concept (un repère est
+un concept). Tout le câblage de navigation reflète le mode `concepts` :
+`renderSB` (onglets + branche dédiée), `goBack`, `goMode('methodo')`,
+`renderCrumbs` (segment « Méthodo »), `openConcept` (qui choisit
+`sbMode = isRepere(c) ? 'methodo' : 'concepts'`). À l'entrée d'un mode, un
+garde recalcule `curConcept` pour qu'il appartienne à la liste active.
+L'onboarding (`TOUR_STEPS`) présente les **quatre** portes d'entrée dont la
+Méthodo.
+
 ## Liens dynamiques
 
 `linkTerms(html)` détecte automatiquement, dans tout texte libre, trois

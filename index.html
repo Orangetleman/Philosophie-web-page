@@ -1336,6 +1336,18 @@ let conceptSearch='';
 let conceptFilter=new Set(); // empty = all notions
 let conceptFilterOpen=false;
 let conceptFilterMode='or'; // 'or' = au moins une notion ; 'and' = toutes les notions cochées
+// new (Méthodo) : recherche du sous-onglet « Méthodo » (sbMode='methodo').
+// Les repères (cat:'Repère') sont des CONCEPTS comme les autres, mais
+// rangés à part : on les liste ici et on les EXCLUT du glossaire général.
+// La fiche affichée reste la même (renderConceptContent + curConcept).
+let methodoSearch='';
+// REPERES() / vrais concepts : helpers de partition du tableau CONCEPTS.
+//   isRepere(c)    → ce concept est-il un repère méthodologique ?
+//   REPERES()      → liste des repères (onglet Méthodo)
+//   realConcepts() → glossaire « Concepts » (tout SAUF les repères)
+function isRepere(c){return c&&c.cat==='Repère';}
+function REPERES(){return CONCEPTS.filter(isRepere);}
+function realConcepts(){return CONCEPTS.filter(c=>!isRepere(c));}
 /* ── E. FONCTIONS UTILITAIRES ────────────────────────────────────────
 
    normalizeAuthor(a) — convertit une entrée auteur au format canonique
@@ -1538,7 +1550,7 @@ function goBack(){
   curAuthor=s.curAuthor; curAuthorTab=s.curAuthorTab; curConcept=s.curConcept;
   renderSB();
   if(sbMode==='auteurs'&&curAuthor) renderAuthorContent();
-  else if(sbMode==='concepts') renderConceptContent();
+  else if(sbMode==='concepts'||sbMode==='methodo') renderConceptContent();
   else renderContent();
   _navigating=false;
   updateBackBtn();
@@ -1613,10 +1625,16 @@ function renderSB(){
     sb.innerHTML='';
     sb.appendChild(fixed);
   }
+  // 4 onglets de mode. Concepts et Méthodo partagent la MÊME fiche
+  // (renderConceptContent + curConcept) mais des listes disjointes : le
+  // glossaire « Concepts » exclut les repères, l'onglet « Méthodo » ne
+  // montre QU'EUX. En entrant dans un mode, on recale curConcept pour
+  // qu'il pointe sur une fiche présente dans la liste de ce mode.
   fixed.innerHTML=`<div class="sb-tabs" style="gap:1px;padding:8px 0 6px">
-    <div class="sb-tab${sbMode==='notions'?' active':''}" onclick="sbMode='notions';renderSB();renderContent()" style="font-size:9.5px">Notions</div>
-    <div class="sb-tab${sbMode==='auteurs'?' active':''}" onclick="if(sbMode!=='auteurs'){sbMode='auteurs';if(!curAuthor)curAuthor=authorsSorted()[0];curAuthorTab='idees';renderSB();renderAuthorContent();}" style="font-size:9.5px">Auteurs</div>
-    <div class="sb-tab${sbMode==='concepts'?' active':''}" onclick="if(sbMode!=='concepts'){sbMode='concepts';if(!curConcept)curConcept=CONCEPTS[0].id;renderSB();renderConceptContent();}" style="font-size:9.5px">Concepts</div>
+    <div class="sb-tab${sbMode==='notions'?' active':''}" onclick="sbMode='notions';renderSB();renderContent()" style="font-size:9px">Notions</div>
+    <div class="sb-tab${sbMode==='auteurs'?' active':''}" onclick="if(sbMode!=='auteurs'){sbMode='auteurs';if(!curAuthor)curAuthor=authorsSorted()[0];curAuthorTab='idees';renderSB();renderAuthorContent();}" style="font-size:9px">Auteurs</div>
+    <div class="sb-tab${sbMode==='concepts'?' active':''}" onclick="if(sbMode!=='concepts'){sbMode='concepts';const c0=realConcepts().find(c=>c.id===curConcept)||realConcepts()[0];if(c0)curConcept=c0.id;renderSB();renderConceptContent();}" style="font-size:9px">Concepts</div>
+    <div class="sb-tab${sbMode==='methodo'?' active':''}" onclick="if(sbMode!=='methodo'){sbMode='methodo';const r0=REPERES().find(c=>c.id===curConcept)||REPERES()[0];if(r0)curConcept=r0.id;renderSB();renderConceptContent();}" style="font-size:9px" title="Repères du programme : les distinctions conceptuelles (absolu/relatif, légal/légitime…)">Méthodo</div>
   </div>`;
 
   // ── Bouton « 🎯 Réviser » (mode quiz) : AU-DESSUS de .sb-propose ──
@@ -1723,7 +1741,7 @@ function renderSB(){
     listWrap.id='sb-author-list';
     list.appendChild(listWrap);
     renderSBList();
-  } else {
+  } else if(sbMode==='concepts'){
     // Concepts
     let searchRow=fixed.querySelector('.sb-search-row');
     if(!searchRow){
@@ -1764,6 +1782,23 @@ function renderSB(){
     listWrap.id='sb-concept-list';
     list.appendChild(listWrap);
     renderSBConceptsList();
+  } else {
+    // ── Méthodo : liste des repères (cat:'Repère') ──
+    // Recherche seule (pas de filtre par notion : les repères forment une
+    // liste de référence stable et courte). Même carte .cb que les concepts.
+    let searchRow=fixed.querySelector('.sb-search-row');
+    if(!searchRow){
+      searchRow=document.createElement('div');
+      searchRow.className='sb-search-row';
+      fixed.appendChild(searchRow);
+    }
+    searchRow.innerHTML=`
+      <input class="sb-search" type="text" placeholder="Rechercher un repère…" value="${methodoSearch.replace(/"/g,'&quot;')}"
+        oninput="methodoSearch=this.value;renderSBMethodoList()" />`;
+    const listWrap=document.createElement('div');
+    listWrap.id='sb-methodo-list';
+    list.appendChild(listWrap);
+    renderSBMethodoList();
   }
 }
 
@@ -1788,8 +1823,10 @@ function renderSBConceptsList(){
   const wrap=document.getElementById('sb-concept-list');
   if(!wrap) return;
   const q=conceptSearch.trim().toLowerCase();
-  // 1. Filtrage : recherche sur le terme ET filtre par notions (si actif)
-  const list=CONCEPTS.filter(c=>{
+  // 1. Filtrage : recherche sur le terme ET filtre par notions (si actif).
+  //    On part de realConcepts() : les repères (cat:'Repère') sont rangés
+  //    dans l'onglet « Méthodo », pas dans le glossaire général.
+  const list=realConcepts().filter(c=>{
     const matchSearch=!q||c.term.toLowerCase().includes(q);
     let matchFilter=true;
     if(conceptFilter.size>0){
@@ -1801,9 +1838,9 @@ function renderSBConceptsList(){
   }).sort((a,b)=>b.notions.filter(k=>D[k]).length-a.notions.filter(k=>D[k]).length);
   if(!list.length){wrap.innerHTML=`<div style="padding:10px 4px;font-size:11px;color:var(--color-text-tertiary);text-align:center">Aucun résultat</div>`;return;}
   // Compteur TOUJOURS affiché : total de concepts, ou « filtrés / total »
-  // quand une recherche/un filtre est actif.
+  // quand une recherche/un filtre est actif (repères exclus du total).
   const hasFilter=q||(conceptFilter.size>0);
-  const total=CONCEPTS.length;
+  const total=realConcepts().length;
   const countTxt=hasFilter
     ?`${list.length} / ${total} concepts`
     :`${total} concept${total>1?'s':''}`;
@@ -1814,6 +1851,35 @@ function renderSBConceptsList(){
     const bdgs=c.notions.map(k=>D[k]?`<span class="ab-bdg" style="background:${D[k].c}" title="${D[k].l}"></span>`:'').join('');
     el.innerHTML=`<div class="cb-term">${c.term}</div><div class="ab-badges" style="margin-top:3px">${bdgs}</div>`;
     el.onclick=()=>{curConcept=c.id;renderSBConceptsList();renderConceptContent()};
+    wrap.appendChild(el);
+  });
+}
+
+/* renderSBMethodoList() — filtre et affiche la liste des REPÈRES (sbMode
+   'methodo'). Mêmes cartes .cb que les concepts, mais :
+     · source = REPERES() (les concepts cat:'Repère' uniquement) ;
+     · recherche sur le terme seule (pas de filtre par notion) ;
+     · tri ALPHABÉTIQUE par terme (liste de référence, pas de notion-count).
+   La fiche affichée au clic est la même que pour un concept
+   (renderConceptContent + curConcept) : un repère EST un concept. */
+function renderSBMethodoList(){
+  const wrap=document.getElementById('sb-methodo-list');
+  if(!wrap) return;
+  const q=methodoSearch.trim().toLowerCase();
+  const all=REPERES();
+  const list=all
+    .filter(c=>!q||c.term.toLowerCase().includes(q))
+    .sort((a,b)=>a.term.localeCompare(b.term,'fr'));
+  if(!list.length){wrap.innerHTML=`<div style="padding:10px 4px;font-size:11px;color:var(--color-text-tertiary);text-align:center">Aucun repère</div>`;return;}
+  // Compteur : total de repères, ou « filtrés / total » si recherche active.
+  const countTxt=q?`${list.length} / ${all.length} repères`:`${all.length} repère${all.length>1?'s':''}`;
+  wrap.innerHTML=`<div class="sb-results-count">${countTxt}</div>`;
+  list.forEach(c=>{
+    const el=document.createElement('div');
+    el.className='cb'+(c.id===curConcept?' active':'');
+    const bdgs=c.notions.map(k=>D[k]?`<span class="ab-bdg" style="background:${D[k].c}" title="${D[k].l}"></span>`:'').join('');
+    el.innerHTML=`<div class="cb-term">${c.term}</div><div class="ab-badges" style="margin-top:3px">${bdgs}</div>`;
+    el.onclick=()=>{curConcept=c.id;renderSBMethodoList();renderConceptContent()};
     wrap.appendChild(el);
   });
 }
@@ -1843,7 +1909,11 @@ function openConcept(id){
     return;
   }
   pushHistory();
-  sbMode='concepts'; curConcept=id;
+  // Un repère ouvre l'onglet « Méthodo » (où il est listé), un concept
+  // ordinaire l'onglet « Concepts » : la sidebar reste cohérente avec la
+  // fiche affichée. La fiche elle-même est rendue par renderConceptContent.
+  const c=CONCEPTS.find(x=>x&&x.id===id);
+  sbMode=isRepere(c)?'methodo':'concepts'; curConcept=id;
   renderSB(); renderConceptContent();
 }
 
@@ -2082,6 +2152,13 @@ function renderCrumbs(){
       const c=CONCEPTS.find(x=>x&&x.id===curConcept);
       if(c) segs.push(seg(c.term,'',null,true));
     }
+  }else if(sbMode==='methodo'){
+    // Méthodo : même fiche que les concepts, mais segment racine distinct.
+    segs.push(seg('Méthodo','mode','methodo',false));
+    if(curConcept){
+      const c=CONCEPTS.find(x=>x&&x.id===curConcept);
+      if(c) segs.push(seg(c.term,'',null,true));
+    }
   }
   el.innerHTML=segs.join(sep);
 }
@@ -2092,7 +2169,8 @@ function goMode(mode){
   sbMode=mode;
   if(mode==='notions'){ renderSB(); renderContent(); }
   else if(mode==='auteurs'){ if(!curAuthor) curAuthor=authorsSorted()[0]; curAuthorTab='idees'; renderSB(); renderAuthorContent(); }
-  else if(mode==='concepts'){ if(!curConcept&&CONCEPTS[0]) curConcept=CONCEPTS[0].id; renderSB(); renderConceptContent(); }
+  else if(mode==='concepts'){ const c0=realConcepts().find(c=>c.id===curConcept)||realConcepts()[0]; if(c0) curConcept=c0.id; renderSB(); renderConceptContent(); }
+  else if(mode==='methodo'){ const r0=REPERES().find(c=>c.id===curConcept)||REPERES()[0]; if(r0) curConcept=r0.id; renderSB(); renderConceptContent(); }
 }
 
 /* openAuthor(name) — ouvre la fiche d'un auteur depuis n'importe où :
@@ -2356,7 +2434,9 @@ function renderContent(){
   }
   else if(curTab==='concepts'){
     // Concepts rattachés à la notion courante (c.notions.includes(cur)).
-    const cs=CONCEPTS.filter(c=>(c.notions||[]).includes(cur));
+    // Les repères (cat:'Repère') sont exclus : ils vivent dans l'onglet
+    // « Méthodo » de la sidebar, pas dans le glossaire de la notion.
+    const cs=CONCEPTS.filter(c=>(c.notions||[]).includes(cur)&&!isRepere(c));
     // Liens entre concepts : relations dont les DEUX extrémités sont dans
     // la notion (mini-graphe local). Calculé d'abord pour afficher le compte
     // dans le sous-onglet.
@@ -4169,9 +4249,10 @@ const TOUR_STEPS=[
     nextLabel:'Commencer ▶' },
 
   // ── Partie 1 : Les fiches ──
-  { part:'fiches', side:'sidebar', title:'Trois portes d’entrée',
-    text:"Tout en haut de la barre latérale, <b>trois onglets</b> ouvrent le même "
-        +"savoir sous trois angles : <b>Notions</b>, <b>Auteurs</b> et <b>Concepts</b>.",
+  { part:'fiches', side:'sidebar', title:'Quatre portes d’entrée',
+    text:"Tout en haut de la barre latérale, <b>quatre onglets</b> ouvrent le même "
+        +"savoir sous quatre angles : <b>Notions</b>, <b>Auteurs</b>, <b>Concepts</b> "
+        +"et <b>Méthodo</b> (les repères du programme).",
     setup:tourShowNotion, target:()=>document.querySelector('.sb-tabs') },
   { part:'fiches', side:'sidebar', title:'Les Notions',
     text:"Les <b>notions</b> du programme (la conscience, la nature, l’art…). "
@@ -4185,6 +4266,10 @@ const TOUR_STEPS=[
     text:"Le <b>glossaire</b> des termes techniques (le déterminisme, l’aliénation…), avec leur "
         +"définition et leurs liens vers les notions et les autres concepts.",
     setup:tourShowNotion, target:()=>document.querySelector('.sb-tabs .sb-tab:nth-child(3)') },
+  { part:'fiches', side:'sidebar', title:'La Méthodo',
+    text:"Les <b>repères du programme</b> : les distinctions à maîtriser pour analyser un sujet "
+        +"(absolu/relatif, légal/légitime, en fait/en droit…), chacune avec sa définition et un exemple.",
+    setup:tourShowNotion, target:()=>document.querySelector('.sb-tabs .sb-tab:nth-child(4)') },
   // — Au cœur du projet : le DÉTAIL d'une fiche de notion. On montre la
   //   définition, le volet « Approfondir », puis CHAQUE onglet (en basculant
   //   réellement dessus via tourShowTab) avec ce qu'on y trouve. Pensé mobile :
