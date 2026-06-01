@@ -60,13 +60,23 @@ concept ou une dissertation).
 
 Réponds UNIQUEMENT par un objet JSON valide, sans texte autour, de la
 forme exacte :
-{"verdict": "valide|douteux|rejet", "review": "une à trois phrases"}
+{"verdict": "valide|douteux|rejet", "review": "une à trois phrases",
+ "message_contributeur": "une à deux phrases"}
 
-- "valide" : rien de bloquant, intégrable tel quel ou presque.
-- "douteux" : à vérifier de près (erreur possible, doublon probable,
-  formulation floue, hors niveau).
-- "rejet" : manifestement faux, hors-sujet ou spam.
-Le champ "review" explique brièvement le verdict, en français.
+- "verdict" : "valide" (rien de bloquant, intégrable tel quel ou presque),
+  "douteux" (à vérifier de près : erreur possible, doublon probable,
+  formulation floue, hors niveau) ou "rejet" (manifestement faux,
+  hors-sujet ou spam).
+- "review" : explique brièvement le verdict, en français, pour le
+  RELECTEUR du site (langage technique permis : « doublon probable »,
+  « attribution à vérifier »…).
+- "message_contributeur" : la MÊME appréciation, mais rédigée pour la
+  personne qui a fait la proposition — un élève, pas un développeur.
+  Règles : tutoiement, ton bienveillant et encourageant, français simple,
+  AUCUN jargon (ne dis jamais « verdict », « valide/douteux/rejet »,
+  « doublon », « base de données »). Remercie pour la contribution, puis,
+  si besoin, indique avec tact le point à revoir. Reste FACTUEL : ne
+  promets pas que la proposition sera publiée (un humain tranche ensuite).
 """
 
 
@@ -102,13 +112,20 @@ def _configure_model():
 
 def parse_verdict(text):
     """
-    Extrait {verdict, review} de la réponse brute de Gemini.
+    Extrait (verdict, review, message_contributeur) de la réponse brute.
 
     Gemini renvoie normalement du JSON pur (on le lui a demandé), mais il
     arrive qu'il l'entoure de ``` ou de ```json. On retire donc ces
     clôtures de code éventuelles avant de parser. En dernier recours, si
     le parsing échoue, on renvoie un verdict « douteux » avec la réponse
     brute en explication : mieux vaut signaler à l'humain que planter.
+
+    Trois valeurs renvoyées :
+      - verdict : "valide" | "douteux" | "rejet" (pour le tri du relecteur) ;
+      - review  : explication courte pour le RELECTEUR (jargon permis) ;
+      - user_message : la MÊME appréciation rédigée pour le CONTRIBUTEUR
+        (élève, pas développeur). Vide ("") si le modèle ne l'a pas fournie
+        — c'est facultatif côté pipeline, le relecteur tranche de toute façon.
     """
     raw = (text or "").strip()
     # Retirer une clôture Markdown ```...``` si présente.
@@ -123,23 +140,26 @@ def parse_verdict(text):
         obj = json.loads(raw)
         verdict = obj.get("verdict")
         review = obj.get("review") or ""
+        # Message destiné au contributeur ; absent des anciennes réponses
+        # (avant l'ajout du 3e champ) → on tolère l'absence avec "".
+        user_message = obj.get("message_contributeur") or ""
         if verdict not in db.AI_VERDICTS:
             # Verdict inattendu : on le rétrograde en « douteux » plutôt
             # que de lever une erreur (db.set_ai_review refuserait sinon).
             return ("douteux", f"Verdict IA non reconnu ({verdict!r}). "
-                               f"Réponse : {review}")
-        return (verdict, review)
+                               f"Réponse : {review}", user_message)
+        return (verdict, review, user_message)
     except (ValueError, AttributeError):
-        return ("douteux", f"Réponse IA non parsable : {text!r}")
+        return ("douteux", f"Réponse IA non parsable : {text!r}", "")
 
 
 def review_box(model, row):
     """
-    Soumet une boîte à Gemini et renvoie (verdict, review).
+    Soumet une boîte à Gemini et renvoie (verdict, review, user_message).
 
     On enveloppe l'appel réseau dans un try/except large : une panne
     ponctuelle (quota dépassé, coupure) ne doit pas interrompre tout le
-    lot. On renvoie alors (None, message) — None signifie « pas de
+    lot. On renvoie alors (None, message, "") — None signifie « pas de
     verdict », l'appelant n'enregistre rien et la boîte sera retentée
     au prochain `review`.
     """
@@ -152,7 +172,7 @@ def review_box(model, row):
         resp = model.generate_content(prompt)
         return parse_verdict(resp.text)
     except Exception as e:                      # noqa: BLE001 (on veut tout attraper)
-        return (None, f"Appel Gemini échoué : {e}")
+        return (None, f"Appel Gemini échoué : {e}", "")
 
 
 def run(limit=None, redo=False, status="en_attente"):
@@ -195,14 +215,18 @@ def run(limit=None, redo=False, status="en_attente"):
     counts = {"valide": 0, "douteux": 0, "rejet": 0}
     print(f"Relecture IA de {len(rows)} boîte(s)…\n")
     for i, row in enumerate(rows):
-        verdict, review = review_box(model, row)
+        verdict, review, user_message = review_box(model, row)
         if verdict is None:
             # Échec d'appel : on n'enregistre rien, on signale et continue.
             n_skipped += 1
             print(f"  #{row['id']:>3}  ⏭  {review}")
         else:
             with db.connect() as conn:
-                db.set_ai_review(conn, row["id"], verdict, review)
+                # On enregistre l'avis relecteur ET le message contributeur :
+                # ce dernier alimentera le champ « explication » renvoyé à
+                # l'élève (cf. dashboard, pré-rempli mais validé par l'humain).
+                db.set_ai_review(conn, row["id"], verdict, review,
+                                 user_message)
             n_done += 1
             counts[verdict] += 1
             mark = {"valide": "✓", "douteux": "?", "rejet": "✗"}[verdict]

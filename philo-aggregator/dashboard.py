@@ -171,6 +171,10 @@ main { padding:16px 20px 60px; max-width:1000px; margin:0 auto; }
 .preview { margin:6px 0; color:#d6d6d6; font-size:14px; }
 .review { margin:6px 0; padding:6px 10px; border-left:3px solid #555;
           background:#0f1115; font-size:13px; color:#c6c6c6; }
+/* Message IA destiné au contributeur (ton « élève ») : liseré vert pour le
+   distinguer de l'avis relecteur, car c'est lui qui pré-remplit « expl ». */
+.usermsg { margin:6px 0; padding:6px 10px; border-left:3px solid #2ecc71;
+           background:#0f1115; font-size:13px; color:#bfe8cf; }
 .note { margin:6px 0; color:#e0c170; font-size:13px; }
 details { margin:6px 0; }
 details pre { white-space:pre-wrap; background:#0f1115; padding:10px;
@@ -267,9 +271,17 @@ def _card(row, status, verdict_filter):
     if preview:
         parts.append(f'<div class="preview">{esc(preview)}</div>')
 
-    # Avis de l'IA (si relue).
+    # Avis de l'IA (si relue) : ligne « relecteur » (jargon permis).
     if row["ai_review"]:
         parts.append(f'<div class="review">🤖 {esc(row["ai_review"])}</div>')
+
+    # Message rédigé par l'IA POUR le contributeur (élève, pas dev) : ton
+    # bienveillant, sans jargon. Affiché à part pour que le relecteur voie
+    # exactement ce qui sera renvoyé — il sert à pré-remplir le champ
+    # « explication » ci-dessous, qu'on reste libre d'éditer avant l'envoi.
+    if row["ai_user_message"]:
+        parts.append('<div class="usermsg">✉ Pour l\'auteur : '
+                     f'{esc(row["ai_user_message"])}</div>')
 
     # Note humaine éventuelle.
     if row["note"]:
@@ -303,7 +315,11 @@ def _card(row, status, verdict_filter):
     # avec le changement de statut vers Supabase (vu par l'auteur). Pour les
     # boîtes anonymes, ce champ est inutile (rien n'est poussé) : on l'omet.
     if is_cloud:
+        # Pré-rempli avec le message IA destiné au contributeur (s'il existe) :
+        # le relecteur n'a plus qu'à relire/ajuster avant d'envoyer. Reste
+        # éditable — la décision et la formulation finales restent humaines.
         parts.append('<input class="expl" name="expl" '
+                     f'value="{esc(row["ai_user_message"] or "")}" '
                      'placeholder="Explication pour l\'auteur (facultatif)…">')
     parts.append("</form>")
 

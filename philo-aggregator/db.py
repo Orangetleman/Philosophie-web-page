@@ -104,9 +104,16 @@ CREATE TABLE IF NOT EXISTS boxes (
     -- Pré-vérification IA. Ajoutées par migration sur les bases déjà
     -- créées (voir _migrate_boxes) ; NULL tant que la boîte n'a pas été
     -- vérifiée par l'IA.
+    --   ai_verdict      : valide / douteux / rejet (aide au tri, mainteneur).
+    --   ai_review       : explication DESTINÉE AU MAINTENEUR (peut contenir
+    --                     du jargon : « doublon probable », « à vérifier »…).
+    --   ai_user_message : reformulation DESTINÉE AU CONTRIBUTEUR (usager, pas
+    --                     dev) — renvoyée telle quelle dans « Mes propositions »
+    --                     via le champ `explication` (cf. dashboard/pipeline).
     ai_verdict          TEXT,
     ai_review           TEXT,
-    ai_reviewed_at      TEXT
+    ai_reviewed_at      TEXT,
+    ai_user_message     TEXT
 );
 
 CREATE INDEX IF NOT EXISTS idx_boxes_status
@@ -165,6 +172,9 @@ _BOXES_ADDED_COLUMNS = (
     ("ai_verdict", "TEXT"),
     ("ai_review", "TEXT"),
     ("ai_reviewed_at", "TEXT"),
+    # Message reformulé pour le contributeur (usager) — ajouté après les
+    # colonnes IA initiales ; NULL sur les bases déjà relues avant cet ajout.
+    ("ai_user_message", "TEXT"),
 )
 
 
@@ -349,7 +359,7 @@ BOX_SELECT = """
         b.signature, b.status, b.status_changed_at, b.note,
         s.contributor, s.received_at, s.source_file, s.ingested_at,
         s.remote_id,
-        b.ai_verdict, b.ai_review, b.ai_reviewed_at
+        b.ai_verdict, b.ai_review, b.ai_reviewed_at, b.ai_user_message
     FROM boxes b
     JOIN submissions s ON b.submission_id = s.id
 """
@@ -455,6 +465,16 @@ def update_status(conn, box_ids, new_status):
     Passe une ou plusieurs boîtes au nouveau statut. Renvoie le nombre
     de lignes effectivement modifiées.
 
+    Cas particulier — RENVOI EN FILE D'ATTENTE : si `new_status` vaut
+    'en_attente' (bouton « ↺ En attente » du dashboard, ou `mark --as
+    en_attente`), on EFFACE en même temps la pré-vérification IA de la
+    boîte (ai_verdict / ai_review / ai_reviewed_at / ai_user_message →
+    NULL). Pourquoi : la file de relecture (`get_unreviewed_boxes`) ne
+    reprend que les boîtes SANS verdict ; sans cet effacement, une boîte
+    remise en attente gardait son ancien verdict et n'était JAMAIS
+    réanalysée. En lui retirant le marqueur « analysée par IA », le
+    prochain « Relire (IA) » la traite de nouveau (avec le contenu à jour).
+
     `executemany` exécute la même requête N fois avec des paramètres
     différents — c'est plus rapide qu'une boucle Python.
     """
@@ -463,10 +483,14 @@ def update_status(conn, box_ids, new_status):
             f"Statut inconnu : {new_status!r}. Attendu : {STATUSES}."
         )
     ts = now_iso()
-    cur = conn.executemany(
-        "UPDATE boxes SET status = ?, status_changed_at = ? WHERE id = ?",
-        [(new_status, ts, bid) for bid in box_ids],
-    )
+    if new_status == "en_attente":
+        # Remise en file : on réinitialise aussi la pré-vérification IA.
+        sql = ("UPDATE boxes SET status = ?, status_changed_at = ?, "
+               "ai_verdict = NULL, ai_review = NULL, ai_reviewed_at = NULL, "
+               "ai_user_message = NULL WHERE id = ?")
+    else:
+        sql = "UPDATE boxes SET status = ?, status_changed_at = ? WHERE id = ?"
+    cur = conn.executemany(sql, [(new_status, ts, bid) for bid in box_ids])
     return cur.rowcount
 
 
@@ -480,11 +504,13 @@ def update_note(conn, box_id, note):
     return cur.rowcount
 
 
-def set_ai_review(conn, box_id, verdict, review):
+def set_ai_review(conn, box_id, verdict, review, user_message=None):
     """
     Enregistre le résultat de la pré-vérification IA d'une boîte : le
-    `verdict` (valide / douteux / rejet) et le texte d'explication
-    `review`. Met aussi à jour l'horodatage `ai_reviewed_at`.
+    `verdict` (valide / douteux / rejet), le texte d'explication `review`
+    (destiné au MAINTENEUR) et, facultativement, `user_message` — la même
+    appréciation REFORMULÉE pour le CONTRIBUTEUR (usager). Met aussi à jour
+    l'horodatage `ai_reviewed_at`.
 
     `verdict` doit appartenir à AI_VERDICTS (ou None pour effacer la
     vérification). On valide comme dans update_status : mieux vaut lever
@@ -498,10 +524,11 @@ def set_ai_review(conn, box_id, verdict, review):
             f"Attendu : {AI_VERDICTS} (ou None)."
         )
     review = (review or "").strip() or None
+    user_message = (user_message or "").strip() or None
     cur = conn.execute(
-        "UPDATE boxes SET ai_verdict = ?, ai_review = ?, ai_reviewed_at = ? "
-        "WHERE id = ?",
-        (verdict, review, now_iso(), box_id),
+        "UPDATE boxes SET ai_verdict = ?, ai_review = ?, ai_reviewed_at = ?, "
+        "ai_user_message = ? WHERE id = ?",
+        (verdict, review, now_iso(), user_message, box_id),
     )
     return cur.rowcount
 

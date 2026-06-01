@@ -288,7 +288,9 @@ def cmd_export(output_path=None, status="en_attente"):
     Écrit le fichier de synthèse. Renvoie le chemin écrit.
 
     output_path : chemin du fichier de sortie. Par défaut, un fichier
-                  daté `review_YYYYMMDD.txt` dans le dossier du programme.
+                  daté `review_YYYYMMDD.txt` rangé dans le sous-dossier
+                  `reviews/` (créé au besoin) plutôt qu'en vrac à la racine
+                  du programme — les exports s'accumulent, autant les isoler.
     status      : filtre sur le statut (par défaut, 'en_attente').
     """
     with db.connect() as conn:
@@ -342,9 +344,13 @@ def cmd_export(output_path=None, status="en_attente"):
                 out += render_box(r, dup_first_id=dup_id)
                 out += "\n\n"
 
-    # Choix du chemin de sortie.
+    # Choix du chemin de sortie. Par défaut : sous-dossier `reviews/`
+    # (créé s'il n'existe pas) pour ne pas éparpiller les exports datés à
+    # la racine du programme. Un chemin explicite, lui, est respecté tel quel.
     if output_path is None:
-        output_path = (db.SCRIPT_DIR
+        reviews_dir = db.SCRIPT_DIR / "reviews"
+        reviews_dir.mkdir(parents=True, exist_ok=True)
+        output_path = (reviews_dir
                        / f"review_{_date.today().strftime('%Y%m%d')}.txt")
     else:
         output_path = pathlib.Path(output_path)

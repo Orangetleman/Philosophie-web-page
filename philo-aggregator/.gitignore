@@ -9,16 +9,19 @@ proposals.db-journal
 # Environnement virtuel Python local éventuel.
 .venv/
 
-# Exports — artefacts générés par `aggregate.py export`
+# Exports — artefacts générés par `aggregate.py export` (rangés dans
+# reviews/ depuis peu ; le motif sans slash couvre aussi reviews/review_*.txt)
 review_*.txt
 
 # Contenu des dossiers (sauf le placeholder .gitkeep)
 inbox/*
 processed/*
 quarantine/*
+reviews/*
 !inbox/.gitkeep
 !processed/.gitkeep
 !quarantine/.gitkeep
+!reviews/.gitkeep
 
 # Artefacts Python
 __pycache__/
