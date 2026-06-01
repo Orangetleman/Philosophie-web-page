@@ -150,12 +150,16 @@ def derive_local_status(box_statuses):
     return None
 
 
-def push_contribution_status(submission_id, explication=None):
+def push_contribution_status(submission_id, explication=None, avis_ia=None):
     """
     Écrit en retour, vers Supabase, le statut d'une contribution (déduit des
-    statuts de ses boîtes locales) + une explication facultative. C'est ce
-    qui fait avancer la mention vue par le contributeur dans « Mes
-    propositions ».
+    statuts de ses boîtes locales) + deux champs texte facultatifs DISTINCTS :
+      - `explication` : le mot du RELECTEUR (humain) ;
+      - `avis_ia`     : l'appréciation AUTOMATIQUE (Gemini), reformulée pour
+                        l'usager (affichée à part, étiquetée « IA », côté site).
+    C'est ce qui fait avancer la mention vue par le contributeur dans « Mes
+    propositions ». Chaque champ vaut None = « ne pas toucher au champ
+    existant » (on ne réécrit que ce qu'on fournit).
 
     Renvoie un dico :
       {"pushed": True,  "remote_id": …, "statut": "validee_en_cours"}  ou
@@ -180,5 +184,6 @@ def push_contribution_status(submission_id, explication=None):
         return {"pushed": False,
                 "reason": f"statut local non publiable ({local!r})"}
 
-    supabase_client.set_status(remote_id, remote, explication=explication)
+    supabase_client.set_status(remote_id, remote,
+                               explication=explication, avis_ia=avis_ia)
     return {"pushed": True, "remote_id": remote_id, "statut": remote}

@@ -172,7 +172,7 @@ main { padding:16px 20px 60px; max-width:1000px; margin:0 auto; }
 .review { margin:6px 0; padding:6px 10px; border-left:3px solid #555;
           background:#0f1115; font-size:13px; color:#c6c6c6; }
 /* Message IA destiné au contributeur (ton « élève ») : liseré vert pour le
-   distinguer de l'avis relecteur, car c'est lui qui pré-remplit « expl ». */
+   distinguer de l'avis relecteur ; c'est lui qui part dans le canal avis_ia. */
 .usermsg { margin:6px 0; padding:6px 10px; border-left:3px solid #2ecc71;
            background:#0f1115; font-size:13px; color:#bfe8cf; }
 .note { margin:6px 0; color:#e0c170; font-size:13px; }
@@ -276,11 +276,11 @@ def _card(row, status, verdict_filter):
         parts.append(f'<div class="review">🤖 {esc(row["ai_review"])}</div>')
 
     # Message rédigé par l'IA POUR le contributeur (élève, pas dev) : ton
-    # bienveillant, sans jargon. Affiché à part pour que le relecteur voie
-    # exactement ce qui sera renvoyé — il sert à pré-remplir le champ
-    # « explication » ci-dessous, qu'on reste libre d'éditer avant l'envoi.
+    # bienveillant, sans jargon. Il part dans SON PROPRE canal « avis_ia »
+    # (distinct de l'explication du relecteur) lors d'un changement de statut
+    # poussable. Affiché ici pour que le relecteur voie ce qui sera renvoyé.
     if row["ai_user_message"]:
-        parts.append('<div class="usermsg">✉ Pour l\'auteur : '
+        parts.append('<div class="usermsg">🤖 Avis IA envoyé à l\'auteur : '
                      f'{esc(row["ai_user_message"])}</div>')
 
     # Note humaine éventuelle.
@@ -315,12 +315,11 @@ def _card(row, status, verdict_filter):
     # avec le changement de statut vers Supabase (vu par l'auteur). Pour les
     # boîtes anonymes, ce champ est inutile (rien n'est poussé) : on l'omet.
     if is_cloud:
-        # Pré-rempli avec le message IA destiné au contributeur (s'il existe) :
-        # le relecteur n'a plus qu'à relire/ajuster avant d'envoyer. Reste
-        # éditable — la décision et la formulation finales restent humaines.
+        # Ce champ = TON mot de relecteur (humain), distinct de l'avis IA qui
+        # part dans son propre canal « avis_ia ». Laissé vide par défaut : à
+        # remplir seulement si tu veux ajouter un mot personnel au contributeur.
         parts.append('<input class="expl" name="expl" '
-                     f'value="{esc(row["ai_user_message"] or "")}" '
-                     'placeholder="Explication pour l\'auteur (facultatif)…">')
+                     'placeholder="Mot du relecteur pour l\'auteur (facultatif)…">')
     parts.append("</form>")
 
     # Formulaire de note (pose / remplace la note libre).
@@ -485,10 +484,15 @@ def action():
     with db.connect() as conn:
         n = db.update_status(conn, [box_id], to)
         # Boîte issue d'un compte ? On résout sa soumission pour l'écriture-
-        # retour (push raisonne par soumission, pas par boîte).
+        # retour (push raisonne par soumission, pas par boîte). On lit aussi
+        # l'avis IA destiné au contributeur (ai_user_message) APRÈS le
+        # changement de statut : ainsi, pour un retour « en_attente » (qui
+        # efface l'avis local), on récupère bien NULL → on ne renvoie pas
+        # d'avis périmé.
         remote_id = db.get_remote_id_for_box(conn, box_id)
         sub_row = conn.execute(
-            "SELECT submission_id FROM boxes WHERE id = ?", (box_id,)
+            "SELECT submission_id, ai_user_message FROM boxes WHERE id = ?",
+            (box_id,)
         ).fetchone()
     if not n:
         return _redirect_back(status, verdict_filter, f"Boîte #{box_id} introuvable.")
@@ -497,13 +501,17 @@ def action():
 
     # 2. Écriture-retour vers Supabase (uniquement boîtes de compte + statut
     #    publiable). On n'interrompt pas l'action locale si le push échoue :
-    #    on l'indique simplement dans le message.
+    #    on l'indique simplement dans le message. On renvoie DEUX champs
+    #    distincts : l'explication (mot du relecteur, humain) et l'avis IA
+    #    (automatique, reformulé pour l'usager, affiché à part côté site).
     if remote_id and to in PUSHABLE_STATUSES and sub_row:
         import pipeline
         explication = expl or DEFAULT_EXPL.get(to)
+        avis_ia = sub_row["ai_user_message"] or None
         try:
             res = pipeline.push_contribution_status(
-                sub_row["submission_id"], explication=explication)
+                sub_row["submission_id"], explication=explication,
+                avis_ia=avis_ia)
             if res.get("pushed"):
                 msg += f" ☁ Auteur prévenu (« {res['statut']} »)."
             else:

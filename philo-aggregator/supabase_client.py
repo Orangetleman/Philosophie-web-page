@@ -162,14 +162,25 @@ def pull_pending(limit=200):
     return json.loads(body)
 
 
-def set_status(contrib_id, statut, explication=None):
+def set_status(contrib_id, statut, explication=None, avis_ia=None):
     """
-    Écrit en retour le statut (et une explication facultative) d'UNE
-    contribution identifiée par son UUID Supabase.
+    Écrit en retour le statut (et, facultativement, une explication et/ou
+    l'avis IA) d'UNE contribution identifiée par son UUID Supabase.
 
     `statut` doit être l'une des valeurs du vocabulaire « contributeur »
     (cf. LOCAL_TO_REMOTE / l'enum côté Supabase). On met aussi à jour
     `updated_at` pour que le tri « plus récent » côté site reflète l'action.
+
+    Deux champs texte DISTINCTS sont renvoyés au contributeur :
+      - `explication` : le mot du RELECTEUR (humain) ;
+      - `avis_ia`     : l'appréciation AUTOMATIQUE (Gemini), reformulée pour
+                        l'usager, affichée à part côté site (étiquetée « IA »).
+    Chacun n'est écrit que si on le fournit (None = ne pas toucher au champ
+    existant), pour ne pas écraser par mégarde une valeur déjà en place.
+
+    ⚠ La colonne `avis_ia` doit exister côté Supabase. Si elle manque, ajoute-la
+    une fois pour toutes dans l'éditeur SQL Supabase :
+        ALTER TABLE contributions ADD COLUMN avis_ia text;
 
     PATCH = mise à jour partielle (on n'envoie que les champs à changer).
     Le filtre `?id=eq.<uuid>` cible la seule ligne concernée. L'en-tête
@@ -180,10 +191,12 @@ def set_status(contrib_id, statut, explication=None):
     """
     now = datetime.now(timezone.utc).isoformat(timespec="seconds")
     payload = {"statut": statut, "updated_at": now}
-    # On n'écrase l'explication que si on en fournit une (None = ne pas
-    # toucher au champ existant).
+    # On n'écrase un champ texte que si on en fournit une valeur (None = ne
+    # pas toucher au champ existant côté Supabase).
     if explication is not None:
         payload["explication"] = explication
+    if avis_ia is not None:
+        payload["avis_ia"] = avis_ia
 
     params = urllib.parse.urlencode({"id": f"eq.{contrib_id}"})
     req = urllib.request.Request(

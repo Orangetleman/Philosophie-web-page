@@ -1127,6 +1127,14 @@ body.sb-open .sb-backdrop{display:block;opacity:1}
 .pmine-date{font-size:10.5px;color:var(--color-text-tertiary);margin-top:3px}
 .pmine-expl{font-size:11.5px;color:var(--color-text-secondary);line-height:1.5;margin-top:7px;
   padding-top:7px;border-top:0.5px solid var(--color-border-tertiary);white-space:pre-wrap}
+/* new : avis AUTOMATIQUE (IA) renvoyé au contributeur — distinct du mot du
+   relecteur (.pmine-expl). Liseré bleu + en-tête « 🤖 » pour signaler que
+   c'est indicatif et généré automatiquement, pas la parole d'un humain. */
+.pmine-avia{font-size:11.5px;color:var(--color-text-secondary);line-height:1.5;margin-top:7px;
+  padding:7px 9px;border-left:3px solid var(--color-accent-quiz);
+  background:var(--color-background-primary);border-radius:var(--border-radius-md);white-space:pre-wrap}
+.pmine-avia-h{display:block;font-size:10px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.03em;color:var(--color-text-tertiary);margin-bottom:3px}
 /* Détail repliable du contenu proposé (« Mes propositions »). */
 .pmine-det{margin-top:7px;font-size:11.5px}
 .pmine-det>summary{cursor:pointer;color:var(--color-text-tertiary);font-weight:600;list-style:none}
@@ -3769,7 +3777,7 @@ async function renderMyContributions(){
   if(!SB || !authUser){ wrap.innerHTML='<div class="phint">Connecte-toi pour retrouver tes propositions ici.</div>'; return; }
   try{
     const {data,error}=await SB.from('contributions')
-      .select('payload,statut,explication,created_at')
+      .select('payload,statut,explication,avis_ia,created_at')
       .eq('user_id',authUser.id)
       .order('created_at',{ascending:false});
     if(error) throw error;
@@ -3777,10 +3785,14 @@ async function renderMyContributions(){
     wrap.innerHTML=data.map(c=>{
       const st=contribStatusLabel(c.statut);
       const d=c.created_at?new Date(c.created_at).toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'}):'';
-      // Explication = justification de l'état (écrite par le mainteneur lors
-      // du changement de statut, renvoyée via Supabase). Présente seulement
-      // une fois la proposition triée.
+      // Explication = mot du RELECTEUR (humain), écrit lors du changement de
+      // statut et renvoyé via Supabase. Présent seulement une fois trié.
       const expl=c.explication ? '<div class="pmine-expl">'+pEsc(c.explication)+'</div>' : '';
+      // new : avis AUTOMATIQUE (IA) reformulé pour l'usager, renvoyé par
+      // l'agrégateur dans la colonne avis_ia — DISTINCT de l'explication
+      // ci-dessus. Affiché à part et étiqueté « indicatif » : c'est une aide,
+      // un humain tranche ensuite.
+      const avia=c.avis_ia ? '<div class="pmine-avia"><span class="pmine-avia-h">🤖 Avis automatique (indicatif)</span>'+pEsc(c.avis_ia)+'</div>' : '';
       // new : détail repliable du contenu proposé (toutes les boîtes).
       const detail=contribDetailHTML(c.payload);
       return '<div class="pmine-item">'
@@ -3788,6 +3800,7 @@ async function renderMyContributions(){
         +'<span class="pst '+st.cls+'">'+pEsc(st.txt)+'</span></div>'
         +(d?'<div class="pmine-date">Envoyée le '+pEsc(d)+'</div>':'')
         +detail
+        +avia
         +expl
         +'</div>';
     }).join('');
