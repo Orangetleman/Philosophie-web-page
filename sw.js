@@ -5,7 +5,7 @@
 // et stockée pour la prochaine fois. Permet l'usage 100 % hors-ligne.
 // Pour invalider le cache après une mise à jour, incrémenter la version.
 
-const CACHE = 'philo-v27';
+const CACHE = 'philo-v28';
 const PRECACHE = ['./', './index.html', './data.js', './manifest.json', './icon.svg'];
 
 // Installation : on précache les ressources critiques.

@@ -481,6 +481,20 @@ body{font-family:'Inter',system-ui,sans-serif;background:#121212;height:100vh;pa
 .nterm{cursor:pointer;border-bottom:1.5px solid;font-weight:500;transition:opacity .15s}
 .nterm:hover{opacity:.65}
 
+/* Surbrillance d'ARRIVÉE d'un lien dynamique (retour contributeur) : quand on
+   clique un terme lié, on fait briller brièvement l'endroit où l'on atterrit
+   (titre de la fiche, ou 1re mention du terme dans la notion). Couleur ambre
+   indépendante du thème pour bien « briller ». */
+@keyframes flashTarget{
+  0%  {box-shadow:0 0 0 2px rgba(255,209,102,0),   0 0 14px 2px rgba(255,209,102,0);   background-color:rgba(255,209,102,0)}
+  20% {box-shadow:0 0 0 2px rgba(255,209,102,.75), 0 0 18px 5px rgba(255,209,102,.55); background-color:rgba(255,209,102,.18)}
+  100%{box-shadow:0 0 0 2px rgba(255,209,102,0),   0 0 14px 2px rgba(255,209,102,0);   background-color:rgba(255,209,102,0)}
+}
+.flash-target{animation:flashTarget 1.6s ease-out 1;border-radius:6px}
+@media (prefers-reduced-motion:reduce){
+  .flash-target{animation:none;outline:2px solid #ffd166;outline-offset:2px}
+}
+
 .an-link{cursor:pointer;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:2px}
 .an-link:hover{opacity:.75}
 
@@ -1072,12 +1086,11 @@ body.sb-open .sb-backdrop{display:block;opacity:1}
   .main-content{padding:12px 14px 28px}
   /* Burger inline dans .topbar : plus besoin de padding-left pour le contourner. */
   .crumbs{padding:9px 14px 0 4px;flex-wrap:wrap}
-  /* Onglets : SCROLL HORIZONTAL au lieu de wrap (sinon certains débordent
-     ou se coupent — accès à tous garanti par le scroll latéral). */
-  .tabs{padding:6px 14px 0;overflow-x:auto;overflow-y:hidden;
-    flex-wrap:nowrap;scrollbar-width:none;-ms-overflow-style:none}
-  .tabs::-webkit-scrollbar{display:none}
-  .tab{padding:8px 11px;font-size:12px;white-space:nowrap;flex-shrink:0}
+  /* Onglets : on les AFFICHE TOUS en passant à la ligne (wrap) plutôt qu'avec
+     un scroll horizontal — retour contributeur : le scroll latéral cachait des
+     onglets. Tout reste visible d'un coup d'œil, y compris sur téléphone. */
+  .tabs{padding:6px 14px 0;flex-wrap:wrap;row-gap:2px}
+  .tab{padding:7px 10px;font-size:12px;white-space:nowrap}
   .sb-burger{display:flex}
   /* Cibles tactiles élargies : tap targets ≥40 px */
   .pplus{width:28px;height:28px;font-size:15px}
@@ -1146,6 +1159,17 @@ body.sb-open .sb-backdrop{display:block;opacity:1}
 .pmine-box-h{font-size:10.5px;font-weight:700;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.03em;margin-bottom:4px}
 .pmine-f{margin:3px 0;color:var(--color-text-secondary);line-height:1.5}
 .pmine-f b{color:var(--color-text-primary);font-weight:600}
+/* new : actions sous une proposition (bouton « Modifier » d'un envoi « en attente »). */
+.pmine-actions{margin-top:8px;display:flex;gap:6px;flex-wrap:wrap}
+.pbtn-sm{padding:4px 10px;font-size:11.5px}
+/* new : bannière en tête de la vue d'édition quand on CORRIGE un envoi. Ton
+   ambré discret pour signaler « tu modifies quelque chose de déjà transmis ». */
+.pedit-banner{font-size:12px;line-height:1.55;color:var(--color-text-secondary);
+  background:rgba(224,164,88,.12);border:0.5px solid rgba(224,164,88,.45);
+  border-radius:var(--border-radius-md);padding:9px 11px;margin-bottom:12px;
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.pedit-banner b{color:var(--color-text-primary)}
+.pedit-banner .pbtn-sm{margin-left:auto}
 /* Pastille de statut (couleur = état). */
 .pst{font-size:10.5px;font-weight:600;padding:2px 8px;border-radius:999px;white-space:nowrap}
 .pst-wait{background:rgba(255,193,7,.14);color:#e0a800}
@@ -1906,6 +1930,7 @@ function openConcept(id){
     pushHistory();
     cur=notionKey; curTab='auteurs'; sbMode='notions';
     renderSB(); renderContent();
+    focusAfterRender();   // surbrillance d'arrivée (retour contributeur)
     return;
   }
   pushHistory();
@@ -1915,6 +1940,7 @@ function openConcept(id){
   const c=CONCEPTS.find(x=>x&&x.id===id);
   sbMode=isRepere(c)?'methodo':'concepts'; curConcept=id;
   renderSB(); renderConceptContent();
+  focusAfterRender();   // surbrillance d'arrivée (retour contributeur)
 }
 
 /* openNotion(key) — ouvre une notion du programme (clé de D).
@@ -1924,6 +1950,62 @@ function openNotion(key){
   pushHistory();
   cur=key; curTab='auteurs'; sbMode='notions';
   renderSB(); renderContent();
+  focusAfterRender();   // surbrillance d'arrivée (retour contributeur)
+}
+
+/* ── Surbrillance d'arrivée des liens dynamiques (retour contributeur) ──────
+   Quand on suit un lien dynamique, on signale où l'on atterrit :
+     · en règle générale, on fait briller l'en-tête (.notion-head) de la fiche
+       ouverte — c'est le repère « tu es ici » ;
+     · cas spécial : une notion ouverte DEPUIS une fiche concept fait briller la
+       1re mention de ce concept dans le contenu de la notion (et défile dessus).
+   Mécanique : pendingConceptMention porte l'id du concept source (consommé une
+   seule fois) ; focusAfterRender() l'applique après le rendu. */
+let pendingConceptMention=null;   // id de concept à repérer dans la notion, ou null
+
+/* scrollAndFlash(el) — amène el dans la vue puis le fait briller ~1,6 s.
+   On retire/rajoute la classe (avec reflow) pour pouvoir relancer l'animation
+   même si l'élément la portait déjà. */
+function scrollAndFlash(el){
+  if(!el) return false;
+  try{ el.scrollIntoView({behavior:'smooth',block:'center'}); }catch(e){}
+  el.classList.remove('flash-target');
+  void el.offsetWidth;               // force un reflow → l'animation repart de zéro
+  el.classList.add('flash-target');
+  setTimeout(()=>{ if(el) el.classList.remove('flash-target'); },1700);
+  return true;
+}
+
+/* focusAfterRender() — après le rendu d'une fiche (notion / concept / auteur),
+   applique la surbrillance d'arrivée. requestAnimationFrame garantit que le DOM
+   est peint et que l'overlay/scroll est prêt avant de défiler. */
+function focusAfterRender(){
+  requestAnimationFrame(()=>{
+    const mainEl=document.getElementById('main');
+    if(!mainEl) return;
+    // 1) Notion ouverte depuis une fiche concept → 1re mention du concept.
+    if(pendingConceptMention){
+      const id=pendingConceptMention; pendingConceptMention=null;   // consommé
+      // Les mentions sont des .cterm dont l'onclick référence openConcept('id').
+      const m=mainEl.querySelector('.cterm[onclick*="openConcept(\''+id+'\')"]');
+      if(m){ scrollAndFlash(m); return; }
+    }
+    // 2) Sinon : on fait briller l'en-tête de la fiche (repère d'arrivée).
+    const head=mainEl.querySelector('.notion-head');
+    if(head) scrollAndFlash(head);
+  });
+}
+
+/* openNotionFromConcept(key, conceptId) — ouvre la notion `key` et programme la
+   surbrillance de la 1re mention du concept `conceptId` dans son contenu.
+   Utilisé par les pastilles « Notions concernées » de la fiche concept. */
+function openNotionFromConcept(key, conceptId){
+  if(!D[key]) return;
+  pushHistory();
+  pendingConceptMention=conceptId;
+  cur=key; curTab='auteurs'; sbMode='notions';
+  renderSB(); renderContent();
+  focusAfterRender();
 }
 
 /* relTypeLabel(t) — libellé lisible d'un type de relation entre concepts.
@@ -2014,11 +2096,13 @@ function renderConceptContent(){
   const c=CONCEPTS.find(x=>x.id===curConcept);
   if(!c){mc.innerHTML='';return;}
 
-  // Notion pills
+  // Notion pills. Au clic, on ouvre la notion ET on fait briller la 1re mention
+  // de CE concept dans son contenu (openNotionFromConcept — retour contributeur).
+  const safeCid=c.id.replace(/'/g,"\\'");
   const notionPills=c.notions.map(k=>{
     const nd=D[k]; if(!nd) return '';
     return `<span class="notion-pill" style="color:${nd.c};border-color:${nd.c}40;background:${nd.c}12"
-      onclick="pushHistory();cur='${k}';curTab='auteurs';sbMode='notions';renderSB();renderContent()">${nd.l} →</span>`;
+      onclick="openNotionFromConcept('${k}','${safeCid}')">${nd.l} →</span>`;
   }).join('');
 
   // Auteur link
@@ -2181,6 +2265,7 @@ function openAuthor(name){
   pushHistory();
   sbMode='auteurs'; curAuthor=name; curAuthorTab='idees';
   renderSB(); renderAuthorContent();
+  focusAfterRender();   // surbrillance d'arrivée (retour contributeur)
 }
 
 /* renderAuthorContent() — affiche la fiche d'un auteur (curAuthor).
@@ -2844,6 +2929,15 @@ let proposalSeq=0;           // compteur d'id uniques
 let proposalContributor='';  // nom/pseudo du contributeur (facultatif)
 let proposalView='edit';     // vue de la modale : 'edit' | 'preview' | 'mine'
 
+// new : ÉDITION d'une proposition DÉJÀ ENVOYÉE (statut « en attente »). Quand on
+// rouvre une proposition depuis « Mes propositions » pour la corriger, on retient
+// ici l'id de la ligne Supabase (null = nouvelle proposition → insert classique).
+// Pendant l'édition, le BROUILLON local en cours est mis de côté dans
+// editDraftBackup et restauré en sortie (on n'écrase jamais une saisie non envoyée).
+let editingContribId=null;   // id de la ligne en cours d'édition, ou null
+let editDraftBackup=null;    // brouillon local sauvegardé le temps de l'édition
+let myContribCache=[];       // dernières propositions chargées (retrouver un payload par id)
+
 /* new (Phase 3) : BROUILLON de proposition — persistant + synchronisé.
    Les boîtes en cours de saisie n'étaient qu'en mémoire : perdues au
    rechargement et jamais reportées sur le compte. On les sauvegarde en
@@ -2860,8 +2954,15 @@ function saveDrafts(){
   try{ localStorage.setItem('philo-drafts', JSON.stringify(draftsBlobForSync())); }catch(e){}
 }
 /* draftChanged — à appeler après CHAQUE modification du brouillon : on
-   persiste localement, puis on programme un envoi (différé) vers le compte. */
-function draftChanged(){ saveDrafts(); if(typeof syncOnPrefsChange==='function') syncOnPrefsChange(); }
+   persiste localement, puis on programme un envoi (différé) vers le compte.
+   Exception : pendant l'ÉDITION d'une proposition déjà envoyée (editingContribId),
+   on ne touche PAS au brouillon (ni disque, ni sync) — il est mis de côté et
+   sera restauré en sortie, donc les modifications en cours ne doivent pas
+   l'écraser. */
+function draftChanged(){
+  if(editingContribId) return;   // édition d'un envoi : brouillon local préservé
+  saveDrafts(); if(typeof syncOnPrefsChange==='function') syncOnPrefsChange();
+}
 /* applyDraftsBlob — recharge un brouillon (depuis le stockage ou le compte)
    dans l'état d'exécution. Par défaut on NE touche à rien si la modale est
    ouverte, pour ne pas effacer une saisie en cours sous les doigts du
@@ -2904,6 +3005,13 @@ function clearDrafts(){
 }
 /* setProposalContributor — écrit le nom du contributeur + persiste le brouillon. */
 function setProposalContributor(v){ proposalContributor=v; draftChanged(); }
+
+/* prefillContributorFromAccount — préremplit le nom avec le pseudo du compte
+   connecté SI le champ est encore vide (retour contributeur : une proposition
+   envoyée connecté s'affichait « anonyme »). Ne touche pas à un nom déjà saisi. */
+function prefillContributorFromAccount(){
+  if(authUser && !(proposalContributor||'').trim()) proposalContributor=authLabel();
+}
 
 /* ensureIdeas — garantit que box.f.ideas existe (au moins une idée vide).
    Une boîte cible 'auteur' utilise box.f.ideas[] pour permettre N idées
@@ -3643,6 +3751,10 @@ function generateProposalText(){
 /* Bascule édition / aperçu. */
 function showProposalPreview(){ proposalView='preview'; renderProposal(); }
 function showProposalEdit(){ proposalView='edit'; renderProposal(); }
+/* new : depuis « Mes propositions », « ← Nouvelle proposition » revient à
+   l'édition d'une NOUVELLE proposition. Si on corrigeait un envoi, on en sort
+   proprement (editingContribId effacé, brouillon local restauré). */
+function startNewProposal(){ if(editingContribId) exitEditContrib(); proposalView='edit'; renderProposal(); }
 /* Copie le texte généré dans le presse-papier. */
 function copyProposal(){
   const txt=generateProposalText();
@@ -3758,15 +3870,110 @@ function sendProposalToSupabase(){
 }
 
 /* new (Phase 3) : aiguillage du bouton « Envoyer en ligne ».
-   - Connecté → Supabase (suivi du statut possible).
+   - Édition d'un envoi « en attente » (connecté) → UPDATE de la ligne Supabase.
+   - Connecté (nouvelle proposition) → Supabase (suivi du statut possible).
    - Non connecté → ancienne boîte PythonAnywhere (envoi anonyme, sans suivi). */
 function submitProposalOnline(){
-  if(SB && authUser) sendProposalToSupabase();
+  if(SB && authUser && editingContribId) updateProposalInSupabase();
+  else if(SB && authUser) sendProposalToSupabase();
   else sendProposalOnline();
+}
+
+/* new : UPDATE d'une proposition « en attente » (édition, pas un nouvel insert).
+   La règle RLS d'update n'autorise QUE ses propres lignes ENCORE « en_attente »
+   (cf. SQL fourni au déploiement). On chaîne .select('id') pour SAVOIR si une
+   ligne a vraiment été modifiée : si RLS bloque (statut changé entre-temps),
+   l'update touche 0 ligne SANS erreur → data vide, qu'on traite comme un refus.
+   Succès → on quitte l'édition (brouillon local restauré) et on revient à
+   « Mes propositions ». Échec → message clair, PAS de repli mailto (un email
+   ne mettrait rien à jour). */
+function updateProposalInSupabase(){
+  const btn=document.getElementById('psend-btn');
+  const status=document.getElementById('psend-status');
+  const setStatus=function(msg,color){ if(status){ status.textContent=msg; status.style.color=color||''; } };
+  if(btn){ btn.disabled=true; btn.textContent='Enregistrement…'; }
+  setStatus('Enregistrement en cours…','');
+  SB.from('contributions')
+    .update({ payload: generateProposalJSON() })   // remplace le contenu par la version corrigée
+    .eq('id', editingContribId)
+    .eq('user_id', authUser.id)                    // ceinture+bretelles avec la RLS
+    .select('id')
+    .then(function(res){
+      if(res.error) throw res.error;
+      if(!res.data || !res.data.length)
+        throw new Error('Modification refusée — la proposition n\'est peut-être plus « en attente ».');
+      exitEditContrib();        // restaure le brouillon local mis de côté
+      proposalView='mine';
+      renderProposal();         // recharge « Mes propositions » (version à jour)
+    })
+    .catch(function(err){
+      if(btn){ btn.disabled=false; btn.textContent='Enregistrer les modifications'; }
+      setStatus('Échec de l\'enregistrement : '+((err&&err.message)||err),'#e74c3c');
+    });
 }
 
 /* new (Phase 3) : bascule vers la vue « Mes propositions ». */
 function showProposalMine(){ proposalView='mine'; renderProposal(); }
+
+/* new : reconstruit les boîtes RUNTIME (proposalBoxes) depuis un payload stocké
+   (v1/v2/v3), afin de RÉ-ÉDITER une proposition envoyée. Chaque boîte stockée
+   {categorie,cible,type,fields} redevient {id,categorie,cible,type,f}. La
+   catégorie est déduite si absente (anciens payloads), f est une COPIE PROFONDE
+   (jamais le payload d'origine) et f.ideas est garanti pour la cible 'auteur'. */
+function boxesFromPayload(payload){
+  const src=(payload&&payload.boxes)||[];
+  return src.map(function(b){
+    const cible=b.cible||'notion';
+    const box={ id:++proposalSeq,
+      categorie:b.categorie||cibleCat(cible),
+      cible:cible,
+      type:b.type||(cibleCat(cible)==='site'?'remarque':'ajout'),
+      f:JSON.parse(JSON.stringify(b.fields||{})) };   // copie profonde
+    if(cible==='auteur') ensureIdeas(box);
+    return box;
+  });
+}
+
+/* new : rouvre une proposition « en attente » pour la corriger. On met le
+   brouillon local de côté (editDraftBackup) afin de ne JAMAIS l'écraser, on
+   reconstruit les boîtes depuis le payload stocké, puis on passe en vue édition
+   (une bannière y rappelle qu'on modifie un envoi). L'envoi fera un UPDATE. */
+function editMyContribution(id){
+  const row=myContribCache.find(function(c){ return String(c.id)===String(id); });
+  if(!row) return;
+  // Sauvegarde du brouillon en cours (copie profonde) pour le restaurer ensuite.
+  // Garde : si on édite DÉJÀ un envoi (on passe de la correction d'une proposition
+  // à une autre), proposalBoxes contient l'autre envoi — surtout ne pas l'adopter
+  // comme « brouillon » ; on conserve le backup d'origine (le vrai brouillon).
+  if(!editingContribId)
+    editDraftBackup={ boxes:JSON.parse(JSON.stringify(proposalBoxes)),
+      contributor:proposalContributor, seq:proposalSeq };
+  editingContribId=row.id;        // valeur d'origine (uuid ou bigint) → eq() correct
+  proposalBoxes=boxesFromPayload(row.payload);
+  if(!proposalBoxes.length)
+    proposalBoxes=[{id:++proposalSeq,categorie:'auteur',type:'ajout',cible:'auteur',f:{ideas:[{}]}}];
+  // Nom : on reprend celui du payload s'il était nommé, sinon le pseudo du compte.
+  const who=(row.payload&&row.payload.contributor)||'';
+  proposalContributor=(who&&who!=='anonyme')?who:(authUser?authLabel():'');
+  proposalView='edit';
+  renderProposal();
+}
+
+/* new : quitte le mode « édition d'un envoi » et RESTAURE le brouillon local
+   mis de côté. Appelé après un enregistrement réussi ET sur annulation. */
+function exitEditContrib(){
+  editingContribId=null;
+  if(editDraftBackup){
+    proposalBoxes=Array.isArray(editDraftBackup.boxes)?editDraftBackup.boxes:[];
+    proposalContributor=editDraftBackup.contributor||'';
+    proposalSeq=Math.max(proposalSeq, editDraftBackup.seq||0);
+    editDraftBackup=null;
+  }
+}
+
+/* new : annule l'édition d'un envoi (sans rien enregistrer) et revient à la
+   liste « Mes propositions ». Le brouillon local est restauré. */
+function cancelEditContrib(){ exitEditContrib(); proposalView='mine'; renderProposal(); }
 
 /* Étiquette + classe CSS de pastille pour un statut de contribution.
    Les quatre valeurs viennent de l'enum SQL contrib_status. */
@@ -3857,14 +4064,21 @@ async function renderMyContributions(){
   if(!SB || !authUser){ wrap.innerHTML='<div class="phint">Connecte-toi pour retrouver tes propositions ici.</div>'; return; }
   try{
     const {data,error}=await SB.from('contributions')
-      .select('payload,statut,explication,avis_ia,created_at')
+      .select('id,payload,statut,explication,avis_ia,created_at')   // id : requis pour l'édition
       .eq('user_id',authUser.id)
       .order('created_at',{ascending:false});
     if(error) throw error;
     if(!data || !data.length){ wrap.innerHTML='<div class="phint">Tu n\'as pas encore envoyé de proposition en ligne depuis ce compte.</div>'; return; }
+    myContribCache=data;   // new : on retient les lignes pour retrouver un payload par id (édition)
     wrap.innerHTML=data.map(c=>{
       const st=contribStatusLabel(c.statut);
       const d=c.created_at?new Date(c.created_at).toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'}):'';
+      // new : une proposition ENCORE « en attente » peut être corrigée par son
+      // auteur (bouton ✎) — l'envoi fera un UPDATE de la ligne (cf. RLS).
+      const canEdit=(c.statut||'en_attente')==='en_attente';
+      const editBtn=canEdit
+        ? '<div class="pmine-actions"><button class="pbtn pbtn-sm" onclick="editMyContribution(\''+pEsc(String(c.id))+'\')">✎ Modifier</button></div>'
+        : '';
       // Explication = mot du RELECTEUR (humain), écrit lors du changement de
       // statut et renvoyé via Supabase. Présent seulement une fois trié.
       const expl=c.explication ? '<div class="pmine-expl">'+pEsc(c.explication)+'</div>' : '';
@@ -3882,6 +4096,7 @@ async function renderMyContributions(){
         +detail
         +avia
         +expl
+        +editBtn
         +'</div>';
     }).join('');
   }catch(e){
@@ -3900,39 +4115,57 @@ function renderProposal(){
   if(proposalView==='mine'){
     body.innerHTML='<div class="ppreview-head">Mes propositions envoyées — leur statut et l\'explication.</div>'
       +'<div id="pmine-list" class="pmine-list">Chargement…</div>'
-      +'<div class="pactions"><button class="pbtn" onclick="showProposalEdit()">← Nouvelle proposition</button></div>';
+      +'<div class="pactions"><button class="pbtn" onclick="startNewProposal()">← Nouvelle proposition</button></div>';
     renderMyContributions();   // remplit #pmine-list de façon asynchrone
     return;
   }
   // ── Vue APERÇU ──
   if(proposalView==='preview'){
-    // Le message d'aide dépend de l'état de connexion : connecté → suivi du
-    // statut sur le compte ; sinon → envoi anonyme (repli PythonAnywhere).
-    const onlineHint = logged
-      ? 'Connecté : « Envoyer en ligne » enregistre ta proposition sur ton compte — tu pourras suivre son statut dans « Mes propositions ».'
-      : 'Astuce : connecte-toi avant d\'envoyer pour suivre le statut de ta proposition. Sinon, « Envoyer en ligne » la transmet de façon anonyme.';
-    // Bouton « Mes propositions » réservé aux comptes connectés.
-    const mineBtn = logged ? '<button class="pbtn" onclick="showProposalMine()">Mes propositions</button>' : '';
+    // new : en mode ÉDITION d'un envoi (editingContribId), l'aperçu enregistre
+    // une CORRECTION (UPDATE) au lieu d'un nouvel envoi → libellés et boutons
+    // adaptés (pas d'email/copie : ces voies créeraient une nouvelle proposition).
+    const editing=!!editingContribId;
+    // Le message d'aide dépend du contexte : édition / connecté / anonyme.
+    const onlineHint = editing
+      ? 'Tu corriges une proposition déjà envoyée : « Enregistrer les modifications » remplace son contenu (elle reste « en attente »).'
+      : (logged
+        ? 'Connecté : « Envoyer en ligne » enregistre ta proposition sur ton compte — tu pourras suivre son statut dans « Mes propositions ».'
+        : 'Astuce : connecte-toi avant d\'envoyer pour suivre le statut de ta proposition. Sinon, « Envoyer en ligne » la transmet de façon anonyme.');
+    // Bouton « Mes propositions » réservé aux comptes connectés (masqué en édition).
+    const mineBtn = (logged && !editing) ? '<button class="pbtn" onclick="showProposalMine()">Mes propositions</button>' : '';
+    // En édition : pas de repli mailto/copie (un email n'updaterait pas la ligne).
+    const fallbackBtns = editing ? ''
+      : '<button class="pbtn" id="pcopy-btn" onclick="copyProposal()">Copier le texte</button>'
+        // new (Phase 5) : « Envoyer par email » est un repli discret (pbtn-ghost).
+        +'<button class="pbtn pbtn-ghost" onclick="sendProposal()">Envoyer par email</button>';
+    // Note de repli mailto : sans objet en édition.
+    const fallbackNote = editing ? '' : ' En cas de problème (hors-ligne, service indisponible), l\'envoi bascule automatiquement sur ton application mail.';
+    const sendLabel = editing ? 'Enregistrer les modifications' : 'Envoyer en ligne';
     body.innerHTML='<div class="ppreview-head">Aperçu — ce texte sera transmis tel quel :</div>'
       +'<textarea class="ppreview" readonly>'+pEsc(generateProposalText())+'</textarea>'
-      // new (Phase 5) : le mailto n'est plus une voie à choisir mais un repli
-      // automatique → on n'évoque plus « clique sur Envoyer par email ».
-      +'<div class="phint" style="margin-top:8px">'+onlineHint+' En cas de problème (hors-ligne, service indisponible), l\'envoi bascule automatiquement sur ton application mail.</div>'
+      +'<div class="phint" style="margin-top:8px">'+onlineHint+fallbackNote+'</div>'
       // new: ligne de retour d'état de l'envoi en ligne (succès / erreur).
       +'<div id="psend-status" class="phint" style="margin-top:8px;min-height:1.1em"></div>'
       +'<div class="pactions">'
       +'<button class="pbtn" onclick="showProposalEdit()">← Modifier</button>'
-      +'<button class="pbtn" id="pcopy-btn" onclick="copyProposal()">Copier le texte</button>'
-      // new (Phase 5) : « Envoyer par email » devient un repli discret (pbtn-ghost).
-      +'<button class="pbtn pbtn-ghost" onclick="sendProposal()">Envoyer par email</button>'
+      +fallbackBtns
       +mineBtn
-      // new (Phase 3): voie principale — Supabase si connecté, sinon boîte PythonAnywhere.
-      +'<button class="pbtn pbtn-primary" id="psend-btn" onclick="submitProposalOnline()">Envoyer en ligne</button>'
+      // new (Phase 3): voie principale — UPDATE si édition, sinon Supabase/PythonAnywhere.
+      +'<button class="pbtn pbtn-primary" id="psend-btn" onclick="submitProposalOnline()">'+sendLabel+'</button>'
       +'</div>';
     return;
   }
   // ── Vue ÉDITION ──
-  let html='<div class="phint" style="margin-bottom:12px">Chaque « boîte » décrit une proposition. '
+  // new : bannière quand on CORRIGE une proposition déjà envoyée (« en attente »).
+  // Elle rappelle l'enjeu (on remplace la version précédente) et offre une sortie
+  // propre (cancelEditContrib restaure le brouillon local et revient à la liste).
+  let html='';
+  if(editingContribId){
+    html+='<div class="pedit-banner">✎ Tu modifies une proposition <b>déjà envoyée</b> (en attente). '
+      +'En l\'enregistrant, tu <b>remplaces</b> la version précédente. '
+      +'<button class="pbtn pbtn-ghost pbtn-sm" onclick="cancelEditContrib()">Annuler</button></div>';
+  }
+  html+='<div class="phint" style="margin-bottom:12px">Chaque « boîte » décrit une proposition. '
     +'Empilez-en autant que nécessaire (ex. un auteur + un exemple).</div>';
   proposalBoxes.forEach((b,i)=>{
     // Menu en cascade : Catégorie → Préciser (sous-cible) → Type d'action.
@@ -4025,6 +4258,7 @@ function openProposalFromPlus(type,cible,notion,ref,author){
     proposalBoxes=[box];
   else
     proposalBoxes.push(box);
+  prefillContributorFromAccount();   // nom = pseudo du compte si vide (cf. helper)
   proposalView='edit';
   renderProposal();
   document.getElementById('proposal-overlay').classList.add('open');
@@ -4047,6 +4281,10 @@ function scrollToProposalBox(id){
    saisi n'est PAS réinitialisé à la fermeture : on le conserve. */
 function openProposal(){
   if(proposalBoxes.length===0) proposalBoxes.push({id:++proposalSeq,categorie:'auteur',type:'ajout',cible:'auteur',f:{ideas:[{}]}});
+  // Préremplir le nom avec le pseudo du compte si connecté ET champ vide (retour
+  // contributeur : sinon une proposition envoyée connecté s'affichait « anonyme »
+  // dans le dashboard). On ne touche pas à une valeur déjà saisie à la main.
+  if(authUser && !(proposalContributor||'').trim()) proposalContributor=authLabel();
   proposalView='edit';
   renderProposal();
   document.getElementById('proposal-overlay').classList.add('open');
@@ -4192,6 +4430,19 @@ function tourTabEl(label){
     .find(t=>t.textContent.trim()===label) || document.querySelector('.tabs');
 }
 
+/* tourBoxEl(sel, tabLabel) — pour la visite des onglets de la fiche : renvoie
+   la PREMIÈRE « boîte » de contenu réellement affichée dans la zone principale
+   (la carte, pas le bouton d'onglet) afin que le projecteur zoome sur un
+   exemple concret de ce qu'on trouve dans l'onglet (retour utilisateur :
+   « zoomer sur une boîte, pas sur le titre de l'onglet »). `sel` peut lister
+   plusieurs classes (ex. plans + sujets de l'onglet Dissertations). Repli sur
+   le bouton d'onglet via tourTabEl si l'onglet courant n'a aucune boîte
+   (notion sans contenu pour cet onglet). */
+function tourBoxEl(sel, tabLabel){
+  const list=sel.split(',').map(s=>'.main-content '+s.trim()).join(',');
+  return document.querySelector(list) || tourTabEl(tabLabel);
+}
+
 /* ── Étapes qui ENTRENT dans une fenêtre (quiz / contribution) ───────────
    La visite reste « pilotée » : le voile capte les clics, mais on ouvre
    réellement la fenêtre concernée pour la détailler de l'intérieur. Ces
@@ -4291,26 +4542,26 @@ const TOUR_STEPS=[
   { part:'fiches', side:'main', title:'Onglet Auteurs',
     text:"Les <b>philosophes majeurs</b> sur cette notion : pour chacun, ses <b>idées clés</b> "
         +"(classées par œuvre) et ses <b>citations</b>. Ta matière première pour argumenter.",
-    setup:()=>tourShowTab('auteurs'), target:()=>tourTabEl('Auteurs') },
+    setup:()=>tourShowTab('auteurs'), target:()=>tourBoxEl('.ac','Auteurs') },
   { part:'fiches', side:'main', title:'Onglet Textes du cours',
     text:"Les <b>extraits étudiés</b> en classe, avec leur référence. À relire pour citer un "
         +"texte précis et montrer que tu connais les œuvres au programme.",
-    setup:()=>tourShowTab('textes'), target:()=>tourTabEl('Textes du cours') },
+    setup:()=>tourShowTab('textes'), target:()=>tourBoxEl('.ti2','Textes du cours') },
   { part:'fiches', side:'main', title:'Onglet Concepts',
     text:"Les <b>concepts clés</b> liés à la notion, en <b>deux sous-onglets</b> : ceux qui "
         +"<b>éclairent la notion</b>, puis les <b>liens entre concepts</b> (oppositions, "
         +"distinctions…). Le vocabulaire technique attendu de toi.",
-    setup:()=>tourShowTab('concepts'), target:()=>tourTabEl('Concepts') },
+    setup:()=>tourShowTab('concepts'), target:()=>tourBoxEl('.concept-card','Concepts') },
   { part:'fiches', side:'main', title:'Onglet Dissertations',
     text:"De quoi <b>composer</b> : les <b>notions voisines</b> à mobiliser, des <b>plans "
         +"détaillés</b> (problématique + 3 axes déroulables, avec sous-parties, auteurs et "
         +"références) et des <b>sujets</b> pour t’entraîner.",
-    setup:()=>tourShowTab('diss'), target:()=>tourTabEl('Dissertations') },
+    setup:()=>tourShowTab('diss'), target:()=>tourBoxEl('.plan-card, .dq','Dissertations') },
   { part:'fiches', side:'main', title:'Onglet Exemples',
     text:"Des <b>exemples concrets</b> (œuvres, sciences, actualité…) prêts à être "
         +"<b>réinvestis</b> en dissertation pour illustrer un argument — ce qui fait souvent "
         +"la différence.",
-    setup:()=>tourShowTab('exemples'), target:()=>tourTabEl('Exemples') },
+    setup:()=>tourShowTab('exemples'), target:()=>tourBoxEl('.ex-card','Exemples') },
 
   // ── Partie 2 : Les liens dynamiques ──
   { part:'liens', side:'main', title:'Tout est relié',
@@ -5612,17 +5863,22 @@ function stripHtml(s){
    L'id doit être STABLE entre les visites (sert de clé de progression). */
 function buildQuizCards(){
   const cards=[];
-  // C1 + C2 : concept ↔ définition
+  // C1 + C2 : concept ↔ définition. Les DEUX sens partagent la même « paire »
+  // (pair = même concept sous-jacent) ; pickSession n'en gardera qu'un par
+  // session pour ne pas montrer le concept ET sa définition d'affilée.
   CONCEPTS.forEach(c=>{
     const def=stripHtml(c.def);
     if(!c.term||!def) return;
     const notion=(c.notions||[])[0];
+    const pair='cpt:'+c.id;
     cards.push({id:'c1:'+c.id,type:'concept-def',notion,recto:c.term,verso:def,
-      qLabel:'Définis ce concept',meta:{cat:c.cat,conceptId:c.id}});
+      qLabel:'Définis ce concept',meta:{cat:c.cat,conceptId:c.id},pair});
     cards.push({id:'c2:'+c.id,type:'def-concept',notion,recto:def,verso:c.term,
-      qLabel:'Quel concept ?',meta:{cat:c.cat,conceptId:c.id}});
+      qLabel:'Quel concept ?',meta:{cat:c.cat,conceptId:c.id},pair});
   });
-  // C3 : citation ↔ auteur (LES DEUX sens) depuis AI[name].entries[k].ideas[].citations[]
+  // C3 : citation ↔ auteur (LES DEUX sens) depuis AI[name].entries[k].ideas[].citations[].
+  // Les deux sens d'une même citation partagent la même « paire » (base) :
+  // une seule direction par session (cf. retour « les cartes se répètent »).
   Object.keys(AI).forEach(name=>{
     const ent=AI[name].entries;
     Object.keys(ent).forEach(k=>{
@@ -5634,14 +5890,15 @@ function buildQuizCards(){
           if(!txt) return;
           const base='c3:'+name+':'+k+':'+ii+':'+ci;
           cards.push({id:base+':a',type:'cite-author',notion:k,recto:txt,verso:who,
-            qLabel:'Qui a dit cela ?',meta:{author:name}});
+            qLabel:'Qui a dit cela ?',meta:{author:name},pair:base});
           cards.push({id:base+':b',type:'author-cite',notion:k,recto:who,verso:txt,
-            qLabel:'Cite une de ses formules',meta:{author:name}});
+            qLabel:'Cite une de ses formules',meta:{author:name},pair:base});
         });
       });
     });
   });
-  // C4 : notion → auteurs majeurs et leur idée principale (auto-évaluation)
+  // C4 : notion → auteurs majeurs et leur idée principale (auto-évaluation).
+  // Carte unique par notion → sa paire est son propre id (rien à dédupliquer).
   KEYS.forEach(k=>{
     const auts=(D[k].auteurs||[]).slice(0,5).map(a=>{
       const idea=(a.ideas&&a.ideas[0])||{};
@@ -5650,7 +5907,7 @@ function buildQuizCards(){
     });
     if(auts.length) cards.push({id:'c4:'+k,type:'notion-authors',notion:k,
       recto:D[k].l+(D[k].s?' — '+D[k].s:''),verso:auts.join('<br><br>'),
-      qLabel:'Auteurs majeurs et leur thèse',meta:{}});
+      qLabel:'Auteurs majeurs et leur thèse',meta:{},pair:'c4:'+k});
   });
   return cards;
 }
@@ -5793,7 +6050,10 @@ function quizFiltersEmpty(){ return quizState.notionFilters.size===0 && quizStat
 /* pickSession(n) — construit une session de n cartes :
    1) les cartes DUES (triées par boîte ascendante = priorité aux fragiles) ;
    2) complétées par des cartes JAMAIS VUES ;
-   puis léger mélange pour casser la monotonie. */
+   en ne gardant qu'UNE carte par « paire » (pair) : on évite ainsi de voir
+   les deux sens d'un même concept/citation dans la même session (retour
+   « les cartes se répètent »). La 1re rencontrée gagne = la plus prioritaire
+   (boîte la plus basse, due avant fraîche). Léger mélange final. */
 function pickSession(n){
   n=n||QUIZ_SESSION_N;
   const st=loadQuizState(), h=quizState.horizon;
@@ -5801,7 +6061,15 @@ function pickSession(n){
   const due=pool.filter(c=>isDue(c,h))
     .sort((a,b)=>((st.byHorizon[h][a.id].box||1)-(st.byHorizon[h][b.id].box||1)));
   const fresh=pool.filter(c=>!st.byHorizon[h][c.id]);
-  let pick=due.concat(fresh).slice(0,n);
+  // Dédup par paire : on parcourt dans l'ordre de priorité et on ignore une
+  // carte dont la paire est déjà retenue (son sens inverse, p. ex.).
+  const seenPairs={}, pick=[];
+  due.concat(fresh).forEach(c=>{
+    if(pick.length>=n) return;
+    const key=c.pair||c.id;
+    if(seenPairs[key]) return;
+    seenPairs[key]=1; pick.push(c);
+  });
   // Léger mélange (Fisher-Yates partiel).
   for(let i=pick.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[pick[i],pick[j]]=[pick[j],pick[i]];}
   return pick;
@@ -6109,15 +6377,30 @@ function prepareCard(){
 }
 
 /* buildQCMChoices(card) — construit {choices[4], correct} : la bonne réponse
-   (card.verso) + 3 distracteurs tirés d'autres cartes DU MÊME TYPE, en
-   privilégiant la même catégorie (concepts) ou la même notion (citations). */
+   (card.verso) + 3 distracteurs tirés d'autres cartes DU MÊME TYPE.
+   RÈGLE (retour contributeur) : les 4 propositions doivent appartenir à la
+   même FAMILLE de réponse. Pour def-concept, on ne mélange jamais un repère
+   (paire « A / B ») avec un concept simple : distracteurs du même côté de la
+   partition repère/concept, en privilégiant la même catégorie (cat). Pour
+   cite-author, toutes les réponses sont des auteurs (déjà une seule famille) :
+   on privilégie la même notion. */
 function buildQCMChoices(card){
   const correct=card.verso;
+  // Cartes du même TYPE (même sens de question) avec une réponse différente.
   const same=QUIZ_CARDS.filter(c=>c.type===card.type&&c.verso!==correct);
-  const near=card.type==='def-concept'
-    ? same.filter(c=>c.meta&&c.meta.cat===card.meta.cat)
-    : same.filter(c=>c.notion===card.notion);
-  const pool=near.length>=3?near:same;
+  let pool;
+  if(card.type==='def-concept'){
+    // Famille = même côté de la partition repère / non-repère (jamais croisée).
+    const isRep=!!(card.meta&&card.meta.cat==='Repère');
+    const family=same.filter(c=>(!!(c.meta&&c.meta.cat==='Repère'))===isRep);
+    // Plus fin : même catégorie exacte si on en a assez ; sinon, reste la famille.
+    const near=family.filter(c=>c.meta&&c.meta.cat===card.meta.cat);
+    pool=near.length>=3?near:family;
+  } else {
+    // cite-author : distracteurs = autres auteurs, on privilégie la même notion.
+    const near=same.filter(c=>c.notion===card.notion);
+    pool=near.length>=3?near:same;
+  }
   // Distracteurs uniques (on dédoublonne par texte de verso).
   const seen={},uniq=[];
   pool.forEach(c=>{ if(!seen[c.verso]&&c.verso!==correct){seen[c.verso]=1;uniq.push(c.verso);} });

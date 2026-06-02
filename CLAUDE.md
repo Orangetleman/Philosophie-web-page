@@ -194,6 +194,21 @@ aux `auteurs:[]` d'une notion s'il n'a pas *explicitement traité* ce
 concept/cette notion : ces champs sont réservés aux auteurs de référence.
 Les simples mentions dans le texte sont, elles, liées automatiquement.
 
+### Surbrillance d'arrivée (suivre un lien)
+
+Suivre un lien dynamique fait **briller la cible** ~1,6 s (CSS
+`@keyframes flashTarget` → classe `.flash-target`, repli `outline` si
+`prefers-reduced-motion`). `focusAfterRender()` (appelé en fin de
+`openNotion`/`openConcept`/`openAuthor`, via `requestAnimationFrame`) fait
+briller l'**en-tête `.notion-head`** de la fiche ouverte (repère « tu es
+ici » — présent dans les **trois** vues). Cas spécial : une notion ouverte
+**depuis une fiche concept** (pastilles « Notions concernées » →
+`openNotionFromConcept(key, conceptId)`) pose `pendingConceptMention` ;
+`focusAfterRender()` défile alors vers la **1re mention** de ce concept dans
+le contenu (`.cterm[onclick*="openConcept('id')"]`) et la fait briller, au
+lieu de l'en-tête. `scrollAndFlash(el)` centre l'élément puis relance
+l'animation (retrait/reflow/ajout de classe).
+
 ## Fonctionnalité de contribution (section JS « J. »)
 
 Une modale permet aux visiteurs de **proposer du contenu**. Bouton
@@ -242,6 +257,24 @@ d'ouverture `.sb-propose` (« 💡 Proposer du contenu ») intégré à la sideb
   ouvre l'appli mail du contributeur (sans quitter la page) et l'annonce
   d'une ligne. Le bouton « Envoyer par email » subsiste, discret
   (`.pbtn-ghost`), pour relancer le mail à la main.
+- **Éditer un envoi « en attente »** (compte connecté) — depuis « Mes
+  propositions », chaque ligne au statut `en_attente` porte un bouton ✎
+  *Modifier* (`editMyContribution(id)`). Mécanique : `boxesFromPayload(payload)`
+  reconstruit `proposalBoxes` depuis le JSON stocké (copie profonde ; déduit la
+  catégorie en v1/v2 ; garantit `f.ideas` pour `auteur`) ; le **brouillon local
+  en cours est mis de côté** dans `editDraftBackup` et restauré par
+  `exitEditContrib()` (annulation ou enregistrement). `editingContribId` (id de
+  la ligne) marque le mode édition : tant qu'il est posé, **`draftChanged()`
+  ne touche plus au brouillon** (ni `localStorage`, ni sync) pour ne pas
+  l'écraser. L'aperçu remplace « Envoyer en ligne » par « Enregistrer les
+  modifications » et masque copie/mailto (un email n'updaterait rien) ;
+  `submitProposalOnline()` aiguille vers `updateProposalInSupabase()` →
+  `UPDATE … .eq('id',…).eq('user_id',…).select('id')`. Le `.select('id')`
+  permet de détecter un **refus RLS silencieux** (0 ligne touchée si le statut
+  n'est plus `en_attente`). Côté base : la **policy RLS UPDATE** n'autorise que
+  `user_id = auth.uid()` **et** `statut = 'en_attente'` (USING + WITH CHECK) —
+  une fois triée, la proposition n'est plus modifiable. `myContribCache` garde
+  les lignes chargées pour retrouver un payload par id.
 
 ### Schéma JSON « philo-proposal/v3 »
 
