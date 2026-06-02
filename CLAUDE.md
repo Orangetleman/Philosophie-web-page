@@ -255,10 +255,22 @@ briller l'**en-tête `.notion-head`** de la fiche ouverte (repère « tu es
 ici » — présent dans les **trois** vues). Cas spécial : une notion ouverte
 **depuis une fiche concept** (pastilles « Notions concernées » →
 `openNotionFromConcept(key, conceptId)`) pose `pendingConceptMention` ;
-`focusAfterRender()` défile alors vers la **1re mention** de ce concept dans
-le contenu (`.cterm[onclick*="openConcept('id')"]`) et la fait briller, au
-lieu de l'en-tête. `scrollAndFlash(el)` centre l'élément puis relance
-l'animation (retrait/reflow/ajout de classe).
+`focusAfterRender()` cherche alors **où viser ce concept**, dans cet ordre :
+**(a)** une mention **visible** dans la prose courante
+(`.cterm[onclick*="openConcept('id')"]` avec `offsetParent` non nul — on
+**évite** une mention cachée dans un `<details>` replié) ; **(b)** à défaut,
+on **bascule sur l'onglet « Concepts » de la notion** (où le concept figure
+forcément, puisqu'on vient de sa pastille « Notions concernées ») et on fait
+briller **sa carte** `.concept-card` — *jamais* le simple titre de la notion,
+qui n'apprend rien ; **(c)** en dernier recours, la mention cachée (que
+`scrollAndFlash` dépliera) puis l'en-tête.
+
+`scrollAndFlash(el)` fiabilise le repère : il **ouvre les `<details>`
+ancêtres** de la cible (sinon on défile vers un élément masqué), **attend une
+mise en page stable (double `requestAnimationFrame`)** avant de centrer — sans
+quoi le défilement, lancé trop tôt après une réécriture de `.main-content`,
+atterrit à côté de façon intermittente — puis relance l'animation
+(retrait/reflow/ajout de classe).
 
 ## Fonctionnalité de contribution (section JS « J. »)
 

@@ -2097,16 +2097,35 @@ function focusAfterRender(){
       const card=mainEl.querySelector('.accroche-card[data-acc="'+ai+'"]');
       if(card){ scrollAndFlash(card); return; }
     }
-    // 1) Notion ouverte depuis une fiche concept → mention du concept.
+    // 1) Notion ouverte depuis une fiche concept → on vise le concept.
     if(pendingConceptMention){
       const id=pendingConceptMention; pendingConceptMention=null;   // consommé
-      // Les mentions sont des .cterm dont l'onclick référence openConcept('id').
-      // On PRÉFÈRE une mention déjà visible (offsetParent non nul = hors
-      // <details> replié) ; à défaut seulement, la 1re (scrollAndFlash la
-      // dépliera). Évite de viser une mention cachée dans la définition.
-      const list=[...mainEl.querySelectorAll('.cterm[onclick*="openConcept(\''+id+'\')"]')];
-      const m=list.find(el=>el.offsetParent!==null)||list[0];
-      if(m){ scrollAndFlash(m); return; }
+      const sel='.cterm[onclick*="openConcept(\''+id+'\')"]';
+      // a) Mention VISIBLE dans la prose courante (offsetParent non nul = hors
+      //    <details> replié) → on la fait briller dans son contexte argumentatif.
+      const inProse=[...mainEl.querySelectorAll(sel)];
+      const visible=inProse.find(el=>el.offsetParent!==null);
+      if(visible){ scrollAndFlash(visible); return; }
+      // b) Concept non mentionné dans la prose visible : le lien notion↔concept
+      //    est de toute façon documenté dans l'onglet « Concepts » de la notion
+      //    (le concept Y FIGURE FORCÉMENT puisqu'on vient de sa pastille
+      //    « Notions concernées »). On bascule donc sur cet onglet et on fait
+      //    briller SA CARTE — au lieu de pointer le simple titre de la notion,
+      //    qui n'apprend rien sur le concept.
+      if(sbMode==='notions' && D[cur] && curTab!=='concepts'){
+        curTab='concepts'; curConceptSubTab='concepts';
+        renderContent();   // recrée contenu + fil d'Ariane
+        requestAnimationFrame(()=>{
+          const term=document.querySelector('#main .concept-card .cc-term[onclick*="openConcept(\''+id+'\')"]');
+          const card=term?term.closest('.concept-card'):null;
+          if(card){ scrollAndFlash(card); return; }
+          const h2=document.querySelector('#main .notion-head'); if(h2) scrollAndFlash(h2);
+        });
+        return;
+      }
+      // c) Dernier recours : mention cachée dans un <details> (scrollAndFlash
+      //    l'ouvrira), sinon on retombe sur l'en-tête plus bas.
+      if(inProse[0]){ scrollAndFlash(inProse[0]); return; }
     }
     // 2) Sinon : on fait briller l'en-tête de la fiche (repère d'arrivée).
     const head=mainEl.querySelector('.notion-head');
