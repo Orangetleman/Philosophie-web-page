@@ -314,7 +314,11 @@ a ses champs d'idée à plat (v1) ou dans `ideas[]` sans `notion`/`citations`
 - **Responsive ≤ 700 px** : la sidebar devient un **tiroir** ouvert par un
   bouton burger inline dans `.topbar` (voile `.sb-backdrop`, fermeture au clic
   / Échap / sélection d'un item) ; onglets de notion **scrollables
-  horizontalement**.
+  horizontalement**. **Geste tactile** (`initSidebarSwipe()` IIFE, près de
+  `initSidebarDrawer`) : balayage horizontal franc pour ouvrir/fermer le
+  tiroir — départ au bord gauche (≤ 28 px) + glissé vers la droite l'ouvre ;
+  glissé vers la gauche le ferme. Inactif sur grand écran ou si une surcouche
+  (quiz, modale de proposition, onboarding) est ouverte.
 - **Fil d'Ariane** cliquable (`renderCrumbs()`, bloc `#crumbs` dans `.topbar`)
   façon explorateur : chaque segment ramène à son niveau ; `goMode(mode)`
   bascule entre les 3 modes de sidebar.
@@ -322,8 +326,19 @@ a ses champs d'idée à plat (v1) ou dans `ideas[]` sans `notion`/`citations`
   *révision* (rendu épuré — badges `new`/`modified`, boutons `+` et
   `.sb-propose` cachés via `body:not(.mode-edition)`) ; *édition* révèle tout.
   Toggle `.sb-mode` en bas de sidebar.
-- **PWA** : `manifest.json` + `sw.js` (cache-first, hors-ligne) + `icon.svg`,
-  enregistrés depuis `index.html`. Installable.
+- **PWA** : `manifest.json` + `sw.js` + `icon.svg`, enregistrés depuis
+  `index.html`. Installable et hors-ligne. **Stratégie de cache mixte** :
+  HTML/JS de même origine (le « code », qui change à chaque déploiement) en
+  **réseau d'abord** (cache en repli hors-ligne) → une **simple
+  actualisation** récupère la dernière version, sans vidage manuel ; le reste
+  (icône, manifeste, polices) reste **cache d'abord**. **Mise à jour
+  transparente** : `index.html` écoute `controllerchange` et **recharge une
+  fois** quand un nouveau SW prend le contrôle (garde anti-boucle
+  `swReloading` ; rechargement auto activé **seulement** si un
+  `serviceWorker.controller` existait déjà au chargement, pour ne pas
+  recharger à la 1ʳᵉ visite) ; `reg.update()` est appelé après l'enregistrement.
+  **À chaque modif d'un fichier précaché, incrémenter `CACHE` (`philo-vN`)
+  dans `sw.js`.**
 - **Onboarding** 1ʳᵉ visite (overlay `.onb-overlay`, drapeau localStorage
   `philo-onboarded`).
 

@@ -5047,6 +5047,46 @@ document.addEventListener('click',e=>{
   });
 })();
 
+/* initSidebarSwipe() — ouvrir/fermer le tiroir au doigt (mobile).
+   Geste reconnu : un balayage horizontal franc.
+     • tiroir FERMÉ : le geste ne s'arme que s'il démarre tout au bord
+       gauche de l'écran (≤ EDGE px) — ainsi on n'interfère pas avec le
+       défilement ni les boutons ; un balayage vers la DROITE l'ouvre.
+     • tiroir OUVERT : n'importe quel départ compte ; un balayage vers la
+       GAUCHE le ferme.
+   Validation au touchend : amplitude |dx| ≥ MIN px ET mouvement surtout
+   horizontal (|dx| > |dy|) — sinon c'est un scroll vertical, on ignore.
+   Inactif sur grand écran (> 700 px) ou si une surcouche est ouverte
+   (quiz, modale de proposition, onboarding) pour ne pas voler le geste. */
+(function initSidebarSwipe(){
+  const EDGE=28, MIN=55;          // seuils en pixels : zone de bord / amplitude mini
+  let x0=0,y0=0,armed=false;      // origine du toucher + geste éligible ?
+  // Vrai si une surcouche plein écran capte déjà l'attention de l'utilisateur.
+  function overlayOpen(){
+    const q=document.getElementById('quiz-overlay');
+    const p=document.getElementById('proposal-overlay');
+    return (q&&q.classList.contains('open'))||(p&&p.classList.contains('open'))||
+           (typeof tourState!=='undefined'&&tourState&&tourState.i>=0);
+  }
+  document.addEventListener('touchstart',e=>{
+    armed=false;
+    if(window.innerWidth>700||overlayOpen()||e.touches.length!==1) return;
+    const t=e.touches[0], open=document.body.classList.contains('sb-open');
+    // Fermé : on n'arme qu'au bord gauche. Ouvert : n'importe où.
+    if(!open&&t.clientX>EDGE) return;
+    x0=t.clientX; y0=t.clientY; armed=true;
+  },{passive:true});
+  document.addEventListener('touchend',e=>{
+    if(!armed) return;
+    armed=false;
+    const t=e.changedTouches[0], dx=t.clientX-x0, dy=t.clientY-y0;
+    if(Math.abs(dx)<MIN||Math.abs(dx)<=Math.abs(dy)) return;   // pas assez franc / trop vertical
+    const open=document.body.classList.contains('sb-open');
+    if(!open&&dx>0) toggleSidebar();        // bord gauche → droite : ouvrir
+    else if(open&&dx<0) closeSidebar();     // vers la gauche : fermer
+  },{passive:true});
+})();
+
 /* ── K. COMPTES — authentification (Supabase) ───────────────────────
    Couche « compte » FACULTATIVE : se connecter (Google ou e-mail + mot de
    passe) pour, plus tard, synchroniser quiz/préférences et suivre ses
@@ -5859,12 +5899,34 @@ renderSB();renderContent();
 initAuth();           // new (comptes) : récupère la session + s'abonne aux changements d'état
 tourStartIfFirst();   // visite guidée auto à la 1re venue (cf. module « Visite guidée »)
 
-/* ── PWA — enregistrement du service worker ─────────────────────────
-   Une fois le service worker enregistré, le site fonctionne hors-ligne
-   (cache d'abord). Aucune erreur si le navigateur ne supporte pas. */
+/* ── PWA — enregistrement du service worker + mise à jour automatique ──
+   Le service worker rend le site installable et utilisable hors-ligne.
+   Désormais il sert le HTML/JS en « réseau d'abord » (cf. sw.js) : une
+   simple actualisation récupère la dernière version déployée, sans la
+   manip manuelle de vidage de cache.
+
+   Mise à jour transparente : quand un nouveau service worker prend le
+   contrôle de la page (événement `controllerchange`), on recharge UNE
+   seule fois pour basculer sur la nouvelle version. Le garde
+   `navigator.serviceWorker.controller` évite de recharger à la toute
+   première visite (aucun contrôleur encore actif = rien à remplacer).
+   `reg.update()` force la vérification d'une nouvelle version à chaque
+   chargement. Aucune erreur si le navigateur ne supporte pas. */
 if('serviceWorker' in navigator){
+  let swReloading=false;        // garde anti-boucle de rechargement
+  // Un contrôleur déjà présent = on a une version installée susceptible
+  // d'être remplacée → on s'autorise le rechargement auto à la bascule.
+  if(navigator.serviceWorker.controller){
+    navigator.serviceWorker.addEventListener('controllerchange',()=>{
+      if(swReloading) return;
+      swReloading=true;
+      window.location.reload();
+    });
+  }
   window.addEventListener('load',()=>{
-    navigator.serviceWorker.register('sw.js').catch(()=>{});
+    navigator.serviceWorker.register('sw.js')
+      .then(reg=>{ reg.update().catch(()=>{}); })   // cherche une MAJ dès le chargement
+      .catch(()=>{});
   });
 }
 

@@ -1,11 +1,15 @@
 // Service worker — outil de révision philo.
-// Stratégie : « cache d'abord, réseau en repli ». Au premier chargement,
-// on précache l'index, le manifeste et l'icône ; ensuite chaque requête
-// est servie depuis le cache si disponible, sinon récupérée sur le réseau
-// et stockée pour la prochaine fois. Permet l'usage 100 % hors-ligne.
+// Stratégie MIXTE selon le type de ressource :
+//   • HTML / JS (le « code » du site, qui change à chaque déploiement) →
+//     « réseau d'abord, cache en repli ». Ainsi une simple actualisation
+//     récupère la dernière version en ligne ; le cache ne sert qu'en cas
+//     de coupure réseau. Fini la manip manuelle de vidage de cache.
+//   • Le reste (icône, manifeste, polices Google) → « cache d'abord »
+//     (ces fichiers changent rarement → priorité à la vitesse/hors-ligne).
+// Permet l'usage hors-ligne tout en restant à jour dès qu'on a du réseau.
 // Pour invalider le cache après une mise à jour, incrémenter la version.
 
-const CACHE = 'philo-v29';
+const CACHE = 'philo-v30';
 const PRECACHE = ['./', './index.html', './data.js', './manifest.json', './icon.svg'];
 
 // Installation : on précache les ressources critiques.
@@ -34,19 +38,44 @@ self.addEventListener('fetch', e => {
   const isFonts = url.hostname.includes('fonts.g');     // fonts.googleapis / gstatic
   if (!sameOrigin && !isFonts) return;                  // les autres : laissés au navigateur
 
-  e.respondWith(
-    caches.match(e.request).then(hit => {
-      if (hit) return hit;
-      return fetch(e.request).then(resp => {
-        // Met en cache les réponses OK pour la prochaine fois.
+  // Le « code » du site = HTML et JS de même origine (et toute navigation).
+  // C'est ce qui change à chaque déploiement → réseau d'abord.
+  const isApp = sameOrigin && (
+    e.request.mode === 'navigate' ||
+    url.pathname.endsWith('/') ||
+    /\.(html|js)$/.test(url.pathname)
+  );
+
+  if (isApp) {
+    // RÉSEAU D'ABORD : on tente le réseau, on met à jour le cache, et on
+    // ne retombe sur le cache (puis l'index) qu'en cas d'échec réseau.
+    e.respondWith(
+      fetch(e.request).then(resp => {
         if (resp && resp.status === 200) {
           const copy = resp.clone();
           caches.open(CACHE).then(c => c.put(e.request, copy));
         }
         return resp;
-      }).catch(() => {
-        // Réseau coupé : pour une navigation, on retombe sur l'index en cache.
-        if (e.request.mode === 'navigate') return caches.match('./index.html');
+      }).catch(() =>
+        caches.match(e.request).then(hit =>
+          hit || (e.request.mode === 'navigate' ? caches.match('./index.html') : undefined)
+        )
+      )
+    );
+    return;
+  }
+
+  // CACHE D'ABORD pour le reste (icône, manifeste, polices) : rapide et
+  // stable hors-ligne ; on récupère sur le réseau au 1er accès seulement.
+  e.respondWith(
+    caches.match(e.request).then(hit => {
+      if (hit) return hit;
+      return fetch(e.request).then(resp => {
+        if (resp && resp.status === 200) {
+          const copy = resp.clone();
+          caches.open(CACHE).then(c => c.put(e.request, copy));
+        }
+        return resp;
       });
     })
   );
