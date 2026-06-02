@@ -2054,21 +2054,38 @@ let pendingConceptMention=null;   // id de concept à repérer dans la notion, o
 let pendingAccroche=null;         // index d'accroche à faire briller (recherche globale), ou null
 
 /* scrollAndFlash(el) — amène el dans la vue puis le fait briller ~1,6 s.
-   On retire/rajoute la classe (avec reflow) pour pouvoir relancer l'animation
-   même si l'élément la portait déjà. */
+   Deux fiabilisations par rapport à une version naïve :
+     · si la cible est dans un <details> replié (ex. mention de concept logée
+       dans le panneau « Approfondir la notion »), on OUVRE ses ancêtres
+       <details> — sinon scrollIntoView défile vers un élément masqué et l'on
+       a l'impression que « ça ne marche pas » ou que ça vise le mauvais repère ;
+     · on attend que la mise en page soit STABLE (double requestAnimationFrame)
+       avant de défiler : juste après une réécriture de .main-content, les
+       hauteurs ne sont pas encore fiables et un défilement immédiat atterrit à
+       côté — c'est la cause des ratés intermittents.
+   On retire/rajoute la classe (avec reflow) pour relancer l'animation même si
+   l'élément la portait déjà. */
 function scrollAndFlash(el){
   if(!el) return false;
-  try{ el.scrollIntoView({behavior:'smooth',block:'center'}); }catch(e){}
-  el.classList.remove('flash-target');
-  void el.offsetWidth;               // force un reflow → l'animation repart de zéro
-  el.classList.add('flash-target');
-  setTimeout(()=>{ if(el) el.classList.remove('flash-target'); },1700);
+  // 1) Déplier les <details> ancêtres pour que la cible soit réellement visible.
+  for(let p=el.parentElement;p;p=p.parentElement){
+    if(p.tagName==='DETAILS' && !p.open) p.open=true;
+  }
+  // 2) Défiler + faire briller une fois la mise en page stabilisée.
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    try{ el.scrollIntoView({behavior:'smooth',block:'center'}); }catch(e){}
+    el.classList.remove('flash-target');
+    void el.offsetWidth;             // force un reflow → l'animation repart de zéro
+    el.classList.add('flash-target');
+    setTimeout(()=>{ if(el) el.classList.remove('flash-target'); },1700);
+  }));
   return true;
 }
 
 /* focusAfterRender() — après le rendu d'une fiche (notion / concept / auteur),
-   applique la surbrillance d'arrivée. requestAnimationFrame garantit que le DOM
-   est peint et que l'overlay/scroll est prêt avant de défiler. */
+   applique la surbrillance d'arrivée. Le requestAnimationFrame garantit que le
+   DOM fraîchement injecté existe avant qu'on cherche la cible ; scrollAndFlash
+   s'occupe ensuite d'attendre une mise en page stable avant de défiler. */
 function focusAfterRender(){
   requestAnimationFrame(()=>{
     const mainEl=document.getElementById('main');
@@ -2080,11 +2097,15 @@ function focusAfterRender(){
       const card=mainEl.querySelector('.accroche-card[data-acc="'+ai+'"]');
       if(card){ scrollAndFlash(card); return; }
     }
-    // 1) Notion ouverte depuis une fiche concept → 1re mention du concept.
+    // 1) Notion ouverte depuis une fiche concept → mention du concept.
     if(pendingConceptMention){
       const id=pendingConceptMention; pendingConceptMention=null;   // consommé
       // Les mentions sont des .cterm dont l'onclick référence openConcept('id').
-      const m=mainEl.querySelector('.cterm[onclick*="openConcept(\''+id+'\')"]');
+      // On PRÉFÈRE une mention déjà visible (offsetParent non nul = hors
+      // <details> replié) ; à défaut seulement, la 1re (scrollAndFlash la
+      // dépliera). Évite de viser une mention cachée dans la définition.
+      const list=[...mainEl.querySelectorAll('.cterm[onclick*="openConcept(\''+id+'\')"]')];
+      const m=list.find(el=>el.offsetParent!==null)||list[0];
       if(m){ scrollAndFlash(m); return; }
     }
     // 2) Sinon : on fait briller l'en-tête de la fiche (repère d'arrivée).
