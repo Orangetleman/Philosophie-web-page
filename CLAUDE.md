@@ -147,33 +147,58 @@ catégorie `cat:'Repère'` et un `id` préfixé `rep-…`. Conséquences :
 `isRepere(c)` (`c.cat==='Repère'`), `REPERES()` et `realConcepts()`. Les
 repères sont **exclus** du glossaire Concepts (sidebar `renderSBConceptsList`
 + comptage) **et** de l'onglet « Concepts » de chaque notion ; ils peuplent à
-la place l'onglet **Méthodo** (voir ci-dessous). La **fiche** est la même
+la place l'onglet **Repères** (voir ci-dessous). La **fiche** est la même
 (`renderConceptContent` + `curConcept`) : un repère *est* un concept, donc
 aucun renderer dédié.
 
-## Onglet « Méthodo » (sidebar, `sbMode='methodo'`)
+## Onglet « Repères » (sidebar, `sbMode='reperes'`)
 
-La sidebar a **quatre modes** : `sbMode` ∈
-`'notions' | 'auteurs' | 'concepts' | 'methodo'`. Le mode `methodo` liste les
-**repères** (`REPERES()`, triés `localeCompare('fr')`), avec une **barre de
-recherche seule** (`methodoSearch`, `renderSBMethodoList()`) — pas de filtres
-par notion. Il **réutilise** `curConcept` et la fiche concept (un repère est
-un concept). Tout le câblage de navigation reflète le mode `concepts` :
-`renderSB` (onglets + branche dédiée), `goBack`, `goMode('methodo')`,
-`renderCrumbs` (segment « Méthodo »), `openConcept` (qui choisit
-`sbMode = isRepere(c) ? 'methodo' : 'concepts'`). À l'entrée d'un mode, un
-garde recalcule `curConcept` pour qu'il appartienne à la liste active.
-L'onboarding (`TOUR_STEPS`) présente les **quatre** portes d'entrée dont la
-Méthodo : chacune **bascule réellement la sidebar dans son mode** via
-`tourShowSidebarMode(mode)` (recale `curAuthor`/`curConcept`, rend sidebar +
-contenu) et met en valeur la **liste** (`#sb .sidebar-list`), pas le seul
-bouton d'onglet — on présente le contenu de chaque catégorie.
+⚠ **Ne pas confondre** « Repères » (`sbMode='reperes'`, les distinctions du
+programme) et « Méthodo » (`sbMode='methodo'`, le **guide de méthode** — section
+suivante). Ce sont **deux onglets distincts**.
 
-Les **onglets de mode** (`.sb-tabs`) sont en **grille 2×2** (`flex-wrap` +
-`flex-basis:calc(50% - 2px)`) : sur la sidebar étroite (155px), 4 onglets sur
-une rangée débordaient et le 4e (« Méthodo ») était **rogné** par
-l'`overflow:hidden` de `.sidebar`. La grille 2×2 garde les quatre visibles,
-desktop comme mobile.
+Le mode `reperes` liste les **repères** (`REPERES()`, triés `localeCompare('fr')`),
+avec une **barre de recherche seule** (`repereSearch`, `renderSBReperesList()`,
+liste `#sb-reperes-list`) — pas de filtres par notion. Il **réutilise**
+`curConcept` et la fiche concept (un repère est un concept). Tout le câblage de
+navigation reflète le mode `concepts` : `renderSB` (onglets + branche dédiée),
+`goBack`, `goMode('reperes')`, `renderCrumbs` (segment « Repères »),
+`openConcept` (qui choisit `sbMode = isRepere(c) ? 'reperes' : 'concepts'`). À
+l'entrée d'un mode, un garde recalcule `curConcept` pour qu'il appartienne à la
+liste active.
+
+## Onglet « Méthodo » — guide de méthode (sidebar, `sbMode='methodo'`)
+
+La sidebar a **cinq modes** : `sbMode` ∈
+`'notions' | 'auteurs' | 'concepts' | 'reperes' | 'methodo'`. Le mode `methodo`
+est un **guide de méthodologie** (PAS une fiche), au rendu et à l'interface
+volontairement **distincts** des fiches. Deux parcours (`METHODO_TOPICS` :
+`dissertation` / `explication`), état courant `methodoTopic` (persisté dans la
+pile `navHistory`). Données dans `METHODO_GUIDE[topic]` = `{titre, intro,
+squelette:[{bloc,detail}], etapes:[{t, body, phrases:[…], tip}]}` — **pas de
+data.js** (méthodologie pure). `renderMethodoContent()` peuple `#main` (même
+ossature `.tabs`+`.main-content` que `renderConceptContent`) avec : une bascule
+de parcours (`.methodo-switch`), un **squelette visuel** de la copie
+(`.methodo-skel`, une ligne par bloc), puis les **étapes dépliables**
+(`.methodo-step` = `<details>`, 1re ouverte) avec « phrases toutes prêtes » et
+une astuce. Tout le texte passe par `linkTerms()`. Câblage : `renderSB` (branche
+liste = `METHODO_TOPICS`), `goBack`/`goMode('methodo')` →
+`renderMethodoContent()`, `renderCrumbs` (segment « Méthodo » + parcours),
+`tourShowSidebarMode('methodo')`. CSS dédié `.methodo-*` (thème accent bleu du
+quiz). Si tu ajoutes un parcours/une étape : enrichir `METHODO_GUIDE`,
+éventuellement `METHODO_TOPICS`.
+
+L'onboarding (`TOUR_STEPS`) présente les **cinq** portes d'entrée (Notions,
+Auteurs, Concepts, Repères, Méthodo) : chacune **bascule réellement la sidebar
+dans son mode** via `tourShowSidebarMode(mode)` (recale `curAuthor`/`curConcept`
+ou rend le guide, rend sidebar + contenu) et met en valeur la **liste**
+(`#sb .sidebar-list`), pas le seul bouton d'onglet.
+
+Les **onglets de mode** (`.sb-tabs`) s'**enroulent** sur plusieurs rangées
+(`flex-wrap` + `flex-basis:calc(50% - 2px)`, 2 par rangée) : sur la sidebar
+étroite (155px), tous les onglets sur une rangée débordaient et le dernier était
+**rogné** par l'`overflow:hidden` de `.sidebar`. Avec 5 onglets → 3 rangées
+(2+2+1), tous visibles desktop comme mobile.
 
 ## Liens dynamiques
 

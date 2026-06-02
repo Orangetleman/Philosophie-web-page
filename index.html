@@ -1183,6 +1183,56 @@ body.sb-open .sb-backdrop{display:block;opacity:1}
 .pst-ok{background:rgba(46,204,113,.15);color:#2ecc71}
 .pst-no{background:rgba(231,76,60,.14);color:#e74c3c}
 
+/* ── Onglet Méthodo (guide) — interface dédiée (renderMethodoContent) ──
+   Volontairement DIFFÉRENTE des fiches concept/notion : un squelette
+   VISUEL de la copie en haut (la structure « vue de loin »), puis le
+   détail pas à pas dans des blocs dépliables (<details>) en dessous.
+   Thème accent bleu (réutilise les variables du quiz) pour le démarquer. */
+.methodo-wrap{max-width:780px}
+.methodo-switch{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+.methodo-switch button{flex:1 1 auto;min-height:40px;padding:8px 14px;border-radius:var(--border-radius-md);
+  border:0.5px solid var(--color-border-tertiary);background:var(--color-background-secondary);
+  color:var(--color-text-secondary);font-size:13px;font-weight:600;cursor:pointer;transition:all .15s}
+.methodo-switch button.active{background:var(--color-accent-quiz);border-color:var(--color-accent-quiz);color:#fff}
+.methodo-intro{font-size:13.5px;line-height:1.6;color:var(--color-text-secondary);margin-bottom:6px}
+.methodo-sectitle{font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;
+  color:var(--color-text-tertiary);margin:22px 0 10px}
+/* Squelette : pile verticale de « blocs de copie ». */
+.methodo-skel{display:flex;flex-direction:column;gap:7px;margin:4px 0 8px}
+.methodo-skel-row{display:flex;gap:0;align-items:stretch;border:0.5px solid var(--color-border-tertiary);
+  border-left:3px solid var(--color-accent-quiz);border-radius:var(--border-radius-md);overflow:hidden;
+  background:var(--color-background-secondary)}
+.methodo-skel-bloc{flex:0 0 140px;padding:10px 12px;font-weight:700;font-size:13px;color:var(--color-text-primary);
+  background:var(--color-background-quiz);display:flex;align-items:center}
+.methodo-skel-detail{padding:10px 12px;font-size:12.5px;line-height:1.5;color:var(--color-text-secondary);flex:1}
+/* Étapes détaillées dépliables. */
+.methodo-step{border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);
+  margin-bottom:8px;background:var(--color-background-secondary);overflow:hidden}
+.methodo-step>summary{list-style:none;cursor:pointer;padding:12px 14px;font-weight:600;font-size:13.5px;
+  color:var(--color-text-primary);display:flex;align-items:center;gap:8px}
+.methodo-step>summary::-webkit-details-marker{display:none}
+.methodo-step>summary::after{content:'▸';margin-left:auto;color:var(--color-text-tertiary);transition:transform .15s}
+.methodo-step[open]>summary::after{transform:rotate(90deg)}
+.methodo-step>summary:hover{background:var(--color-background-tertiary)}
+.methodo-step-num{flex:0 0 auto;width:22px;height:22px;border-radius:50%;background:var(--color-accent-quiz);
+  color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.methodo-step-body{padding:2px 14px 14px;font-size:13px;line-height:1.62;color:var(--color-text-secondary)}
+.methodo-step-body p{margin:0 0 9px}
+.methodo-block-title{font-size:11.5px;font-weight:700;color:var(--color-text-tertiary);
+  text-transform:uppercase;letter-spacing:.03em;margin:12px 0 6px}
+.methodo-phrases{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:5px}
+.methodo-phrases li{padding:7px 11px;background:var(--color-background-quiz);border-radius:var(--border-radius-md);
+  border-left:2px solid var(--color-border-quiz,var(--color-accent-quiz));font-size:12.5px;
+  font-style:italic;color:var(--color-text-secondary)}
+.methodo-tip{margin-top:10px;padding:9px 12px;border-radius:var(--border-radius-md);
+  background:var(--color-background-info,rgba(59,130,214,.12));font-size:12.5px;line-height:1.5;
+  color:var(--color-text-secondary)}
+.methodo-tip b{color:var(--color-text-primary)}
+@media(max-width:700px){
+  .methodo-skel-row{flex-direction:column}
+  .methodo-skel-bloc{flex:none;border-bottom:0.5px solid var(--color-border-tertiary)}
+}
+
 /* ── Barres de défilement assorties au thème sombre ───────────
    Corrige les scrollbars blanches par défaut (Windows). Purement additif. */
 *{scrollbar-width:thin;scrollbar-color:var(--color-border-secondary) transparent}
@@ -1366,14 +1416,20 @@ let conceptSearch='';
 let conceptFilter=new Set(); // empty = all notions
 let conceptFilterOpen=false;
 let conceptFilterMode='or'; // 'or' = au moins une notion ; 'and' = toutes les notions cochées
-// new (Méthodo) : recherche du sous-onglet « Méthodo » (sbMode='methodo').
+// new (Repères) : recherche de l'onglet « Repères » (sbMode='reperes').
 // Les repères (cat:'Repère') sont des CONCEPTS comme les autres, mais
 // rangés à part : on les liste ici et on les EXCLUT du glossaire général.
 // La fiche affichée reste la même (renderConceptContent + curConcept).
-let methodoSearch='';
+// NB : l'onglet « Méthodo » (sbMode='methodo') est, lui, un GUIDE de
+// méthodologie distinct (renderMethodoContent) — à ne pas confondre.
+let repereSearch='';
+// Méthodo (guide) : parcours courant affiché par renderMethodoContent().
+//   'dissertation' | 'explication'. METHODO_TOPICS pilote la liste de la
+//   sidebar et le fil d'Ariane (défini plus bas, près de METHODO_GUIDE).
+let methodoTopic='dissertation';
 // REPERES() / vrais concepts : helpers de partition du tableau CONCEPTS.
 //   isRepere(c)    → ce concept est-il un repère méthodologique ?
-//   REPERES()      → liste des repères (onglet Méthodo)
+//   REPERES()      → liste des repères (onglet Repères)
 //   realConcepts() → glossaire « Concepts » (tout SAUF les repères)
 function isRepere(c){return c&&c.cat==='Repère';}
 function REPERES(){return CONCEPTS.filter(isRepere);}
@@ -1564,8 +1620,8 @@ function pushHistory(){
   // Ne pas pousser si on est déjà sur la même page
   if(last&&last.sbMode===sbMode&&last.cur===cur&&last.curTab===curTab
     &&last.curAuthor===curAuthor&&last.curAuthorTab===curAuthorTab
-    &&last.curConcept===curConcept) return;
-  navHistory.push({sbMode,cur,curTab,curAuthor,curAuthorTab,curConcept});
+    &&last.curConcept===curConcept&&last.methodoTopic===methodoTopic) return;
+  navHistory.push({sbMode,cur,curTab,curAuthor,curAuthorTab,curConcept,methodoTopic});
   if(navHistory.length>50) navHistory.shift();
   updateBackBtn();
 }
@@ -1578,9 +1634,11 @@ function goBack(){
   const s=navHistory.pop();
   sbMode=s.sbMode; cur=s.cur; curTab=s.curTab;
   curAuthor=s.curAuthor; curAuthorTab=s.curAuthorTab; curConcept=s.curConcept;
+  if(s.methodoTopic) methodoTopic=s.methodoTopic;
   renderSB();
   if(sbMode==='auteurs'&&curAuthor) renderAuthorContent();
-  else if(sbMode==='concepts'||sbMode==='methodo') renderConceptContent();
+  else if(sbMode==='concepts'||sbMode==='reperes') renderConceptContent();
+  else if(sbMode==='methodo') renderMethodoContent();   // guide de méthodologie
   else renderContent();
   _navigating=false;
   updateBackBtn();
@@ -1655,16 +1713,20 @@ function renderSB(){
     sb.innerHTML='';
     sb.appendChild(fixed);
   }
-  // 4 onglets de mode. Concepts et Méthodo partagent la MÊME fiche
+  // 5 onglets de mode. « Concepts » et « Repères » partagent la MÊME fiche
   // (renderConceptContent + curConcept) mais des listes disjointes : le
-  // glossaire « Concepts » exclut les repères, l'onglet « Méthodo » ne
+  // glossaire « Concepts » exclut les repères, l'onglet « Repères » ne
   // montre QU'EUX. En entrant dans un mode, on recale curConcept pour
   // qu'il pointe sur une fiche présente dans la liste de ce mode.
+  // « Méthodo » est à part : un GUIDE de méthodologie (renderMethodoContent),
+  // pas une fiche concept. (Les onglets s'enroulent sur plusieurs lignes —
+  // cf. CSS .sb-tabs/.sb-tab — pour rester tous visibles dans la sidebar.)
   fixed.innerHTML=`<div class="sb-tabs" style="gap:1px;padding:8px 0 6px">
     <div class="sb-tab${sbMode==='notions'?' active':''}" onclick="sbMode='notions';renderSB();renderContent()" style="font-size:9px">Notions</div>
     <div class="sb-tab${sbMode==='auteurs'?' active':''}" onclick="if(sbMode!=='auteurs'){sbMode='auteurs';if(!curAuthor)curAuthor=authorsSorted()[0];curAuthorTab='idees';renderSB();renderAuthorContent();}" style="font-size:9px">Auteurs</div>
     <div class="sb-tab${sbMode==='concepts'?' active':''}" onclick="if(sbMode!=='concepts'){sbMode='concepts';const c0=realConcepts().find(c=>c.id===curConcept)||realConcepts()[0];if(c0)curConcept=c0.id;renderSB();renderConceptContent();}" style="font-size:9px">Concepts</div>
-    <div class="sb-tab${sbMode==='methodo'?' active':''}" onclick="if(sbMode!=='methodo'){sbMode='methodo';const r0=REPERES().find(c=>c.id===curConcept)||REPERES()[0];if(r0)curConcept=r0.id;renderSB();renderConceptContent();}" style="font-size:9px" title="Repères du programme : les distinctions conceptuelles (absolu/relatif, légal/légitime…)">Méthodo</div>
+    <div class="sb-tab${sbMode==='reperes'?' active':''}" onclick="if(sbMode!=='reperes'){sbMode='reperes';const r0=REPERES().find(c=>c.id===curConcept)||REPERES()[0];if(r0)curConcept=r0.id;renderSB();renderConceptContent();}" style="font-size:9px" title="Repères du programme : les distinctions conceptuelles (absolu/relatif, légal/légitime…)">Repères</div>
+    <div class="sb-tab${sbMode==='methodo'?' active':''}" onclick="if(sbMode!=='methodo'){sbMode='methodo';renderSB();renderMethodoContent();}" style="font-size:9px" title="Méthode pas à pas : dissertation et explication de texte">Méthodo</div>
   </div>`;
 
   // ── Bouton « 🎯 Réviser » (mode quiz) : AU-DESSUS de .sb-propose ──
@@ -1812,8 +1874,8 @@ function renderSB(){
     listWrap.id='sb-concept-list';
     list.appendChild(listWrap);
     renderSBConceptsList();
-  } else {
-    // ── Méthodo : liste des repères (cat:'Repère') ──
+  } else if(sbMode==='reperes'){
+    // ── Repères : liste des repères (cat:'Repère') ──
     // Recherche seule (pas de filtre par notion : les repères forment une
     // liste de référence stable et courte). Même carte .cb que les concepts.
     let searchRow=fixed.querySelector('.sb-search-row');
@@ -1823,12 +1885,23 @@ function renderSB(){
       fixed.appendChild(searchRow);
     }
     searchRow.innerHTML=`
-      <input class="sb-search" type="text" placeholder="Rechercher un repère…" value="${methodoSearch.replace(/"/g,'&quot;')}"
-        oninput="methodoSearch=this.value;renderSBMethodoList()" />`;
+      <input class="sb-search" type="text" placeholder="Rechercher un repère…" value="${repereSearch.replace(/"/g,'&quot;')}"
+        oninput="repereSearch=this.value;renderSBReperesList()" />`;
     const listWrap=document.createElement('div');
-    listWrap.id='sb-methodo-list';
+    listWrap.id='sb-reperes-list';
     list.appendChild(listWrap);
-    renderSBMethodoList();
+    renderSBReperesList();
+  } else {
+    // ── Méthodo (guide) : liste des deux parcours méthodologiques ──
+    // Pas de recherche : la liste est minuscule (Dissertation / Explication
+    // de texte). Un clic choisit le parcours rendu dans la zone principale.
+    METHODO_TOPICS.forEach(t=>{
+      const el=document.createElement('div');
+      el.className='nb'+(t.id===methodoTopic?' active':'');
+      el.innerHTML=`<span class="dot" style="background:var(--color-accent-quiz,#4f9dff)"></span>${t.label}`;
+      el.onclick=()=>{methodoTopic=t.id;renderSB();renderMethodoContent();};
+      list.appendChild(el);
+    });
   }
 }
 
@@ -1885,17 +1958,17 @@ function renderSBConceptsList(){
   });
 }
 
-/* renderSBMethodoList() — filtre et affiche la liste des REPÈRES (sbMode
-   'methodo'). Mêmes cartes .cb que les concepts, mais :
+/* renderSBReperesList() — filtre et affiche la liste des REPÈRES (sbMode
+   'reperes'). Mêmes cartes .cb que les concepts, mais :
      · source = REPERES() (les concepts cat:'Repère' uniquement) ;
      · recherche sur le terme seule (pas de filtre par notion) ;
      · tri ALPHABÉTIQUE par terme (liste de référence, pas de notion-count).
    La fiche affichée au clic est la même que pour un concept
    (renderConceptContent + curConcept) : un repère EST un concept. */
-function renderSBMethodoList(){
-  const wrap=document.getElementById('sb-methodo-list');
+function renderSBReperesList(){
+  const wrap=document.getElementById('sb-reperes-list');
   if(!wrap) return;
-  const q=methodoSearch.trim().toLowerCase();
+  const q=repereSearch.trim().toLowerCase();
   const all=REPERES();
   const list=all
     .filter(c=>!q||c.term.toLowerCase().includes(q))
@@ -1909,7 +1982,7 @@ function renderSBMethodoList(){
     el.className='cb'+(c.id===curConcept?' active':'');
     const bdgs=c.notions.map(k=>D[k]?`<span class="ab-bdg" style="background:${D[k].c}" title="${D[k].l}"></span>`:'').join('');
     el.innerHTML=`<div class="cb-term">${c.term}</div><div class="ab-badges" style="margin-top:3px">${bdgs}</div>`;
-    el.onclick=()=>{curConcept=c.id;renderSBMethodoList();renderConceptContent()};
+    el.onclick=()=>{curConcept=c.id;renderSBReperesList();renderConceptContent()};
     wrap.appendChild(el);
   });
 }
@@ -1940,11 +2013,11 @@ function openConcept(id){
     return;
   }
   pushHistory();
-  // Un repère ouvre l'onglet « Méthodo » (où il est listé), un concept
+  // Un repère ouvre l'onglet « Repères » (où il est listé), un concept
   // ordinaire l'onglet « Concepts » : la sidebar reste cohérente avec la
   // fiche affichée. La fiche elle-même est rendue par renderConceptContent.
   const c=CONCEPTS.find(x=>x&&x.id===id);
-  sbMode=isRepere(c)?'methodo':'concepts'; curConcept=id;
+  sbMode=isRepere(c)?'reperes':'concepts'; curConcept=id;
   renderSB(); renderConceptContent();
   focusAfterRender();   // surbrillance d'arrivée (retour contributeur)
 }
@@ -2183,6 +2256,146 @@ function renderConceptContent(){
   mc.innerHTML=html;
 }
 
+/* ── G bis. ONGLET MÉTHODO (guide) ───────────────────────────────────
+   Guide de méthode (sbMode='methodo'), DISTINCT de l'onglet « Repères ».
+   Deux parcours (METHODO_TOPICS) : la dissertation et l'explication de
+   texte. Chaque parcours = un SQUELETTE visuel de la copie (vue d'ensemble)
+   + des ÉTAPES dépliables (le détail pas à pas, avec des phrases toutes
+   prêtes et une astuce). Le contenu passe par linkTerms() pour rendre
+   cliquables les concepts/notions/auteurs cités (ex. « problématique »,
+   « thèse »…). Aucune donnée de data.js n'est dupliquée ici : c'est de la
+   méthodologie pure. */
+const METHODO_TOPICS=[
+  {id:'dissertation', label:'Dissertation'},
+  {id:'explication',  label:'Explication de texte'}
+];
+
+const METHODO_GUIDE={
+  dissertation:{
+    titre:'La dissertation',
+    intro:"Disserter, ce n'est pas donner son avis : c'est <b>répondre à un problème par un raisonnement organisé et progressif</b>. "
+        +"On part d'une question, on montre qu'elle oppose plusieurs réponses possibles, puis on construit pas à pas une réponse "
+        +"argumentée en s'appuyant sur des <b>auteurs</b>, des <b>concepts</b> et des <b>exemples</b>.",
+    squelette:[
+      {bloc:'Introduction', detail:"Accroche → analyse des termes du sujet → <b>problématique</b> (la question qui oppose deux réponses) → annonce du plan."},
+      {bloc:'I. Thèse', detail:"La réponse la plus spontanée au sujet : on la défend solidement… puis on en montre la limite."},
+      {bloc:'II. Antithèse', detail:"Une objection qui corrige la première réponse et <b>déplace</b> le problème."},
+      {bloc:'III. Dépassement', detail:"Une position plus fine qui lève la tension — souvent grâce à une <b>distinction</b> décisive."},
+      {bloc:'Conclusion', detail:"Bilan des étapes → réponse claire à la problématique → ouverture."}
+    ],
+    etapes:[
+      {t:"Analyser le sujet",
+       body:"<p>Avant tout : <b>définir chaque mot</b> du sujet et repérer ses <b>présupposés</b>. Un même terme a souvent plusieurs sens — c'est là que naît le problème. Demande-toi ce que le sujet tient déjà pour acquis.</p>",
+       phrases:["« Le terme … peut s'entendre en deux sens : … et … »","« Le sujet suppose que … : est-ce si évident ? »"],
+       tip:"Souligne chaque mot du sujet : <b>chaque mot compte</b>, surtout les petits (« peut-on », « faut-il », « toujours »)."},
+      {t:"Problématiser",
+       body:"<p>Transforme le sujet en <b>problème</b> : montre que deux réponses opposées sont également défendables. La problématique, c'est cette <b>tension</b> à résoudre, formulée en une question précise — pas une simple reformulation du sujet.</p>",
+       phrases:["« On pourrait répondre que … ; pourtant, … »","« Le problème est donc de savoir si … ou si, au contraire, … »"],
+       tip:"Une bonne problématique se reconnaît à ce qu'on <b>ne peut pas y répondre par oui ou non immédiatement</b>."},
+      {t:"Construire le plan",
+       body:"<p>Trois moments qui <b>progressent</b> (chacun corrige le précédent), pas un simple « pour / contre / synthèse » plaqué. Chaque partie répond à la problématique d'une manière nouvelle. Le plan doit raconter une <b>avancée</b> de la pensée.</p>",
+       phrases:["I. réponse spontanée — II. objection qui la limite — III. distinction qui dépasse","« Ce qui était vrai en … ne l'est plus dès lors que … »"],
+       tip:"Teste ton plan : si on peut <b>inverser deux parties sans rien changer</b>, c'est qu'il ne progresse pas."},
+      {t:"Rédiger l'introduction",
+       body:"<p>Quatre temps enchaînés : une <b>accroche</b> (exemple, paradoxe — voir le sous-onglet « Accroche » des Exemples), l'<b>analyse des termes</b>, la <b>problématique</b>, et l'<b>annonce du plan</b>. Elle se rédige souvent <i>après</i> avoir trouvé le plan.</p>",
+       phrases:["« … . Cet exemple invite à se demander si … »","« Nous verrons d'abord que … , avant de montrer que … , pour enfin … »"],
+       tip:"Pas de réponse dès l'introduction : on <b>pose</b> le problème, on ne le tranche pas encore."},
+      {t:"Construire une sous-partie",
+       body:"<p>Une sous-partie = <b>une seule idée</b>, développée en trois temps :</p>"
+          +"<p><b>1. Affirmer</b> la thèse (la phrase-idée). <b>2. Expliquer</b> : le raisonnement qui la justifie (le <i>pourquoi</i>). <b>3. Illustrer</b> : un exemple précis ou un <b>auteur</b> qui l'incarne. On termine par une <b>transition</b> vers la suite.</p>",
+       phrases:["« En effet, … » (l'explication) puis « Par exemple, … » / « Comme le montre … »","« Mais cette thèse se heurte à … , ce qui nous conduit à … » (transition)"],
+       tip:"Un exemple n'est jamais là pour décorer : il doit <b>prouver</b> l'idée. Explique toujours <b>en quoi</b> il la prouve."},
+      {t:"Rédiger la conclusion",
+       body:"<p>Trois temps : <b>bilan</b> du chemin parcouru (sans tout répéter), <b>réponse</b> nette à la problématique, et une <b>ouverture</b> (nouvelle question, prolongement) — jamais une question vague.</p>",
+       phrases:["« Au terme de ce parcours, il apparaît que … »","« Reste alors à se demander si … »"],
+       tip:"La conclusion <b>répond</b> vraiment à la question posée : relis ton introduction avant de la rédiger."}
+    ]
+  },
+  explication:{
+    titre:"L'explication de texte",
+    intro:"Expliquer un texte, c'est en restituer la <b>thèse</b> et en suivre l'<b>argumentation</b> pas à pas pour la rendre claire — "
+        +"sans paraphraser (redire en moins bien) ni plaquer un cours. On montre <b>pourquoi</b> l'auteur dit ce qu'il dit, "
+        +"et en quoi sa réponse est forte.",
+    squelette:[
+      {bloc:'Introduction', detail:"Thème → <b>problème</b> auquel le texte répond → <b>thèse</b> de l'auteur → annonce des mouvements."},
+      {bloc:'Développement', detail:"On suit l'<b>ordre du texte</b> : pour chaque mouvement, on cite, on explique les termes, on reformule l'argument."},
+      {bloc:'Discussion', detail:"(Selon la consigne) intérêt et portée de la thèse, puis une <b>limite</b> éventuelle, discutée avec rigueur."},
+      {bloc:'Conclusion', detail:"Ce que le texte établit → réponse au problème → ouverture."}
+    ],
+    etapes:[
+      {t:"Lire et situer le texte",
+       body:"<p>Lis deux fois. Repère le <b>thème</b> (de quoi ça parle), la <b>question</b> à laquelle le texte répond, et le <b>type</b> de texte (démonstration, réfutation, analyse d'un exemple…). Situe-le dans une notion du programme.</p>",
+       phrases:["« Ce texte porte sur … et répond à la question : … »","« L'auteur cherche ici à établir que … »"],
+       tip:"Ne jamais expliquer un texte qu'on n'a pas relu : la <b>thèse</b> apparaît souvent à la deuxième lecture."},
+      {t:"Dégager la thèse",
+       body:"<p>La <b>thèse</b>, c'est la position défendue par l'auteur, résumable en <b>une phrase</b>. Distingue-la des <b>arguments</b> (ce qui la justifie) et des <b>exemples</b> (ce qui l'illustre). Tout le texte est au service de cette thèse.</p>",
+       phrases:["« La thèse de l'auteur est que … »","« Cette idée s'oppose à l'opinion commune selon laquelle … »"],
+       tip:"Si tu ne peux pas écrire la thèse en une phrase, c'est qu'elle n'est <b>pas encore claire</b> pour toi."},
+      {t:"Repérer la structure (les mouvements)",
+       body:"<p>Découpe le texte en <b>moments argumentatifs</b> (les « mouvements ») et nomme la <b>fonction</b> de chacun : pose-t-il la thèse ? l'illustre-t-il ? répond-il à une objection ? Les connecteurs (« or », « mais », « donc ») sont tes repères.</p>",
+       phrases:["« Dans un premier mouvement (l. … à …), l'auteur … »","« Il anticipe alors une objection : … »"],
+       tip:"Indique les <b>lignes</b> de chaque mouvement : ça structure ta copie et prouve que tu suis le texte."},
+      {t:"Expliquer pas à pas",
+       body:"<p>Pour chaque mouvement : <b>cite</b> brièvement, <b>élucide les termes</b> techniques, <b>reformule</b> l'argument avec tes mots et explicite la <b>logique</b> (pourquoi telle idée entraîne telle autre). <b>Ne paraphrase pas</b> : ajoute toujours du sens.</p>",
+       phrases:["« Par … , l'auteur entend … »","« Autrement dit, … . Ce qui revient à dire que … »"],
+       tip:"Test anti-paraphrase : si ta phrase pourrait être <b>supprimée sans rien perdre</b>, c'est de la paraphrase."},
+      {t:"Dégager les enjeux / discuter",
+       body:"<p>Montre l'<b>intérêt philosophique</b> de la thèse : à quel problème répond-elle, qu'apporte-t-elle ? Si la consigne le demande, propose une <b>discussion</b> mesurée : une objection sérieuse, un cas qui résiste — sans démolir gratuitement l'auteur.</p>",
+       phrases:["« L'intérêt de cette thèse est de … »","« On peut toutefois objecter que … »"],
+       tip:"Discuter ≠ donner son avis : toute objection doit être <b>argumentée</b>, comme une mini-dissertation."},
+      {t:"Rédiger intro et conclusion",
+       body:"<p>L'<b>introduction</b> annonce thème, problème, thèse et mouvements (sans expliquer encore). La <b>conclusion</b> récapitule ce que le texte a établi, répond au problème et ouvre. Rédige-les une fois l'explication faite.</p>",
+       phrases:["« Nous suivrons les trois moments de l'argumentation : … »","« Ainsi, le texte montre que … »"],
+       tip:"L'introduction d'explication <b>n'annonce pas un plan en parties</b> : elle annonce les <b>mouvements du texte</b>."}
+    ]
+  }
+};
+
+/* renderMethodoContent() — affiche le guide du parcours courant (methodoTopic)
+   dans la zone principale : bascule de parcours, squelette visuel, puis étapes
+   dépliables. Mirroir de renderConceptContent pour la structure du #main. */
+function renderMethodoContent(){
+  renderCrumbs();
+  const mainEl=document.getElementById('main');
+  if(!mainEl.querySelector('.tabs')||!mainEl.querySelector('.main-content')){
+    mainEl.innerHTML='<div class="tabs"></div><div class="main-content"></div>';
+  }
+  const tabsEl=mainEl.querySelector('.tabs');
+  const mc=mainEl.querySelector('.main-content');
+  tabsEl.innerHTML=backBtnHTML();   // bouton retour seul dans la barre
+
+  const g=METHODO_GUIDE[methodoTopic]||METHODO_GUIDE.dissertation;
+  // Bascule entre les deux parcours (boutons en tête de zone principale).
+  const switchHTML=METHODO_TOPICS.map(t=>
+    `<button class="${t.id===methodoTopic?'active':''}" onclick="methodoTopic='${t.id}';renderSB();renderMethodoContent();">${t.label}</button>`
+  ).join('');
+  // Squelette : une ligne par bloc de copie (vue d'ensemble de la structure).
+  const skelHTML=g.squelette.map(s=>
+    `<div class="methodo-skel-row"><div class="methodo-skel-bloc">${s.bloc}</div><div class="methodo-skel-detail">${linkTerms('<span>'+s.detail+'</span>')}</div></div>`
+  ).join('');
+  // Étapes dépliables : numéro + titre, corps, phrases toutes prêtes, astuce.
+  const stepsHTML=g.etapes.map((e,i)=>{
+    const phrases=(e.phrases||[]).length
+      ? `<div class="methodo-block-title">Phrases toutes prêtes</div><ul class="methodo-phrases">${e.phrases.map(p=>`<li>${linkTerms('<span>'+p+'</span>')}</li>`).join('')}</ul>`
+      : '';
+    const tip=e.tip?`<div class="methodo-tip">💡 ${linkTerms('<span>'+e.tip+'</span>')}</div>`:'';
+    return `<details class="methodo-step"${i===0?' open':''}>
+      <summary><span class="methodo-step-num">${i+1}</span>${e.t}</summary>
+      <div class="methodo-step-body">${linkTerms('<span>'+e.body+'</span>')}${phrases}${tip}</div>
+    </details>`;
+  }).join('');
+
+  mc.innerHTML=`<div class="methodo-wrap">
+    <div class="methodo-switch">${switchHTML}</div>
+    <div class="notion-head"><h1 style="margin:0">${g.titre}</h1></div>
+    <p class="methodo-intro">${linkTerms('<span>'+g.intro+'</span>')}</p>
+    <div class="methodo-sectitle">La copie en un coup d'œil</div>
+    <div class="methodo-skel">${skelHTML}</div>
+    <div class="methodo-sectitle">Étape par étape</div>
+    <div class="methodo-steps">${stepsHTML}</div>
+  </div>`;
+}
+
 
 /* tab(id)        — change l'onglet actif dans la vue notion (curTab).
    openAuthor(name) — ouvre la fiche d'un auteur depuis n'importe où
@@ -2242,13 +2455,19 @@ function renderCrumbs(){
       const c=CONCEPTS.find(x=>x&&x.id===curConcept);
       if(c) segs.push(seg(c.term,'',null,true));
     }
-  }else if(sbMode==='methodo'){
-    // Méthodo : même fiche que les concepts, mais segment racine distinct.
-    segs.push(seg('Méthodo','mode','methodo',false));
+  }else if(sbMode==='reperes'){
+    // Repères : même fiche que les concepts, mais segment racine distinct.
+    segs.push(seg('Repères','mode','reperes',false));
     if(curConcept){
       const c=CONCEPTS.find(x=>x&&x.id===curConcept);
       if(c) segs.push(seg(c.term,'',null,true));
     }
+  }else if(sbMode==='methodo'){
+    // Méthodo (guide) : racine « Méthodo » + parcours courant (Dissertation /
+    // Explication de texte). Le parcours est l'élément courant (non cliquable).
+    segs.push(seg('Méthodo','mode','methodo',false));
+    const t=METHODO_TOPICS.find(t=>t.id===methodoTopic);
+    if(t) segs.push(seg(t.label,'',null,true));
   }
   el.innerHTML=segs.join(sep);
 }
@@ -2260,7 +2479,8 @@ function goMode(mode){
   if(mode==='notions'){ renderSB(); renderContent(); }
   else if(mode==='auteurs'){ if(!curAuthor) curAuthor=authorsSorted()[0]; curAuthorTab='idees'; renderSB(); renderAuthorContent(); }
   else if(mode==='concepts'){ const c0=realConcepts().find(c=>c.id===curConcept)||realConcepts()[0]; if(c0) curConcept=c0.id; renderSB(); renderConceptContent(); }
-  else if(mode==='methodo'){ const r0=REPERES().find(c=>c.id===curConcept)||REPERES()[0]; if(r0) curConcept=r0.id; renderSB(); renderConceptContent(); }
+  else if(mode==='reperes'){ const r0=REPERES().find(c=>c.id===curConcept)||REPERES()[0]; if(r0) curConcept=r0.id; renderSB(); renderConceptContent(); }
+  else if(mode==='methodo'){ renderSB(); renderMethodoContent(); }   // guide de méthodologie
 }
 
 /* openAuthor(name) — ouvre la fiche d'un auteur depuis n'importe où :
@@ -4436,14 +4656,14 @@ function tourTabEl(label){
     .find(t=>t.textContent.trim()===label) || document.querySelector('.tabs');
 }
 
-/* tourShowSidebarMode(mode) — bascule la sidebar dans l'un de ses quatre modes
-   (notions / auteurs / concepts / methodo) pour la visite, en s'assurant qu'un
-   item est bien sélectionné (sinon la liste pointerait dans le vide), puis rend
-   la sidebar ET le contenu correspondant. Sert à PRÉSENTER chaque porte d'entrée
-   en montrant réellement sa LISTE — pas seulement le bouton d'onglet (retour
-   utilisateur BOX 17 : « tu dis Auteurs, tu présentes les auteurs »). Reproduit
-   la logique des onclick des sb-tab (recalage de curAuthor / curConcept selon
-   la liste active du mode). */
+/* tourShowSidebarMode(mode) — bascule la sidebar dans l'un de ses cinq modes
+   (notions / auteurs / concepts / reperes / methodo) pour la visite, en
+   s'assurant qu'un item est bien sélectionné (sinon la liste pointerait dans
+   le vide), puis rend la sidebar ET le contenu correspondant. Sert à PRÉSENTER
+   chaque porte d'entrée en montrant réellement sa LISTE — pas seulement le
+   bouton d'onglet (retour utilisateur BOX 17 : « tu dis Auteurs, tu présentes
+   les auteurs »). Reproduit la logique des onclick des sb-tab (recalage de
+   curAuthor / curConcept selon la liste active du mode). */
 function tourShowSidebarMode(mode){
   sbMode=mode;
   if(mode==='auteurs'){
@@ -4454,10 +4674,12 @@ function tourShowSidebarMode(mode){
     const c0=realConcepts().find(c=>c.id===curConcept)||realConcepts()[0];
     if(c0) curConcept=c0.id;
     renderSB(); renderConceptContent();
-  } else if(mode==='methodo'){
+  } else if(mode==='reperes'){
     const r0=REPERES().find(c=>c.id===curConcept)||REPERES()[0];
     if(r0) curConcept=r0.id;
     renderSB(); renderConceptContent();
+  } else if(mode==='methodo'){   // guide de méthodologie (pas une fiche)
+    renderSB(); renderMethodoContent();
   } else {                       // 'notions' (défaut)
     if(!D[cur]) cur=KEYS[0];
     renderSB(); renderContent();
@@ -4534,10 +4756,11 @@ const TOUR_STEPS=[
     nextLabel:'Commencer ▶' },
 
   // ── Partie 1 : Les fiches ──
-  { part:'fiches', side:'sidebar', title:'Quatre portes d’entrée',
-    text:"Tout en haut de la barre latérale, <b>quatre onglets</b> ouvrent le même "
-        +"savoir sous quatre angles : <b>Notions</b>, <b>Auteurs</b>, <b>Concepts</b> "
-        +"et <b>Méthodo</b> (les repères du programme).",
+  { part:'fiches', side:'sidebar', title:'Cinq portes d’entrée',
+    text:"Tout en haut de la barre latérale, <b>cinq onglets</b> ouvrent l’outil "
+        +"sous plusieurs angles : <b>Notions</b>, <b>Auteurs</b>, <b>Concepts</b>, "
+        +"<b>Repères</b> (les distinctions du programme) et <b>Méthodo</b> "
+        +"(la méthode pas à pas de la dissertation et de l’explication de texte).",
     setup:tourShowNotion, target:()=>document.querySelector('.sb-tabs') },
   // Chaque porte d'entrée est PRÉSENTÉE en basculant réellement la sidebar dans
   // son mode (tourShowSidebarMode) puis en mettant en valeur sa LISTE, pas le
@@ -4555,9 +4778,14 @@ const TOUR_STEPS=[
     text:"Le <b>glossaire</b> des termes techniques (le déterminisme, l’aliénation…), avec leur "
         +"définition et leurs liens vers les notions et les autres concepts.",
     setup:()=>tourShowSidebarMode('concepts'), target:()=>document.querySelector('#sb .sidebar-list') },
-  { part:'fiches', side:'sidebar', title:'La Méthodo',
+  { part:'fiches', side:'sidebar', title:'Les Repères',
     text:"Les <b>repères du programme</b> : les distinctions à maîtriser pour analyser un sujet "
         +"(absolu/relatif, légal/légitime, en fait/en droit…), chacune avec sa définition et un exemple.",
+    setup:()=>tourShowSidebarMode('reperes'), target:()=>document.querySelector('#sb .sidebar-list') },
+  { part:'fiches', side:'sidebar', title:'La Méthodo',
+    text:"Le <b>guide de méthode</b> : comment analyser un sujet, problématiser, bâtir un plan et "
+        +"rédiger une <b>dissertation</b> ou une <b>explication de texte</b> — avec un squelette "
+        +"visuel de la copie et des phrases toutes prêtes, étape par étape.",
     setup:()=>tourShowSidebarMode('methodo'), target:()=>document.querySelector('#sb .sidebar-list') },
   // — Au cœur du projet : le DÉTAIL d'une fiche de notion. On montre la
   //   définition, le volet « Approfondir », puis CHAQUE onglet (en basculant
