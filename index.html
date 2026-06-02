@@ -346,9 +346,15 @@ body{font-family:'Inter',system-ui,sans-serif;background:#121212;height:100vh;pa
 .def-sec-body{font-size:12px;color:var(--color-text-secondary);line-height:1.65;padding-left:9px;border-left:2px solid var(--color-border-secondary);margin-bottom:7px}
 .def-sec-body strong{color:var(--color-text-primary);font-weight:500}
 
-/* ── Sidebar tabs Notions / Auteurs ─────────────────────────── */
-.sb-tabs{display:flex;gap:2px;margin-bottom:8px;padding:0 2px}
-.sb-tab{flex:1;padding:5px 4px;font-size:10px;font-weight:500;text-align:center;cursor:pointer;border-radius:var(--border-radius-md);color:var(--color-text-tertiary);border:0.5px solid transparent;transition:all .15s;line-height:1.2}
+/* ── Onglets de mode de la sidebar (Notions / Auteurs / Concepts / Méthodo) ──
+   flex-wrap + base ~50% : les 4 onglets se répartissent en GRILLE 2×2 plutôt
+   que de tenir sur une seule rangée. Sur la sidebar étroite (155px desktop), 4
+   onglets en une ligne débordaient et le dernier (« Méthodo ») était rogné par
+   l'overflow:hidden de .sidebar — retour utilisateur BOX 20 : « l'onglet repère
+   est complètement caché, voir tous les onglets sans scroll, y compris sur
+   téléphone ». La grille 2×2 garantit que les quatre restent visibles. */
+.sb-tabs{display:flex;flex-wrap:wrap;gap:2px;margin-bottom:8px;padding:0 2px}
+.sb-tab{flex:1 1 calc(50% - 2px);min-width:0;padding:5px 4px;font-size:10px;font-weight:500;text-align:center;cursor:pointer;border-radius:var(--border-radius-md);color:var(--color-text-tertiary);border:0.5px solid transparent;transition:all .15s;line-height:1.2;white-space:nowrap}
 .sb-tab:hover{color:var(--color-text-primary)}
 .sb-tab.active{background:var(--color-background-primary);color:var(--color-text-primary);border-color:var(--color-border-tertiary)}
 
@@ -4430,6 +4436,34 @@ function tourTabEl(label){
     .find(t=>t.textContent.trim()===label) || document.querySelector('.tabs');
 }
 
+/* tourShowSidebarMode(mode) — bascule la sidebar dans l'un de ses quatre modes
+   (notions / auteurs / concepts / methodo) pour la visite, en s'assurant qu'un
+   item est bien sélectionné (sinon la liste pointerait dans le vide), puis rend
+   la sidebar ET le contenu correspondant. Sert à PRÉSENTER chaque porte d'entrée
+   en montrant réellement sa LISTE — pas seulement le bouton d'onglet (retour
+   utilisateur BOX 17 : « tu dis Auteurs, tu présentes les auteurs »). Reproduit
+   la logique des onclick des sb-tab (recalage de curAuthor / curConcept selon
+   la liste active du mode). */
+function tourShowSidebarMode(mode){
+  sbMode=mode;
+  if(mode==='auteurs'){
+    if(!curAuthor) curAuthor=authorsSorted()[0];
+    curAuthorTab='idees';
+    renderSB(); renderAuthorContent();
+  } else if(mode==='concepts'){
+    const c0=realConcepts().find(c=>c.id===curConcept)||realConcepts()[0];
+    if(c0) curConcept=c0.id;
+    renderSB(); renderConceptContent();
+  } else if(mode==='methodo'){
+    const r0=REPERES().find(c=>c.id===curConcept)||REPERES()[0];
+    if(r0) curConcept=r0.id;
+    renderSB(); renderConceptContent();
+  } else {                       // 'notions' (défaut)
+    if(!D[cur]) cur=KEYS[0];
+    renderSB(); renderContent();
+  }
+}
+
 /* tourBoxEl(sel, tabLabel) — pour la visite des onglets de la fiche : renvoie
    la PREMIÈRE « boîte » de contenu réellement affichée dans la zone principale
    (la carte, pas le bouton d'onglet) afin que le projecteur zoome sur un
@@ -4505,22 +4539,26 @@ const TOUR_STEPS=[
         +"savoir sous quatre angles : <b>Notions</b>, <b>Auteurs</b>, <b>Concepts</b> "
         +"et <b>Méthodo</b> (les repères du programme).",
     setup:tourShowNotion, target:()=>document.querySelector('.sb-tabs') },
+  // Chaque porte d'entrée est PRÉSENTÉE en basculant réellement la sidebar dans
+  // son mode (tourShowSidebarMode) puis en mettant en valeur sa LISTE, pas le
+  // simple bouton d'onglet (retour utilisateur BOX 17 : « tu dis Notions, tu
+  // présentes les notions ; tu dis Auteurs, tu présentes les auteurs… »).
   { part:'fiches', side:'sidebar', title:'Les Notions',
-    text:"Les <b>notions</b> du programme (la conscience, la nature, l’art…). "
+    text:"Voici la liste des <b>notions</b> du programme (la conscience, la nature, l’art…). "
         +"C’est le point de départ le plus naturel.",
-    setup:tourShowNotion, target:()=>document.querySelector('.sb-tabs .sb-tab:nth-child(1)') },
+    setup:()=>tourShowSidebarMode('notions'), target:()=>document.querySelector('#sb .sidebar-list') },
   { part:'fiches', side:'sidebar', title:'Les Auteurs',
     text:"Tu préfères entrer par un <b>philosophe</b> ? Cet onglet liste les auteurs et, pour "
         +"chacun, ses idées clés et les notions qu’il a traitées.",
-    setup:tourShowNotion, target:()=>document.querySelector('.sb-tabs .sb-tab:nth-child(2)') },
+    setup:()=>tourShowSidebarMode('auteurs'), target:()=>document.querySelector('#sb .sidebar-list') },
   { part:'fiches', side:'sidebar', title:'Les Concepts',
     text:"Le <b>glossaire</b> des termes techniques (le déterminisme, l’aliénation…), avec leur "
         +"définition et leurs liens vers les notions et les autres concepts.",
-    setup:tourShowNotion, target:()=>document.querySelector('.sb-tabs .sb-tab:nth-child(3)') },
+    setup:()=>tourShowSidebarMode('concepts'), target:()=>document.querySelector('#sb .sidebar-list') },
   { part:'fiches', side:'sidebar', title:'La Méthodo',
     text:"Les <b>repères du programme</b> : les distinctions à maîtriser pour analyser un sujet "
         +"(absolu/relatif, légal/légitime, en fait/en droit…), chacune avec sa définition et un exemple.",
-    setup:tourShowNotion, target:()=>document.querySelector('.sb-tabs .sb-tab:nth-child(4)') },
+    setup:()=>tourShowSidebarMode('methodo'), target:()=>document.querySelector('#sb .sidebar-list') },
   // — Au cœur du projet : le DÉTAIL d'une fiche de notion. On montre la
   //   définition, le volet « Approfondir », puis CHAQUE onglet (en basculant
   //   réellement dessus via tourShowTab) avec ce qu'on y trouve. Pensé mobile :

@@ -164,7 +164,16 @@ un concept). Tout le câblage de navigation reflète le mode `concepts` :
 `sbMode = isRepere(c) ? 'methodo' : 'concepts'`). À l'entrée d'un mode, un
 garde recalcule `curConcept` pour qu'il appartienne à la liste active.
 L'onboarding (`TOUR_STEPS`) présente les **quatre** portes d'entrée dont la
-Méthodo.
+Méthodo : chacune **bascule réellement la sidebar dans son mode** via
+`tourShowSidebarMode(mode)` (recale `curAuthor`/`curConcept`, rend sidebar +
+contenu) et met en valeur la **liste** (`#sb .sidebar-list`), pas le seul
+bouton d'onglet — on présente le contenu de chaque catégorie.
+
+Les **onglets de mode** (`.sb-tabs`) sont en **grille 2×2** (`flex-wrap` +
+`flex-basis:calc(50% - 2px)`) : sur la sidebar étroite (155px), 4 onglets sur
+une rangée débordaient et le 4e (« Méthodo ») était **rogné** par
+l'`overflow:hidden` de `.sidebar`. La grille 2×2 garde les quatre visibles,
+desktop comme mobile.
 
 ## Liens dynamiques
 
