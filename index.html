@@ -264,6 +264,16 @@ body{font-family:'Inter',system-ui,sans-serif;background:#121212;height:100vh;pa
 .ex-title{font-size:12px;font-weight:500;color:var(--color-text-primary)}
 .ex-body{font-size:12px;color:var(--color-text-secondary);line-height:1.55}
 .ex-lien{font-size:10px;color:var(--color-text-tertiary);margin-top:4px;font-style:italic}
+/* Sous-onglet « Accroches » : amorces rédigées prêtes à recopier. Plus
+   explicites/lisibles que les exemples (corps plus grand, liséré accentué),
+   façon « fiche concept » mais centrée sur la phrase d'ouverture. */
+.accroche-card{background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-left:3px solid var(--color-accent);border-radius:var(--border-radius-md);padding:12px 15px;margin-bottom:10px}
+.accroche-head{display:flex;align-items:center;gap:7px;margin-bottom:7px}
+.accroche-type{font-size:10px;font-weight:600;letter-spacing:.03em;text-transform:uppercase;color:var(--color-accent);background:var(--color-accent-soft,rgba(120,120,255,.10));padding:2px 9px;border-radius:20px;flex-shrink:0}
+.accroche-body{font-size:13.5px;color:var(--color-text-primary);line-height:1.6}
+.accroche-src{font-size:11px;color:var(--color-text-tertiary);margin-top:6px;font-style:italic;text-align:right}
+.accroche-card.is-new{border-color:var(--color-new-border);border-left-color:var(--color-new);background:var(--color-new-bg)}
+.accroche-card.is-modified{border-color:var(--color-mod-border);border-left-color:var(--color-mod);background:var(--color-mod-bg)}
 
 /* ── 6e. Contenu notion — onglets Liens & Dissertations ──────────── */
 .liens-row{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:14px}
@@ -2041,6 +2051,7 @@ function openNotion(key){
    Mécanique : pendingConceptMention porte l'id du concept source (consommé une
    seule fois) ; focusAfterRender() l'applique après le rendu. */
 let pendingConceptMention=null;   // id de concept à repérer dans la notion, ou null
+let pendingAccroche=null;         // index d'accroche à faire briller (recherche globale), ou null
 
 /* scrollAndFlash(el) — amène el dans la vue puis le fait briller ~1,6 s.
    On retire/rajoute la classe (avec reflow) pour pouvoir relancer l'animation
@@ -2062,6 +2073,13 @@ function focusAfterRender(){
   requestAnimationFrame(()=>{
     const mainEl=document.getElementById('main');
     if(!mainEl) return;
+    // 0) Notion ouverte depuis la recherche globale sur une accroche → on fait
+    //    briller la carte d'accroche ciblée (sous-onglet « Accroches »).
+    if(pendingAccroche!==null){
+      const ai=pendingAccroche; pendingAccroche=null;   // consommé
+      const card=mainEl.querySelector('.accroche-card[data-acc="'+ai+'"]');
+      if(card){ scrollAndFlash(card); return; }
+    }
     // 1) Notion ouverte depuis une fiche concept → 1re mention du concept.
     if(pendingConceptMention){
       const id=pendingConceptMention; pendingConceptMention=null;   // consommé
@@ -2083,6 +2101,18 @@ function openNotionFromConcept(key, conceptId){
   pushHistory();
   pendingConceptMention=conceptId;
   cur=key; curTab='auteurs'; sbMode='notions';
+  renderSB(); renderContent();
+  focusAfterRender();
+}
+
+/* openNotionAccroche(key, ai) — ouvre la notion `key` directement sur l'onglet
+   Exemples, sous-onglet « Accroches », et fait briller l'accroche d'indice `ai`.
+   Utilisé par la recherche globale (Ctrl+K) sur les résultats de type accroche. */
+function openNotionAccroche(key, ai){
+  if(!D[key]) return;
+  pushHistory();
+  pendingAccroche=ai;
+  cur=key; curTab='exemples'; curExempleSubTab='accroches'; sbMode='notions';
   renderSB(); renderContent();
   focusAfterRender();
 }
@@ -2816,33 +2846,67 @@ function renderContent(){
       html+=pPlusCat('concept',cur,'Proposer un concept');
   }
   else if(curTab==='exemples'){
-    html+=`<div class="slabel">Exemples concrets mobilisables en dissertation</div>`;
-    n.exemples.forEach(e=>{
-      const tagColors={
-        'Littérature':'#534AB7','Cas clinique':'#D85A30','Science':'#1D9E75','Société':'#5F5E5A',
-        'Écologie':'#1D9E75','Anthropologie':'#3B6D11','Mythe — Cours':'#EF9F27','Mythe':'#EF9F27',
-        'Psychologie':'#534AB7','Philosophie':'#185FA5','Cinéma':'#D4537E','Histoire':'#993556',
-        'Contemporain':'#185FA5','Actualité':'#D85A30','Droit':'#5F5E5A','Cours — texte':'#EF9F27',
-        'Philosophie — Cours':'#185FA5','Histoire — Cours':'#993556','Actualité — Cours':'#D85A30',
-        'Texte — Cours':'#EF9F27','Droit — Cours':'#5F5E5A','Art contemporain':'#8B5E3C',
-        'Musique':'#8B5E3C','Psychanalyse — Cours':'#993556','Littérature — Cours':'#534AB7',
-        'Science — Cours':'#1D9E75','Psychologie — Cours':'#534AB7'
-      };
-      const tc=tagColors[e.tag]||c;
-      const newBadgeEx=e.new?`<span class="new-badge">✦ Nouveau</span>`:'';
-      const modBadgeEx=e.modified?`<span class="modified-badge">✎ Modifié</span>`:'';
-      const statusClassEx=e.new?' is-new':e.modified?' is-modified':'';
-      html+=`<div class="ex-card${statusClassEx}">
-        <div class="ex-head">
-          <span class="ex-tag" style="background:${(e.new||e.modified)?((e.new?'var(--color-new-bg)':'var(--color-mod-bg)')):tc+'18'};color:${(e.new||e.modified)?((e.new?'var(--color-new)':'var(--color-mod)')):tc};border:0.5px solid ${(e.new||e.modified)?((e.new?'var(--color-new-border)':'var(--color-mod-border)')):tc+'40'}">${e.tag}</span>
-          <span class="ex-title">${e.tit}</span>${newBadgeEx}${modBadgeEx}
-        </div>
-        <div class="ex-body">${linkTerms('<span>'+e.body+'</span>')}</div>
-        <div class="ex-lien">${e.lien}</div>
-        ${pPlus('correction','exemple',cur,e.tit)}
-      </div>`;
-    });
-    html+=pPlusCat('exemple',cur,'Proposer un exemple');
+    // Onglet « Exemples » = DEUX sous-onglets (curExempleSubTab) :
+    //   • 'exemples'  → exemples concrets mobilisables (n.exemples) ;
+    //   • 'accroches' → phrases d'accroche prêtes à l'emploi pour OUVRIR une
+    //     dissertation (n.accroches). Les accroches sont aussi indexées dans
+    //     la recherche globale (Ctrl+K, type 'accroche') ; activer un résultat
+    //     ouvre la notion sur ce sous-onglet et fait briller la bonne carte.
+    const exs=n.exemples||[];
+    const accs=n.accroches||[];
+    html+=`<div class="subtabs">
+      <button class="subtab${curExempleSubTab==='exemples'?' active':''}" onclick="curExempleSubTab='exemples';renderContent()">Exemples (${exs.length})</button>
+      <button class="subtab${curExempleSubTab==='accroches'?' active':''}" onclick="curExempleSubTab='accroches';renderContent()">Accroches (${accs.length})</button>
+    </div>`;
+    if(curExempleSubTab==='accroches'){
+      // ── Sous-onglet « Accroches » ──
+      // Cartes plus explicites (façon fiche concept) : un type (Citation,
+      // Paradoxe, Mythe…), l'amorce rédigée (a.t), une source facultative
+      // (a.src). data-acc=index → cible du scroll/flash venant de la recherche.
+      html+=`<div class="slabel">Phrases d'accroche prêtes pour ouvrir une dissertation</div>`;
+      if(!accs.length) html+=`<div style="color:var(--color-text-tertiary);font-size:12px;padding:6px 0 10px">Aucune accroche pour l'instant.</div>`;
+      accs.forEach((a,ai)=>{
+        const nb=a.new?`<span class="new-badge">✦ Nouveau</span>`:'';
+        const mb=a.modified?`<span class="modified-badge">✎ Modifié</span>`:'';
+        const sc=a.new?' is-new':a.modified?' is-modified':'';
+        html+=`<div class="accroche-card${sc}" data-acc="${ai}">
+          <div class="accroche-head">
+            <span class="accroche-type">${a.type||'Accroche'}</span>${nb}${mb}
+          </div>
+          <div class="accroche-body">${linkTerms('<span>'+a.t+'</span>')}</div>
+          ${a.src?`<div class="accroche-src">— ${linkTerms('<span>'+a.src+'</span>')}</div>`:''}
+        </div>`;
+      });
+    } else {
+      // ── Sous-onglet « Exemples » (vue historique inchangée) ──
+      html+=`<div class="slabel">Exemples concrets mobilisables en dissertation</div>`;
+      exs.forEach(e=>{
+        const tagColors={
+          'Littérature':'#534AB7','Cas clinique':'#D85A30','Science':'#1D9E75','Société':'#5F5E5A',
+          'Écologie':'#1D9E75','Anthropologie':'#3B6D11','Mythe — Cours':'#EF9F27','Mythe':'#EF9F27',
+          'Psychologie':'#534AB7','Philosophie':'#185FA5','Cinéma':'#D4537E','Histoire':'#993556',
+          'Contemporain':'#185FA5','Actualité':'#D85A30','Droit':'#5F5E5A','Cours — texte':'#EF9F27',
+          'Philosophie — Cours':'#185FA5','Histoire — Cours':'#993556','Actualité — Cours':'#D85A30',
+          'Texte — Cours':'#EF9F27','Droit — Cours':'#5F5E5A','Art contemporain':'#8B5E3C',
+          'Musique':'#8B5E3C','Psychanalyse — Cours':'#993556','Littérature — Cours':'#534AB7',
+          'Science — Cours':'#1D9E75','Psychologie — Cours':'#534AB7'
+        };
+        const tc=tagColors[e.tag]||c;
+        const newBadgeEx=e.new?`<span class="new-badge">✦ Nouveau</span>`:'';
+        const modBadgeEx=e.modified?`<span class="modified-badge">✎ Modifié</span>`:'';
+        const statusClassEx=e.new?' is-new':e.modified?' is-modified':'';
+        html+=`<div class="ex-card${statusClassEx}">
+          <div class="ex-head">
+            <span class="ex-tag" style="background:${(e.new||e.modified)?((e.new?'var(--color-new-bg)':'var(--color-mod-bg)')):tc+'18'};color:${(e.new||e.modified)?((e.new?'var(--color-new)':'var(--color-mod)')):tc};border:0.5px solid ${(e.new||e.modified)?((e.new?'var(--color-new-border)':'var(--color-mod-border)')):tc+'40'}">${e.tag}</span>
+            <span class="ex-title">${e.tit}</span>${newBadgeEx}${modBadgeEx}
+          </div>
+          <div class="ex-body">${linkTerms('<span>'+e.body+'</span>')}</div>
+          <div class="ex-lien">${e.lien}</div>
+          ${pPlus('correction','exemple',cur,e.tit)}
+        </div>`;
+      });
+      html+=pPlusCat('exemple',cur,'Proposer un exemple');
+    }
   }
   else if(curTab==='diss'){
     // Onglet « Dissertations » : remplace l'ancien onglet Axes et absorbe
@@ -6994,11 +7058,25 @@ const PALETTE_INDEX=(function(){
     out.push({type:'concept', id:c.id, label:c.term, sub:c.cat||'',
       color:col, norm:paletteNorm(c.term+' '+(c.cat||''))});
   });
+  // Accroches : phrases d'ouverture rangées dans l'onglet Exemples > Accroches
+  //   de chaque notion. id = "clé#index" (la clé ne contient pas de '#') →
+  //   paletteActivate route vers openNotionAccroche(clé, index). Label = texte
+  //   nu de l'accroche ; sous-titre = notion + type ; recherche = texte+source.
+  KEYS.forEach(k=>{
+    (D[k].accroches||[]).forEach((a,ai)=>{
+      const txt=stripHtml(a.t||'');
+      // Libellé affiché tronqué (les accroches sont de vraies phrases) ; la
+      // chaîne de recherche (norm) garde le texte complet + source.
+      const label=txt.length>88?txt.slice(0,87)+'…':txt;
+      out.push({type:'accroche', id:k+'#'+ai, label:label, sub:D[k].l+(a.type?' · '+a.type:''),
+        color:D[k].c, norm:paletteNorm(txt+' '+(a.src||'')+' '+D[k].l+' '+(a.type||''))});
+    });
+  });
   return out;
 })();
 
-const PALETTE_GROUPS={notion:'Notions', auteur:'Auteurs', concept:'Concepts'};
-const PALETTE_ORDER={notion:0, auteur:1, concept:2};
+const PALETTE_GROUPS={notion:'Notions', auteur:'Auteurs', concept:'Concepts', accroche:'Accroches'};
+const PALETTE_ORDER={notion:0, auteur:1, concept:2, accroche:3};
 
 /* État runtime. paletteResults = liste à plat des résultats affichés (dans
    l'ordre des groupes) ; paletteSel = index sélectionné au clavier. */
@@ -7086,6 +7164,12 @@ function paletteActivate(){
   if(e.type==='notion') openNotion(e.id);
   else if(e.type==='auteur') openAuthor(e.id);
   else if(e.type==='concept') openConcept(e.id);
+  else if(e.type==='accroche'){
+    // id = "clé#index" → ouvre la notion sur Exemples > Accroches et fait
+    // briller la carte ciblée.
+    const h=e.id.lastIndexOf('#');
+    openNotionAccroche(e.id.slice(0,h), +e.id.slice(h+1));
+  }
 }
 
 /* Câblage des interactions de la palette (saisie, clavier, clic, raccourci). */

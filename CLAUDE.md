@@ -56,6 +56,7 @@ version périmée.
   axes:[ {n,t,pb,sps:[{l,c,r}], new?, modified?}, … ],   // ANCIEN — migré en plans au chargement
   plans:[ {q, intro, pb, axes:[ {t, sps:[{t,args,auteurs,ref,limite}], limite}, … ], new?, modified?}, … ],
   exemples:[ {tag,tit,body,lien, new?, modified?}, … ],
+  accroches:[ {type,t,src?, new?, modified?}, … ],   // amorces de dissertation (sous-onglet d'Exemples)
   liens:["AutreNotion", …],
   diss:["Question ?", {q, new?, modified?}, … ]
 }
@@ -64,6 +65,22 @@ version périmée.
 **Onglets d'une notion** : `auteurs`, `textes`, `concepts`, `diss`
 (« Dissertations »), `exemples`. L'ancien onglet `axes` a été supprimé,
 remplacé par les **plans** dans l'onglet Dissertations.
+
+**Onglet « Exemples » — deux sous-onglets (`curExempleSubTab`, dans
+`data.js`).** « Exemples » (`exemples:[]`, cartes `.ex-card` — vue historique
+inchangée) et « Accroches » (`accroches:[]`, cartes `.accroche-card`). Une
+**accroche** = une **phrase d'ouverture rédigée, prête à recopier** pour
+amorcer une dissertation : `{type, t, src?, new?, modified?}` où `type` est un
+tag court (Citation, Paradoxe, Mythe, Actualité…), `t` le texte de l'amorce
+(passé par `linkTerms` → notions/concepts/auteurs cliquables), `src` la source
+facultative. Les accroches sont **indexées dans la recherche globale**
+(Ctrl/⌘+K) comme un nouveau type `accroche` (`PALETTE_INDEX` → `id` =
+`"cléNotion#index"`, `PALETTE_GROUPS.accroche='Accroches'`,
+`PALETTE_ORDER.accroche=3`) ; activer un résultat appelle
+`openNotionAccroche(clé, index)` qui ouvre la notion sur Exemples > Accroches,
+pose `pendingAccroche` et fait **briller** la carte ciblée
+(`.accroche-card[data-acc="i"]`) via `focusAfterRender()` / `scrollAndFlash()`.
+Toute **nouvelle** accroche porte `new:true`.
 
 **Format dissertation — plans (`plans:[]`).** Un plan = **1 sujet + 1
 problématique + 3 axes I/II/III**. Chaque axe a un titre, des
