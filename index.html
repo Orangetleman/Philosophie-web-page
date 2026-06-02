@@ -1081,6 +1081,25 @@ body:not(.is-signed-in) .topbar-mine{display:none}
    fixed) ; un voile assombri ferme le tiroir au clic.                  */
 /* Bande d'en-tête : burger (mobile) + crumbs sur la même ligne, alignés. */
 .topbar{display:flex;align-items:flex-start;gap:6px}
+/* Bandeau d'avertissement « contenu en construction » (en haut de la zone
+   principale, au-dessus du fil d'Ariane). Ton ambré discret ; .hide anime la
+   sortie (fermeture manuelle ou auto au bout d'1 min). */
+.notice-banner{flex-shrink:0;display:flex;align-items:center;gap:10px;
+  margin:6px 8px 4px;padding:8px 12px;
+  background:rgba(239,159,39,.12);border:0.5px solid rgba(239,159,39,.35);
+  border-radius:var(--border-radius-md);
+  color:var(--color-text-secondary);font-size:12px;line-height:1.45;
+  transition:opacity .3s ease,transform .3s ease}
+.notice-banner.hide{opacity:0;transform:translateY(-6px);pointer-events:none}
+.notice-banner-text{flex:1}
+.notice-banner-text strong{color:var(--color-text-primary);font-weight:600}
+.notice-banner-link{color:#EF9F27;text-decoration:underline;text-underline-offset:2px;
+  cursor:pointer;font-weight:500}
+.notice-banner-link:hover{opacity:.82}
+.notice-banner-close{flex-shrink:0;background:transparent;border:0;
+  color:var(--color-text-tertiary);font-size:18px;line-height:1;cursor:pointer;
+  padding:0 4px;border-radius:6px;font-family:inherit}
+.notice-banner-close:hover{color:var(--color-text-primary)}
 .sb-burger{display:none;width:32px;height:32px;flex-shrink:0;margin:6px 0 0 12px;
   align-items:center;justify-content:center;
   background:var(--color-background-secondary);color:var(--color-text-primary);
@@ -1262,6 +1281,14 @@ body.sb-open .sb-backdrop{display:block;opacity:1}
      classe restent identiques : le CSS et le JS (getElementById('main'))
      ne changent pas. -->
 <main class="main" id="main">
+  <!-- Bandeau d'avertissement « contenu en construction ». Réapparaît à CHAQUE
+       chargement (aucune persistance) ; se ferme via la croix ou disparaît seul
+       au bout d'une minute (initNotice / dismissNotice dans le <script>). Le mot
+       souligné renvoie à la partie « Proposer / éditer » de la visite guidée. -->
+  <div class="notice-banner" id="notice-banner" role="status">
+    <span class="notice-banner-text">⚠ Ce site est en construction par des élèves : son contenu peut être <strong>inexact ou incomplet</strong>. N'hésitez pas à <span class="notice-banner-link" role="link" tabindex="0" onclick="noticeOpenContribTour()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();noticeOpenContribTour()}">participer à son amélioration</span>.</span>
+    <button class="notice-banner-close" id="notice-banner-close" aria-label="Fermer l'avertissement" onclick="dismissNotice()">×</button>
+  </div>
   <!-- Bande d'en-tête : burger (mobile uniquement) + fil d'Ariane, alignés. -->
   <div class="topbar">
     <button class="sb-burger" id="sb-burger" aria-label="Ouvrir le menu" aria-controls="sb">☰</button>
@@ -5130,6 +5157,37 @@ function tourGoPart(part){
   if(idx>=0) startTour(idx, true);
 }
 
+/* ── Bandeau d'avertissement « contenu en construction » ─────────────────────
+   Réapparaît à CHAQUE chargement (aucune persistance, contrairement à
+   l'onboarding) ; deux façons de disparaître : la croix (dismissNotice) ou,
+   à défaut, automatiquement au bout d'une minute (timer posé par initNotice).
+   Le mot souligné ouvre la partie « Proposer / éditer » de la visite guidée. */
+let noticeTimer=null;   // id du minuteur d'auto-fermeture (null si déjà fermé)
+
+/* dismissNotice() — ferme le bandeau (anim de sortie puis retrait du DOM) et
+   annule le minuteur d'auto-fermeture s'il court encore. */
+function dismissNotice(){
+  const b=document.getElementById('notice-banner');
+  if(noticeTimer){ clearTimeout(noticeTimer); noticeTimer=null; }
+  if(!b) return;
+  b.classList.add('hide');                 // transition opacity/translate
+  setTimeout(()=>{ if(b&&b.parentNode) b.remove(); },300);
+}
+
+/* noticeOpenContribTour() — depuis le mot souligné : ferme le bandeau et ouvre
+   la partie « participation active » du tutoriel. */
+function noticeOpenContribTour(){
+  dismissNotice();
+  tourGoPart('proposer');
+}
+
+/* initNotice() — au chargement : arme la disparition automatique à 60 s. Le
+   bandeau est présent par défaut dans le HTML → visible à chaque rechargement. */
+function initNotice(){
+  if(!document.getElementById('notice-banner')) return;
+  noticeTimer=setTimeout(dismissNotice,60000);
+}
+
 /* endTour() — termine la visite : masque le DOM, retire les écouteurs,
    restaure le mode réel (un mode édition temporaire a pu être posé) et
    mémorise que la visite a été vue (plus d'auto-affichage). */
@@ -6230,6 +6288,7 @@ restoreDraftsFromStorage();   // new (Phase 3) : recharge le brouillon de propos
 renderSB();renderContent();
 initAuth();           // new (comptes) : récupère la session + s'abonne aux changements d'état
 tourStartIfFirst();   // visite guidée auto à la 1re venue (cf. module « Visite guidée »)
+initNotice();         // bandeau « contenu en construction » (auto-fermeture à 1 min)
 
 /* ── PWA — enregistrement du service worker + mise à jour automatique ──
    Le service worker rend le site installable et utilisable hors-ligne.
