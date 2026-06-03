@@ -88,6 +88,14 @@ copy .env.example .env
 > (elle ignore les règles RLS). Elle ne doit **jamais** finir dans le site
 > ni sur GitHub — uniquement dans ce `.env`, qui reste sur ton PC.
 
+**Migration Supabase (une seule fois)** — pour la synchro cross-plateforme
+(ci-dessous), lance le script `migrations/2026_aggregator_state.sql` dans
+l'éditeur SQL de Supabase (Dashboard → SQL Editor → coller → Run). Il ajoute
+les colonnes `aggregator_state` / `aggregator_updated_at` à la table
+`contributions` et en **interdit la lecture** aux contributeurs (notes
+internes). Sans cette migration, `sync`/`push` échoueront avec une erreur de
+colonne absente.
+
 ### Flux
 
 ```powershell
@@ -106,6 +114,7 @@ Le dashboard est un **cockpit** : toutes les commandes sont des boutons
 (plus besoin du terminal).
 
 - **Barre d'outils** (actions globales) : ☁ Récupérer (Supabase / `pull-cloud`),
+  🔄 Synchroniser (cloud / `sync`),
   ⬇ Récupérer (anonyme / `pull`), 🤖 Relire (IA / `review`),
   📤 Exporter (`export` du statut filtré), 🗄 Archiver intégrées
   (`integree` → `archivee`), 🗑 Purger archivées (destructeur, confirmation).
@@ -125,12 +134,33 @@ en ligne). Comme pour le reste de l'outil, **rien n'est écrit dans `data.js`**
 ici : la recopie finale dans le site reste une étape manuelle séparée (via
 `export` puis intégration dans une session Claude).
 
+### Synchro cross-plateforme (plusieurs machines)
+
+Tout l'état de tri (statut, note, avis IA de chaque boîte) est **miroité dans
+Supabase** (colonne `aggregator_state`). On peut donc consulter et reprendre
+le travail depuis **n'importe quelle machine** — y compris retrouver des
+contributions **déjà validées ailleurs** (que `pull-cloud`, filtré sur
+« en_attente », ne renvoie jamais).
+
+- **Push automatique** : valider / intégrer / rejeter / noter une boîte issue
+  d'un compte pousse aussitôt l'état complet de sa contribution vers Supabase.
+- **`sync`** (bouton **🔄 Synchroniser** ou `python aggregate.py sync`) :
+  récupère **toutes** les contributions, ingère les inconnues + **restaure leur
+  état**, et **arbitre** avec celles déjà connues par horodatage — *dernière
+  écriture gagne* (`aggregator_updated_at` côté cloud vs `state_updated_at`
+  local). Le local plus récent est au contraire **repoussé** vers le cloud.
+
+> Pensé pour **un seul mainteneur, une machine à la fois**. Sur une machine
+> neuve : lance `sync` → le tableau de bord se reconstruit entièrement depuis
+> Supabase. Les relectures IA faites localement remontent au `sync` suivant.
+
 ## Commandes
 
 | Commande | Rôle |
 |---|---|
 | `ingest [--dir D]` | parse les `.txt` de `inbox/`, insère, déplace |
 | `pull-cloud [--limit N]` | récupère les contributions Supabase (comptes), ingère (dédoublonné sur l'UUID, rejouable) |
+| `sync [--limit N]` | synchro cross-plateforme : récupère TOUTES les contributions, restaure leur état, arbitre local/cloud par horodatage (dans les 2 sens) |
 | `push <id>... [--explication T]` | renvoie le statut des contributions vers Supabase (ids de boîte → contribution) |
 | `pull [--limit N]` | (repli) récupère les propositions de la boîte anonyme, ingère, confirme (`ack`) |
 | `review [--limit N] [--redo] [--status S]` | pré-vérifie les boîtes avec Gemini (verdict IA) |

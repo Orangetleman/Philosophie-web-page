@@ -73,6 +73,23 @@ def remote_status_for(local_status):
     return LOCAL_TO_REMOTE.get(local_status)
 
 
+# Inverse de LOCAL_TO_REMOTE — sert à la SYNCHRO (cloud → local) pour les
+# contributions SANS `aggregator_state` (legacy, triées avant cette phase) :
+# on retombe alors sur le statut « contributeur » pour deviner un statut local
+# de repli, appliqué à toutes les boîtes de la contribution.
+REMOTE_TO_LOCAL = {
+    "en_attente": "en_attente",
+    "validee_en_cours": "validee",
+    "validee_integree": "integree",
+    "refusee": "rejetee",
+}
+
+
+def local_status_for_remote(remote_status):
+    """Statut local de repli pour un statut « contributeur », ou None."""
+    return REMOTE_TO_LOCAL.get(remote_status)
+
+
 def _base_url():
     """URL REST de Supabase sans « / » final (pour concaténer les routes)."""
     return localenv.require("SUPABASE_URL").rstrip("/") + "/rest/v1"
@@ -160,6 +177,67 @@ def pull_pending(limit=200):
     )
     _, body = _read(req)
     return json.loads(body)
+
+
+def pull_all(limit=1000):
+    """
+    Récupère TOUTES les contributions (quel que soit leur statut), des plus
+    anciennes aux plus récentes, avec en plus l'état de travail miroité
+    (`aggregator_state`, `aggregator_updated_at`). Sert à la SYNCHRO
+    cross-plateforme : sur une autre machine (ou après réinstallation), on
+    reconstruit le tableau de bord complet — y compris les contributions
+    déjà triées ailleurs (que `pull_pending`, filtré sur « en_attente »,
+    ne renvoie jamais).
+
+    Renvoie une liste de dicos :
+        {id, user_id, payload, statut, created_at,
+         aggregator_state, aggregator_updated_at}
+    `aggregator_state` est l'objet JSON (ou None si jamais poussé).
+    """
+    params = urllib.parse.urlencode({
+        "select": ("id,user_id,payload,statut,created_at,"
+                   "aggregator_state,aggregator_updated_at"),
+        "order": "created_at.asc",
+        "limit": int(limit),
+    })
+    req = urllib.request.Request(
+        f"{_base_url()}/{TABLE}?{params}",
+        headers=_headers(),
+        method="GET",
+    )
+    _, body = _read(req)
+    return json.loads(body)
+
+
+def set_aggregator_state(contrib_id, state_obj, updated_at):
+    """
+    Pousse vers Supabase l'état de travail complet d'UNE contribution
+    (colonne `aggregator_state` JSONB) + l'horodatage `aggregator_updated_at`.
+    C'est le miroir en ligne du SQLite local : il rend l'état consultable et
+    récupérable depuis n'importe quelle machine.
+
+    ⚠ Les colonnes doivent exister côté Supabase (migration à lancer UNE fois
+    dans l'éditeur SQL — voir migrations/2026_aggregator_state.sql) :
+        ALTER TABLE contributions ADD COLUMN aggregator_state jsonb;
+        ALTER TABLE contributions ADD COLUMN aggregator_updated_at timestamptz;
+    et, pour ne pas exposer les notes internes aux contributeurs :
+        REVOKE SELECT (aggregator_state) ON contributions FROM anon, authenticated;
+
+    Renvoie True si l'écriture a réussi (200/204).
+    """
+    payload = {
+        "aggregator_state": state_obj,          # sérialisé en JSON par json.dumps
+        "aggregator_updated_at": updated_at,
+    }
+    params = urllib.parse.urlencode({"id": f"eq.{contrib_id}"})
+    req = urllib.request.Request(
+        f"{_base_url()}/{TABLE}?{params}",
+        data=json.dumps(payload).encode("utf-8"),
+        headers=_headers({"Prefer": "return=minimal"}),
+        method="PATCH",
+    )
+    code, _ = _read(req)
+    return code in (200, 204)
 
 
 def set_status(contrib_id, statut, explication=None, avis_ia=None):

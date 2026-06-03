@@ -123,6 +123,34 @@ def cmd_pull_cloud(args):
     print(f"Boîtes ajoutées : {s['boxes']} (dont {s['dupes']} doublon(s) probable(s)).")
 
 
+def cmd_sync(args):
+    """
+    Synchronise l'état de travail avec Supabase dans les DEUX sens (phase 6).
+
+    Récupère TOUTES les contributions en ligne (pas seulement « en_attente ») :
+    ingère celles inconnues ici et restaure leur état miroité (statut/note/IA
+    par boîte), met à jour celles que l'autre machine a tranchées après nous,
+    et pousse vers le cloud celles que NOUS avons modifiées en dernier
+    (arbitrage « dernière écriture gagne » par horodatage). C'est ce qui rend
+    le tableau de bord cohérent et complet sur N'IMPORTE QUELLE machine.
+    """
+    import pipeline
+
+    s = pipeline.sync_cloud(limit=args.limit)
+    if s["items"] == 0:
+        print("(aucune contribution sur Supabase)")
+        return
+    for d in s["details"]:
+        rid, kind = d[0], d[1]
+        short = str(rid)[:8]
+        print(f"  {short} -> {kind}" + (f" : {d[2]}" if len(d) > 2 and d[2] else ""))
+    print()
+    print(f"Synchro : {s['items']} contribution(s) — "
+          f"{s['ingested']} ajoutée(s) ici (dont {s['restored']} avec état restauré), "
+          f"{s['pulled']} tirée(s) du cloud, {s['pushed']} poussée(s) vers le cloud, "
+          f"{s['skipped']} inchangée(s), {s['quarantine']} en quarantaine.")
+
+
 def cmd_push(args):
     """
     Renvoie vers Supabase le statut des contributions concernées, pour que
@@ -338,6 +366,14 @@ def build_parser():
     p.add_argument("--limit", type=int, default=200,
                    help="Nombre maxi à récupérer en une fois (défaut : 200).")
     p.set_defaults(func=cmd_pull_cloud)
+
+    # ── sync ──
+    p = sub.add_parser("sync",
+                       help="Synchroniser l'état de travail avec Supabase "
+                            "(2 sens : récupère TOUT + arbitre par horodatage).")
+    p.add_argument("--limit", type=int, default=1000,
+                   help="Nombre maxi de contributions à parcourir (défaut : 1000).")
+    p.set_defaults(func=cmd_sync)
 
     # ── push ──
     p = sub.add_parser("push",

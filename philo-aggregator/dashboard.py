@@ -372,6 +372,10 @@ def _page(status, verdict_filter, rows, flash=None):
         # Récupération : Supabase (comptes) puis boîte anonyme (PythonAnywhere).
         f'<form method="post" action="/pull-cloud">'
         f'<button class="toolbtn" type="submit">☁ Récupérer (Supabase)</button></form>',
+        # Synchro cross-plateforme : récupère TOUT (états validés ailleurs inclus)
+        # et arbitre local/cloud par horodatage (phase 6).
+        f'<form method="post" action="/sync">'
+        f'<button class="toolbtn" type="submit">🔄 Synchroniser (cloud)</button></form>',
         '<form method="post" action="/pull">'
         '<button class="toolbtn" type="submit">⬇ Récupérer (anonyme)</button></form>',
         # Relecture IA (par lot borné).
@@ -435,6 +439,20 @@ def _redirect_back(status, verdict_filter, msg=None):
     if msg:
         q["msg"] = msg
     return redirect("/?" + urllib.parse.urlencode(q))
+
+
+def _mirror_state(submission_id):
+    """
+    Pousse l'état de travail de la soumission vers Supabase (synchro
+    cross-plateforme), en silence et sans jamais planter la page : toute
+    erreur (réseau, config absente…) est avalée — le statut local, lui, est
+    déjà enregistré, et la synchro explicite « ☁ Synchroniser » rattrapera.
+    """
+    try:
+        import pipeline
+        pipeline.push_aggregator_state(submission_id)
+    except Exception:
+        pass
 
 
 @app.route("/")
@@ -521,6 +539,11 @@ def action():
         except Exception as e:  # réseau coupé, etc. : ne pas planter la page.
             msg += f" (erreur d'envoi : {e})"
 
+    # 3. Miroir de l'état de travail vers Supabase (synchro cross-plateforme).
+    #    Best-effort : on n'altère pas le message principal en cas d'échec.
+    if remote_id and sub_row:
+        _mirror_state(sub_row["submission_id"])
+
     return _redirect_back(status, verdict_filter, msg)
 
 
@@ -535,6 +558,13 @@ def note():
         return _redirect_back(status, verdict_filter, "Note : id manquant.")
     with db.connect() as conn:
         db.update_note(conn, box_id, text)
+        sub_row = conn.execute(
+            "SELECT s.id AS sid, s.remote_id FROM boxes b "
+            "JOIN submissions s ON b.submission_id = s.id WHERE b.id = ?",
+            (box_id,)).fetchone()
+    # Miroir de l'état vers Supabase (uniquement si la boîte vient d'un compte).
+    if sub_row and sub_row["remote_id"]:
+        _mirror_state(sub_row["sid"])
     return _redirect_back(status, verdict_filter, f"Note enregistrée sur #{box_id}.")
 
 
@@ -587,6 +617,29 @@ def pull_cloud_route():
     msg = (f"Supabase : {s['items']} contribution(s) reçue(s), "
            f"{s['ok']} ingérée(s) ({s['boxes']} boîte(s)), "
            f"{s['skipped']} déjà connue(s), {s['quarantine']} en quarantaine.")
+    return _redirect_back("en_attente", "all", msg)
+
+
+@app.route("/sync", methods=["POST"])
+def sync_route():
+    """
+    Synchronise l'état de travail avec Supabase dans les DEUX sens (phase 6) :
+    récupère TOUTES les contributions (pas seulement « en_attente »), ingère
+    les inconnues, restaure leur état miroité, et arbitre par horodatage avec
+    celles déjà connues (dernière écriture gagne). Permet de retrouver, sur
+    cette machine, les contributions déjà validées AILLEURS.
+    """
+    import pipeline
+    try:
+        s = pipeline.sync_cloud(limit=1000)
+    except SystemExit as e:
+        return _redirect_back("en_attente", "all", str(e))
+    msg = (f"Synchro ☁ : {s['items']} contribution(s) — "
+           f"{s['ingested']} ajoutée(s) ici (dont {s['restored']} avec état restauré), "
+           f"{s['pulled']} mise(s) à jour depuis le cloud, "
+           f"{s['pushed']} poussée(s) vers le cloud, "
+           f"{s['skipped']} inchangée(s)"
+           + (f", {s['quarantine']} en quarantaine" if s['quarantine'] else "") + ".")
     return _redirect_back("en_attente", "all", msg)
 
 

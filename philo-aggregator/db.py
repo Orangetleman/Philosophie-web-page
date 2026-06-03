@@ -197,8 +197,17 @@ def _migrate_boxes(conn):
 
 # Colonnes ajoutées après coup à la table `submissions` (lien Supabase,
 # phase 4). Même logique que _BOXES_ADDED_COLUMNS.
+#   remote_id        : UUID de la contribution Supabase (phase 4).
+#   state_updated_at : horodatage de la DERNIÈRE modification de l'état de
+#                      travail de la soumission (statut/note/IA d'une de ses
+#                      boîtes). Sert à la SYNCHRO CROSS-PLATEFORME (phase 6) :
+#                      on le compare à `aggregator_updated_at` côté Supabase
+#                      pour savoir qui, du local ou du cloud, est le plus
+#                      récent. NULL = jamais modifié localement (le cloud
+#                      l'emporte alors d'office).
 _SUBMISSIONS_ADDED_COLUMNS = (
     ("remote_id", "TEXT"),
+    ("state_updated_at", "TEXT"),
 )
 
 
@@ -304,6 +313,14 @@ def get_submission_box_statuses(conn, submission_id):
     """
     return [r["status"] for r in conn.execute(
         "SELECT status FROM boxes WHERE submission_id = ?",
+        (submission_id,),
+    )]
+
+
+def get_box_ids_for_submission(conn, submission_id):
+    """Renvoie la liste des id des boîtes d'une soumission (ordre position)."""
+    return [r["id"] for r in conn.execute(
+        "SELECT id FROM boxes WHERE submission_id = ? ORDER BY position",
         (submission_id,),
     )]
 
@@ -491,6 +508,7 @@ def update_status(conn, box_ids, new_status):
     else:
         sql = "UPDATE boxes SET status = ?, status_changed_at = ? WHERE id = ?"
     cur = conn.executemany(sql, [(new_status, ts, bid) for bid in box_ids])
+    _touch_submission_state(conn, box_ids)   # synchro cross-plateforme
     return cur.rowcount
 
 
@@ -501,6 +519,7 @@ def update_note(conn, box_id, note):
         "UPDATE boxes SET note = ? WHERE id = ?",
         (note, box_id),
     )
+    _touch_submission_state(conn, [box_id])   # synchro cross-plateforme
     return cur.rowcount
 
 
@@ -530,6 +549,7 @@ def set_ai_review(conn, box_id, verdict, review, user_message=None):
         "ai_user_message = ? WHERE id = ?",
         (verdict, review, now_iso(), user_message, box_id),
     )
+    _touch_submission_state(conn, [box_id])   # synchro cross-plateforme
     return cur.rowcount
 
 
@@ -576,3 +596,143 @@ def delete_archived(conn, before_iso=None):
         "(SELECT DISTINCT submission_id FROM boxes)"
     )
     return n_boxes
+
+
+# ────────── Synchro cross-plateforme (état de travail ↔ Supabase) ──────────
+# L'état de travail du mainteneur (statut, note, pré-vérif IA de chaque boîte)
+# vivait UNIQUEMENT dans ce SQLite local — donc invisible depuis une autre
+# machine. La phase 6 le miroite dans Supabase (colonne `aggregator_state`
+# JSONB de la table `contributions`) pour qu'il soit consultable et
+# récupérable partout. Ces helpers (dé)sérialisent l'état d'UNE soumission et
+# datent sa dernière modification locale (arbitrage local/cloud).
+
+
+def _touch_submission_state(conn, box_ids):
+    """
+    Met à jour `state_updated_at = maintenant` sur les SOUMISSIONS parentes
+    des boîtes données. Appelé après toute mutation de boîte (statut / note /
+    IA) pour dater l'état → permet, à la synchro, de savoir si le local est
+    plus récent que le cloud. `box_ids` peut être vide (no-op).
+    """
+    ids = [b for b in (box_ids or [])]
+    if not ids:
+        return
+    ph = ", ".join("?" for _ in ids)
+    conn.execute(
+        f"UPDATE submissions SET state_updated_at = ? "
+        f"WHERE id IN (SELECT DISTINCT submission_id FROM boxes WHERE id IN ({ph}))",
+        (now_iso(), *ids),
+    )
+
+
+def get_submission_id_by_remote(conn, remote_id):
+    """Renvoie l'id local de la soumission portant ce remote_id, ou None."""
+    if not remote_id:
+        return None
+    row = conn.execute(
+        "SELECT id FROM submissions WHERE remote_id = ? LIMIT 1",
+        (remote_id,),
+    ).fetchone()
+    return row["id"] if row else None
+
+
+def get_state_updated_at(conn, submission_id):
+    """Renvoie l'horodatage de dernière modif locale de l'état, ou None."""
+    row = conn.execute(
+        "SELECT state_updated_at FROM submissions WHERE id = ?",
+        (submission_id,),
+    ).fetchone()
+    return row["state_updated_at"] if row else None
+
+
+def serialize_submission_state(conn, submission_id):
+    """
+    Sérialise l'état de travail d'UNE soumission en un dico prêt à pousser
+    dans Supabase (colonne `aggregator_state`). Forme :
+
+        {
+          "v": 1,
+          "updated_at": "<state_updated_at local>",
+          "boxes": [
+            {"position": 0, "status": "validee", "note": "...",
+             "ai_verdict": "valide", "ai_review": "...",
+             "ai_user_message": "..."},
+            ...
+          ]
+        }
+
+    Les boîtes sont rangées par `position` — la MÊME clé stable que l'ingestion
+    réutilise (position = index de la boîte dans payload.boxes). C'est ce qui
+    permet, sur une autre machine, de ré-appliquer l'état à la bonne boîte
+    après avoir reconstruit les boîtes depuis le payload.
+    """
+    rows = conn.execute(
+        "SELECT position, status, note, ai_verdict, ai_review, ai_user_message "
+        "FROM boxes WHERE submission_id = ? ORDER BY position",
+        (submission_id,),
+    ).fetchall()
+    boxes = [{
+        "position": r["position"],
+        "status": r["status"],
+        "note": r["note"],
+        "ai_verdict": r["ai_verdict"],
+        "ai_review": r["ai_review"],
+        "ai_user_message": r["ai_user_message"],
+    } for r in rows]
+    return {
+        "v": 1,
+        "updated_at": get_state_updated_at(conn, submission_id),
+        "boxes": boxes,
+    }
+
+
+def apply_submission_state(conn, submission_id, state):
+    """
+    Applique un état `state` (forme ci-dessus, venu de Supabase) aux boîtes
+    locales de la soumission, en faisant correspondre par `position`. Écrit
+    DIRECTEMENT les colonnes (statut, note, pré-vérif IA) — sans passer par
+    update_status (qui, lui, EFFACERAIT l'IA sur un retour 'en_attente') :
+    ici on RESTAURE l'état exact tel qu'il était sur l'autre machine.
+
+    Recopie aussi `state["updated_at"]` dans `submissions.state_updated_at`
+    pour que le local et le cloud portent le même horodatage après restauration
+    (sinon la prochaine synchro les croirait désynchronisés).
+
+    Renvoie le nombre de boîtes mises à jour.
+    """
+    by_pos = {b.get("position"): b for b in (state or {}).get("boxes", [])
+              if isinstance(b, dict)}
+    if not by_pos:
+        return 0
+    local = conn.execute(
+        "SELECT id, position FROM boxes WHERE submission_id = ?",
+        (submission_id,),
+    ).fetchall()
+    n = 0
+    for r in local:
+        b = by_pos.get(r["position"])
+        if not b:
+            continue
+        status = b.get("status")
+        if status not in STATUSES:
+            continue  # statut illisible : on ne touche pas à cette boîte
+        conn.execute(
+            "UPDATE boxes SET status = ?, status_changed_at = ?, note = ?, "
+            "ai_verdict = ?, ai_review = ?, ai_reviewed_at = ?, "
+            "ai_user_message = ? WHERE id = ?",
+            (status, now_iso(),
+             (b.get("note") or None),
+             (b.get("ai_verdict") or None),
+             (b.get("ai_review") or None),
+             (now_iso() if b.get("ai_verdict") else None),
+             (b.get("ai_user_message") or None),
+             r["id"]),
+        )
+        n += 1
+    # Aligne l'horodatage local sur celui du cloud (état restauré = à jour).
+    if state and state.get("updated_at"):
+        conn.execute(
+            "UPDATE submissions SET state_updated_at = ? WHERE id = ?",
+            (state["updated_at"], submission_id),
+        )
+    return n
