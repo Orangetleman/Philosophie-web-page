@@ -6552,14 +6552,24 @@ function pickSession(n){
   const due=pool.filter(c=>isDue(c,h))
     .sort((a,b)=>((st.byHorizon[h][a.id].box||1)-(st.byHorizon[h][b.id].box||1)));
   const fresh=pool.filter(c=>!st.byHorizon[h][c.id]);
-  // Dédup par paire : on parcourt dans l'ordre de priorité et on ignore une
-  // carte dont la paire est déjà retenue (son sens inverse, p. ex.).
-  const seenPairs={}, pick=[];
+  // Dédup DOUBLE pour ne jamais montrer deux fois « la même carte » dans une
+  // session (retours BOX 14 puis BOX 33) :
+  //   1. par PAIRE  → écarte le sens inverse d'un même item (recto/verso) ;
+  //   2. par CONTENU → écarte une carte dont la QUESTION (type + recto) est
+  //      déjà présente sous une AUTRE paire. Indispensable : une même citation
+  //      rangée sous plusieurs notions (ex. Descartes « maîtres et possesseurs
+  //      de la nature » en nature ET technique), ou deux fiches concept de même
+  //      terme, produisent des cartes au contenu identique mais de paires
+  //      différentes — que la seule dédup par paire laissait passer.
+  const norm=s=>(s||'').replace(/\s+/g,' ').trim().toLowerCase();
+  const seenPairs={}, seenContent={}, pick=[];
   due.concat(fresh).forEach(c=>{
     if(pick.length>=n) return;
-    const key=c.pair||c.id;
-    if(seenPairs[key]) return;
-    seenPairs[key]=1; pick.push(c);
+    const pkey=c.pair||c.id;
+    if(seenPairs[pkey]) return;
+    const ckey=c.type+'|'+norm(c.recto);
+    if(seenContent[ckey]) return;
+    seenPairs[pkey]=1; seenContent[ckey]=1; pick.push(c);
   });
   // Léger mélange (Fisher-Yates partiel).
   for(let i=pick.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[pick[i],pick[j]]=[pick[j],pick[i]];}
