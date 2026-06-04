@@ -164,6 +164,10 @@ def compute_key_term(type_, cible, fields):
         return (f.get("axenom") or "").strip()
     if cible == "exemple":
         return (f.get("extitre") or f.get("excat") or "").strip()
+    if cible == "accroche":
+        # Discriminant = début du texte de l'accroche (ou son type à défaut).
+        s = (f.get("acctexte") or f.get("acctype") or "").strip()
+        return (s[:60] + "…") if len(s) > 60 else s
     if cible == "dissertation":
         q = (f.get("question") or "").strip()
         return (q[:60] + "…") if len(q) > 60 else q

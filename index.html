@@ -1056,7 +1056,7 @@ body:not(.is-signed-in) .topbar-mine{display:none}
 /* Boutons « + » de proposition injectés dans les vues (étape 1d).
    .pplus     : bouton d'angle sur une carte (apparaît au survol)
    .pplus-cat : bouton d'ajout en bas de chaque catégorie */
-.ac,.ti2,.axe-card,.ex-card,.dq,.def-box,.concept-def-box,
+.ac,.ti2,.axe-card,.ex-card,.accroche-card,.dq,.def-box,.concept-def-box,
 .idea-card,.cit-card,.oeuvre-card,.dial-card,.concept-card,.plan-card,.crel-card{position:relative}
 .pplus{position:absolute;bottom:5px;right:5px;width:19px;height:19px;padding:0;
   border-radius:50%;background:var(--color-background-info);
@@ -1069,6 +1069,7 @@ body:not(.is-signed-in) .topbar-mine{display:none}
 @media (hover:hover){
   .pplus{opacity:0}
   .ac:hover .pplus,.ti2:hover .pplus,.axe-card:hover .pplus,.ex-card:hover .pplus,
+  .accroche-card:hover .pplus,
   .dq:hover .pplus,.def-box:hover .pplus,.idea-card:hover .pplus,.cit-card:hover .pplus,
   .oeuvre-card:hover .pplus,.dial-card:hover .pplus,.concept-def-box:hover .pplus,
   .concept-card:hover .pplus,.plan-card:hover .pplus,.crel-card:hover .pplus{opacity:.5}
@@ -2951,8 +2952,10 @@ function renderContent(){
           </div>
           <div class="accroche-body">${linkTerms('<span>'+a.t+'</span>')}</div>
           ${a.src?`<div class="accroche-src">— ${linkTerms('<span>'+a.src+'</span>')}</div>`:''}
+          ${pPlus('correction','accroche',cur,a.type||'Accroche')}
         </div>`;
       });
+      html+=pPlusCat('accroche',cur,'Proposer une accroche');
     } else {
       // ── Sous-onglet « Exemples » (vue historique inchangée) ──
       html+=`<div class="slabel">Exemples concrets mobilisables en dissertation</div>`;
@@ -3250,7 +3253,8 @@ const PROPOSAL_SOUSCIBLES={
     {v:'texte',       l:'Texte du cours'},
     {v:'plan',        l:'Plan de dissertation'},
     {v:'dissertation',l:'Sujet de dissertation'},
-    {v:'exemple',     l:'Exemple'}
+    {v:'exemple',     l:'Exemple'},
+    {v:'accroche',    l:'Accroche (amorce de dissertation)'}
   ],
   auteur:[
     {v:'auteur',         l:'Idée / œuvre'},
@@ -3272,7 +3276,7 @@ const PROPOSAL_SOUSCIBLES={
 };
 // Catégorie d'une sous-cible (dispatch + rétro-compat des anciennes cibles).
 const CIBLE_CAT={
-  notion:'notion',texte:'notion',plan:'notion',dissertation:'notion',exemple:'notion',
+  notion:'notion',texte:'notion',plan:'notion',dissertation:'notion',exemple:'notion',accroche:'notion',
   auteur:'auteur','auteur-citation':'auteur','auteur-dialogue':'auteur','auteur-bio':'auteur',
   concept:'concept','concept-relation':'concept',
   // new: cibles de retour sur le site.
@@ -3546,6 +3550,16 @@ const PROPOSAL_FIELDS={
     {k:"extitre",l:"Titre de l'exemple",t:"text",r:true,ph:"ex. Auteur/idée — titre court"},
     {k:"excorps",l:"Description de l'exemple",t:"area",r:true},
     {k:"exlien",l:"Auteurs / idées associés",t:"text",r:false,ph:"ex. Descartes, doute méthodique"}
+  ],
+  // 'accroche' : amorce RÉDIGÉE prête à recopier pour ouvrir une dissertation
+  // → D[notion].accroches[] = {type, t, src?, new:true}. La notion vient du
+  // sélecteur (cible de catégorie 'notion'). acctype = tag court (Citation,
+  // Paradoxe, Mythe, Actualité…) ; acctexte = la phrase d'ouverture ; accsrc =
+  // source facultative.
+  accroche:[
+    {k:"acctype",l:"Type d'accroche",t:"text",r:true,ph:"ex. Citation, Paradoxe, Mythe, Actualité…"},
+    {k:"acctexte",l:"Phrase d'accroche (rédigée, prête à recopier)",t:"area",r:true,ph:"Une amorce qui ouvre sur le problème du sujet."},
+    {k:"accsrc",l:"Source (facultatif)",t:"text",r:false,ph:"ex. Pascal, Pensées"}
   ],
   dissertation:[
     {k:"question",l:"Question de dissertation",t:"text",r:true,ph:"ex. La liberté est-elle une illusion ?"}
@@ -3948,6 +3962,9 @@ function generateAjout(b,f){
     return 'À insérer dans D.'+nk+'.exemples[] :\n'
       +jsObj([['tag',tag],['tit',gv(f,'extitre')],['body',gv(f,'excorps')],['lien',gv(f,'exlien')]],true)+'\n';
   }
+  if(b.cible==='accroche')
+    return 'À insérer dans D.'+nk+'.accroches[] :\n'
+      +jsObj([['type',gv(f,'acctype')],['t',gv(f,'acctexte')],['src',gv(f,'accsrc')]],true)+'\n';
   if(b.cible==='dissertation')
     return 'À insérer dans D.'+nk+'.diss[] :\n'+jsObj([['q',gv(f,'question')]],true)+'\n';
   if(b.cible==='concept'){
@@ -4964,9 +4981,10 @@ const TOUR_STEPS=[
         +"références) et des <b>sujets</b> pour t’entraîner.",
     setup:()=>tourShowTab('diss'), target:()=>tourBoxEl('.plan-card, .dq','Dissertations') },
   { part:'fiches', side:'main', title:'Onglet Exemples',
-    text:"Des <b>exemples concrets</b> (œuvres, sciences, actualité…) prêts à être "
-        +"<b>réinvestis</b> en dissertation pour illustrer un argument — ce qui fait souvent "
-        +"la différence.",
+    text:"Deux sous-onglets. <b>Exemples</b> : des cas concrets (œuvres, sciences, "
+        +"actualité…) à <b>réinvestir</b> pour illustrer un argument. <b>Accroches</b> : des "
+        +"<b>phrases d’ouverture rédigées</b>, prêtes à recopier pour <b>amorcer</b> une "
+        +"dissertation (cherchables aussi via Ctrl + K).",
     setup:()=>tourShowTab('exemples'), target:()=>tourBoxEl('.ex-card','Exemples') },
 
   // ── Partie 2 : Les liens dynamiques ──

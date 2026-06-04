@@ -281,7 +281,7 @@ d'ouverture `.sb-propose` (« 💡 Proposer du contenu ») intégré à la sideb
   Chaque boîte a un **menu à 2 niveaux** + une action :
   - `categorie` (niveau 1) : `notion` / `auteur` / `concept` / `site` ;
   - `cible` (niveau 2 = sous-cible, clé de dispatch) :
-    - notion → `notion` (définition) / `texte` / `plan` / `dissertation` (sujet) / `exemple` ;
+    - notion → `notion` (définition) / `texte` / `plan` / `dissertation` (sujet) / `exemple` / `accroche` (amorce : `acctype`/`acctexte`/`accsrc` → `D[notion].accroches[]`) ;
     - auteur → `auteur` (idée/œuvre) / `auteur-citation` / `auteur-dialogue` / `auteur-bio` ;
     - concept → `concept` (définition) / `concept-relation` ;
     - site → `site-bug` (signaler une erreur) / `site-fonction` (proposer une fonctionnalité) ;

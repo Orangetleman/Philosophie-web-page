@@ -5,7 +5,7 @@ en attente, mises en forme pour être copiées dans une session Claude.
 Organisation du fichier généré :
   1. Un en-tête (date, compteurs, brève consigne pour Claude).
   2. Section NOTIONS  — boîtes 'notion', 'texte', 'axe', 'exemple',
-     'dissertation' groupées par notion d'attache.
+     'accroche', 'dissertation' groupées par notion d'attache.
   3. Section AUTEURS  — boîtes 'auteur' groupées par nom d'auteur.
   4. Section CONCEPTS — boîtes 'concept' groupées par terme.
 
@@ -90,6 +90,10 @@ FIELD_LABELS = {
     "extitre":    "Titre de l'exemple",
     "excorps":    "Description de l'exemple",
     "exlien":     "Auteurs / idées associés",
+    # accroche (amorce de dissertation)
+    "acctype":    "Type d'accroche",
+    "acctexte":   "Phrase d'accroche",
+    "accsrc":     "Source",
     # dissertation
     "question":   "Question de dissertation",
     # concept
@@ -131,6 +135,7 @@ CIBLE_LABELS = {
     "plan":              "plan de dissertation",
     "axe":               "axe",
     "exemple":           "exemple",
+    "accroche":          "accroche (amorce de dissertation)",
     "dissertation":      "sujet de dissertation",
     "concept":           "concept (définition)",
     "concept-relation":  "concept (relation)",

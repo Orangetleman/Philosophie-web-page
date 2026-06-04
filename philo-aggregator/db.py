@@ -45,7 +45,7 @@ CATEGORIES = ("notion", "auteur", "concept", "site")
 # dialogue / bio) et concept (relation). 'axe' reste pour les anciens .txt.
 # site-bug / site-fonction : retours sur le site (ajout ultérieur).
 CIBLES = (
-    "notion", "texte", "plan", "axe", "exemple", "dissertation",
+    "notion", "texte", "plan", "axe", "exemple", "accroche", "dissertation",
     "auteur", "auteur-citation", "auteur-dialogue", "auteur-bio",
     "concept", "concept-relation",
     "site-bug", "site-fonction",
