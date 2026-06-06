@@ -904,6 +904,26 @@ body.is-signed-in .sb-account{color:#7bd88f;border-color:rgba(123,216,143,.45)}
 .modal-close:hover{background:var(--color-background-secondary);color:var(--color-text-primary)}
 .modal-body{padding:18px;overflow-y:auto;font-size:13px;color:var(--color-text-secondary);line-height:1.6}
 
+/* ── Facette (courant d'auteur / catégorie de concept) ──────────────────
+   Étiquettes rendues CLIQUABLES (.facet-clickable) + petite liste en overlay
+   (réutilise .modal-overlay/.modal-panel). */
+.facet-clickable{cursor:pointer}
+.facet-clickable:hover{filter:brightness(1.18);text-decoration:underline;text-underline-offset:2px}
+.facet-title strong,.modal-title strong{color:var(--color-text-primary)}
+.facet-count{display:inline-block;min-width:18px;text-align:center;font-size:11px;font-weight:700;
+  color:var(--color-text-tertiary);background:var(--color-background-secondary);
+  border:0.5px solid var(--color-border-tertiary);border-radius:20px;padding:0 6px;margin-left:4px}
+.facet-body{padding:10px;overflow-y:auto;display:flex;flex-direction:column;gap:4px}
+.facet-item{display:flex;align-items:center;gap:9px;width:100%;text-align:left;cursor:pointer;
+  padding:9px 11px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);
+  background:var(--color-background-secondary);color:var(--color-text-primary);font-size:13px;
+  font-family:inherit;transition:all .12s}
+.facet-item:hover{background:var(--color-background-primary);border-color:var(--color-border-secondary)}
+.facet-dot{flex:0 0 auto;width:8px;height:8px;border-radius:50%;margin-top:4px}
+.facet-name{flex:1;display:flex;flex-direction:column;gap:1px}
+.facet-sub{font-size:11px;color:var(--color-text-tertiary);font-weight:400}
+.facet-empty{padding:14px;text-align:center;color:var(--color-text-tertiary);font-size:12.5px}
+
 /* ── Palette de recherche globale (Ctrl/⌘+K) ──────────────────────
    Recherche transversale (notions + auteurs + concepts) en superposition,
    façon « command palette ». Elle COMPLÈTE — sans la remplacer — la
@@ -1228,12 +1248,21 @@ body.sb-open .sb-backdrop{display:block;opacity:1}
    détail pas à pas dans des blocs dépliables (<details>) en dessous.
    Thème accent bleu (réutilise les variables du quiz) pour le démarquer. */
 .methodo-wrap{max-width:780px}
-.methodo-switch{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
-.methodo-switch button{flex:1 1 auto;min-height:40px;padding:8px 14px;border-radius:var(--border-radius-md);
-  border:0.5px solid var(--color-border-tertiary);background:var(--color-background-secondary);
-  color:var(--color-text-secondary);font-size:13px;font-weight:600;cursor:pointer;transition:all .15s}
-.methodo-switch button.active{background:var(--color-accent-quiz);border-color:var(--color-accent-quiz);color:#fff}
-.methodo-intro{font-size:13.5px;line-height:1.6;color:var(--color-text-secondary);margin-bottom:6px}
+/* En-tête épuré : un libellé discret + une bascule « segmentée » (segmented
+   control), bien plus légère que deux gros boutons. Le titre redondant (déjà
+   donné par l'onglet sélectionné + le fil d'Ariane) a été retiré. */
+.methodo-eyebrow{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;
+  color:var(--color-text-tertiary);margin-bottom:8px}
+.methodo-switch{display:flex;gap:4px;margin-bottom:18px;padding:4px;max-width:460px;
+  background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);
+  border-radius:11px}
+.methodo-switch button{flex:1;min-height:36px;padding:7px 12px;border:0;border-radius:8px;background:transparent;
+  color:var(--color-text-secondary);font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;
+  font-family:inherit;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.methodo-switch button:hover{color:var(--color-text-primary)}
+.methodo-switch button.active{background:var(--color-accent-quiz);color:#fff;box-shadow:0 1px 4px rgba(0,0,0,.25)}
+.methodo-intro{font-size:14px;line-height:1.62;color:var(--color-text-secondary);margin-bottom:6px}
+.methodo-intro b,.methodo-intro strong{color:var(--color-text-primary)}
 .methodo-sectitle{font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;
   color:var(--color-text-tertiary);margin:22px 0 10px}
 /* Squelette : pile verticale de « blocs de copie ». */
@@ -1368,6 +1397,19 @@ body.sb-open .sb-backdrop{display:block;opacity:1}
       <button class="modal-close" id="share-close" aria-label="Fermer">×</button>
     </div>
     <div class="modal-body" id="share-body"></div>
+  </div>
+</div>
+
+<!-- Facette : petite liste des auteurs d'un même courant / des concepts d'une
+     même catégorie. Ouverte par openFacet() au clic sur un courant ou un tag ;
+     contenu injecté dans #facet-body. Réutilise le style .modal-overlay. -->
+<div class="modal-overlay" id="facet-overlay" onclick="if(event.target===this)closeFacet()">
+  <div class="modal-panel facet-panel" role="dialog" aria-modal="true" aria-label="Éléments partageant cette étiquette" style="width:min(420px,94vw)">
+    <div class="modal-head">
+      <div class="modal-title" id="facet-title"></div>
+      <button class="modal-close" onclick="closeFacet()" aria-label="Fermer">×</button>
+    </div>
+    <div class="facet-body" id="facet-body"></div>
   </div>
 </div>
 
@@ -2302,7 +2344,7 @@ function renderConceptContent(){
 <div class="notion-head">
   <div>
     <div class="concept-title">${c.term}</div>
-    <span class="concept-cat-badge">${c.cat}</span>
+    ${c.cat?`<span class="concept-cat-badge facet-clickable" title="Voir les concepts de cette catégorie" onclick="openFacet('cat','${String(c.cat).replace(/'/g,"\\'")}')">${c.cat}</span>`:''}
   </div>
 </div>
 <div class="concept-def-box">${linkTerms(c.def)}${pPlus('correction','concept',c.notions.join(','),c.term,'')}</div>`;
@@ -2401,7 +2443,7 @@ const METHODO_GUIDE={
        phrases:["« On pourrait répondre que … ; pourtant, … »","« Le problème est donc de savoir si … ou si, au contraire, … »"],
        tip:"Une bonne problématique se reconnaît à ce qu'on <b>ne peut pas y répondre par oui ou non immédiatement</b>."},
       {t:"Construire le plan",
-       body:"<p>Trois moments qui <b>progressent</b> (chacun corrige le précédent), pas un simple « pour / contre / synthèse » plaqué. Chaque partie répond à la problématique d'une manière nouvelle. Le plan doit raconter une <b>avancée</b> de la pensée.</p>",
+       body:"<p>Trois parties (les correcteurs y tiennent) qui <b>progressent</b> — chacune corrige ou approfondit la précédente. Deux formes admises : le plan <b>dialectique</b> (thèse → objection → dépassement) et le plan <b>progressif</b> (on creuse la même question par paliers de plus en plus fins). Jamais un « pour / contre / synthèse » plaqué : chaque partie répond à la problématique d'une manière <b>nouvelle</b>.</p>",
        phrases:["I. réponse spontanée — II. objection qui la limite — III. distinction qui dépasse","« Ce qui était vrai en … ne l'est plus dès lors que … »"],
        tip:"Teste ton plan : si on peut <b>inverser deux parties sans rien changer</b>, c'est qu'il ne progresse pas."},
       {t:"Rédiger l'introduction",
@@ -2412,7 +2454,7 @@ const METHODO_GUIDE={
        body:"<p>Une sous-partie = <b>une seule idée</b>, développée en trois temps :</p>"
           +"<p><b>1. Affirmer</b> la thèse (la phrase-idée). <b>2. Expliquer</b> : le raisonnement qui la justifie (le <i>pourquoi</i>). <b>3. Illustrer</b> : un exemple précis ou un <b>auteur</b> qui l'incarne. On termine par une <b>transition</b> vers la suite.</p>",
        phrases:["« En effet, … » (l'explication) puis « Par exemple, … » / « Comme le montre … »","« Mais cette thèse se heurte à … , ce qui nous conduit à … » (transition)"],
-       tip:"Un exemple n'est jamais là pour décorer : il doit <b>prouver</b> l'idée. Explique toujours <b>en quoi</b> il la prouve."},
+       tip:"Un exemple n'est jamais là pour décorer : il doit <b>prouver</b> l'idée — explique toujours <b>en quoi</b>. Une référence par sous-partie suffit (≈ <b>5 auteurs au maximum</b> sur la copie) : on <b>mobilise</b> un auteur, on ne récite pas le cours."},
       {t:"Rédiger la conclusion",
        body:"<p>Trois temps : <b>bilan</b> du chemin parcouru (sans tout répéter), <b>réponse</b> nette à la problématique, et une <b>ouverture</b> (nouvelle question, prolongement) — jamais une question vague.</p>",
        phrases:["« Au terme de ce parcours, il apparaît que … »","« Reste alors à se demander si … »"],
@@ -2475,7 +2517,7 @@ function renderMethodoContent(){
   const g=METHODO_GUIDE[methodoTopic]||METHODO_GUIDE.dissertation;
   // Bascule entre les deux parcours (boutons en tête de zone principale).
   const switchHTML=METHODO_TOPICS.map(t=>
-    `<button class="${t.id===methodoTopic?'active':''}" onclick="methodoTopic='${t.id}';renderSB();renderMethodoContent();">${t.label}</button>`
+    `<button class="${t.id===methodoTopic?'active':''}" role="tab" aria-selected="${t.id===methodoTopic}" onclick="methodoTopic='${t.id}';renderSB();renderMethodoContent();">${t.label}</button>`
   ).join('');
   // Squelette : une ligne par bloc de copie (vue d'ensemble de la structure).
   const skelHTML=g.squelette.map(s=>
@@ -2494,8 +2536,8 @@ function renderMethodoContent(){
   }).join('');
 
   mc.innerHTML=`<div class="methodo-wrap">
-    <div class="methodo-switch">${switchHTML}</div>
-    <div class="notion-head"><h1 style="margin:0">${g.titre}</h1></div>
+    <div class="methodo-eyebrow">Je révise la méthode de…</div>
+    <div class="methodo-switch" role="tablist" aria-label="Choisir la méthode">${switchHTML}</div>
     <p class="methodo-intro">${linkTerms('<span>'+g.intro+'</span>')}</p>
     <div class="methodo-sectitle">La copie en un coup d'œil</div>
     <div class="methodo-skel">${skelHTML}</div>
@@ -2510,6 +2552,72 @@ function renderMethodoContent(){
                       (liens .an-link dans les cartes auteur, pills dans
                       la fiche concept, noms dans l'onglet Dialogues…).  */
 function tab(id){pushHistory();curTab=id;renderContent()}
+
+/* ── Facette « courant » / « catégorie » (regrouper par étiquette) ──────────
+   Cliquer le COURANT d'un auteur (sous son nom) ou la CATÉGORIE d'un concept
+   (badge/tag) ouvre une petite liste de tous ceux qui PARTAGENT cette
+   étiquette — chacun cliquable vers sa fiche. Pratique en révision : « montre-
+   moi tous les stoïciens », « tous les concepts de métaphysique »…
+     kind = 'courant' → on liste les AUTEURS dont AM[nom].courant === value
+     kind = 'cat'     → on liste les CONCEPTS dont c.cat === value
+   L'overlay réutilise le style .modal-overlay ; openAuthor/openConcept ferment
+   d'abord la facette puis ouvrent la fiche. */
+function openFacet(kind,value){
+  const ov=document.getElementById('facet-overlay');
+  const body=document.getElementById('facet-body');
+  const titleEl=document.getElementById('facet-title');
+  if(!ov||!body||!titleEl) return;
+  value=String(value||'');
+  let items='', label='', n=0;
+  if(kind==='courant'){
+    label='Courant';
+    const col=CC[value]||'#888';
+    // Les courants sont souvent COMPOSÉS (« Théorie critique / Sociologie ») et
+    // quasi uniques. Pour que le clic regroupe vraiment, on rapproche les
+    // auteurs qui partagent un MOT SIGNIFICATIF du courant (≥ 5 lettres, hors
+    // « philosophie » trop générique) : tous les « rationalismes », les
+    // « idéalismes », les « phénoménologies »… se retrouvent ainsi ensemble.
+    // L'auteur au courant EXACTEMENT identique passe en tête ; le courant
+    // propre de chacun est affiché en sous-ligne (pour la transparence).
+    const toks=s=>s.toLowerCase().split(/[^a-zà-ÿ]+/).filter(w=>w.length>=5&&w!=='philosophie');
+    const wanted=new Set(toks(value));
+    const names=Object.keys(AI).filter(nm=>{
+      const c=(AM[nm]||{}).courant||'';
+      if(!c) return false;
+      if(c===value) return true;
+      return toks(c).some(w=>wanted.has(w));
+    }).sort((a,b)=>{
+      const ea=((AM[a]||{}).courant||'')===value?0:1, eb=((AM[b]||{}).courant||'')===value?0:1;
+      return ea!==eb?ea-eb:a.localeCompare(b,'fr');
+    });
+    n=names.length;
+    items=names.map(nm=>{
+      const c=(AM[nm]||{}).courant||'';
+      const ccol=CC[c]||col;
+      return `<button class="facet-item" onclick="closeFacet();openAuthor('${nm.replace(/'/g,"\\'")}')">`
+        +`<span class="facet-dot" style="background:${ccol}"></span>`
+        +`<span class="facet-name">${nm}<span class="facet-sub">${c}</span></span></button>`;
+    }).join('');
+  } else { // 'cat' : concepts d'une même catégorie (repères inclus si cat='Repère')
+    label='Catégorie';
+    const cs=CONCEPTS.filter(c=>(c.cat||'')===value).sort((a,b)=>a.term.localeCompare(b.term,'fr'));
+    n=cs.length;
+    items=cs.map(c=>{
+      const col=(c.notions&&c.notions[0]&&D[c.notions[0]])?D[c.notions[0]].c:'#888';
+      const sub=(c.notions||[]).map(k=>D[k]?D[k].l:'').filter(Boolean).join(' · ');
+      return `<button class="facet-item" onclick="closeFacet();openConcept('${c.id.replace(/'/g,"\\'")}')">`
+        +`<span class="facet-dot" style="background:${col}"></span>`
+        +`<span class="facet-name">${c.term}${sub?`<span class="facet-sub">${sub}</span>`:''}</span></button>`;
+    }).join('');
+  }
+  titleEl.innerHTML=`${label} : <strong>${value}</strong> <span class="facet-count">${n}</span>`;
+  body.innerHTML=items||'<div class="facet-empty">Aucun élément.</div>';
+  ov.classList.add('open');
+}
+/* closeFacet() — referme l'overlay de facette. */
+function closeFacet(){ const ov=document.getElementById('facet-overlay'); if(ov) ov.classList.remove('open'); }
+// Échap referme la facette (comme les autres overlays ; no-op si déjà fermée).
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeFacet(); });
 
 /* ── Fil d'Ariane — navigation hiérarchique cliquable ─────────────────
    renderCrumbs() peuple #crumbs selon l'état (sbMode, cur, curTab,
@@ -2648,7 +2756,7 @@ function renderAuthorContent(){
   <div>
     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
       <div class="author-title">${curAuthor}</div>
-      ${meta.courant?`<span class="author-courant" style="background:${cc}18;color:${cc};border:0.5px solid ${cc}40">${meta.courant}</span>`:''}
+      ${meta.courant?`<span class="author-courant facet-clickable" style="background:${cc}18;color:${cc};border:0.5px solid ${cc}40" title="Voir les auteurs de ce courant" onclick="openFacet('courant','${String(meta.courant).replace(/'/g,"\\'")}')">${meta.courant}</span>`:''}
     </div>
     <div style="display:flex;gap:3px;align-items:center;margin-top:5px">${notionBdgs}<span style="font-size:10px;color:var(--color-text-tertiary);margin-left:4px">${entry.notions.length} notion${entry.notions.length>1?'s':''}</span></div>
   </div>
@@ -2909,7 +3017,7 @@ function renderContent(){
         html+=`<div class="concept-card${statusCls}">
           <div class="cc-head">
             <span class="cc-term" onclick="openConcept('${safeId}')">${c.term} →</span>
-            <span class="cc-cat">${c.cat||''}</span>${nb}${mb}
+            ${c.cat?`<span class="cc-cat facet-clickable" title="Voir les concepts de cette catégorie" onclick="event.stopPropagation();openFacet('cat','${String(c.cat).replace(/'/g,"\\'")}')">${c.cat}</span>`:''}${nb}${mb}
           </div>
           <div class="cc-def">${linkTerms(c.def||'')}</div>
           ${lien?`<div class="cc-lien"><span class="cc-lien-label">Lien avec ${n.l} :</span> ${linkTerms('<span>'+lien+'</span>')}</div>`:''}
