@@ -5318,11 +5318,11 @@ function noticeOpenContribTour(){
   tourGoPart('proposer');
 }
 
-/* initNotice() — au chargement : arme la disparition automatique à 60 s. Le
+/* initNotice() — au chargement : arme la disparition automatique à 30 s. Le
    bandeau est présent par défaut dans le HTML → visible à chaque rechargement. */
 function initNotice(){
   if(!document.getElementById('notice-banner')) return;
-  noticeTimer=setTimeout(dismissNotice,60000);
+  noticeTimer=setTimeout(dismissNotice,30000);
 }
 
 /* endTour() — termine la visite : masque le DOM, retire les écouteurs,

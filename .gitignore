@@ -8,3 +8,6 @@
 # Caches Python de l'agrégateur.
 __pycache__/
 *.pyc
+
+# Cours manuscrits (PDF) : on ne veut pas les versionner, mais ils sont souvent dans le dossier de travail.
+cours_manuscrits/
