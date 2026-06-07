@@ -376,6 +376,22 @@ a ses champs d'idée à plat (v1) ou dans `ideas[]` sans `notion`/`citations`
 - **Fil d'Ariane** cliquable (`renderCrumbs()`, bloc `#crumbs` dans `.topbar`)
   façon explorateur : chaque segment ramène à son niveau ; `goMode(mode)`
   bascule entre les 3 modes de sidebar.
+- **Persistance de la position** (résiste à l'actualisation + cross-plateforme).
+  La position courante (`{sbMode, cur, curTab, curConceptSubTab,
+  curExempleSubTab, curAuthor, curAuthorTab, curConcept, methodoTopic}`) est
+  écrite dans `localStorage` (`philo-nav`) à chaque rendu via `persistNav()`
+  (appelé en tête de `renderCrumbs`, commun aux 4 vues). Au démarrage,
+  `restoreNavFromStorage()` (avant le 1er rendu) ré-applique la position, et
+  `renderCurrentView()` rend la bonne vue selon `sbMode` (même aiguillage que
+  `goBack`). `applyNavState(s)` **valide** la cible (la notion/fiche doit encore
+  exister) avant de l'appliquer — sinon repli sur les valeurs par défaut.
+  **Cross-plateforme** : `philo-nav` est inclus dans `prefsBlobForSync().nav`
+  (table Supabase `preferences`) ; `applyPrefsBlob` **adopte** la position
+  distante **uniquement si l'utilisateur n'a pas encore navigué** sur cet
+  appareil (`navTouched`, mis à `true` dans `pushHistory`) — pour ne jamais le
+  « téléporter » en pleine lecture ni écraser sa position locale. La poussée
+  vers le cloud ne se fait elle aussi qu'après une vraie navigation
+  (`navTouched`), via `syncOnPrefsChange()` (debouncé).
 - **Mode révision / édition** (localStorage `philo-mode`) : par défaut
   *révision* (rendu épuré — badges `new`/`modified`, boutons `+` et
   `.sb-propose` cachés via `body:not(.mode-edition)`) ; *édition* révèle tout.

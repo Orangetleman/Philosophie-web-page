@@ -1701,12 +1701,19 @@ const CC={
    vue (notion, auteur, concept) par les fonctions renderContent* .     */
 let navHistory=[];
 let _navigating=false; // évite les boucles lors du goBack
+// navTouched : l'utilisateur a-t-il navigué depuis le chargement ? (mis à true
+// dans pushHistory). Sert à la PERSISTANCE DE POSITION (philo-nav) : on ne
+// pousse vers le cloud qu'après une vraie navigation, et on n'ADOPTE une
+// position distante (autre appareil) que si l'utilisateur n'a pas encore bougé
+// ici — pour ne jamais le « téléporter » en pleine lecture.
+let navTouched=false;
 
 /* pushHistory() — empile l'état d'affichage courant (mode, notion, onglets,
    auteur, concept) dans la pile de navigation, pour le bouton Retour. Ignore
    les doublons et les appels survenant pendant un goBack (drapeau _navigating). */
 function pushHistory(){
   if(_navigating) return;
+  navTouched=true;   // une navigation utilisateur a eu lieu (cf. persistNav / adoption distante)
   const last=navHistory[navHistory.length-1];
   // Ne pas pousser si on est déjà sur la même page
   if(last&&last.sbMode===sbMode&&last.cur===cur&&last.curTab===curTab
@@ -1742,6 +1749,79 @@ function updateBackBtn(){
     btn.disabled=navHistory.length===0;
     btn.title=navHistory.length?`Retour (${navHistory.length} page${navHistory.length>1?'s':''} dans l'historique)`:'Aucune page précédente';
   });
+}
+
+/* ── Persistance de la POSITION (résiste à l'actualisation + cross-plateforme) ──
+   On mémorise « où l'on est » (mode sidebar + fiche + onglet) dans localStorage
+   (philo-nav) à chaque rendu, et — pour les comptes connectés — on l'inclut dans
+   les préférences synchronisées (prefsBlobForSync.nav). Ainsi : un rafraîchissement
+   rouvre la même page, et un autre appareil reprend là où on s'était arrêté.
+   Liste des onglets de notion (validation à la restauration). */
+const NOTION_TABS=['auteurs','textes','concepts','diss','exemples'];
+
+/* renderCurrentView() — (re)rend la vue correspondant au sbMode courant.
+   Même aiguillage que goBack ; factorisé pour la restauration et le démarrage. */
+function renderCurrentView(){
+  if(sbMode==='auteurs'&&curAuthor) renderAuthorContent();
+  else if(sbMode==='concepts'||sbMode==='reperes') renderConceptContent();
+  else if(sbMode==='methodo') renderMethodoContent();
+  else renderContent();
+}
+
+/* navStateNow() — capture la position courante sous forme d'objet sérialisable. */
+function navStateNow(){
+  return {sbMode,cur,curTab,curConceptSubTab,curExempleSubTab,
+          curAuthor,curAuthorTab,curConcept,methodoTopic};
+}
+
+/* persistNav() — sauvegarde la position dans localStorage à chaque rendu (donc
+   à chaque navigation). Si l'utilisateur a réellement navigué (navTouched) et
+   qu'il est connecté, la synchro des préférences (debouncée) emportera aussi la
+   position vers le cloud. Appelée depuis renderCrumbs (commun aux 4 vues). */
+function persistNav(){
+  try{ localStorage.setItem('philo-nav', JSON.stringify(navStateNow())); }catch(e){}
+  if(navTouched && typeof syncOnPrefsChange==='function') syncOnPrefsChange();
+}
+
+/* applyNavState(s) — applique une position (locale ou distante) aux variables
+   globales, APRÈS validation (la cible doit toujours exister — une notion/fiche
+   a pu disparaître entre deux versions). Renvoie true si une position valide a
+   été appliquée, false sinon (on garde alors les valeurs par défaut). */
+function applyNavState(s){
+  if(!s||typeof s!=='object') return false;
+  const m=s.sbMode;
+  if(m==='notions'){
+    if(!s.cur||!D[s.cur]) return false;
+    cur=s.cur; sbMode='notions';
+    curTab=NOTION_TABS.includes(s.curTab)?s.curTab:'auteurs';
+    if(s.curConceptSubTab) curConceptSubTab=s.curConceptSubTab;
+    if(s.curExempleSubTab) curExempleSubTab=s.curExempleSubTab;
+    return true;
+  }
+  if(m==='auteurs'){
+    if(!s.curAuthor||!AI[s.curAuthor]) return false;
+    curAuthor=s.curAuthor; curAuthorTab=s.curAuthorTab||'idees'; sbMode='auteurs';
+    return true;
+  }
+  if(m==='concepts'||m==='reperes'){
+    const c=CONCEPTS.find(x=>x&&x.id===s.curConcept);
+    if(!c) return false;
+    curConcept=s.curConcept; sbMode=m;
+    return true;
+  }
+  if(m==='methodo'){
+    methodoTopic=(METHODO_TOPICS.find(t=>t.id===s.methodoTopic))?s.methodoTopic:'dissertation';
+    sbMode='methodo';
+    return true;
+  }
+  return false;
+}
+
+/* restoreNavFromStorage() — au démarrage : recharge la position sauvegardée.
+   Renvoie true si une position valide a été restaurée. */
+function restoreNavFromStorage(){
+  let s; try{ s=JSON.parse(localStorage.getItem('philo-nav')||'null'); }catch(e){ return false; }
+  return applyNavState(s);
 }
 
 /* backBtnHTML() — renvoie le HTML du bouton Retour (désactivé si la pile
@@ -2627,6 +2707,7 @@ document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeFacet(); });
    Style « explorateur Windows » : on clique sur n'importe quel niveau
    pour y revenir directement. Le dernier segment (en cours) est inerte. */
 function renderCrumbs(){
+  persistNav();   // mémorise la position courante (résiste à l'actualisation + cloud)
   const el=document.getElementById('crumbs'); if(!el) return;
   // Helper : un segment. cur=true → segment « courant » (non cliquable).
   const seg=(label,act,arg,cur)=>cur
@@ -6155,12 +6236,14 @@ function quizBlobForSync(){
 /* prefsBlobForSync() — préférences synchronisées (petites) + le brouillon de
    proposition en cours (philo-drafts), qui voyage ici faute de table dédiée. */
 function prefsBlobForSync(){
-  let drafts=null;
+  let drafts=null,nav=null;
   try{ drafts=JSON.parse(localStorage.getItem('philo-drafts')||'null'); }catch(e){}
+  try{ nav=JSON.parse(localStorage.getItem('philo-nav')||'null'); }catch(e){}
   return {
     mode: localStorage.getItem('philo-mode')||'revision',
     tour: localStorage.getItem('philo-tour-v1')||'',
-    drafts: drafts
+    drafts: drafts,
+    nav: nav     // position courante (cross-plateforme : reprendre où l'on en était)
   };
 }
 
@@ -6172,6 +6255,14 @@ function applyPrefsBlob(p){
   if(p.mode) localStorage.setItem('philo-mode',p.mode);
   if(p.tour) localStorage.setItem('philo-tour-v1',p.tour);
   applyPhiloMode();
+  // Position distante (cross-plateforme) : on ne l'adopte QUE si l'utilisateur
+  // n'a pas encore navigué sur cet appareil (navTouched). Sinon sa position
+  // locale fait foi — on ne le « téléporte » jamais en pleine lecture, et on
+  // n'écrase pas non plus son philo-nav local.
+  if(p.nav && !navTouched){
+    try{ localStorage.setItem('philo-nav', JSON.stringify(p.nav)); }catch(e){}
+    if(applyNavState(p.nav)){ renderSB(); renderCurrentView(); }
+  }
 }
 
 /* adoptRemoteDrafts() — recopie le brouillon du compte dans le stockage local
@@ -6422,7 +6513,8 @@ function syncResetState(){
    renderSB()      → construit la sidebar avec la première notion active
    renderContent() → affiche le contenu de cette première notion        */
 restoreDraftsFromStorage();   // new (Phase 3) : recharge le brouillon de proposition local
-renderSB();renderContent();
+restoreNavFromStorage();      // position survit à l'actualisation (philo-nav)
+renderSB();renderCurrentView();
 initAuth();           // new (comptes) : récupère la session + s'abonne aux changements d'état
 tourStartIfFirst();   // visite guidée auto à la 1re venue (cf. module « Visite guidée »)
 initNotice();         // bandeau « contenu en construction » (auto-fermeture à 1 min)
