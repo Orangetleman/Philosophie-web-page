@@ -392,6 +392,13 @@ a ses champs d'idée à plat (v1) ou dans `ideas[]` sans `notion`/`citations`
   « téléporter » en pleine lecture ni écraser sa position locale. La poussée
   vers le cloud ne se fait elle aussi qu'après une vraie navigation
   (`navTouched`), via `syncOnPrefsChange()` (debouncé).
+- **Historique « ← Retour » persistant** (local, par appareil). La pile
+  `navHistory` est sauvegardée dans `localStorage` (`philo-navhist`) à chaque
+  changement (dans `updateBackBtn`, appelée par `pushHistory`/`goBack`) et
+  rechargée au démarrage par `restoreNavHistory()` (entrées invalides filtrées
+  via `navEntryValid`). Le bouton **Retour fonctionne donc même après une
+  actualisation**. L'historique reste **local** (non synchronisé) : c'est un
+  fil de session propre à l'appareil, contrairement à la position.
 - **Mode révision / édition** (localStorage `philo-mode`) : par défaut
   *révision* (rendu épuré — badges `new`/`modified`, boutons `+` et
   `.sb-propose` cachés via `body:not(.mode-edition)`) ; *édition* révèle tout.

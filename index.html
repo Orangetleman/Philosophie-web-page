@@ -1749,6 +1749,9 @@ function updateBackBtn(){
     btn.disabled=navHistory.length===0;
     btn.title=navHistory.length?`Retour (${navHistory.length} page${navHistory.length>1?'s':''} dans l'historique)`:'Aucune page précédente';
   });
+  // Persiste la pile « Retour » (résiste à l'actualisation). updateBackBtn est
+  // appelée à chaque changement de la pile (pushHistory / goBack).
+  try{ localStorage.setItem('philo-navhist', JSON.stringify(navHistory)); }catch(e){}
 }
 
 /* ── Persistance de la POSITION (résiste à l'actualisation + cross-plateforme) ──
@@ -1822,6 +1825,26 @@ function applyNavState(s){
 function restoreNavFromStorage(){
   let s; try{ s=JSON.parse(localStorage.getItem('philo-nav')||'null'); }catch(e){ return false; }
   return applyNavState(s);
+}
+
+/* navEntryValid(s) — une entrée d'historique pointe-t-elle encore vers une
+   cible existante ? (sans muter l'état). Sert à nettoyer l'historique restauré. */
+function navEntryValid(s){
+  if(!s) return false;
+  if(s.sbMode==='notions') return !!D[s.cur];
+  if(s.sbMode==='auteurs') return !!(s.curAuthor&&AI[s.curAuthor]);
+  if(s.sbMode==='concepts'||s.sbMode==='reperes') return !!CONCEPTS.find(x=>x&&x.id===s.curConcept);
+  if(s.sbMode==='methodo') return true;
+  return false;
+}
+
+/* restoreNavHistory() — au démarrage : recharge la PILE « ← Retour »
+   (philo-navhist) pour que le bouton Retour survive à l'actualisation. Local
+   seulement (l'historique est propre à l'appareil ; la position, elle, se
+   synchronise). Entrées invalides (cible disparue) filtrées. */
+function restoreNavHistory(){
+  let arr; try{ arr=JSON.parse(localStorage.getItem('philo-navhist')||'null'); }catch(e){ return; }
+  if(Array.isArray(arr)) navHistory=arr.filter(navEntryValid).slice(-50);
 }
 
 /* backBtnHTML() — renvoie le HTML du bouton Retour (désactivé si la pile
@@ -6514,6 +6537,7 @@ function syncResetState(){
    renderContent() → affiche le contenu de cette première notion        */
 restoreDraftsFromStorage();   // new (Phase 3) : recharge le brouillon de proposition local
 restoreNavFromStorage();      // position survit à l'actualisation (philo-nav)
+restoreNavHistory();          // pile « ← Retour » survit aussi (philo-navhist)
 renderSB();renderCurrentView();
 initAuth();           // new (comptes) : récupère la session + s'abonne aux changements d'état
 tourStartIfFirst();   // visite guidée auto à la 1re venue (cf. module « Visite guidée »)
