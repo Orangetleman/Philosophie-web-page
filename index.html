@@ -1777,6 +1777,14 @@ function navStateNow(){
           curAuthor,curAuthorTab,curConcept,methodoTopic};
 }
 
+/* sameNav(a,b) — deux états désignent-ils la même page ? (champs « cœur »,
+   ceux que goBack restaure ; les sous-onglets sont ignorés). */
+function sameNav(a,b){
+  return !!a&&!!b&&a.sbMode===b.sbMode&&a.cur===b.cur&&a.curTab===b.curTab
+    &&a.curAuthor===b.curAuthor&&a.curAuthorTab===b.curAuthorTab
+    &&a.curConcept===b.curConcept&&a.methodoTopic===b.methodoTopic;
+}
+
 /* persistNav() — sauvegarde la position dans localStorage à chaque rendu (donc
    à chaque navigation). Si l'utilisateur a réellement navigué (navTouched) et
    qu'il est connecté, la synchro des préférences (debouncée) emportera aussi la
@@ -6282,9 +6290,22 @@ function applyPrefsBlob(p){
   // n'a pas encore navigué sur cet appareil (navTouched). Sinon sa position
   // locale fait foi — on ne le « téléporte » jamais en pleine lecture, et on
   // n'écrase pas non plus son philo-nav local.
-  if(p.nav && !navTouched){
-    try{ localStorage.setItem('philo-nav', JSON.stringify(p.nav)); }catch(e){}
-    if(applyNavState(p.nav)){ renderSB(); renderCurrentView(); }
+  if(p.nav && !navTouched && !sameNav(p.nav, navStateNow())){
+    // Avant de basculer sur la page d'un AUTRE appareil, on empile la page
+    // LOCALE courante dans l'historique : ainsi « ← Retour » ramène à là où CET
+    // appareil en était (la page distante ne fait pas disparaître la locale).
+    // On n'effleure PAS navTouched : l'appareil reste un spectateur passif et
+    // continue d'adopter les mises à jour distantes suivantes.
+    const localBefore=navStateNow();
+    if(applyNavState(p.nav)){
+      try{ localStorage.setItem('philo-nav', JSON.stringify(p.nav)); }catch(e){}
+      const top=navHistory[navHistory.length-1];
+      if(navEntryValid(localBefore) && !sameNav(top,localBefore)){
+        navHistory.push(localBefore);
+        if(navHistory.length>50) navHistory.shift();
+      }
+      renderSB(); renderCurrentView(); updateBackBtn();
+    }
   }
 }
 

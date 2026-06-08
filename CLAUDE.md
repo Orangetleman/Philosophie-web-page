@@ -398,7 +398,12 @@ a ses champs d'idée à plat (v1) ou dans `ideas[]` sans `notion`/`citations`
   rechargée au démarrage par `restoreNavHistory()` (entrées invalides filtrées
   via `navEntryValid`). Le bouton **Retour fonctionne donc même après une
   actualisation**. L'historique reste **local** (non synchronisé) : c'est un
-  fil de session propre à l'appareil, contrairement à la position.
+  fil de session propre à l'appareil, contrairement à la position. **Mais**
+  quand un appareil ADOPTE la position d'un autre (cross-plateforme), sa page
+  locale courante est **empilée dans l'historique** (`applyPrefsBlob`, sans
+  toucher `navTouched`) : « ← Retour » ramène alors à là où CET appareil en
+  était — la page distante ne fait pas disparaître la locale. `sameNav(a,b)`
+  compare deux états (champs « cœur ») pour la déduplication.
 - **Mode révision / édition** (localStorage `philo-mode`) : par défaut
   *révision* (rendu épuré — badges `new`/`modified`, boutons `+` et
   `.sb-propose` cachés via `body:not(.mode-edition)`) ; *édition* révèle tout.
