@@ -6836,14 +6836,33 @@ function pickSession(n){
   //      terme, produisent des cartes au contenu identique mais de paires
   //      différentes — que la seule dédup par paire laissait passer.
   const norm=s=>(s||'').replace(/\s+/g,' ').trim().toLowerCase();
+  // En mode QCM, seules certaines directions donnent un vrai QCM (déf→concept,
+  // citation→auteur). Sans ce correctif, la dédup par paire gardait la direction
+  // « retournement » (concept→déf) et le QCM n'apparaissait JAMAIS. On PRÉFÈRE
+  // donc la variante éligible AU SEIN d'une paire (même item, même priorité de
+  // révision : on échange juste le SENS), par remplacement de l'entrée déjà prise.
+  const qcm=quizState.mode==='qcm';
+  const QCM_OK=c=>c.type==='def-concept'||c.type==='cite-author';
   const seenPairs={}, seenContent={}, pick=[];
   due.concat(fresh).forEach(c=>{
-    if(pick.length>=n) return;
     const pkey=c.pair||c.id;
-    if(seenPairs[pkey]) return;
     const ckey=c.type+'|'+norm(c.recto);
+    if(pkey in seenPairs){
+      // Paire déjà retenue : en QCM, si cette variante est éligible et que celle
+      // gardée ne l'est pas, on échange (la carte devient un QCM, sans changer
+      // l'item ni sa place dans la file).
+      if(qcm && QCM_OK(c)){
+        const idx=seenPairs[pkey], old=pick[idx];
+        if(old && !QCM_OK(old) && !seenContent[ckey]){
+          delete seenContent[old.type+'|'+norm(old.recto)];
+          pick[idx]=c; seenContent[ckey]=1;
+        }
+      }
+      return;
+    }
+    if(pick.length>=n) return;
     if(seenContent[ckey]) return;
-    seenPairs[pkey]=1; seenContent[ckey]=1; pick.push(c);
+    seenPairs[pkey]=pick.length; seenContent[ckey]=1; pick.push(c);
   });
   // Léger mélange (Fisher-Yates partiel).
   for(let i=pick.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[pick[i],pick[j]]=[pick[j],pick[i]];}
