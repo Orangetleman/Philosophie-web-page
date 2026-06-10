@@ -407,7 +407,13 @@ a ses champs d'idée à plat (v1) ou dans `ideas[]` sans `notion`/`citations`
 - **Mode révision / édition** (localStorage `philo-mode`) : par défaut
   *révision* (rendu épuré — badges `new`/`modified`, boutons `+` et
   `.sb-propose` cachés via `body:not(.mode-edition)`) ; *édition* révèle tout.
-  Toggle `.sb-mode` en bas de sidebar.
+  La bascule vit dans le **menu « ⚙ Réglages »** (bouton `.sb-settings` en bas
+  de sidebar → overlay `#settings-overlay`, `openSettings`/`renderSettingsBody`),
+  qui regroupe les fonctions non nécessaires à la révision. Le toggle y est
+  **explicite** : le bouton nomme le **mode-cible** (l'action) et le **mode
+  actuel** est rappelé au-dessus (avant, un bouton `.sb-mode` affichait l'état
+  courant, ambigu). `applyPhiloMode()` pose la classe `body.mode-edition` et
+  rafraîchit le menu s'il est ouvert ; `togglePhiloMode()` bascule + synchronise.
 - **PWA** : `manifest.json` + `sw.js` + `icon.svg`, enregistrés depuis
   `index.html`. Installable et hors-ligne. **Stratégie de cache mixte** :
   HTML/JS de même origine (le « code », qui change à chaque déploiement) en

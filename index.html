@@ -527,14 +527,20 @@ body{font-family:'Inter',system-ui,sans-serif;background:#121212;height:100vh;he
   text-align:center;cursor:pointer;outline:none;transition:filter .15s}
 .sb-propose:hover{filter:brightness(1.3)}
 /* Toggle Révision / Édition — petit bouton en bas de sidebar, persistant. */
-.sb-mode{flex-shrink:0;margin:6px 8px 10px;padding:6px 8px;
+.sb-mode,.sb-settings{flex-shrink:0;margin:6px 8px 10px;padding:7px 8px;
   background:transparent;border:0.5px solid var(--color-border-tertiary);
   border-radius:var(--border-radius-md);color:var(--color-text-tertiary);
-  font-family:inherit;font-size:10px;font-weight:500;letter-spacing:.02em;
+  font-family:inherit;font-size:11px;font-weight:500;letter-spacing:.02em;
   cursor:pointer;outline:none;text-align:center;transition:all .15s}
-.sb-mode:hover{color:var(--color-text-info);border-color:var(--color-border-info)}
-body.mode-edition .sb-mode{color:var(--color-text-info);
-  border-color:var(--color-border-info);background:var(--color-background-info)}
+.sb-mode:hover,.sb-settings:hover{color:var(--color-text-info);border-color:var(--color-border-info)}
+/* En mode édition, le bouton Réglages porte un liseré accent (rappel discret). */
+body.mode-edition .sb-settings{color:var(--color-text-info);border-color:var(--color-border-info)}
+/* Lignes du menu Réglages. */
+.set-row{display:flex;flex-direction:column;gap:8px}
+.set-row-cur{font-size:13px;color:var(--color-text-secondary)}
+.set-row-cur strong{color:var(--color-text-primary)}
+.set-row-desc{font-size:12px;line-height:1.5;color:var(--color-text-tertiary)}
+.set-mode-btn{align-self:flex-start}
 /* En mode RÉVISION (défaut), on cache les badges et boutons de contribution
    pour offrir un rendu épuré aux élèves. Tout est révélé en mode édition. */
 body:not(.mode-edition) .new-badge,
@@ -1417,6 +1423,18 @@ body.sb-open .sb-backdrop{display:block;opacity:1}
   </div>
 </div>
 
+<!-- Réglages : petit menu des fonctions non nécessaires à la révision
+     (bascule du mode d'affichage, etc.). Ouvert par .sb-settings (renderSB). -->
+<div class="modal-overlay" id="settings-overlay" onclick="if(event.target===this)closeSettings()">
+  <div class="modal-panel" role="dialog" aria-modal="true" aria-label="Réglages" style="width:min(440px,94vw)">
+    <div class="modal-head">
+      <div class="modal-title">⚙ Réglages</div>
+      <button class="modal-close" onclick="closeSettings()" aria-label="Fermer">×</button>
+    </div>
+    <div class="modal-body" id="settings-body"></div>
+  </div>
+</div>
+
 <!-- Mode quiz : overlay plein écran (le bouton d'ouverture .sb-quiz est
      créé dans la sidebar par renderSB). Le contenu (dashboard / session /
      fin) est injecté en JS dans #quiz-body par renderQuiz(). -->
@@ -1967,15 +1985,17 @@ function renderSB(){
   }
   list.innerHTML='';
 
-  // ── Toggle Révision / Édition (bas de la sidebar, persistant) ──
-  // Créé une seule fois, conservé entre les rendus.
-  let modeBtn=sb.querySelector('.sb-mode');
-  if(!modeBtn){
-    modeBtn=document.createElement('button');
-    modeBtn.className='sb-mode';
-    modeBtn.title="Bascule entre le mode révision (élève, épuré) et le mode édition (badges + boutons de contribution visibles)";
-    modeBtn.onclick=togglePhiloMode;
-    sb.appendChild(modeBtn);
+  // ── Bouton « ⚙ Réglages » (bas de la sidebar, persistant) ──
+  // Regroupe les fonctions NON nécessaires à la révision (bascule du mode
+  // d'affichage, etc.). Remplace l'ancien bouton « Mode » peu lisible.
+  let settingsBtn=sb.querySelector('.sb-settings');
+  if(!settingsBtn){
+    settingsBtn=document.createElement('button');
+    settingsBtn.className='sb-settings';
+    settingsBtn.innerHTML='⚙ Réglages';
+    settingsBtn.title='Réglages (mode d\'affichage…)';
+    settingsBtn.onclick=openSettings;
+    sb.appendChild(settingsBtn);
   }
   // new (comptes) : zone compte, tout en bas, persistante comme le reste.
   // Déconnecté → DEUX boutons (Se connecter / Créer un compte) ; connecté →
@@ -4988,10 +5008,10 @@ function closeSidebar(){document.body.classList.remove('sb-open')}
 function applyPhiloMode(){
   const m=localStorage.getItem('philo-mode')||'revision';
   document.body.classList.toggle('mode-edition', m==='edition');
-  const btn=document.querySelector('.sb-mode');
-  if(btn) btn.innerHTML = m==='edition'
-    ? '<span style="opacity:.9">✎</span> Mode édition'
-    : '<span style="opacity:.55">👁</span> Mode révision';
+  // Le toggle vit désormais dans le menu « Réglages » : on le rafraîchit s'il
+  // est ouvert (pour que le libellé suive l'état).
+  const ov=document.getElementById('settings-overlay');
+  if(ov && ov.classList.contains('open')) renderSettingsBody();
 }
 function togglePhiloMode(){
   const cur=localStorage.getItem('philo-mode')||'revision';
@@ -4999,6 +5019,27 @@ function togglePhiloMode(){
   applyPhiloMode();
   syncOnPrefsChange();        // new (Phase 2) : reporte la préférence vers le compte si connecté
 }
+
+/* ── Menu « ⚙ Réglages » ─────────────────────────────────────────────────
+   Regroupe les fonctions NON nécessaires à la révision. Le toggle de mode y
+   est rendu EXPLICITE : le bouton nomme le mode-CIBLE (l'action), avec le mode
+   ACTUEL rappelé en petit au-dessus (avant, le bouton affichait le mode courant
+   et l'on ne savait pas si c'était un bouton ou un état). */
+function renderSettingsBody(){
+  const body=document.getElementById('settings-body'); if(!body) return;
+  const isEd=(localStorage.getItem('philo-mode')||'revision')==='edition';
+  body.innerHTML=
+    '<div class="set-row">'
+    +'<div class="set-row-cur">Mode d\'affichage actuel : <strong>'+(isEd?'Édition':'Révision')+'</strong></div>'
+    +'<div class="set-row-desc">Le mode <em>édition</em> révèle les badges « ✦ nouveau / ✎ modifié » et les boutons « + » pour proposer du contenu. Le mode <em>révision</em> épure l\'affichage pour se concentrer sur l\'apprentissage.</div>'
+    +'<button class="pbtn pbtn-primary set-mode-btn" onclick="togglePhiloMode()">'
+      +(isEd?'👁 Revenir au mode révision':'✎ Passer en mode édition')+'</button>'
+    +'</div>';
+}
+/* openSettings / closeSettings — ouvre/ferme l'overlay de réglages. */
+function openSettings(){ const ov=document.getElementById('settings-overlay'); if(!ov) return; renderSettingsBody(); ov.classList.add('open'); }
+function closeSettings(){ const ov=document.getElementById('settings-overlay'); if(ov) ov.classList.remove('open'); }
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeSettings(); });
 
 /* ══════════════════════════════════════════════════════════════════
    VISITE GUIDÉE (onboarding nouvelle génération)
@@ -5338,10 +5379,11 @@ const TOUR_STEPS=[
   // Les 2 premières étapes restent dans la barre latérale (mode édition +
   // bouton) ; les suivantes OUVRENT la modale de contribution (tourOpenProposal)
   // et détaillent les 3 menus en cascade, les champs, l'empilement et l'envoi.
-  { part:'proposer', side:'sidebar', title:'Le mode édition',
-    text:"Ce bouton bascule en <b>mode édition</b> : il fait apparaître partout de petits boutons "
-        +"<b>+</b> sur les cartes (cachés par défaut pour un rendu épuré).",
-    setup:tourShowNotion, target:()=>document.querySelector('.sb-mode') },
+  { part:'proposer', side:'sidebar', title:'Réglages → mode édition',
+    text:"Dans <b>⚙ Réglages</b>, tu peux passer en <b>mode édition</b> : il fait apparaître partout "
+        +"de petits boutons <b>+</b> sur les cartes (cachés par défaut pour un rendu épuré), pour "
+        +"proposer des corrections ciblées.",
+    setup:tourShowNotion, target:()=>document.querySelector('.sb-settings') },
   { part:'proposer', side:'sidebar', title:'Proposer du contenu',
     text:"En mode édition, <b>💡 Proposer du contenu</b> ouvre une fenêtre pour suggérer un "
         +"<b>ajout</b>, une <b>correction</b> ou une <b>remarque</b>. Ouvrons-la pour la découvrir.",
