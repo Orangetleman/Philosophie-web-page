@@ -4375,6 +4375,7 @@ function copyProposal(){
    page (le navigateur délègue au gestionnaire de courrier) ; la modale
    reste donc ouverte derrière. */
 function sendProposal(){
+  if(!proposalGuardOk()) return;   // même garde-fou pour l'envoi par email manuel
   const subject='Proposition — Graphe Philosophie Terminale';
   window.location.href='mailto:'+PROPOSAL_EMAIL
     +'?subject='+encodeURIComponent(subject)
@@ -4478,7 +4479,47 @@ function sendProposalToSupabase(){
    - Édition d'un envoi « en attente » (connecté) → UPDATE de la ligne Supabase.
    - Connecté (nouvelle proposition) → Supabase (suivi du statut possible).
    - Non connecté → ancienne boîte PythonAnywhere (envoi anonyme, sans suivi). */
+/* ── Validation des champs obligatoires avant envoi ─────────────────────────
+   Avant, on pouvait envoyer une proposition même si des champs obligatoires
+   étaient vides (aucun avertissement). proposalMissing() reconstruit la liste
+   des champs requis MANQUANTS en miroir des règles de renderBoxFields (selon
+   catégorie × cible × type), et proposalGuardOk() bloque l'envoi en l'affichant. */
+function proposalEmpty(v){ return !String(v==null?'':v).trim(); }
+function proposalMissing(){
+  const miss=[];
+  proposalBoxes.forEach((b,bi)=>{
+    const f=b.f||{}, cat=b.categorie||cibleCat(b.cible), isAjout=b.type==='ajout';
+    const add=l=>miss.push('Boîte '+(bi+1)+' — '+l);
+    if(cat==='site'){ (PROPOSAL_FIELDS[b.cible]||[]).forEach(d=>{ if(d.r&&proposalEmpty(f[d.k])) add(d.l); }); return; }
+    if(b.type==='remarque'){ if(proposalEmpty(f.remtexte)) add('Votre remarque'); return; }
+    // ajout / correction : rattachement notion requis (ajout) selon la cible
+    if(isAjout && cat==='notion' && b.cible!=='concept' && proposalEmpty(f.notion)) add('Notion');
+    if(isAjout && b.cible==='auteur-citation' && proposalEmpty(f.notion)) add('Notion');
+    if(b.type==='correction' && proposalEmpty(f.cibleref)) add('Élément précis à corriger');
+    if(b.cible==='auteur'){           // idée/œuvre : nom + (par idée) œuvre & idée
+      if(isAjout && proposalEmpty(f.nom)) add('Nom de l\'auteur');
+      if(isAjout) (f.ideas||[]).forEach((it,i)=>{ PROPOSAL_FIELDS.auteur.forEach(d=>{ if(d.r&&proposalEmpty(it&&it[d.k])) add('idée '+(i+1)+' : '+d.l); }); });
+      return;
+    }
+    if(isAjout && cat==='auteur' && proposalEmpty(f.nom)) add('Nom de l\'auteur');  // citation/dialogue/bio
+    (PROPOSAL_FIELDS[b.cible]||[]).forEach(d=>{ if(isAjout&&d.r&&proposalEmpty(f[d.k])) add(d.l); });
+  });
+  return miss;
+}
+/* proposalGuardOk() — true si tout est rempli ; sinon affiche la liste des
+   manques (zone #psend-status) et renvoie false (l'appelant abandonne l'envoi). */
+function proposalGuardOk(){
+  const miss=proposalMissing();
+  if(!miss.length) return true;
+  const status=document.getElementById('psend-status');
+  const msg='⚠ Champs obligatoires manquants — '+miss.slice(0,8).join(' ; ')+(miss.length>8?' …':'');
+  if(status){ status.textContent=msg; status.style.color='#e74c3c'; try{ status.scrollIntoView({behavior:'smooth',block:'center'}); }catch(e){} }
+  else alert(msg);
+  return false;
+}
+
 function submitProposalOnline(){
+  if(!proposalGuardOk()) return;   // bloque si des champs obligatoires sont vides
   if(SB && authUser && editingContribId) updateProposalInSupabase();
   else if(SB && authUser) sendProposalToSupabase();
   else sendProposalOnline();
@@ -7006,7 +7047,7 @@ function renderQuizDashboard(){
       <button class="${quizState.mode==='cards'?'active':''}" onclick="setQuizMode('cards')">🃏 Cartes</button>
       <button class="${quizState.mode==='qcm'?'active':''}" onclick="setQuizMode('qcm')">📝 QCM</button>
     </div>
-    ${quizState.mode==='qcm'?`<div class="quiz-meta-lbl" style="margin-top:5px">Le QCM s'applique aux cartes Déf→concept et Citation→auteur ; les autres restent en cartes.</div>`:''}
+    ${quizState.mode==='qcm'?`<div class="quiz-meta-lbl" style="margin-top:5px">En QCM, la session privilégie les cartes à choix (Définition→concept, Citation→auteur) ; les rares autres restent à retourner.</div>`:''}
   </div>
   <div>
     <div class="quiz-section-lbl">Filtrer ${quizFiltersEmpty()?'':`<button class="quiz-reset" style="float:right;margin:0" onclick="clearQuizFilters()">tout effacer</button>`}</div>
