@@ -225,9 +225,12 @@ séquence : si `mode==='core'`, `tourShowDecision()` affiche l'écran « Tu conn
 l'essentiel — voir le détail ? » (`tourDecisionHTML`, voile uniforme, bulle
 centrée, CSS `.tour-ctrl-decision`) → `tourContinueDetailed()` enchaîne en
 `mode='detail'` ; sinon `endTour()`. Démarrages : `tourStartIfFirst()` lance
-`startTour(0, false, 'core')` (1re venue) ; le bouton **?** → « Refaire toute la
-visite » lance `startTour(0, false, 'full')` ; « Aller à une partie »
-(`tourGoPart`) part en `'full'` (jumped). Le **noyau mentionne déjà** où relancer
+`startTour(0, false, 'core')` (1re venue) ; le bouton **?** → « Recommencer la
+visite » relance **aussi** en `'core'` (même expérience que la 1re fois : noyau
+puis proposition du détail — par cohérence) ; « Aller à une partie »
+(`tourGoPart`) part en `'full'` (jumped, pour circuler librement entre toutes les
+parties). Le mode `'full'` (42 étapes d'affilée) ne sert donc plus qu'aux sauts
+ciblés. Le **noyau mentionne déjà** où relancer
 la visite (le bouton **?**) et le menu **⚙ Réglages** (étape « Réglages & aide »,
 partie `nav`).
 
