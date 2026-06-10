@@ -211,6 +211,26 @@ dans son mode** via `tourShowSidebarMode(mode)` (recale `curAuthor`/`curConcept`
 ou rend le guide, rend sidebar + contenu) et met en valeur la **liste**
 (`#sb .sidebar-list`), pas le seul bouton d'onglet.
 
+**Visite « noyau + détail optionnel ».** Le 1er passage ne joue que le **noyau**
+(l'essentiel pour naviguer) puis propose la **visite détaillée**. Chaque étape
+porte (ou non) `core:true`, posé en bloc par l'IIFE `markTourCore()` :
+parties `welcome`/`liens`/`nav` entières, les étapes `fiches` **côté sidebar**
+(les 5 portes), et la **1re** étape de `reviser`. `tourState.mode` ∈
+`'core' | 'detail' | 'full'` et `tourState.decision` (vrai pendant l'écran de
+choix). `tourSeq()` renvoie les **indices actifs** selon le mode (core→`core`,
+detail→`!core`, full→tout) ; **toute la navigation opère sur cette séquence**
+(`tourNext`/`tourPrev`/`tourSkipPart`/`tourJumpPart`, et les pastilles de
+`tourProgressHTML` ne montrent que les parties de la séquence). En fin de
+séquence : si `mode==='core'`, `tourShowDecision()` affiche l'écran « Tu connais
+l'essentiel — voir le détail ? » (`tourDecisionHTML`, voile uniforme, bulle
+centrée, CSS `.tour-ctrl-decision`) → `tourContinueDetailed()` enchaîne en
+`mode='detail'` ; sinon `endTour()`. Démarrages : `tourStartIfFirst()` lance
+`startTour(0, false, 'core')` (1re venue) ; le bouton **?** → « Refaire toute la
+visite » lance `startTour(0, false, 'full')` ; « Aller à une partie »
+(`tourGoPart`) part en `'full'` (jumped). Le **noyau mentionne déjà** où relancer
+la visite (le bouton **?**) et le menu **⚙ Réglages** (étape « Réglages & aide »,
+partie `nav`).
+
 Les **onglets de mode** (`.sb-tabs`) s'**enroulent** sur plusieurs rangées
 (`flex-wrap` + `flex-basis:calc(50% - 2px)`, 2 par rangée) : sur la sidebar
 étroite (155px), tous les onglets sur une rangée débordaient et le dernier était

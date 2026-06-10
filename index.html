@@ -857,6 +857,11 @@ body.is-signed-in .sb-account{color:#7bd88f;border-color:rgba(123,216,143,.45)}
 .tour-link{background:none;border:0;font-family:inherit;font-size:11px;cursor:pointer;
   color:var(--color-text-tertiary);padding:4px 2px;text-decoration:underline;text-underline-offset:2px}
 .tour-link:hover{color:var(--color-text-secondary)}
+/* Écran de décision (fin du noyau) : choix empilé — bouton principal pleine
+   largeur, refus discret en dessous (et non rejeté à droite comme un « passer »). */
+.tour-ctrl-decision{flex-direction:column;align-items:stretch;gap:8px}
+.tour-ctrl-decision .tour-btn-next{text-align:center;padding:9px 12px}
+.tour-ctrl-decision .tour-link{text-align:center;margin:0}
 /* Croix de fermeture de la bulle — n'apparaît qu'en accès direct à une
    partie (cf. tourBubbleHTML : seulement si tourState.jumped). */
 .tour-close{position:absolute;top:9px;right:9px;width:22px;height:22px;
@@ -1472,7 +1477,7 @@ body.sb-open .sb-backdrop{display:block;opacity:1}
      — voir le module « Visite guidée » du <script> (buildTourDOM). -->
 <div class="help-menu" id="help-menu" role="menu" aria-label="Aide">
   <div class="help-menu-title">Visite guidée</div>
-  <button class="help-item primary" role="menuitem" onclick="startTour(0)">↻ Refaire toute la visite</button>
+  <button class="help-item primary" role="menuitem" onclick="startTour(0, false, 'full')">↻ Refaire toute la visite</button>
   <div class="help-sep"></div>
   <div class="help-menu-title">Aller à une partie</div>
   <button class="help-item" role="menuitem" onclick="tourGoPart('fiches')">Les fiches</button>
@@ -5323,6 +5328,12 @@ const TOUR_STEPS=[
     text:"Pour résumer : la <b>barre latérale</b> (les listes), le <b>fil d’Ariane</b> (ta position), "
         +"les <b>liens du texte</b> (de proche en proche) et la <b>recherche globale</b> "
         +"(Ctrl + K, pour aller droit au but). À toi de choisir." },
+  { part:'nav', side:'sidebar', title:'Réglages & aide',
+    text:"Tout en bas de la barre, <b>⚙ Réglages</b> regroupe les options secondaires (par ex. passer "
+        +"en <b>mode édition</b> pour proposer des corrections). Et le bouton <b>?</b>, en haut à droite, "
+        +"<b>rouvre cette visite</b> quand tu veux — en entier ou sur une partie précise. Tu peux donc "
+        +"y revenir sans crainte d’oublier quelque chose.",
+    setup:()=>tourShowSidebarMode('notions'), target:()=>document.querySelector('.sb-settings') },
 
   // ── Partie 4 : Partager l'outil ──
   // Pointe le bouton de partage de la barre du haut puis décrit la fenêtre
@@ -5451,10 +5462,40 @@ const TOUR_STEPS=[
     nextLabel:'Terminer' },
 ];
 
+// NOYAU de la visite (1er passage) : l'essentiel pour savoir naviguer. Marqué
+// par step.core. Le 1er passage joue UNIQUEMENT ces étapes puis propose la
+// « visite détaillée » (le reste). On marque ici, sans alourdir chaque étape :
+//   • accueil, liens dynamiques, navigation → core ;
+//   • les 5 portes d'entrée (fiches, côté sidebar) → core ;
+//   • la 1re étape de « réviser » (intro) → core ; le détail vient après.
+(function markTourCore(){
+  const coreParts=new Set(['welcome','liens','nav']);
+  let reviserSeen=false;
+  TOUR_STEPS.forEach(s=>{
+    if(coreParts.has(s.part)) s.core=true;
+    else if(s.part==='fiches' && s.side==='sidebar') s.core=true;
+    else if(s.part==='reviser' && !reviserSeen){ s.core=true; reviserSeen=true; }
+  });
+})();
+
 // État interne : index de l'étape courante (-1 = visite fermée), cache du
-// DOM, et `jumped` (true = entrée par accès direct à une partie → croix +
-// clic sombre pour sortir).
-const tourState={i:-1, dom:null, jumped:false};
+// DOM, `jumped` (true = accès direct à une partie → croix + clic sombre pour
+// sortir), `mode` (core | detail | full) et `decision` (vrai pendant l'écran
+// « continuer la visite détaillée ? » entre le noyau et le détail).
+const tourState={i:-1, dom:null, jumped:false, mode:'full', decision:false};
+
+/* tourSeq() — indices des étapes ACTIVES selon le mode :
+   • core   → seulement les étapes du noyau (step.core) ;
+   • detail → seulement les approfondissements (!step.core) ;
+   • full   → toutes. La navigation (suivant/précédent/passer) opère sur cette
+   séquence ; le noyau et le détail s'enchaînent ainsi sans réordonner le tableau. */
+function tourSeq(){
+  const m=tourState.mode;
+  const all=TOUR_STEPS.map((s,k)=>k);
+  if(m==='core')   return all.filter(k=>TOUR_STEPS[k].core);
+  if(m==='detail') return all.filter(k=>!TOUR_STEPS[k].core);
+  return all;
+}
 
 /* buildTourDOM() — crée (une seule fois) les éléments de la visite :
    le voile bloquant, le projecteur et la bulle. Réutilisés ensuite. */
@@ -5475,10 +5516,12 @@ function buildTourDOM(){
    `jumped` (défaut false) = entrée par accès direct à une partie : active la
    croix et le clic-sombre pour sortir. Ferme le menu d'aide et le tiroir
    pour partir d'un état propre. */
-function startTour(i, jumped){
+function startTour(i, jumped, mode){
   closeHelpMenu();
   closeSidebar();
   buildTourDOM();
+  tourState.mode=mode||'full';     // 'core' (1er passage) | 'detail' | 'full'
+  tourState.decision=false;
   tourState.i=(i|0);
   tourState.jumped=!!jumped;
   document.addEventListener('keydown',tourKey);
@@ -5487,10 +5530,11 @@ function startTour(i, jumped){
 }
 
 /* tourGoPart(part) — va directement à la 1re étape d'une partie (menu d'aide).
-   Entrée « ciblée » → jumped=true (croix + clic-sombre pour sortir). */
+   Entrée « ciblée » → jumped=true (croix + clic-sombre pour sortir) ; mode FULL
+   pour que toutes les parties soient accessibles. */
 function tourGoPart(part){
   const idx=TOUR_STEPS.findIndex(s=>s.part===part);
-  if(idx>=0) startTour(idx, true);
+  if(idx>=0) startTour(idx, true, 'full');
 }
 
 /* ── Bandeau d'avertissement « contenu en construction » ─────────────────────
@@ -5543,17 +5587,63 @@ function endTour(){
   syncOnPrefsChange();                           // new (Phase 2) : « visite vue » suit le compte
 }
 
-function tourNext(){ if(tourState.i>=TOUR_STEPS.length-1) return endTour(); tourState.i++; renderTourStep(); }
-function tourPrev(){ if(tourState.i<=0) return; tourState.i--; renderTourStep(); }
+/* tourNext() — avance dans la SÉQUENCE ACTIVE (tourSeq(), filtrée par le mode).
+   En fin de séquence : en mode « core » (1er passage), on propose la visite
+   détaillée via l'écran de décision ; sinon on termine. Ne fait rien pendant
+   l'écran de décision (qui a ses propres boutons). */
+function tourNext(){
+  if(tourState.decision) return;
+  const seq=tourSeq(), pos=seq.indexOf(tourState.i);
+  if(pos>=0 && pos<seq.length-1){ tourState.i=seq[pos+1]; renderTourStep(); return; }
+  if(tourState.mode==='core') return tourShowDecision();
+  endTour();
+}
+/* tourPrev() — recule d'une étape dans la séquence active (jamais sous la 1re). */
+function tourPrev(){
+  if(tourState.decision) return;
+  const seq=tourSeq(), pos=seq.indexOf(tourState.i);
+  if(pos>0){ tourState.i=seq[pos-1]; renderTourStep(); }
+}
 function tourSkipAll(){ endTour(); }
-/* tourSkipPart() — saute jusqu'à la 1re étape de la PARTIE SUIVANTE
-   (ou termine la visite s'il n'en reste pas). */
+/* tourSkipPart() — saute jusqu'à la 1re étape de la PARTIE SUIVANTE dans la
+   séquence active (ou propose la visite détaillée / termine s'il n'en reste pas). */
 function tourSkipPart(){
   const curStep=TOUR_STEPS[tourState.i]; if(!curStep) return;
-  let j=tourState.i+1;
-  while(j<TOUR_STEPS.length && TOUR_STEPS[j].part===curStep.part) j++;
-  if(j>=TOUR_STEPS.length) return endTour();
-  tourState.i=j; renderTourStep();
+  const seq=tourSeq(); let p=seq.indexOf(tourState.i)+1;
+  while(p<seq.length && TOUR_STEPS[seq[p]].part===curStep.part) p++;
+  if(p>=seq.length) return tourState.mode==='core' ? tourShowDecision() : endTour();
+  tourState.i=seq[p]; renderTourStep();
+}
+/* tourShowDecision() — fin du NOYAU (1er passage) : écran « Tu connais
+   l'essentiel — veux-tu la visite détaillée ? ». Voile uniforme (pas de
+   projecteur), bulle centrée. tourState.decision=true le temps de l'écran ;
+   ses boutons appellent tourContinueDetailed() (poursuivre) ou endTour(). */
+function tourShowDecision(){
+  tourState.decision=true;
+  const {blocker,spot,bubble}=buildTourDOM();
+  applyPhiloMode();                              // restaure le mode réel
+  tourCloseOverlays();                           // referme un overlay d'étape éventuel
+  if(window.innerWidth<=700) document.body.classList.remove('sb-open');
+  blocker.classList.add('open','dim');           // assombri uniforme, pas de spot
+  spot.style.display='none';
+  bubble.style.display='block';
+  bubble.innerHTML=tourBubbleHTML(null);         // la branche décision ignore l'argument
+  // Centrer après un frame (la bulle doit être remplie pour mesurer sa taille).
+  requestAnimationFrame(()=>{
+    const vw=window.innerWidth, vh=window.innerHeight;
+    bubble.style.left=Math.max(8,(vw-bubble.offsetWidth)/2)+'px';
+    bubble.style.top=Math.max(8,(vh-bubble.offsetHeight)/2)+'px';
+  });
+}
+/* tourContinueDetailed() — « Oui, voir le détail » : enchaîne sur la visite
+   détaillée (mode 'detail' = toutes les étapes HORS noyau) depuis sa 1re étape. */
+function tourContinueDetailed(){
+  tourState.decision=false;
+  tourState.mode='detail';
+  const seq=tourSeq();
+  if(!seq.length) return endTour();
+  tourState.i=seq[0];
+  renderTourStep();
 }
 /* tourKey(e) — Échap quitte la visite. */
 function tourKey(e){ if(e.key==='Escape') endTour(); }
@@ -5562,12 +5652,18 @@ function tourKey(e){ if(e.key==='Escape') endTour(); }
    pendant le déroulé guidé) : sur la DERNIÈRE étape, ou en accès direct à
    une partie (tourState.jumped). */
 function tourBlockerClick(){
-  if(tourState.i<0) return;
-  const last=tourState.i===TOUR_STEPS.length-1;
-  if(tourState.jumped || last) endTour();
+  if(tourState.i<0 || tourState.decision) return;     // décision : choisir via les boutons
+  if(tourState.jumped) return endTour();
+  const seq=tourSeq();
+  if(seq.indexOf(tourState.i)===seq.length-1)         // dernière étape de la séquence active
+    return tourState.mode==='core' ? tourShowDecision() : endTour();
 }
-/* tourReposition() — recalcule la position de l'étape courante (resize). */
-function tourReposition(){ if(tourState.i>=0) positionTourStep(); }
+/* tourReposition() — recalcule la position de l'élément courant (resize) :
+   la bulle de décision (recentrée) ou l'étape pointée (projecteur + bulle). */
+function tourReposition(){
+  if(tourState.decision){ tourShowDecision(); return; }
+  if(tourState.i>=0) positionTourStep();
+}
 
 /* renderTourStep() — affiche l'étape courante : prépare l'état de l'appli,
    remplit la bulle, puis (au frame suivant, le rendu/scroll étant à jour)
@@ -5616,9 +5712,14 @@ function tourSchedulePosition(){
    done / cur / à venir. Les couleurs translucides sont obtenues en suffixant
    un alpha hexadécimal à la couleur de la partie (ex. #5b8def + "26"). */
 function tourProgressHTML(curIdx){
-  // 1. Regrouper les étapes consécutives de même partie.
+  // 1. Ne montrer QUE les étapes de la séquence active (mode core/detail/full) :
+  //    en noyau, on n'affiche pas les pastilles des approfondissements (et vice
+  //    versa). Les regrouper par partie, en conservant l'ordre du tableau.
+  const seq=tourSeq();
+  const curPos=seq.indexOf(curIdx);            // position de l'étape courante DANS la séquence
   const groups=[];
-  TOUR_STEPS.forEach((s,k)=>{
+  seq.forEach(k=>{
+    const s=TOUR_STEPS[k];
     const last=groups[groups.length-1];
     if(!last || last.part!==s.part) groups.push({part:s.part, dots:[k]});
     else last.dots.push(k);
@@ -5634,7 +5735,10 @@ function tourProgressHTML(curIdx){
     // Cadre : contour net + fond plus marqué pour la partie courante.
     const frame=isCur ? `border:1px solid ${c};background:${c}26`
                       : `border:0.5px solid ${c}59;background:${c}12`;
-    const dots=grp.dots.map(k=>`<span class="tour-dot${k<curIdx?' done':k===curIdx?' cur':''}"></span>`).join('');
+    // done/cur/à venir : comparé sur la POSITION dans la séquence active, pas
+    // sur l'index brut (les deux divergent en mode core/detail).
+    const dots=grp.dots.map(k=>{ const p=seq.indexOf(k);
+      return `<span class="tour-dot${p<curPos?' done':p===curPos?' cur':''}"></span>`; }).join('');
     return `<span class="tour-pgroup${isCur?' cur':''}" style="--pc:${c};${frame}" `
       +`role="button" tabindex="0" data-label="${label}" aria-label="Aller à : ${label}" `
       +`onclick="tourJumpPart('${grp.part}')" `
@@ -5647,23 +5751,33 @@ function tourProgressHTML(curIdx){
    la 1re étape de la partie cliquée, SANS changer le contexte (tourState.jumped)
    ni redémarrer la visite. Permet de circuler librement entre les parties. */
 function tourJumpPart(part){
-  if(tourState.i<0) return;                 // visite fermée : rien à faire
-  const idx=TOUR_STEPS.findIndex(s=>s.part===part);
-  if(idx>=0){ tourState.i=idx; renderTourStep(); }
+  if(tourState.i<0 || tourState.decision) return;   // visite fermée / écran de décision
+  // 1re étape de cette partie DANS la séquence active (les pastilles n'affichent
+  // que des parties présentes dans la séquence → l'index existe forcément).
+  const seq=tourSeq();
+  const idx=seq.find(k=>TOUR_STEPS[k].part===part);
+  if(idx!=null){ tourState.i=idx; renderTourStep(); }
 }
 
 /* tourBubbleHTML(step) — HTML de la bulle : en-tête de partie, titre, texte,
    pastilles de progression (encadrées par thème, cf. tourProgressHTML) et
    barre de contrôles. */
 function tourBubbleHTML(step){
-  const i=tourState.i, last=i===TOUR_STEPS.length-1, first=i===0;
+  // Écran de DÉCISION (entre noyau et détail) : choix binaire, pas d'étape.
+  if(tourState.decision) return tourDecisionHTML();
+  // Position dans la SÉQUENCE ACTIVE (et non l'index brut) : « premier » et
+  // « dernier » dépendent du mode (core/detail/full).
+  const seq=tourSeq(), pos=seq.indexOf(tourState.i);
+  const first=pos<=0, last=pos===seq.length-1;
   const partLabel=TOUR_PARTS[step.part]||'';
-  const dots=tourProgressHTML(i);
-  // Existe-t-il une partie suivante (pour proposer « Passer cette partie ») ?
+  const dots=tourProgressHTML(tourState.i);
+  // Existe-t-il une partie suivante DANS LA SÉQUENCE (pour « Passer cette partie ») ?
   let hasNextPart=false;
-  for(let j=i+1;j<TOUR_STEPS.length;j++){ if(TOUR_STEPS[j].part!==step.part){ hasNextPart=true; break; } }
+  for(let p=pos+1;p<seq.length;p++){ if(TOUR_STEPS[seq[p]].part!==step.part){ hasNextPart=true; break; } }
+  // En fin de NOYAU, « Suivant » mène à l'écran de décision → libellé adapté.
+  const nextDefault=last?(tourState.mode==='core'?'Continuer ▶':'Terminer'):'Suivant ▶';
   const prevBtn=first?'':`<button class="tour-btn tour-btn-prev" onclick="tourPrev()">◀ Précédent</button>`;
-  const nextBtn=`<button class="tour-btn tour-btn-next" onclick="tourNext()">${step.nextLabel||(last?'Terminer':'Suivant ▶')}</button>`;
+  const nextBtn=`<button class="tour-btn tour-btn-next" onclick="tourNext()">${step.nextLabel||nextDefault}</button>`;
   const skipPart=(step.part!=='welcome'&&step.part!=='end'&&hasNextPart)
     ?`<button class="tour-link" onclick="tourSkipPart()">Passer cette partie</button>`:'';
   const skipAll=last?'':`<button class="tour-link" onclick="tourSkipAll()">${first?'Passer la visite':'Tout passer'}</button>`;
@@ -5674,6 +5788,19 @@ function tourBubbleHTML(step){
     <div class="tour-text">${step.text}</div>
     <div class="tour-progress">${dots}</div>
     <div class="tour-ctrl">${prevBtn}${nextBtn}<span class="tour-skip">${skipPart}${skipAll}</span></div>`;
+}
+
+/* tourDecisionHTML() — bulle de l'écran de décision (fin du noyau) : on rassure
+   (« tu connais l'essentiel »), on rappelle où relancer la visite (bouton ?),
+   puis deux choix : poursuivre la visite détaillée, ou s'arrêter là. */
+function tourDecisionHTML(){
+  return `<div class="tour-part">Visite express terminée</div>
+    <div class="tour-title">Tu connais l’essentiel 👍</div>
+    <div class="tour-text">Tu sais maintenant <b>naviguer</b> (notions, auteurs, concepts, repères, méthodo) et <b>réviser</b>. Veux-tu poursuivre avec la <b>visite détaillée</b> ? Elle couvre les onglets d’une fiche, le <b>partage</b>, toutes les options du <b>quiz</b>, comment <b>proposer du contenu</b> et le <b>compte</b>. Tu pourras de toute façon la relancer à tout moment via le bouton <b>?</b> en haut à droite.</div>
+    <div class="tour-ctrl tour-ctrl-decision">
+      <button class="tour-btn tour-btn-next" onclick="tourContinueDetailed()">Oui, voir le détail ▶</button>
+      <button class="tour-link" onclick="endTour()">Non merci, j’ai compris</button>
+    </div>`;
 }
 
 /* positionTourStep() — place le projecteur autour de la cible et la bulle
@@ -5733,7 +5860,9 @@ function tourClamp(v,min,max){ return Math.max(min,Math.min(max,v)); }
    au stockage lève, on considère « déjà vu » pour ne pas gêner. */
 function tourStartIfFirst(){
   let seen; try{ seen=localStorage.getItem('philo-tour-v1'); }catch(e){ seen='1'; }
-  if(!seen) startTour(0);
+  // 1re venue : on joue d'abord le NOYAU (mode 'core'), puis on propose la
+  // visite détaillée. Une relance manuelle (bouton ?) part, elle, en mode complet.
+  if(!seen) startTour(0, false, 'core');
 }
 
 /* ── Bouton d'aide « ? » : ouvre/ferme le menu ─────────────────────── */
