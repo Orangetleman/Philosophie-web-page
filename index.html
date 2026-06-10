@@ -1155,7 +1155,11 @@ body.sb-open .sb-backdrop{display:block;opacity:1}
      un scroll horizontal — retour contributeur : le scroll latéral cachait des
      onglets. Tout reste visible d'un coup d'œil, y compris sur téléphone. */
   .tabs{padding:6px 14px 0;flex-wrap:wrap;row-gap:2px}
-  .tab{padding:7px 10px;font-size:12px;white-space:nowrap}
+  /* Cibles tactiles élargies sur mobile : onglets/fil d'Ariane/Retour ≥ ~40 px
+     de haut (mesurés à 31/20/30 px auparavant → trop petits au doigt). */
+  .tab{padding:11px 12px;font-size:12px;white-space:nowrap}
+  .crumb{padding:7px 8px}
+  .back-btn{min-height:38px;display:inline-flex;align-items:center}
   .sb-burger{display:flex}
   /* Cibles tactiles élargies : tap targets ≥40 px */
   .pplus{width:28px;height:28px;font-size:15px}
