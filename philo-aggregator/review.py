@@ -177,12 +177,29 @@ MAX_BACKOFF_S = 65.0
 # Nombre de re-tentatives sur un 429 (quota par minute) avant d'abandonner.
 RATE_LIMIT_RETRIES = 3
 
+# Verdict-sentinelle : signale à run() qu'il faut ARRÊTER TOUT le lot (et non
+# juste sauter la boîte). Posé quand on touche le quota JOURNALIER : réessayer,
+# même boîte suivante, est voué à échouer jusqu'au reset (plusieurs heures).
+ABORT_VERDICT = "__abort__"
+
 
 def _is_rate_limit(err):
     """Vrai si l'exception ressemble à un dépassement de quota / débit (429)."""
     s = str(err).lower()
     return ("429" in s or "quota" in s or "rate" in s
             or "resourceexhausted" in s or "exceeded" in s)
+
+
+def _is_daily_quota(err):
+    """
+    Vrai si le 429 vise le quota JOURNALIER (et non « par minute ») —
+    typiquement « GenerateRequestsPerDayPerProjectPerModel-FreeTier ». Dans ce
+    cas, attendre 60 s ne sert à rien (reset dans plusieurs heures) : il faut
+    abandonner le lot. On normalise (retrait des non-lettres) pour matcher
+    « PerDay », « per day », « per-day »… sans matcher « PerMinute ».
+    """
+    s = re.sub(r"[^a-z]", "", str(err).lower())
+    return "perday" in s
 
 
 def _retry_after_seconds(err_text, default=20.0):
@@ -211,11 +228,12 @@ def review_box(model, row, on_wait=None):
     alors (None, message, "") — None signifie « pas de verdict », l'appelant
     n'enregistre rien et la boîte sera retentée au prochain `review`.
 
-    Cas particulier du 429 (quota « par minute » du palier gratuit dépassé) :
-    plutôt que d'abandonner tout de suite, on PATIENTE le délai indiqué par
-    Google puis on re-tente (jusqu'à RATE_LIMIT_RETRIES fois). La fenêtre se
-    purgeant en quelques dizaines de secondes, le lot finit par passer au lieu
-    d'échouer en bloc.
+    Deux cas de 429 distincts :
+      • quota « par MINUTE » → la fenêtre se purge vite : on PATIENTE le délai
+        indiqué par Google puis on re-tente (jusqu'à RATE_LIMIT_RETRIES fois).
+      • quota « par JOUR » → inutile d'attendre (reset dans plusieurs heures) :
+        on renvoie ABORT_VERDICT pour que run() arrête TOUT le lot
+        immédiatement, au lieu de mouliner sans fin.
 
     `on_wait` : callback optionnel appelé `on_wait(resume_ts)` au début d'une
     pause anti-quota (resume_ts = horodatage epoch de reprise prévue), puis
@@ -232,19 +250,26 @@ def review_box(model, row, on_wait=None):
             resp = model.generate_content(prompt)
             return parse_verdict(resp.text)
         except Exception as e:                  # noqa: BLE001 (on veut tout attraper)
-            # 429 et il reste des tentatives → on attend puis on recommence.
-            if _is_rate_limit(e) and attempt < RATE_LIMIT_RETRIES:
-                wait = _retry_after_seconds(str(e))
-                _say(f"     ⏳ quota atteint, pause {wait:.0f}s "
-                     f"(tentative {attempt + 1}/{RATE_LIMIT_RETRIES})…")
-                # Épingle l'heure de reprise (pour le compte à rebours), patiente,
-                # puis lève le drapeau d'attente.
-                if on_wait:
-                    on_wait(time.time() + wait)
-                time.sleep(wait)
-                if on_wait:
-                    on_wait(0)
-                continue
+            if _is_rate_limit(e):
+                # Quota JOURNALIER : réessayer ne sert à rien → on arrête le lot.
+                if _is_daily_quota(e):
+                    return (ABORT_VERDICT,
+                            "quota Gemini JOURNALIER épuisé (palier gratuit). "
+                            "Réessaie demain, ou change de modèle (GEMINI_MODEL) "
+                            "ou de clé (GEMINI_API_KEY).", "")
+                # Quota par minute et il reste des tentatives → on attend.
+                if attempt < RATE_LIMIT_RETRIES:
+                    wait = _retry_after_seconds(str(e))
+                    _say(f"     ⏳ quota/min atteint, pause {wait:.0f}s "
+                         f"(tentative {attempt + 1}/{RATE_LIMIT_RETRIES})…")
+                    # Épingle l'heure de reprise (compte à rebours), patiente,
+                    # puis lève le drapeau d'attente.
+                    if on_wait:
+                        on_wait(time.time() + wait)
+                    time.sleep(wait)
+                    if on_wait:
+                        on_wait(0)
+                    continue
             return (None, f"Appel Gemini échoué : {e}", "")
 
 
@@ -316,12 +341,19 @@ def run(limit=None, redo=False, status="en_attente", on_progress=None):
 
     _say(f"Relecture IA de {total} boîte(s)…\n")
     _emit("démarrage…")
+    aborted = None      # motif d'arrêt anticipé (quota journalier), sinon None
     for i, row in enumerate(rows):
         # Notifie une éventuelle pause anti-quota (pour le compte à rebours) ;
         # _rid capture l'id de la boîte courante.
         def _on_wait(resume_ts, _rid=row["id"]):
             _emit(current=f"#{_rid}", waiting_until=resume_ts)
         verdict, review, user_message = review_box(model, row, on_wait=_on_wait)
+        if verdict == ABORT_VERDICT:
+            # Quota journalier épuisé : inutile de continuer (les boîtes
+            # suivantes échoueraient pareil). On arrête net tout le lot.
+            aborted = review
+            _say(f"\n  ⛔ Arrêt : {review}")
+            break
         if verdict is None:
             # Échec d'appel : on n'enregistre rien, on signale et continue.
             n_skipped += 1
@@ -343,9 +375,12 @@ def run(limit=None, redo=False, status="en_attente", on_progress=None):
             time.sleep(sleep_s)
 
     _say("")
-    _say(f"Relecture terminée : {n_done} enregistrée(s)"
-         + (f", {n_skipped} en échec (à retenter)" if n_skipped else "") + ".")
+    if aborted:
+        _say(f"Relecture interrompue ({aborted}) : {n_done} relue(s) avant l'arrêt.")
+    else:
+        _say(f"Relecture terminée : {n_done} enregistrée(s)"
+             + (f", {n_skipped} en échec (à retenter)" if n_skipped else "") + ".")
     _say(f"  valide : {counts['valide']}   "
          f"douteux : {counts['douteux']}   rejet : {counts['rejet']}")
 
-    return {"done": n_done, "skipped": n_skipped, **counts}
+    return {"done": n_done, "skipped": n_skipped, "aborted": aborted, **counts}

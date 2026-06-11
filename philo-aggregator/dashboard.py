@@ -95,9 +95,15 @@ def _run_review_thread():
 
     try:
         s = review.run(limit=REVIEW_BATCH, redo=False, status=None, on_progress=cb)
-        msg = (f"Relecture IA : {s['done']} relue(s) "
-               f"(✓{s['valide']} ?{s['douteux']} ✗{s['rejet']})"
-               + (f", {s['skipped']} en échec" if s['skipped'] else "") + ".")
+        if s.get("aborted"):
+            # Arrêt anticipé (quota journalier) : message explicite, pas le
+            # récap « 0 relue(s) » qui ferait croire à un simple échec.
+            msg = (f"⛔ Relecture arrêtée : {s['aborted']} "
+                   f"({s['done']} relue(s) avant l'arrêt).")
+        else:
+            msg = (f"Relecture IA : {s['done']} relue(s) "
+                   f"(✓{s['valide']} ?{s['douteux']} ✗{s['rejet']})"
+                   + (f", {s['skipped']} en échec" if s['skipped'] else "") + ".")
     except SystemExit as e:
         # localenv.require lève SystemExit si GEMINI_API_KEY manque.
         msg = str(e)
