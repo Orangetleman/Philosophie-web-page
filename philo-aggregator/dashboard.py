@@ -73,6 +73,7 @@ _review_state = {
     "skipped": 0,       # en échec (quota/réseau) — à retenter
     "valide": 0, "douteux": 0, "rejet": 0,
     "current": "",      # repère de la boîte en cours (ex. « #41 »)
+    "waiting_until": 0, # epoch de reprise pendant une pause anti-quota (0 sinon)
     "message": "",      # récap final (affiché en bandeau au rechargement)
 }
 
@@ -422,26 +423,46 @@ PROGRESS_JS = """
   if(!bar) return;
   var fill=document.getElementById('revbar-fill');
   var label=document.getElementById('revbar-label');
-  var sawRunning=false;
+  var last=null, sawRunning=false, tick=null;
+  // Formate un nombre de secondes en « M min SS s » (ou « SS s » sous 1 min).
+  function fmt(sec){
+    sec=Math.max(0, Math.round(sec));
+    var m=Math.floor(sec/60), s=sec%60;
+    return m>0 ? (m+' min '+(s<10?'0':'')+s+' s') : (s+' s');
+  }
+  // Construit le libellé depuis le dernier état connu. Appelée à chaque
+  // sondage ET toutes les 0,5 s (pour faire défiler le compte à rebours
+  // entre deux sondages, l'horloge étant locale = celle du serveur).
+  function render(){
+    if(!last) return;
+    var s=last;
+    var total=s.total||0, done=(s.done||0)+(s.skipped||0);
+    fill.classList.toggle('indeterminate', total<=0);
+    if(total>0) fill.style.width=Math.round(done/total*100)+'%';
+    var txt='Relecture IA : '+done+(total?(' / '+total):'')+' boîte(s)';
+    txt+=' — ✓'+(s.valide||0)+' ?'+(s.douteux||0)+' ✗'+(s.rejet||0);
+    var wu=s.waiting_until||0, rem=wu ? (wu - Date.now()/1000) : 0;
+    if(wu && rem>0){
+      txt+=' · ⏳ quota atteint, reprise dans '+fmt(rem);
+    } else if(wu){
+      txt+=' · ⏳ reprise en cours…';
+    } else {
+      if(s.skipped) txt+=' · '+s.skipped+' en attente (quota)';
+      if(s.current) txt+=' · '+s.current;
+    }
+    label.textContent=txt;
+  }
   function poll(){
     fetch('/review-progress',{cache:'no-store'})
       .then(function(r){return r.json();})
       .then(function(s){
         if(s.running){
-          sawRunning=true;
-          bar.hidden=false;
-          var total=s.total||0, done=(s.done||0)+(s.skipped||0);
-          fill.classList.toggle('indeterminate', total<=0);
-          if(total>0) fill.style.width=Math.round(done/total*100)+'%';
-          var txt='Relecture IA : '+done+(total?(' / '+total):'')+' boîte(s)';
-          txt+=' — ✓'+(s.valide||0)+' ?'+(s.douteux||0)+' ✗'+(s.rejet||0);
-          if(s.skipped) txt+=' · '+s.skipped+' en attente (quota)';
-          if(s.current) txt+=' · '+s.current;
-          label.textContent=txt;
+          sawRunning=true; bar.hidden=false; last=s; render();
+          if(!tick) tick=setInterval(render, 500);   // défilement du compte à rebours
           setTimeout(poll,1200);
         } else if(sawRunning){
-          fill.classList.remove('indeterminate');
-          fill.style.width='100%';
+          if(tick){ clearInterval(tick); tick=null; }
+          fill.classList.remove('indeterminate'); fill.style.width='100%';
           label.textContent=s.message||'Relecture terminée.';
           var u=new URL(window.location.href);
           u.searchParams.delete('reviewing');
@@ -736,7 +757,7 @@ def review_route():
         _review_state.update({
             "running": True, "total": len(todo), "done": 0, "skipped": 0,
             "valide": 0, "douteux": 0, "rejet": 0,
-            "current": "démarrage…", "message": "",
+            "current": "démarrage…", "waiting_until": 0, "message": "",
         })
     threading.Thread(target=_run_review_thread, daemon=True).start()
 

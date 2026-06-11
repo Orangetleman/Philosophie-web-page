@@ -202,7 +202,7 @@ def _retry_after_seconds(err_text, default=20.0):
     return min(wait, MAX_BACKOFF_S)
 
 
-def review_box(model, row):
+def review_box(model, row, on_wait=None):
     """
     Soumet une boîte à Gemini et renvoie (verdict, review, user_message).
 
@@ -216,6 +216,11 @@ def review_box(model, row):
     Google puis on re-tente (jusqu'à RATE_LIMIT_RETRIES fois). La fenêtre se
     purgeant en quelques dizaines de secondes, le lot finit par passer au lieu
     d'échouer en bloc.
+
+    `on_wait` : callback optionnel appelé `on_wait(resume_ts)` au début d'une
+    pause anti-quota (resume_ts = horodatage epoch de reprise prévue), puis
+    `on_wait(0)` à la reprise. Sert au compte à rebours de la barre de
+    progression du dashboard.
     """
     prompt = (
         "Voici la proposition à évaluer :\n\n"
@@ -232,7 +237,13 @@ def review_box(model, row):
                 wait = _retry_after_seconds(str(e))
                 _say(f"     ⏳ quota atteint, pause {wait:.0f}s "
                      f"(tentative {attempt + 1}/{RATE_LIMIT_RETRIES})…")
+                # Épingle l'heure de reprise (pour le compte à rebours), patiente,
+                # puis lève le drapeau d'attente.
+                if on_wait:
+                    on_wait(time.time() + wait)
                 time.sleep(wait)
+                if on_wait:
+                    on_wait(0)
                 continue
             return (None, f"Appel Gemini échoué : {e}", "")
 
@@ -292,17 +303,25 @@ def run(limit=None, redo=False, status="en_attente", on_progress=None):
     n_done = n_skipped = 0
     counts = {"valide": 0, "douteux": 0, "rejet": 0}
 
-    def _emit(current=""):
-        """Pousse l'avancement courant au callback (no-op si absent)."""
+    def _emit(current="", waiting_until=0):
+        """Pousse l'avancement courant au callback (no-op si absent).
+
+        `waiting_until` (epoch, 0 si pas d'attente) alimente le compte à
+        rebours pendant une pause anti-quota côté dashboard."""
         if on_progress:
             on_progress({"done": n_done, "skipped": n_skipped, "total": total,
                          "valide": counts["valide"], "douteux": counts["douteux"],
-                         "rejet": counts["rejet"], "current": current})
+                         "rejet": counts["rejet"], "current": current,
+                         "waiting_until": waiting_until})
 
     _say(f"Relecture IA de {total} boîte(s)…\n")
     _emit("démarrage…")
     for i, row in enumerate(rows):
-        verdict, review, user_message = review_box(model, row)
+        # Notifie une éventuelle pause anti-quota (pour le compte à rebours) ;
+        # _rid capture l'id de la boîte courante.
+        def _on_wait(resume_ts, _rid=row["id"]):
+            _emit(current=f"#{_rid}", waiting_until=resume_ts)
+        verdict, review, user_message = review_box(model, row, on_wait=_on_wait)
         if verdict is None:
             # Échec d'appel : on n'enregistre rien, on signale et continue.
             n_skipped += 1
