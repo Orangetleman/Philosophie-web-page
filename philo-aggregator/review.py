@@ -24,6 +24,7 @@ Choix techniques :
 
 import json
 import re
+import sys
 import time
 
 import db
@@ -43,6 +44,21 @@ DEFAULT_MODEL = "gemini-flash-latest"
 # du palier gratuit (quelques requêtes par minute). Surchargée par
 # GEMINI_SLEEP_S dans .env.
 DEFAULT_SLEEP_S = 1.0
+
+
+def _say(msg):
+    """
+    print() robuste à l'encodage de la console. Sous Windows, une console en
+    cp1252 ne sait pas afficher ✓ ✗ ⏳ … (hors de son jeu de caractères) et
+    print() lèverait alors UnicodeEncodeError — ce qui, dans le thread de
+    relecture du dashboard, avorterait TOUT le lot. On retombe ici sur un
+    rendu « au mieux » (caractères inconnus remplacés) au lieu de planter.
+    """
+    try:
+        print(msg)
+    except UnicodeEncodeError:
+        enc = getattr(sys.stdout, "encoding", None) or "ascii"
+        print(msg.encode(enc, "replace").decode(enc, "replace"))
 
 
 # Consigne « système » donnée à Gemini : son rôle et le format EXACT de
@@ -214,14 +230,14 @@ def review_box(model, row):
             # 429 et il reste des tentatives → on attend puis on recommence.
             if _is_rate_limit(e) and attempt < RATE_LIMIT_RETRIES:
                 wait = _retry_after_seconds(str(e))
-                print(f"     ⏳ quota atteint, pause {wait:.0f}s "
-                      f"(tentative {attempt + 1}/{RATE_LIMIT_RETRIES})…")
+                _say(f"     ⏳ quota atteint, pause {wait:.0f}s "
+                     f"(tentative {attempt + 1}/{RATE_LIMIT_RETRIES})…")
                 time.sleep(wait)
                 continue
             return (None, f"Appel Gemini échoué : {e}", "")
 
 
-def run(limit=None, redo=False, status="en_attente"):
+def run(limit=None, redo=False, status="en_attente", on_progress=None):
     """
     Relit par l'IA les boîtes au statut donné.
 
@@ -234,6 +250,10 @@ def run(limit=None, redo=False, status="en_attente"):
         (ai_verdict NULL). `redo=True` : toutes (re-soumet même celles
         déjà relues — utile après avoir changé le modèle ou la consigne).
     `limit` : nombre maxi de boîtes à traiter (ménage le quota gratuit).
+    `on_progress` : callback optionnel appelé au démarrage puis après CHAQUE
+        boîte, avec un dico {done, skipped, total, valide, douteux, rejet,
+        current}. Sert à la barre de progression du dashboard (le travail
+        tournant dans un thread de fond ; cf. dashboard._run_review_thread).
 
     On enregistre chaque verdict immédiatement (une transaction par boîte)
     pour ne rien perdre si l'on interrompt le lot en cours.
@@ -262,21 +282,31 @@ def run(limit=None, redo=False, status="en_attente"):
 
     if not rows:
         label = status if status is not None else "à trier (en attente / validées)"
-        print(f"(aucune boîte à relire au statut '{label}')")
+        _say(f"(aucune boîte à relire au statut '{label}')")
         return {"done": 0, "skipped": 0, "valide": 0, "douteux": 0, "rejet": 0}
 
     model = _configure_model()
     sleep_s = float(localenv.get("GEMINI_SLEEP_S", DEFAULT_SLEEP_S))
 
+    total = len(rows)
     n_done = n_skipped = 0
     counts = {"valide": 0, "douteux": 0, "rejet": 0}
-    print(f"Relecture IA de {len(rows)} boîte(s)…\n")
+
+    def _emit(current=""):
+        """Pousse l'avancement courant au callback (no-op si absent)."""
+        if on_progress:
+            on_progress({"done": n_done, "skipped": n_skipped, "total": total,
+                         "valide": counts["valide"], "douteux": counts["douteux"],
+                         "rejet": counts["rejet"], "current": current})
+
+    _say(f"Relecture IA de {total} boîte(s)…\n")
+    _emit("démarrage…")
     for i, row in enumerate(rows):
         verdict, review, user_message = review_box(model, row)
         if verdict is None:
             # Échec d'appel : on n'enregistre rien, on signale et continue.
             n_skipped += 1
-            print(f"  #{row['id']:>3}  ⏭  {review}")
+            _say(f"  #{row['id']:>3}  ⏭  {review}")
         else:
             with db.connect() as conn:
                 # On enregistre l'avis relecteur ET le message contributeur :
@@ -287,15 +317,16 @@ def run(limit=None, redo=False, status="en_attente"):
             n_done += 1
             counts[verdict] += 1
             mark = {"valide": "✓", "douteux": "?", "rejet": "✗"}[verdict]
-            print(f"  #{row['id']:>3}  {mark} {verdict:<8} {review}")
+            _say(f"  #{row['id']:>3}  {mark} {verdict:<8} {review}")
+        _emit(f"#{row['id']}")
         # Pause entre deux appels, sauf après le dernier.
-        if sleep_s > 0 and i < len(rows) - 1:
+        if sleep_s > 0 and i < total - 1:
             time.sleep(sleep_s)
 
-    print()
-    print(f"Relecture terminée : {n_done} enregistrée(s)"
-          + (f", {n_skipped} en échec (à retenter)" if n_skipped else "") + ".")
-    print(f"  valide : {counts['valide']}   "
-          f"douteux : {counts['douteux']}   rejet : {counts['rejet']}")
+    _say("")
+    _say(f"Relecture terminée : {n_done} enregistrée(s)"
+         + (f", {n_skipped} en échec (à retenter)" if n_skipped else "") + ".")
+    _say(f"  valide : {counts['valide']}   "
+         f"douteux : {counts['douteux']}   rejet : {counts['rejet']}")
 
     return {"done": n_done, "skipped": n_skipped, **counts}

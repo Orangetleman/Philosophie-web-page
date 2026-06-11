@@ -39,8 +39,9 @@ site (index.html / data.js) reste une étape manuelle séparée.
 """
 
 import html
+import threading
 
-from flask import Flask, request, redirect
+from flask import Flask, request, redirect, jsonify
 
 import db
 import localenv
@@ -56,6 +57,54 @@ PORT = int(localenv.get("DASHBOARD_PORT", "5002"))
 # Combien de boîtes Gemini relit-il au clic sur « Relire (IA) ». On borne
 # pour ne pas bloquer la page trop longtemps ni épuiser le quota gratuit.
 REVIEW_BATCH = int(localenv.get("DASHBOARD_REVIEW_BATCH", "20"))
+
+
+# ── État partagé de la relecture IA (pour la barre de progression) ──────────
+# La relecture peut être LONGUE (appels réseau + pauses anti-quota), donc on
+# la lance dans un THREAD de fond et on suit son avancement ici. La page
+# interroge /review-progress (JSON) en boucle et met à jour une barre, au lieu
+# de laisser l'onglet « charger » sans retour. Accès protégé par un verrou
+# (le thread écrit, les requêtes /review-progress lisent).
+_review_lock = threading.Lock()
+_review_state = {
+    "running": False,   # une relecture est-elle en cours ?
+    "total": 0,         # nombre de boîtes du lot
+    "done": 0,          # relues avec verdict enregistré
+    "skipped": 0,       # en échec (quota/réseau) — à retenter
+    "valide": 0, "douteux": 0, "rejet": 0,
+    "current": "",      # repère de la boîte en cours (ex. « #41 »)
+    "message": "",      # récap final (affiché en bandeau au rechargement)
+}
+
+
+def _run_review_thread():
+    """
+    Exécuté dans un thread de fond : lance review.run() sur tout le pipeline
+    (en_attente + validées non relues) et reflète l'avancement dans
+    `_review_state`. Toute erreur est capturée et transformée en message :
+    le thread ne doit jamais planter silencieusement.
+    """
+    import review
+
+    def cb(info):
+        # Appelé par review.run après chaque boîte : on recopie l'avancement.
+        with _review_lock:
+            _review_state.update(info)
+            _review_state["running"] = True
+
+    try:
+        s = review.run(limit=REVIEW_BATCH, redo=False, status=None, on_progress=cb)
+        msg = (f"Relecture IA : {s['done']} relue(s) "
+               f"(✓{s['valide']} ?{s['douteux']} ✗{s['rejet']})"
+               + (f", {s['skipped']} en échec" if s['skipped'] else "") + ".")
+    except SystemExit as e:
+        # localenv.require lève SystemExit si GEMINI_API_KEY manque.
+        msg = str(e)
+    except Exception as e:                      # noqa: BLE001
+        msg = f"Relecture interrompue : {e}"
+    with _review_lock:
+        _review_state["running"] = False
+        _review_state["message"] = msg
 
 
 # ── Petits utilitaires de rendu ──────────────────────────────────────────
@@ -201,6 +250,18 @@ details pre { white-space:pre-wrap; background:#0f1115; padding:10px;
 /* Panneau de statistiques (compteurs par statut) dans l'en-tête. */
 .stats { margin-top:6px; font-size:12px; color:#8a909c; }
 .stats b { color:#cbd; }
+/* Barre de progression de la relecture IA (alimentée par /review-progress). */
+.revbar { margin:10px 20px 0; }
+.revbar-label { font-size:12px; color:#cbd; margin-bottom:4px; }
+.revbar-track { height:10px; background:#0f1115; border:1px solid #2a2e38;
+                border-radius:6px; overflow:hidden; }
+.revbar-fill { height:100%; width:0; border-radius:6px;
+               background:linear-gradient(90deg,#5dade2,#8e7cc3);
+               transition:width .4s ease; }
+/* Avancement inconnu (total pas encore connu) : barre qui glisse. */
+.revbar-fill.indeterminate { width:35% !important; transition:none;
+               animation:revslide 1.1s ease-in-out infinite; }
+@keyframes revslide { 0%{margin-left:-35%} 100%{margin-left:100%} }
 """
 
 
@@ -349,6 +410,55 @@ def _stats_panel():
     return '<div class="stats">' + " &nbsp;·&nbsp; ".join(parts) + "</div>"
 
 
+# Script de suivi de la relecture IA : interroge /review-progress en boucle,
+# révèle la barre tant qu'un lot tourne, puis recharge la page (pour afficher
+# les verdicts fraîchement écrits) en posant le récap en bandeau. `sawRunning`
+# évite toute boucle de rechargement : on ne recharge QUE si l'on a vu un lot
+# actif pendant la vie de cette page.
+PROGRESS_JS = """
+<script>
+(function(){
+  var bar=document.getElementById('revbar');
+  if(!bar) return;
+  var fill=document.getElementById('revbar-fill');
+  var label=document.getElementById('revbar-label');
+  var sawRunning=false;
+  function poll(){
+    fetch('/review-progress',{cache:'no-store'})
+      .then(function(r){return r.json();})
+      .then(function(s){
+        if(s.running){
+          sawRunning=true;
+          bar.hidden=false;
+          var total=s.total||0, done=(s.done||0)+(s.skipped||0);
+          fill.classList.toggle('indeterminate', total<=0);
+          if(total>0) fill.style.width=Math.round(done/total*100)+'%';
+          var txt='Relecture IA : '+done+(total?(' / '+total):'')+' boîte(s)';
+          txt+=' — ✓'+(s.valide||0)+' ?'+(s.douteux||0)+' ✗'+(s.rejet||0);
+          if(s.skipped) txt+=' · '+s.skipped+' en attente (quota)';
+          if(s.current) txt+=' · '+s.current;
+          label.textContent=txt;
+          setTimeout(poll,1200);
+        } else if(sawRunning){
+          fill.classList.remove('indeterminate');
+          fill.style.width='100%';
+          label.textContent=s.message||'Relecture terminée.';
+          var u=new URL(window.location.href);
+          u.searchParams.delete('reviewing');
+          if(s.message) u.searchParams.set('msg', s.message);
+          setTimeout(function(){ window.location.replace(u.toString()); }, 800);
+        } else {
+          bar.hidden=true;
+        }
+      })
+      .catch(function(){ if(sawRunning) setTimeout(poll,2000); });
+  }
+  poll();
+})();
+</script>
+"""
+
+
 def _page(status, verdict_filter, rows, flash=None):
     """Assemble la page HTML complète."""
     # Champs cachés (statut/verdict courants) communs aux formulaires de la
@@ -397,13 +507,21 @@ def _page(status, verdict_filter, rows, flash=None):
         _filter_links(status, verdict_filter),
         "</header>",
     ]
+    # Barre de progression de la relecture IA. Cachée par défaut ; le script
+    # de bas de page la révèle dès que /review-progress signale un lot en cours.
+    head.append(
+        '<div id="revbar" class="revbar" hidden>'
+        '<div class="revbar-label" id="revbar-label">Relecture IA…</div>'
+        '<div class="revbar-track"><div class="revbar-fill" id="revbar-fill"></div></div>'
+        '</div>'
+    )
     if flash:
         head.append(f'<div class="flash">{esc(flash)}</div>')
     head.append("<main>")
 
     if not rows:
         head.append('<div class="empty">(aucune proposition pour ce filtre)</div>')
-        head.append("</main></body></html>")
+        head.append("</main>" + PROGRESS_JS + "</body></html>")
         return "".join(head)
 
     # Regroupement section → sous-clé → liste (même logique que list/export).
@@ -426,7 +544,7 @@ def _page(status, verdict_filter, rows, flash=None):
             for r in items:
                 head.append(_card(r, status, verdict_filter))
 
-    head.append("</main></body></html>")
+    head.append("</main>" + PROGRESS_JS + "</body></html>")
     return "".join(head)
 
 
@@ -587,23 +705,54 @@ def pull():
 @app.route("/review", methods=["POST"])
 def review_route():
     """
-    Soumet à Gemini les boîtes pas encore relues (par petit lot).
+    Lance la relecture IA EN ARRIÈRE-PLAN (thread) et redirige aussitôt vers
+    la page, qui suit l'avancement via /review-progress (barre de progression).
+    On ne bloque plus la requête le temps des appels Gemini (parfois longs à
+    cause des pauses anti-quota), d'où la fin de l'onglet qui « charge » sans fin.
 
-    status=None → relit tout le « pipeline » (en attente + validées), et
-    pas seulement « en attente » : une boîte arrivée déjà « validée » via la
-    sync cross-plateforme n'aurait sinon jamais été relue.
+    status=None côté review → relit tout le « pipeline » (en attente + validées),
+    pas seulement « en attente » : une boîte arrivée déjà « validée » via la sync
+    cross-plateforme n'aurait sinon jamais été relue.
     """
-    import review
     status = request.form.get("status", "en_attente")
     verdict_filter = request.form.get("verdict", "all")
-    try:
-        s = review.run(limit=REVIEW_BATCH, redo=False, status=None)
-    except SystemExit as e:
-        return _redirect_back(status, verdict_filter, str(e))
-    msg = (f"Relecture IA : {s['done']} relue(s) "
-           f"(✓{s['valide']} ?{s['douteux']} ✗{s['rejet']})"
-           + (f", {s['skipped']} en échec" if s['skipped'] else "") + ".")
-    return _redirect_back(status, verdict_filter, msg)
+
+    # Déjà un lot en cours ? On n'en démarre pas un second.
+    with _review_lock:
+        if _review_state["running"]:
+            return _redirect_back(status, verdict_filter,
+                                  "Une relecture IA est déjà en cours…")
+
+    # Y a-t-il quelque chose à relire ? Si non, message immédiat (pas de thread,
+    # pas de config Gemini inutile).
+    with db.connect() as conn:
+        todo = db.get_unreviewed_boxes(conn, status=None, limit=REVIEW_BATCH)
+    if not todo:
+        return _redirect_back(status, verdict_filter,
+                              "Relecture IA : aucune boîte à relire.")
+
+    # Initialiser l'état partagé puis lancer le thread de fond.
+    with _review_lock:
+        _review_state.update({
+            "running": True, "total": len(todo), "done": 0, "skipped": 0,
+            "valide": 0, "douteux": 0, "rejet": 0,
+            "current": "démarrage…", "message": "",
+        })
+    threading.Thread(target=_run_review_thread, daemon=True).start()
+
+    # Rediriger avec le drapeau de suivi : la page affichera la barre et
+    # interrogera /review-progress jusqu'à la fin.
+    import urllib.parse
+    q = urllib.parse.urlencode({"status": status, "verdict": verdict_filter,
+                                "reviewing": "1"})
+    return redirect("/?" + q)
+
+
+@app.route("/review-progress")
+def review_progress():
+    """État courant de la relecture IA (JSON), interrogé par la barre."""
+    with _review_lock:
+        return jsonify(dict(_review_state))
 
 
 @app.route("/pull-cloud", methods=["POST"])
