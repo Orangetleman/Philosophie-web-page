@@ -67,6 +67,15 @@ TYPES = ("ajout", "correction", "remarque")
 #   rejet   : manifestement hors-sujet / faux / spam.
 AI_VERDICTS = ("valide", "douteux", "rejet")
 
+# Statuts « encore dans le pipeline » sur lesquels une relecture IA a du sens :
+# « en attente » (pas encore triée) ET « validée » (retenue mais pas encore
+# intégrée). On EXCLUT « integree » (déjà au site), « rejetee » et « archivee »
+# (mises de côté) : inutile d'y dépenser le quota Gemini. Sert au bouton
+# « Relire » du dashboard, qui passe status=None à get_unreviewed_boxes pour
+# rattraper aussi les boîtes arrivées déjà « validée » (sync cross-plateforme,
+# sans passer par « en attente »).
+REVIEWABLE_STATUSES = ("en_attente", "validee")
+
 
 # Schéma SQL exécuté à chaque démarrage. Les `IF NOT EXISTS` rendent
 # l'opération idempotente : si les tables existent déjà, rien ne change.
@@ -418,10 +427,19 @@ def get_box(conn, box_id):
 
 def get_unreviewed_boxes(conn, status="en_attente", limit=None):
     """
-    Renvoie les boîtes au statut donné que l'IA n'a PAS encore relues
-    (colonne `ai_verdict` à NULL). C'est la file d'attente de la commande
-    `review` : on ne re-soumet pas à Gemini ce qui a déjà un verdict
-    (sauf demande explicite de re-relecture, gérée côté review.py).
+    Renvoie les boîtes que l'IA n'a PAS encore relues (colonne `ai_verdict`
+    à NULL). C'est la file d'attente de la commande `review` : on ne
+    re-soumet pas à Gemini ce qui a déjà un verdict (sauf demande explicite
+    de re-relecture, gérée côté review.py).
+
+    `status` cible les boîtes à relire :
+      • une chaîne (ex. "en_attente") → ce statut précis ;
+      • None → tous les statuts « encore dans le pipeline »
+        (REVIEWABLE_STATUSES = en_attente + validee). Indispensable au
+        bouton « Relire » du dashboard : une boîte peut arriver déjà
+        « validée » (restaurée depuis Supabase lors d'une sync
+        cross-plateforme) sans jamais transiter par « en attente », et
+        rester donc « non relue » à vie si l'on ne regardait qu'en_attente.
 
     `limit` (optionnel) borne le nombre de boîtes renvoyées — utile pour
     ménager le quota gratuit de l'API en traitant par petits lots.
@@ -430,12 +448,20 @@ def get_unreviewed_boxes(conn, status="en_attente", limit=None):
     contenus à corriger. Les inclure les ferait stagner en tête de file
     (verdict toujours NULL) et bloquerait la relecture des vraies boîtes.
     """
+    # Clause de statut : un seul (= ?) ou la liste « pipeline » (IN (…)).
+    if status is None:
+        st_ph = ", ".join("?" for _ in REVIEWABLE_STATUSES)
+        status_clause = f"b.status IN ({st_ph})"
+        status_params = list(REVIEWABLE_STATUSES)
+    else:
+        status_clause = "b.status = ?"
+        status_params = [status]
     # Clause d'exclusion des cibles « site » (valeurs constantes, pas de
     # risque d'injection — on génère juste les placeholders).
     site_ph = ", ".join("?" for _ in SITE_CIBLES)
-    q = (BOX_SELECT + f" WHERE b.status = ? AND b.ai_verdict IS NULL "
+    q = (BOX_SELECT + f" WHERE {status_clause} AND b.ai_verdict IS NULL "
          f"AND b.cible NOT IN ({site_ph}) ORDER BY b.id")
-    params = [status, *SITE_CIBLES]
+    params = [*status_params, *SITE_CIBLES]
     if limit:
         q += " LIMIT ?"
         params.append(int(limit))

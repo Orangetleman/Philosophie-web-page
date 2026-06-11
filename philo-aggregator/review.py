@@ -23,6 +23,7 @@ Choix techniques :
 """
 
 import json
+import re
 import time
 
 import db
@@ -153,32 +154,82 @@ def parse_verdict(text):
         return ("douteux", f"Réponse IA non parsable : {text!r}", "")
 
 
+# Plafond de la pause d'attente sur 429 : on ne dort jamais plus longtemps que
+# ça, même si Google suggérait davantage (évite de bloquer le dashboard une
+# minute entière). La fenêtre « par minute » du palier gratuit se purge vite.
+MAX_BACKOFF_S = 65.0
+# Nombre de re-tentatives sur un 429 (quota par minute) avant d'abandonner.
+RATE_LIMIT_RETRIES = 3
+
+
+def _is_rate_limit(err):
+    """Vrai si l'exception ressemble à un dépassement de quota / débit (429)."""
+    s = str(err).lower()
+    return ("429" in s or "quota" in s or "rate" in s
+            or "resourceexhausted" in s or "exceeded" in s)
+
+
+def _retry_after_seconds(err_text, default=20.0):
+    """
+    Extrait le délai d'attente suggéré par Google dans le message d'erreur
+    (« retry in 26.5s », ou le bloc « retry_delay { seconds: 26 } »). Renvoie
+    `default` si rien n'est trouvé. On ajoute 1 s de marge et on borne au
+    plafond MAX_BACKOFF_S.
+    """
+    m = re.search(r"retry(?:_delay)?[^0-9]*?(\d+(?:\.\d+)?)\s*s", err_text, re.I)
+    if not m:
+        m = re.search(r"seconds:\s*(\d+)", err_text)
+    try:
+        wait = float(m.group(1)) + 1.0 if m else default
+    except (TypeError, ValueError):
+        wait = default
+    return min(wait, MAX_BACKOFF_S)
+
+
 def review_box(model, row):
     """
     Soumet une boîte à Gemini et renvoie (verdict, review, user_message).
 
     On enveloppe l'appel réseau dans un try/except large : une panne
-    ponctuelle (quota dépassé, coupure) ne doit pas interrompre tout le
-    lot. On renvoie alors (None, message, "") — None signifie « pas de
-    verdict », l'appelant n'enregistre rien et la boîte sera retentée
-    au prochain `review`.
+    ponctuelle (coupure) ne doit pas interrompre tout le lot. On renvoie
+    alors (None, message, "") — None signifie « pas de verdict », l'appelant
+    n'enregistre rien et la boîte sera retentée au prochain `review`.
+
+    Cas particulier du 429 (quota « par minute » du palier gratuit dépassé) :
+    plutôt que d'abandonner tout de suite, on PATIENTE le délai indiqué par
+    Google puis on re-tente (jusqu'à RATE_LIMIT_RETRIES fois). La fenêtre se
+    purgeant en quelques dizaines de secondes, le lot finit par passer au lieu
+    d'échouer en bloc.
     """
     prompt = (
         "Voici la proposition à évaluer :\n\n"
         + render_box(row)
         + "\n\nDonne ton verdict au format JSON demandé."
     )
-    try:
-        resp = model.generate_content(prompt)
-        return parse_verdict(resp.text)
-    except Exception as e:                      # noqa: BLE001 (on veut tout attraper)
-        return (None, f"Appel Gemini échoué : {e}", "")
+    for attempt in range(RATE_LIMIT_RETRIES + 1):
+        try:
+            resp = model.generate_content(prompt)
+            return parse_verdict(resp.text)
+        except Exception as e:                  # noqa: BLE001 (on veut tout attraper)
+            # 429 et il reste des tentatives → on attend puis on recommence.
+            if _is_rate_limit(e) and attempt < RATE_LIMIT_RETRIES:
+                wait = _retry_after_seconds(str(e))
+                print(f"     ⏳ quota atteint, pause {wait:.0f}s "
+                      f"(tentative {attempt + 1}/{RATE_LIMIT_RETRIES})…")
+                time.sleep(wait)
+                continue
+            return (None, f"Appel Gemini échoué : {e}", "")
 
 
 def run(limit=None, redo=False, status="en_attente"):
     """
     Relit par l'IA les boîtes au statut donné.
 
+    `status` : un statut précis (ex. "en_attente"), ou None pour couvrir
+        tous les statuts « encore dans le pipeline » (en_attente + validee,
+        cf. db.REVIEWABLE_STATUSES). None est utilisé par le bouton
+        « Relire » du dashboard, pour rattraper les boîtes arrivées déjà
+        « validée » (sync cross-plateforme) sans transiter par « en attente ».
     `redo=False` (défaut) : seulement celles pas encore relues
         (ai_verdict NULL). `redo=True` : toutes (re-soumet même celles
         déjà relues — utile après avoir changé le modèle ou la consigne).
@@ -193,7 +244,12 @@ def run(limit=None, redo=False, status="en_attente"):
     """
     with db.connect() as conn:
         if redo:
-            rows = db.get_boxes(conn, status=status)
+            # status=None → on re-relit tout le « pipeline » (en_attente +
+            # validee) ; sinon le statut demandé. get_boxes(status=None)
+            # renverrait TOUTES les boîtes (y compris intégrées/archivées),
+            # ce qu'on ne veut pas dépenser en quota.
+            statuses = db.REVIEWABLE_STATUSES if status is None else (status,)
+            rows = [r for s in statuses for r in db.get_boxes(conn, status=s)]
             # Les retours sur le site ne sont pas du contenu philosophique :
             # Gemini n'a rien à y vérifier. get_unreviewed_boxes les exclut
             # déjà côté SQL ; pour le chemin --redo (get_boxes = tout), on
@@ -205,7 +261,8 @@ def run(limit=None, redo=False, status="en_attente"):
             rows = db.get_unreviewed_boxes(conn, status=status, limit=limit)
 
     if not rows:
-        print(f"(aucune boîte à relire au statut '{status}')")
+        label = status if status is not None else "à trier (en attente / validées)"
+        print(f"(aucune boîte à relire au statut '{label}')")
         return {"done": 0, "skipped": 0, "valide": 0, "douteux": 0, "rejet": 0}
 
     model = _configure_model()

@@ -586,12 +586,18 @@ def pull():
 
 @app.route("/review", methods=["POST"])
 def review_route():
-    """Soumet à Gemini les boîtes pas encore relues (par petit lot)."""
+    """
+    Soumet à Gemini les boîtes pas encore relues (par petit lot).
+
+    status=None → relit tout le « pipeline » (en attente + validées), et
+    pas seulement « en attente » : une boîte arrivée déjà « validée » via la
+    sync cross-plateforme n'aurait sinon jamais été relue.
+    """
     import review
     status = request.form.get("status", "en_attente")
     verdict_filter = request.form.get("verdict", "all")
     try:
-        s = review.run(limit=REVIEW_BATCH, redo=False, status="en_attente")
+        s = review.run(limit=REVIEW_BATCH, redo=False, status=None)
     except SystemExit as e:
         return _redirect_back(status, verdict_filter, str(e))
     msg = (f"Relecture IA : {s['done']} relue(s) "
