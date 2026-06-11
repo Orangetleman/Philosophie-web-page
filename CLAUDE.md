@@ -288,6 +288,14 @@ briller **sa carte** `.concept-card` — *jamais* le simple titre de la notion,
 qui n'apprend rien ; **(c)** en dernier recours, la mention cachée (que
 `scrollAndFlash` dépliera) puis l'en-tête.
 
+**Symétrique côté auteurs** : une notion ouverte **depuis une fiche auteur**
+(pastilles de notion « Bonheur → » des onglets Idées / Citations / Œuvres →
+`openNotionFromAuthor(key, authorName)`) pose `pendingAuthorMention` ;
+`focusAfterRender()` bascule sur l'onglet « Auteurs » de la notion (si besoin)
+et fait briller **la carte `.ac` de cet auteur** — repérée en comparant le
+**texte** du lien `.an-link` au nom (robuste aux apostrophes, contrairement à un
+sélecteur d'attribut). À défaut, repli sur l'en-tête.
+
 `scrollAndFlash(el)` fiabilise le repère : il **ouvre les `<details>`
 ancêtres** de la cible (sinon on défile vers un élément masqué), **attend une
 mise en page stable (double `requestAnimationFrame`)** avant de centrer — sans

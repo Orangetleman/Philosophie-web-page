@@ -2272,6 +2272,7 @@ function openNotion(key){
    Mécanique : pendingConceptMention porte l'id du concept source (consommé une
    seule fois) ; focusAfterRender() l'applique après le rendu. */
 let pendingConceptMention=null;   // id de concept à repérer dans la notion, ou null
+let pendingAuthorMention=null;    // nom d'auteur à repérer dans la notion (pastille de notion d'une fiche auteur), ou null
 let pendingAccroche=null;         // index d'accroche à faire briller (recherche globale), ou null
 
 /* scrollAndFlash(el) — amène el dans la vue puis le fait briller ~1,6 s.
@@ -2348,6 +2349,25 @@ function focusAfterRender(){
       //    l'ouvrira), sinon on retombe sur l'en-tête plus bas.
       if(inProse[0]){ scrollAndFlash(inProse[0]); return; }
     }
+    // 1bis) Notion ouverte depuis une fiche AUTEUR (pastille de notion) → on
+    //        fait briller la CARTE de cet auteur dans l'onglet « Auteurs ».
+    if(pendingAuthorMention){
+      const name=pendingAuthorMention; pendingAuthorMention=null;   // consommé
+      // S'assurer d'être sur l'onglet Auteurs (où vivent les cartes .ac).
+      if(sbMode==='notions' && D[cur] && curTab!=='auteurs'){
+        curTab='auteurs'; renderContent();
+      }
+      // Repérer la carte par le nom exact du lien auteur (.an-link). On compare
+      // le texte plutôt qu'un sélecteur d'attribut, robuste aux apostrophes.
+      requestAnimationFrame(()=>{
+        const link=[...mainEl.querySelectorAll('.ac .an-link')]
+          .find(el=>el.textContent.trim()===name);
+        const card=link?link.closest('.ac'):null;
+        if(card){ scrollAndFlash(card); return; }
+        const h2=mainEl.querySelector('.notion-head'); if(h2) scrollAndFlash(h2);
+      });
+      return;
+    }
     // 2) Sinon : on fait briller l'en-tête de la fiche (repère d'arrivée).
     const head=mainEl.querySelector('.notion-head');
     if(head) scrollAndFlash(head);
@@ -2361,6 +2381,19 @@ function openNotionFromConcept(key, conceptId){
   if(!D[key]) return;
   pushHistory();
   pendingConceptMention=conceptId;
+  cur=key; curTab='auteurs'; sbMode='notions';
+  renderSB(); renderContent();
+  focusAfterRender();
+}
+
+/* openNotionFromAuthor(key, authorName) — ouvre la notion `key` sur l'onglet
+   « Auteurs » et programme la surbrillance de la CARTE de cet auteur dans la
+   notion. Utilisé par les pastilles de notion (« Bonheur → ») des cartes
+   d'idée d'une fiche auteur, pour retrouver d'un clic où l'auteur intervient. */
+function openNotionFromAuthor(key, authorName){
+  if(!D[key]) return;
+  pushHistory();
+  pendingAuthorMention=authorName;
   cur=key; curTab='auteurs'; sbMode='notions';
   renderSB(); renderContent();
   focusAfterRender();
@@ -2884,6 +2917,9 @@ function renderAuthorContent(){
   const entry=AI[curAuthor];
   const meta=AM[curAuthor]||{bio:'',courant:'',periode:'',themes:[],dialogues:[]};
   const cc=CC[meta.courant]||'#888';
+  // Nom de l'auteur échappé pour les attributs onclick (pastilles de notion
+  // des onglets Idées / Citations / Œuvres → openNotionFromAuthor).
+  const safeAuthor=curAuthor.replace(/'/g,"\\'");
 
   // notion badges row
   const notionBdgs=entry.notions.map(k=>`<span class="ab-bdg" style="background:${D[k].c};width:8px;height:8px" title="${D[k].l}"></span>`).join('');
@@ -2932,7 +2968,7 @@ function renderAuthorContent(){
           <div class="idea-card-head">
             <div class="idea-card-work">${it.w||''} ${nb}${mb}</div>
             <span class="notion-pill" style="color:${nc};border-color:${nc}40;background:${nc}12"
-              onclick="pushHistory();cur='${k}';curTab='auteurs';sbMode='notions';renderSB();renderContent()">${D[k].l} →</span>
+              onclick="openNotionFromAuthor('${k}','${safeAuthor}')">${D[k].l} →</span>
           </div>
           ${it.i?`<div class="idea-card-body">${linkTerms('<span>'+it.i+'</span>')}</div>`:''}
           ${ideaCitationsHTML(it.citations)}
@@ -2959,7 +2995,7 @@ function renderAuthorContent(){
           <div class="cit-card-footer">
             <span class="cit-card-src">${it.w||''}</span>
             <span class="notion-pill" style="color:${nc};border-color:${nc}40;background:${nc}12"
-              onclick="pushHistory();cur='${k}';curTab='auteurs';sbMode='notions';renderSB();renderContent()">${D[k].l} →</span>
+              onclick="openNotionFromAuthor('${k}','${safeAuthor}')">${D[k].l} →</span>
           </div>
           ${pPlus('correction','auteur',k,curAuthor+' — citation · '+D[k].l,curAuthor)}
         </div>`;
@@ -2983,7 +3019,7 @@ function renderAuthorContent(){
       wks.forEach(w=>{
         const ks=Array.from(works[w]);
         const bdgs=ks.map(k=>`<span class="notion-pill" style="color:${D[k].c};border-color:${D[k].c}40;background:${D[k].c}12;font-size:10px;padding:2px 7px"
-          onclick="pushHistory();cur='${k}';curTab='auteurs';sbMode='notions';renderSB();renderContent()">${D[k].l}</span>`).join('');
+          onclick="openNotionFromAuthor('${k}','${safeAuthor}')">${D[k].l}</span>`).join('');
         html+=`<div class="oeuvre-card"><div class="oeuvre-title">${w}</div><div class="oeuvre-badges">${bdgs}</div>${pPlus('correction','auteur',ks[0]||'',curAuthor+' — œuvre : '+w,curAuthor)}</div>`;
       });
     }
