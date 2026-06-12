@@ -119,9 +119,11 @@ d'un même auteur sont **regroupées en UNE carte** (`renderContent` regroupe
 une ZONE autonome** (`.a-idea`, conteneur `.a-ideas`) disposée
 **horizontalement** (flex-wrap), avec **sa propre couleur** (`.a-idea.is-new` /
 `.a-idea.is-modified`) et **ses propres badges** — l'état n'est PLUS au niveau
-de la carte. Une carte d'auteur à **plusieurs idées** prend toute la rangée
-(`.ac-multi{grid-column:1/-1}`) pour que les zones tiennent côte à côte ; à une
-seule idée, elle reste dans la grille compacte. Le nom garde la couleur de la
+de la carte. Une carte d'auteur à **plusieurs idées** s'élargit sur **2 colonnes**
+de la grille (`.ac-multi{grid-column:span 2}`, repli `auto` ≤700px) pour que les
+zones tiennent côte à côte **sans** créer de grands vides — un span pleine-rangée
+(`1/-1`) cassait le flux et laissait les colonnes restantes vides. À une seule
+idée, la carte reste dans la grille compacte. Le nom garde la couleur de la
 notion (`inkOnDark`).
 
 **Ordre des cartes auteur — tri par « popularité » (`compareAuthors`).** Les
