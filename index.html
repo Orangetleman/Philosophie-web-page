@@ -3473,11 +3473,18 @@ Object.keys(AI).forEach(name=>{
 // lie AUSSI ces variantes en prose vers la BONNE fiche (sinon, une mention
 // « Arendt » ou « Jonas » deviendrait du texte mort une fois la fiche unifiée).
 const AUTHOR_ALIASES={
+  // Doublons fusionnés dans D (cf. ci-dessus) :
   "Arendt":"Hannah Arendt",
   "Henry David Thoreau":"Thoreau",
   "Étienne de La Boétie":"La Boétie",
   "J.-S. Mill":"Mill",
-  "Jonas":"Hans Jonas"
+  "Jonas":"Hans Jonas",
+  // Formes courtes (nom de famille) d'auteurs déjà au nom complet dans D :
+  // ces mentions en prose deviennent ainsi cliquables vers la bonne fiche.
+  "James":"William James",
+  "Breton":"André Breton",
+  "Tzara":"Tristan Tzara",
+  "Perec":"Georges Perec"
 };
 Object.keys(AUTHOR_ALIASES).forEach(alias=>{
   const canon=AUTHOR_ALIASES[alias], key=alias.toLowerCase();
