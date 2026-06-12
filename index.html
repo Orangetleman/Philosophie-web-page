@@ -1663,9 +1663,14 @@ function buildAI(){
       if(!idx[name]) idx[name]={notions:[],entries:{}};
       if(!idx[name].entries[k]){
         idx[name].notions.push(k);
-        idx[name].entries[k]=a;
+        // COPIE (n + NOUVEAU tableau d'idées) : ne jamais référencer l'objet
+        // de D tel quel, sinon la fusion ci-dessous (push) muterait
+        // D[k].auteurs[] — la notion afficherait alors des idées dupliquées
+        // et une carte « is-modified » fantôme (mélange neuve/ancienne).
+        idx[name].entries[k]={n:a.n, ideas:a.ideas.slice()};
       }else{
-        // Doublon du même auteur dans la même notion : fusion des idées.
+        // Doublon du même auteur dans la même notion : fusion des idées
+        // (dans la COPIE de l'index, jamais dans D).
         idx[name].entries[k].ideas.push(...a.ideas);
       }
     });
@@ -3096,13 +3101,17 @@ function renderContent(){
       // Statut global de la carte : « new » si toutes les idées sont
       // neuves, « modified » si au moins une est modifiée (ou neuve sans
       // l'être toutes). Sert à colorer le nom et la bordure de la carte.
-      const allNew=a.ideas.length>0&&a.ideas.every(it=>it.new);
-      const anyNewOrMod=a.ideas.some(it=>it.new||it.modified);
-      const statusClass=allNew?' is-new':anyNewOrMod?' is-modified':'';
-      // Couleur du nom : accent « nouveau »/« modifié » si la carte l'est,
+      // Teinte de la carte : « modifié » (bleu) SEULEMENT si une idée est
+      // réellement modifiée ; sinon « nouveau » (doré) si une idée est neuve ;
+      // sinon neutre. (Avant : un mélange neuve + ancienne donnait « modifié »
+      // par erreur → carte bleue SANS badge « Modifié ».)
+      const anyMod=a.ideas.some(it=>it.modified);
+      const anyNew=a.ideas.some(it=>it.new);
+      const statusClass=anyMod?' is-modified':anyNew?' is-new':'';
+      // Couleur du nom : accent « modifié »/« nouveau » si la carte l'est,
       // sinon la couleur de la notion ÉCLAIRCIE (inkOnDark) pour rester
       // lisible sur fond sombre — la couleur brute échouait le contraste AA.
-      const nameColor=allNew?'var(--color-new)':anyNewOrMod?'var(--color-mod)':inkOnDark(c);
+      const nameColor=anyMod?'var(--color-mod)':anyNew?'var(--color-new)':inkOnDark(c);
       const safeN=a.n.replace(/'/g,"\\'");
       // Rendu de chaque idée (œuvre / idée / citation + badges + bouton +)
       let ideasHTML='';
