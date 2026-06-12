@@ -1703,6 +1703,59 @@ function authorsSorted(){
   });
 }
 
+/* ── Tri des cartes auteur par « popularité » ────────────────────────────
+   Sert à ordonner les cartes d'auteur d'une notion (onglet « Auteurs »).
+   Trois critères en cascade :
+     1. PRINCIPAL — nombre de notions où l'auteur est référencé
+        (AI[nom].notions.length) : un auteur transversal « pèse » plus.
+     2. DÉPARTAGE — score « importance bac » = mesure AUTOMATIQUE du corpus
+        (combien l'auteur est développé partout : idées + dialogues + citations)
+        + un COUP DE POUCE manuel (BAC_BONUS) pour les incontournables du
+        programme, afin qu'une figure majeure peu développée ne tombe pas trop.
+     3. ALPHABÉTIQUE — pour un ordre stable et lisible à score égal.            */
+
+// Coup de pouce manuel : poids ajouté aux auteurs les plus attendus au bac.
+// Le score AUTO suffit pour la masse ; ceci ne sert qu'à départager / remonter
+// un auteur majeur. Barème à 4 paliers (12 / 9 / 6 / 3). MODIFIABLE à volonté.
+// (Variantes de nom incluses quand un même auteur apparaît sous plusieurs clés.)
+const BAC_BONUS={
+  // Palier S — fondateurs, quasi omniprésents au bac
+  "Platon":12,"Aristote":12,"Descartes":12,"Kant":12,
+  // Palier A — incontournables
+  "Hegel":9,"Rousseau":9,"Nietzsche":9,"Marx":9,"Freud":9,"Sartre":9,
+  "Hume":9,"Spinoza":9,"Pascal":9,"Bergson":9,"Hannah Arendt":9,"Arendt":9,
+  // Palier B — très fréquents
+  "Hobbes":6,"Locke":6,"Épicure":6,"Mill":6,"J.-S. Mill":6,"Merleau-Ponty":6,
+  "Heidegger":6,"Épictète":6,"Schopenhauer":6,"Leibniz":6,"Tocqueville":6,
+  "Comte":6,"Bachelard":6,"Popper":6,"Weber":6,"Rawls":6,"Bourdieu":6,"Durkheim":6,
+  // Palier C — classiques secondaires fréquemment cités
+  "Augustin":3,"Thomas d'Aquin":3,"Kierkegaard":3,"Sénèque":3,"Russell":3,
+  "La Boétie":3,"Étienne de La Boétie":3,"Thoreau":3,"Henry David Thoreau":3,
+  "Simondon":3,"Jonas":3,"Hans Jonas":3,"Simone Weil":3,"Engels":3,"Camus":3
+};
+
+/* authorPopularity(name) — critère 1 : nb de notions couvertes. */
+function authorPopularity(name){ return AI[name]?AI[name].notions.length:0; }
+
+/* authorBacScore(name) — critère 2 : score « importance bac » (auto + bonus).
+   Idées et dialogues pèsent double (densité de traitement), citations simple. */
+function authorBacScore(name){
+  const e=AI[name]; let ideas=0, cites=0;
+  if(e) Object.keys(e.entries).forEach(k=>{
+    const en=e.entries[k]; ideas+=(en.ideas||[]).length;
+    (en.ideas||[]).forEach(it=>{ cites+=(it.citations||[]).length; });
+  });
+  const dlg=(AM[name]&&AM[name].dialogues)?AM[name].dialogues.length:0;
+  return ideas*2 + dlg*2 + cites + (BAC_BONUS[name]||0);
+}
+
+/* compareAuthors(an, bn) — comparateur de tri (popularité ↓, bac ↓, A→Z). */
+function compareAuthors(an, bn){
+  return authorPopularity(bn)-authorPopularity(an)
+      || authorBacScore(bn)-authorBacScore(an)
+      || an.localeCompare(bn,'fr');
+}
+
 /* ── Courant → color ─────────────────────────────────────────── */
 const CC={
   'Rationalisme':'#185FA5','Empirisme / Libéralisme':'#3B6D11','Idéalisme allemand':'#534AB7',
@@ -3117,6 +3170,9 @@ function renderContent(){
       if(authorPos[a.n]===undefined){ authorPos[a.n]=byAuthor.length; byAuthor.push({n:a.n, ideas:a.ideas.slice()}); }
       else byAuthor[authorPos[a.n]].ideas.push(...a.ideas);
     });
+    // Tri par « popularité » : nb de notions couvertes, puis score importance
+    // bac (auto-corpus + coup de pouce), puis alphabétique (cf. compareAuthors).
+    byAuthor.sort((a,b)=>compareAuthors(a.n,b.n));
     html+=`<div class="slabel">Auteurs et idées clés (${byAuthor.length} auteurs)</div><div class="ag">`;
     byAuthor.forEach(a=>{
       const safeN=a.n.replace(/'/g,"\\'");

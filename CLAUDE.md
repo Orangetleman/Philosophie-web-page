@@ -124,6 +124,18 @@ de la carte. Une carte d'auteur à **plusieurs idées** prend toute la rangée
 seule idée, elle reste dans la grille compacte. Le nom garde la couleur de la
 notion (`inkOnDark`).
 
+**Ordre des cartes auteur — tri par « popularité » (`compareAuthors`).** Les
+cartes sont triées (et non plus dans l'ordre de la source) selon trois critères
+en cascade : **(1)** nombre de notions couvertes (`authorPopularity` =
+`AI[nom].notions.length`) — un auteur transversal passe devant ; **(2)** score
+« importance bac » (`authorBacScore`) = mesure AUTO du corpus (idées×2 +
+dialogues×2 + citations) **+** un coup de pouce manuel `BAC_BONUS` (barème à 4
+paliers 12/9/6/3 pour les incontournables, modifiable) ; **(3)** alphabétique.
+`BAC_BONUS` inclut les **variantes de nom** quand un auteur apparaît sous
+plusieurs clés. Pour ajuster l'ordre d'un auteur, modifier son poids dans
+`BAC_BONUS` (le critère 1 reste prioritaire : le bonus ne départage qu'à
+nombre de notions égal).
+
 ### Auteur (objet dans `AM`)
 ```js
 { bio, courant, periode, themes:[…],
