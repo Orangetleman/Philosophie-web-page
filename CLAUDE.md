@@ -145,6 +145,19 @@ nombre de notions égal).
 ```
 Un auteur peut aussi avoir un alias court : `"Tzara":{bio:"Voir 'Tristan Tzara'.",…}`.
 
+**Nom canonique unique par auteur (pas de doublons dans `D`).** Un même auteur
+doit apparaître sous **UN SEUL** `n` dans tout `D` (sinon ses notions/idées se
+scindent : rang « popularité » faussé, deux fiches, deux cartes). Doublons
+historiques fusionnés vers le canonique : `Arendt`→**Hannah Arendt**,
+`Henry David Thoreau`→**Thoreau**, `Étienne de La Boétie`→**La Boétie**,
+`J.-S. Mill`→**Mill**, `Jonas`→**Hans Jonas** (le canonique retenu porte la bio
+`AM` et/ou couvre le plus de notions). Pour que les **mentions en prose** des
+anciennes formes restent cliquables, `index.html` tient une table
+`AUTHOR_ALIASES` (alias→canonique) injectée dans `LINK_MAP` après les clés `AI`
+(`openAuthor` résout aussi l'alias par sécurité). En ajoutant un auteur,
+**réutiliser le `n` exact déjà employé ailleurs** ; au besoin, ajouter une
+entrée à `AUTHOR_ALIASES`.
+
 ### Concept (objet dans `CONCEPTS`)
 ```js
 { id, term, cat, def, auteur, notions:[…], new?,

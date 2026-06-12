@@ -2953,6 +2953,9 @@ function goMode(mode){
    bascule la sidebar en mode 'auteurs' et rend la fiche. Ignore un nom
    absent de l'index AI. */
 function openAuthor(name){
+  // Résout une variante de nom (alias) vers le nom canonique, par sécurité —
+  // les liens passent déjà le canonique, ceci ne couvre qu'un appel résiduel.
+  if(!AI[name] && typeof AUTHOR_ALIASES!=='undefined' && AUTHOR_ALIASES[name]) name=AUTHOR_ALIASES[name];
   if(!AI[name]) return;
   pushHistory();
   sbMode='auteurs'; curAuthor=name; curAuthorTab='idees';
@@ -3464,6 +3467,21 @@ CONCEPTS.forEach(c=>{
 Object.keys(AI).forEach(name=>{
   const key=name.toLowerCase();
   if(!LINK_MAP[key]) LINK_MAP[key]={t:'a',v:name};
+});
+// 3 bis. Alias d'auteurs : variantes de nom (forme courte/longue) → nom
+// canonique (clé AI), après fusion des doublons dans D. Permet que linkTerms
+// lie AUSSI ces variantes en prose vers la BONNE fiche (sinon, une mention
+// « Arendt » ou « Jonas » deviendrait du texte mort une fois la fiche unifiée).
+const AUTHOR_ALIASES={
+  "Arendt":"Hannah Arendt",
+  "Henry David Thoreau":"Thoreau",
+  "Étienne de La Boétie":"La Boétie",
+  "J.-S. Mill":"Mill",
+  "Jonas":"Hans Jonas"
+};
+Object.keys(AUTHOR_ALIASES).forEach(alias=>{
+  const canon=AUTHOR_ALIASES[alias], key=alias.toLowerCase();
+  if(AI[canon] && !LINK_MAP[key]) LINK_MAP[key]={t:'a',v:canon};
 });
 // Bornes "mot" accentuées : on refuse une lettre/chiffre juste avant ou après
 const LINK_REGEX=new RegExp(
