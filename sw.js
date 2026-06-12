@@ -9,7 +9,7 @@
 // Permet l'usage hors-ligne tout en restant à jour dès qu'on a du réseau.
 // Pour invalider le cache après une mise à jour, incrémenter la version.
 
-const CACHE = 'philo-v38';
+const CACHE = 'philo-v39';
 const PRECACHE = ['./', './index.html', './data.js', './manifest.json', './icon.svg'];
 
 // Installation : on précache les ressources critiques.

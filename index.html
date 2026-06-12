@@ -185,8 +185,22 @@ body{font-family:'Inter',system-ui,sans-serif;background:#121212;height:100vh;he
 .aw{font-size:11px;color:var(--color-text-tertiary);font-style:italic;margin-bottom:4px}
 .ai{font-size:12px;color:var(--color-text-secondary);line-height:1.5}
 .aq{font-size:11px;color:var(--color-text-tertiary);font-style:italic;margin-top:5px;border-left:2px solid var(--color-border-tertiary);padding-left:7px;line-height:1.4}
-/* Carte auteur multi-idées : séparateur discret entre deux idées du même auteur. */
-.a-idea+.a-idea{margin-top:9px;padding-top:9px;border-top:1px dashed var(--color-border-tertiary)}
+/* Carte auteur multi-idées : chaque idée est une ZONE autonome (.a-idea) avec
+   sa propre couleur (is-new / is-modified) et ses badges ; les zones se
+   disposent HORIZONTALEMENT (flex-wrap) au lieu d'être empilées. */
+.a-ideas{display:flex;flex-wrap:wrap;gap:8px}
+.a-idea{flex:1 1 220px;min-width:0;padding:7px 9px;border-radius:var(--border-radius-md);
+        border:0.5px solid transparent}
+/* Plusieurs idées dans une carte → on matérialise les zones par un liseré
+   discret (les zones colorées, elles, l'emportent ci-dessous). */
+.ac-multi .a-idea{border-color:var(--color-border-tertiary)}
+.a-idea.is-new{border-color:var(--color-new-border);background:var(--color-new-bg)}
+.a-idea.is-new .aw{color:var(--color-new)}
+.a-idea.is-modified{border-color:var(--color-mod-border);background:var(--color-mod-bg)}
+.a-idea.is-modified .aw{color:var(--color-mod)}
+/* Carte d'un auteur à plusieurs idées : occupe toute la rangée de la grille,
+   pour que les zones d'idées tiennent côte à côte. */
+.ac-multi{grid-column:1/-1}
 /* Citations multiples d'une idée : la 1re est visible, les autres dans un déroulant. */
 .aq-details{margin-top:3px}
 .aq-details>summary{font-size:10px;color:var(--color-text-tertiary);cursor:pointer;list-style:none;padding-left:7px}
@@ -3093,43 +3107,44 @@ function renderContent(){
 <div class="def-box">${linkTerms(n.def)}${pPlus('ajout','notion',cur,'Définition / approfondissement de '+n.l)}</div>`;
 
   if(curTab==='auteurs'){
-    html+=`<div class="slabel">Auteurs et idées clés (${n.auteurs.length} auteurs)</div><div class="ag">`;
-    // Un auteur peut désormais avoir plusieurs idées (a.ideas[]) pour la
-    // même notion : on rend une seule carte auteur contenant tous ses
-    // blocs idée (œuvre / idée / citation), séparés par .a-idea+.a-idea.
+    // Fusion VOULUE : toutes les idées d'un même auteur pour cette notion
+    // tiennent dans UNE seule carte (clarté). Un auteur peut être saisi soit
+    // en une entrée multi-idées (a.ideas[]), soit en plusieurs entrées du
+    // même nom : on regroupe ici par nom, en conservant l'ordre de 1re
+    // apparition. (La fusion ne touche pas D : on copie les idées.)
+    const byAuthor=[]; const authorPos={};
     n.auteurs.forEach(a=>{
-      // Statut global de la carte : « new » si toutes les idées sont
-      // neuves, « modified » si au moins une est modifiée (ou neuve sans
-      // l'être toutes). Sert à colorer le nom et la bordure de la carte.
-      // Teinte de la carte : « modifié » (bleu) SEULEMENT si une idée est
-      // réellement modifiée ; sinon « nouveau » (doré) si une idée est neuve ;
-      // sinon neutre. (Avant : un mélange neuve + ancienne donnait « modifié »
-      // par erreur → carte bleue SANS badge « Modifié ».)
-      const anyMod=a.ideas.some(it=>it.modified);
-      const anyNew=a.ideas.some(it=>it.new);
-      const statusClass=anyMod?' is-modified':anyNew?' is-new':'';
-      // Couleur du nom : accent « modifié »/« nouveau » si la carte l'est,
-      // sinon la couleur de la notion ÉCLAIRCIE (inkOnDark) pour rester
-      // lisible sur fond sombre — la couleur brute échouait le contraste AA.
-      const nameColor=anyMod?'var(--color-mod)':anyNew?'var(--color-new)':inkOnDark(c);
+      if(authorPos[a.n]===undefined){ authorPos[a.n]=byAuthor.length; byAuthor.push({n:a.n, ideas:a.ideas.slice()}); }
+      else byAuthor[authorPos[a.n]].ideas.push(...a.ideas);
+    });
+    html+=`<div class="slabel">Auteurs et idées clés (${byAuthor.length} auteurs)</div><div class="ag">`;
+    byAuthor.forEach(a=>{
       const safeN=a.n.replace(/'/g,"\\'");
-      // Rendu de chaque idée (œuvre / idée / citation + badges + bouton +)
+      // CHAQUE idée = sa propre zone (.a-idea) avec SA couleur (is-new /
+      // is-modified) et SES badges — les états sont par idée, plus au niveau
+      // de la carte. Les zones se disposent horizontalement (cf. .a-ideas).
       let ideasHTML='';
       a.ideas.forEach(it=>{
         const nb=it.new?`<span class="new-badge">✦ Nouveau</span>`:'';
         const mb=it.modified?`<span class="modified-badge">✎ Modifié</span>`:'';
-        ideasHTML+=`<div class="a-idea">
+        const ic=it.new?' is-new':it.modified?' is-modified':'';   // teinte propre à l'idée
+        ideasHTML+=`<div class="a-idea${ic}">
           <div class="aw">${it.w||''} ${nb}${mb}</div>
           ${it.i?`<div class="ai">${linkTerms('<span>'+it.i+'</span>')}</div>`:''}
           ${ideaCitationsHTML(it.citations)}
           ${pPlus('correction','auteur',cur,a.n+' — '+(it.w||'idée'))}
         </div>`;
       });
-      html+=`<div class="ac${statusClass}">
+      // Carte élargie à toute la rangée si l'auteur a plusieurs idées, pour
+      // que les zones tiennent réellement CÔTE À CÔTE (sinon elles
+      // s'empileraient faute de largeur dans la grille étroite).
+      const multi=a.ideas.length>1?' ac-multi':'';
+      const nameColor=inkOnDark(c);   // nom = couleur de la notion (neutre)
+      html+=`<div class="ac${multi}">
         <div class="an" style="color:${nameColor}">
           <span class="an-link" style="color:${nameColor}" onclick="openAuthor('${safeN}')">${a.n}</span>
         </div>
-        ${ideasHTML}
+        <div class="a-ideas">${ideasHTML}</div>
       </div>`;
     });
     html+=`</div>`;

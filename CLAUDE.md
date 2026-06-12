@@ -108,7 +108,21 @@ L'ancien format à plat `{n, w, i, q}` et le `q` unique d'une idée restent
 acceptés en source : `normalizeAuthor()` convertit au chargement en
 `{n, ideas:[{w, i, citations:[q]}]}`. Toute **nouvelle entrée** s'écrit
 directement avec `citations:[…]`. `buildAI` fusionne les idées si un auteur
-apparaît plusieurs fois dans la même `D[k].auteurs[]`.
+apparaît plusieurs fois dans la même `D[k].auteurs[]` — en stockant une
+**copie** (`{n, ideas:a.ideas.slice()}`), jamais une référence à l'objet de
+`D` : sinon le `push` de fusion **muterait `D`** (idées dupliquées + carte
+« is-modified » fantôme dans la notion).
+
+**Rendu de la carte auteur dans la notion (onglet « Auteurs »).** Les entrées
+d'un même auteur sont **regroupées en UNE carte** (`renderContent` regroupe
+`n.auteurs` par nom, ordre de 1re apparition). Dans la carte, **chaque idée est
+une ZONE autonome** (`.a-idea`, conteneur `.a-ideas`) disposée
+**horizontalement** (flex-wrap), avec **sa propre couleur** (`.a-idea.is-new` /
+`.a-idea.is-modified`) et **ses propres badges** — l'état n'est PLUS au niveau
+de la carte. Une carte d'auteur à **plusieurs idées** prend toute la rangée
+(`.ac-multi{grid-column:1/-1}`) pour que les zones tiennent côte à côte ; à une
+seule idée, elle reste dans la grille compacte. Le nom garde la couleur de la
+notion (`inkOnDark`).
 
 ### Auteur (objet dans `AM`)
 ```js
