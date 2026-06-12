@@ -436,8 +436,11 @@ a ses champs d'idée à plat (v1) ou dans `ideas[]` sans `notion`/`citations`
   était — la page distante ne fait pas disparaître la locale. `sameNav(a,b)`
   compare deux états (champs « cœur ») pour la déduplication.
 - **Mode révision / édition** (localStorage `philo-mode`) : par défaut
-  *révision* (rendu épuré — badges `new`/`modified`, boutons `+` et
-  `.sb-propose` cachés via `body:not(.mode-edition)`) ; *édition* révèle tout.
+  *révision* (rendu épuré — **outils** de contribution cachés : boutons `+`
+  `.pplus`/`.pplus-catwrap` et `.sb-propose`, via `body:not(.mode-edition)`).
+  Les **badges `✦ Nouveau` / `✎ Modifié` restent visibles en révision** (ils
+  informent l'élève du contenu récent/corrigé, ce n'est pas un outil d'édition) ;
+  *édition* révèle en plus les outils de contribution.
   La bascule vit dans le **menu « ⚙ Réglages »** (bouton `.sb-settings` en bas
   de sidebar → overlay `#settings-overlay`, `openSettings`/`renderSettingsBody`),
   qui regroupe les fonctions non nécessaires à la révision. Le toggle y est

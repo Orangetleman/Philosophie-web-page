@@ -541,10 +541,10 @@ body.mode-edition .sb-settings{color:var(--color-text-info);border-color:var(--c
 .set-row-cur strong{color:var(--color-text-primary)}
 .set-row-desc{font-size:12px;line-height:1.5;color:var(--color-text-tertiary)}
 .set-mode-btn{align-self:flex-start}
-/* En mode RÉVISION (défaut), on cache les badges et boutons de contribution
-   pour offrir un rendu épuré aux élèves. Tout est révélé en mode édition. */
-body:not(.mode-edition) .new-badge,
-body:not(.mode-edition) .modified-badge,
+/* En mode RÉVISION (défaut), on cache les OUTILS de contribution (boutons +,
+   « Proposer du contenu ») pour un rendu épuré. Les badges « ✦ Nouveau » et
+   « ✎ Modifié » restent visibles : ils signalent à l'élève le contenu récent
+   ou corrigé (informatif, pas un outil d'édition). */
 body:not(.mode-edition) .pplus,
 body:not(.mode-edition) .pplus-catwrap,
 body:not(.mode-edition) .sb-propose{display:none!important}
