@@ -203,6 +203,17 @@ body{font-family:'Inter',system-ui,sans-serif;background:#121212;height:100vh;he
    de grands vides dans la grille — un span pleine-rangée cassait le flux et
    laissait les colonnes restantes vides. (≤700px : retour à 1 colonne.) */
 .ac-multi{grid-column:span 2}
+/* « Mode fiche » (Réglages) : lecture RAPIDE — chaque boîte d'auteur des
+   notions est compressée. On resserre les zones, on borne l'idée à 2 lignes
+   (clamp) et on masque les citations (de toute façon dépliables dans la fiche
+   auteur). Bascule via body.mode-fiche. */
+body.mode-fiche .ac{padding:7px 9px}
+body.mode-fiche .a-idea{padding:4px 7px}
+body.mode-fiche .aw{margin-bottom:2px}
+body.mode-fiche .ai{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
+  overflow:hidden;font-size:11.5px;line-height:1.4}
+body.mode-fiche .a-idea .aq,
+body.mode-fiche .a-idea .aq-details{display:none}
 /* Citations multiples d'une idée : la 1re est visible, les autres dans un déroulant. */
 .aq-details{margin-top:3px}
 .aq-details>summary{font-size:10px;color:var(--color-text-tertiary);cursor:pointer;list-style:none;padding-left:7px}
@@ -2088,6 +2099,7 @@ function renderSB(){
   }
   renderAccountBtn();   // remplit la zone selon l'état (connecté / déconnecté)
   applyPhiloMode();   // met à jour le libellé selon l'état actuel
+  applyFicheMode();   // applique le « mode fiche » (lecture compressée) si actif
 
   if(sbMode==='notions'){
     KEYS.forEach(k=>{
@@ -5168,6 +5180,19 @@ function togglePhiloMode(){
   syncOnPrefsChange();        // new (Phase 2) : reporte la préférence vers le compte si connecté
 }
 
+/* applyFicheMode() — applique le « mode fiche » (lecture compressée des cartes
+   d'auteur dans les notions) via la classe body.mode-fiche, lue dans
+   localStorage 'philo-fiche'. Rafraîchit le menu Réglages s'il est ouvert. */
+function applyFicheMode(){
+  document.body.classList.toggle('mode-fiche', localStorage.getItem('philo-fiche')==='1');
+  const ov=document.getElementById('settings-overlay');
+  if(ov && ov.classList.contains('open')) renderSettingsBody();
+}
+function toggleFicheMode(){
+  localStorage.setItem('philo-fiche', localStorage.getItem('philo-fiche')==='1'?'0':'1');
+  applyFicheMode();
+}
+
 /* ── Menu « ⚙ Réglages » ─────────────────────────────────────────────────
    Regroupe les fonctions NON nécessaires à la révision. Le toggle de mode y
    est rendu EXPLICITE : le bouton nomme le mode-CIBLE (l'action), avec le mode
@@ -5176,12 +5201,20 @@ function togglePhiloMode(){
 function renderSettingsBody(){
   const body=document.getElementById('settings-body'); if(!body) return;
   const isEd=(localStorage.getItem('philo-mode')||'revision')==='edition';
+  const isFiche=localStorage.getItem('philo-fiche')==='1';
   body.innerHTML=
     '<div class="set-row">'
     +'<div class="set-row-cur">Mode d\'affichage actuel : <strong>'+(isEd?'Édition':'Révision')+'</strong></div>'
     +'<div class="set-row-desc">Le mode <em>édition</em> révèle les badges « ✦ nouveau / ✎ modifié » et les boutons « + » pour proposer du contenu. Le mode <em>révision</em> épure l\'affichage pour se concentrer sur l\'apprentissage.</div>'
     +'<button class="pbtn pbtn-primary set-mode-btn" onclick="togglePhiloMode()">'
       +(isEd?'👁 Revenir au mode révision':'✎ Passer en mode édition')+'</button>'
+    +'</div>'
+    // Mode fiche : compresse les cartes d'auteur des notions pour une lecture rapide.
+    +'<div class="set-row">'
+    +'<div class="set-row-cur">Mode fiche : <strong>'+(isFiche?'activé':'désactivé')+'</strong></div>'
+    +'<div class="set-row-desc">Compresse chaque boîte d\'auteur dans les notions (idée bornée à 2 lignes, citations masquées) pour une <em>lecture rapide</em>, façon fiche de révision. Le contenu complet reste sur la fiche de l\'auteur.</div>'
+    +'<button class="pbtn pbtn-primary set-mode-btn" onclick="toggleFicheMode()">'
+      +(isFiche?'📖 Affichage complet':'🗂 Activer le mode fiche')+'</button>'
     +'</div>';
 }
 /* openSettings / closeSettings — ouvre/ferme l'overlay de réglages. */
