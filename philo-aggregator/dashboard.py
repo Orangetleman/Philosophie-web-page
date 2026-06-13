@@ -45,7 +45,7 @@ from flask import Flask, request, redirect, jsonify
 
 import db
 import localenv
-from view import bucket_of, sub_key_of, SECTION_ORDER, main_text_field, truncate, short_date
+from view import main_text_field, truncate, short_date
 from export import render_box, CIBLE_LABELS, TYPE_LABELS
 
 
@@ -210,9 +210,13 @@ header h1 { margin:0 0 8px; font-size:18px; }
 .toolbtn:hover { background:#343a46; }
 .flash { margin:10px 20px 0; padding:10px 14px; background:#243b2e;
          border:1px solid #2ecc71; border-radius:6px; color:#cdedd8; }
-.filters { margin-top:6px; font-size:13px; color:#aab; }
-.filters a { margin-right:8px; text-decoration:none; }
-.filters a.on { font-weight:700; text-decoration:underline; }
+.filters { margin-top:8px; font-size:13px; color:#aab; display:flex; flex-direction:column; gap:6px; }
+.filt-row { display:flex; flex-wrap:wrap; align-items:center; gap:6px; }
+.filt-lbl { min-width:74px; color:#8a909c; font-size:12px; text-transform:uppercase; letter-spacing:.04em; }
+.chip { text-decoration:none; padding:3px 11px; border-radius:999px; border:1px solid #3a3f4b;
+        color:#cbd; background:#1c1f26; transition:background .12s,border-color .12s; }
+.chip:hover { background:#262b35; }
+.chip.on { background:#2d4a6e; border-color:#5dade2; color:#eaf4fb; font-weight:600; }
 main { padding:16px 20px 60px; max-width:1000px; margin:0 auto; }
 .section { margin:22px 0 8px; font-size:15px; letter-spacing:1px;
            color:#9aa; border-bottom:1px solid #2a2e38; padding-bottom:4px; }
@@ -281,25 +285,38 @@ VERDICT_FILTERS = [
 ]
 
 
+# Filtres de statut proposés (clé technique → libellé), « tous » en tête puis
+# l'ordre du cycle de vie. « intégrées » était absent : ajouté ici.
+STATUS_FILTERS = [
+    ("all", "Tous"), ("en_attente", "En attente"), ("validee", "Validées"),
+    ("integree", "Intégrées"), ("rejetee", "Rejetées"), ("archivee", "Archivées"),
+]
+
+
 def _filter_links(current_status, current_verdict):
     """
-    Construit la barre de filtres (liens) pour statut et verdict. Chaque
-    lien recharge la page avec les paramètres voulus ; le filtre actif est
-    souligné (classe « on »).
+    Barre de filtres en DEUX groupes (Statut / Verdict IA), chacun une rangée
+    de « chips » cliquables (sélection unique par groupe). Le chip actif porte
+    la classe « on ». Chaque lien conserve l'autre filtre courant.
     """
-    out = ['<div class="filters">Statut : ']
-    statuses = [("en_attente", "en attente"), ("validee", "validées"),
-                ("rejetee", "rejetées"), ("archivee", "archivées"),
-                ("all", "tous")]
-    for key, label in statuses:
-        cls = "on" if key == current_status else ""
-        out.append(f'<a class="{cls}" href="/?status={key}&verdict={current_verdict}">{esc(label)}</a>')
-    out.append(' &nbsp;|&nbsp; Verdict IA : ')
-    for key, label in VERDICT_FILTERS:
-        cls = "on" if key == current_verdict else ""
-        out.append(f'<a class="{cls}" href="/?status={current_status}&verdict={key}">{esc(label)}</a>')
-    out.append("</div>")
-    return "".join(out)
+    def chips(items, param, current, other_param, other_val):
+        out = []
+        for key, label in items:
+            cls = "chip on" if key == current else "chip"
+            out.append(f'<a class="{cls}" '
+                       f'href="/?{param}={key}&{other_param}={other_val}">{esc(label)}</a>')
+        return "".join(out)
+    return (
+        '<div class="filters">'
+        '<div class="filt-row"><span class="filt-lbl">Statut</span>'
+        + chips(STATUS_FILTERS, "status", current_status, "verdict", current_verdict)
+        + '</div>'
+        '<div class="filt-row"><span class="filt-lbl">Verdict IA</span>'
+        + chips([(k, l.capitalize()) for k, l in VERDICT_FILTERS],
+                "verdict", current_verdict, "status", current_status)
+        + '</div>'
+        '</div>'
+    )
 
 
 def _card(row, status, verdict_filter):
@@ -551,25 +568,20 @@ def _page(status, verdict_filter, rows, flash=None):
         head.append("</main>" + PROGRESS_JS + "</body></html>")
         return "".join(head)
 
-    # Regroupement section → sous-clé → liste (même logique que list/export).
-    sections = {}
-    for r in rows:
-        sec = bucket_of(r["cible"])
-        sk = sub_key_of(r)
-        sections.setdefault(sec, {}).setdefault(sk, []).append(r)
-
-    head.append(f'<p class="meta">{len(rows)} proposition(s) affichée(s).</p>')
-    for sec in SECTION_ORDER:
-        sub = sections.get(sec)
-        if not sub:
-            continue
-        total = sum(len(v) for v in sub.values())
-        head.append(f'<div class="section">{esc(sec)} ({total})</div>')
-        for key in sorted(sub.keys(), key=lambda s: s.lower()):
-            items = sub[key]
-            head.append(f'<div class="subgroup">▼ {esc(key)} ({len(items)})</div>')
-            for r in items:
-                head.append(_card(r, status, verdict_filter))
+    # Affichage à PLAT : une simple liste de cartes (plus de sections par
+    # catégorie + sous-groupes, peu lisibles). Chaque carte se décrit
+    # elle-même (statut, verdict, type • cible, notion/auteur, contributeur).
+    # Le tri/regroupement est désormais piloté par les filtres Statut/Verdict ;
+    # la détection de doublons (signature) reste annotée carte par carte.
+    # Ordre : plus récentes d'abord (received_at puis id décroissants).
+    rows_sorted = sorted(rows, key=lambda r: (r["received_at"] or "", r["id"]),
+                         reverse=True)
+    head.append(f'<p class="meta">{len(rows_sorted)} proposition(s) affichée(s) '
+                f'— triées des plus récentes aux plus anciennes.</p>')
+    head.append('<div class="proplist">')
+    for r in rows_sorted:
+        head.append(_card(r, status, verdict_filter))
+    head.append('</div>')
 
     head.append("</main>" + PROGRESS_JS + "</body></html>")
     return "".join(head)
