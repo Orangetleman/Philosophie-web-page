@@ -203,15 +203,16 @@ body{font-family:'Inter',system-ui,sans-serif;background:#121212;height:100vh;he
    de grands vides dans la grille — un span pleine-rangée cassait le flux et
    laissait les colonnes restantes vides. (≤700px : retour à 1 colonne.) */
 .ac-multi{grid-column:span 2}
-/* « Mode fiche » (Réglages) : lecture RAPIDE — chaque boîte d'auteur des
-   notions est compressée. On resserre les zones, on borne l'idée à 2 lignes
-   (clamp) et on masque les citations (de toute façon dépliables dans la fiche
-   auteur). Bascule via body.mode-fiche. */
+/* « Mode fiche » (Réglages) : lecture RAPIDE façon fiche de révision. Chaque
+   boîte d'auteur des notions affiche la SYNTHÈSE (.ai-fiche = la thèse en une
+   phrase, cf. ideaSynthese) à la place du texte complet (.ai), masque les
+   citations, et resserre les zones. .ai-fiche est cachée hors mode fiche. */
+.ai-fiche{display:none}
 body.mode-fiche .ac{padding:7px 9px}
 body.mode-fiche .a-idea{padding:4px 7px}
 body.mode-fiche .aw{margin-bottom:2px}
-body.mode-fiche .ai{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
-  overflow:hidden;font-size:11.5px;line-height:1.4}
+body.mode-fiche .ai{display:none}
+body.mode-fiche .ai-fiche{display:block;font-size:12px;line-height:1.45;color:var(--color-text-secondary)}
 body.mode-fiche .a-idea .aq,
 body.mode-fiche .a-idea .aq-details{display:none}
 /* Citations multiples d'une idée : la 1re est visible, les autres dans un déroulant. */
@@ -2994,6 +2995,38 @@ function ideaCitationsHTML(cites){
   const rest=cites.slice(1).map(c=>`<div class="aq aq-more">${linkTerms('<span>'+c+'</span>')}</div>`).join('');
   return first+`<details class="aq-details"><summary>+ ${n} autre${n>1?'s':''} citation${n>1?'s':''}</summary>${rest}</details>`;
 }
+/* ideaSynthese(it) — version CONDENSÉE d'une idée pour le « mode fiche »
+   (lecture rapide façon fiche de révision). Priorité à une synthèse rédigée
+   à la main (champ it.fiche) ; à défaut, on extrait la THÈSE = la 1re phrase
+   de l'idée (elles sont écrites thèse-d'abord, souvent avec un lead en gras).
+   On coupe au 1er point/!/? HORS balise, en évitant les abréviations proches
+   du début, puis on rééquilibre les balises ouvertes. Renvoie du HLML lié
+   (linkTerms) ou '' si pas d'idée. */
+function ideaSynthese(it){
+  if(it&&it.fiche) return linkTerms('<span>'+it.fiche+'</span>');
+  const html=(it&&it.i)||''; if(!html) return '';
+  let depth=0, cut=-1;
+  for(let i=0;i<html.length;i++){
+    const ch=html[i];
+    if(ch==='<') depth++;
+    else if(ch==='>'){ if(depth>0) depth--; }
+    else if(depth===0 && (ch==='.'||ch==='!'||ch==='?')){
+      const nxt=html[i+1];
+      // fin de phrase = ponctuation suivie d'espace/balise/fin ; on ignore les
+      // coupures trop précoces (abréviations type « av. », « p. ex. »).
+      if((nxt===undefined||nxt===' '||nxt==='<') && i>=45){ cut=i+1; break; }
+    }
+  }
+  let s=(cut>0?html.slice(0,cut):html).trim();
+  // Rééquilibrer les balises de mise en forme éventuellement laissées ouvertes.
+  ['strong','em','span'].forEach(tag=>{
+    const o=(s.match(new RegExp('<'+tag+'(?:\\s|>)','g'))||[]).length;
+    const c=(s.match(new RegExp('</'+tag+'>','g'))||[]).length;
+    for(let k=c;k<o;k++) s+='</'+tag+'>';
+  });
+  return linkTerms('<span>'+s+'</span>');
+}
+
 function renderAuthorContent(){
   renderCrumbs();
   const mainEl=document.getElementById('main');
@@ -3205,6 +3238,7 @@ function renderContent(){
         ideasHTML+=`<div class="a-idea${ic}">
           <div class="aw">${it.w||''} ${nb}${mb}</div>
           ${it.i?`<div class="ai">${linkTerms('<span>'+it.i+'</span>')}</div>`:''}
+          ${ideaSynthese(it)?`<div class="ai-fiche">${ideaSynthese(it)}</div>`:''}
           ${ideaCitationsHTML(it.citations)}
           ${pPlus('correction','auteur',cur,a.n+' — '+(it.w||'idée'))}
         </div>`;
