@@ -3093,7 +3093,7 @@ function renderAuthorContent(){
     const wks=Object.keys(works);
     if(!wks.length){html+=`<div style="color:var(--color-text-tertiary);font-size:12px;padding:10px 0">Aucune œuvre référencée.</div>`;}
     else{
-      html+=`<div class="slabel">Œuvres de ${curAuthor} citées dans le cours</div>`;
+      html+=`<div class="slabel">Œuvres de ${curAuthor} à connaître</div>`;
       wks.forEach(w=>{
         const ks=Array.from(works[w]);
         const bdgs=ks.map(k=>`<span class="notion-pill" style="color:${D[k].c};border-color:${D[k].c}40;background:${D[k].c}12;font-size:10px;padding:2px 7px"
@@ -3152,7 +3152,7 @@ function renderContent(){
   const n=D[cur];
   const c=n.c;
   const tabs2=['auteurs','textes','concepts','diss','exemples'];
-  const tabLabels={'auteurs':'Auteurs','textes':'Textes du cours','concepts':'Concepts','diss':'Dissertations','exemples':'Exemples'};
+  const tabLabels={'auteurs':'Auteurs','textes':'Textes','concepts':'Concepts','diss':'Dissertations','exemples':'Exemples'};
 
   // Remplir la barre d'onglets (toujours fixe)
   tabsEl.innerHTML=backBtnHTML()+tabs2.map(t=>`<div class="tab${curTab===t?' active':''}" onclick="tab('${t}')">${tabLabels[t]}</div>`).join('');
@@ -3213,7 +3213,7 @@ function renderContent(){
     html+=pPlusCat('auteur',cur,'Proposer un auteur');
   }
   else if(curTab==='textes'){
-    html+=`<div class="slabel">Textes étudiés en cours</div><div class="tbox">`;
+    html+=`<div class="slabel">Textes &amp; extraits à connaître</div><div class="tbox">`;
     n.textes.forEach(t=>{
       const newBadge=t.new?`<span class="new-badge">✦ Nouveau</span>`:'';
       const modBadge=t.modified?`<span class="modified-badge">✎ Modifié</span>`:'';
@@ -3334,14 +3334,13 @@ function renderContent(){
       html+=`<div class="slabel">Exemples concrets mobilisables en dissertation</div>`;
       exs.forEach(e=>{
         const tagColors={
-          'Littérature':'#534AB7','Cas clinique':'#D85A30','Science':'#1D9E75','Société':'#5F5E5A',
-          'Écologie':'#1D9E75','Anthropologie':'#3B6D11','Mythe — Cours':'#EF9F27','Mythe':'#EF9F27',
-          'Psychologie':'#534AB7','Philosophie':'#185FA5','Cinéma':'#D4537E','Histoire':'#993556',
-          'Contemporain':'#185FA5','Actualité':'#D85A30','Droit':'#5F5E5A','Cours — texte':'#EF9F27',
-          'Philosophie — Cours':'#185FA5','Histoire — Cours':'#993556','Actualité — Cours':'#D85A30',
-          'Texte — Cours':'#EF9F27','Droit — Cours':'#5F5E5A','Art contemporain':'#8B5E3C',
-          'Musique':'#8B5E3C','Psychanalyse — Cours':'#993556','Littérature — Cours':'#534AB7',
-          'Science — Cours':'#1D9E75','Psychologie — Cours':'#534AB7'
+          'Littérature':'#534AB7','Cas clinique':'#D85A30','Science':'#1D9E75','Sciences':'#1D9E75',
+          'Société':'#5F5E5A','Écologie':'#1D9E75','Anthropologie':'#3B6D11','Mythe':'#EF9F27',
+          'Psychologie':'#534AB7','Psychanalyse':'#993556','Philosophie':'#185FA5','Cinéma':'#D4537E',
+          'Histoire':'#993556','Contemporain':'#185FA5','Actualité':'#D85A30','Droit':'#5F5E5A',
+          'Texte':'#EF9F27','Art contemporain':'#8B5E3C','Musique':'#8B5E3C','Sociologie':'#5F5E5A',
+          'Épistémologie':'#185FA5','Éthique':'#993556','Morale':'#993556','Logique':'#185FA5',
+          'Politique':'#5F5E5A','Numérique':'#185FA5','Clinique':'#D85A30'
         };
         const tc=tagColors[e.tag]||c;
         const newBadgeEx=e.new?`<span class="new-badge">✦ Nouveau</span>`:'';
@@ -3645,7 +3644,7 @@ const PROPOSAL_CATS=[
 const PROPOSAL_SOUSCIBLES={
   notion:[
     {v:'notion',      l:'Définition / approfondissement'},
-    {v:'texte',       l:'Texte du cours'},
+    {v:'texte',       l:'Texte / extrait'},
     {v:'plan',        l:'Plan de dissertation'},
     {v:'dissertation',l:'Sujet de dissertation'},
     {v:'exemple',     l:'Exemple'},
@@ -5416,17 +5415,17 @@ const TOUR_STEPS=[
     target:()=>document.querySelector('.def-box details')||document.querySelector('.def-box') },
   { part:'fiches', side:'main', title:'Les onglets de la fiche',
     text:"Sous la définition, <b>cinq onglets</b> organisent tout le reste : <b>Auteurs</b>, "
-        +"<b>Textes du cours</b>, <b>Concepts</b>, <b>Dissertations</b> et <b>Exemples</b>. "
+        +"<b>Textes</b>, <b>Concepts</b>, <b>Dissertations</b> et <b>Exemples</b>. "
         +"Passons-les en revue.",
     setup:tourShowNotion, target:()=>document.querySelector('.tabs') },
   { part:'fiches', side:'main', title:'Onglet Auteurs',
     text:"Les <b>philosophes majeurs</b> sur cette notion : pour chacun, ses <b>idées clés</b> "
         +"(classées par œuvre) et ses <b>citations</b>. Ta matière première pour argumenter.",
     setup:()=>tourShowTab('auteurs'), target:()=>tourBoxEl('.ac','Auteurs') },
-  { part:'fiches', side:'main', title:'Onglet Textes du cours',
-    text:"Les <b>extraits étudiés</b> en classe, avec leur référence. À relire pour citer un "
+  { part:'fiches', side:'main', title:'Onglet Textes',
+    text:"Les <b>extraits clés</b> du programme, avec leur référence. À relire pour citer un "
         +"texte précis et montrer que tu connais les œuvres au programme.",
-    setup:()=>tourShowTab('textes'), target:()=>tourBoxEl('.ti2','Textes du cours') },
+    setup:()=>tourShowTab('textes'), target:()=>tourBoxEl('.ti2','Textes') },
   { part:'fiches', side:'main', title:'Onglet Concepts',
     text:"Les <b>concepts clés</b> liés à la notion, en <b>deux sous-onglets</b> : ceux qui "
         +"<b>éclairent la notion</b>, puis les <b>liens entre concepts</b> (oppositions, "
