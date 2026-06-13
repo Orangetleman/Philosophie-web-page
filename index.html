@@ -1596,7 +1596,7 @@ function normalizeAuthor(a){
   // Normalise une idée : garantit citations:[] et migre l'ancien q.
   const normIdea=(idea)=>{
     const out={};
-    ['w','i','new','modified'].forEach(k=>{ if(idea[k]!==undefined) out[k]=idea[k]; });
+    ['w','i','new','modified','fiche'].forEach(k=>{ if(idea[k]!==undefined) out[k]=idea[k]; });
     let cites=[];
     if(Array.isArray(idea.citations)) cites=idea.citations.slice();
     else if(idea.citations) cites=[idea.citations];
