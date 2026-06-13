@@ -1604,7 +1604,13 @@ function normalizeAuthor(a){
     out.citations=cites.filter(c=>c!=null&&String(c).trim()!=='');
     return out;
   };
-  if(Array.isArray(a.ideas)) return {n:a.n, ideas:a.ideas.map(normIdea)};
+  if(Array.isArray(a.ideas)){
+    const ideas=a.ideas.map(normIdea);
+    // Une synthèse « fiche » posée au niveau ENTRÉE (format multi-idées) se
+    // propage aux idées qui n'en ont pas la leur (le mode fiche lit it.fiche).
+    if(a.fiche) ideas.forEach(it=>{ if(it.fiche===undefined) it.fiche=a.fiche; });
+    return {n:a.n, ideas};
+  }
   return {n:a.n, ideas:[normIdea(a)]};            // ancien format à plat
 }
 
