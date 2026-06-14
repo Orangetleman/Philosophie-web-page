@@ -317,9 +317,10 @@ function ensureDefs(){
   if(svg.querySelector('defs')) return;
   const defs = el(SVGNS,'defs');
   G.typesLien.forEach(t=>{
-    const m = el(SVGNS,'marker',{id:'arr-'+t.id,viewBox:'0 0 10 10',refX:'9',refY:'5',
-      markerWidth:'7',markerHeight:'7',orient:'auto-start-reverse'});
-    m.appendChild(el(SVGNS,'path',{d:'M0,0 L10,5 L0,10 z',fill:t.style.color}));
+    // markerUnits:userSpaceOnUse → flèche de taille constante (visible), indépendante du trait
+    const m = el(SVGNS,'marker',{id:'arr-'+t.id,viewBox:'0 0 10 10',refX:'8.5',refY:'5',
+      markerWidth:'15',markerHeight:'15',markerUnits:'userSpaceOnUse',orient:'auto'});
+    m.appendChild(el(SVGNS,'path',{d:'M0,0 L10,5 L0,10 z',fill:t.style.color,stroke:t.style.color}));
     defs.appendChild(m);
   });
   svg.appendChild(defs);
@@ -327,17 +328,26 @@ function ensureDefs(){
 
 /* Dessine les arêtes transverses (flux) — commun au graphe et au radial.
    Chaque extrémité est ancrée au 1er ancêtre VISIBLE ; courbe selon les centres. */
+/* Point sur le BORD de la boîte d'un nœud, dans la direction (tx,ty).
+   Sert à arrêter l'arête JUSTE en dehors du nœud → la flèche reste visible. */
+function borderPoint(cx,cy,tx,ty){
+  const dx=tx-cx, dy=ty-cy, hw=NODE_W/2+7, hh=NODE_H/2+7;
+  if(!dx&&!dy) return {x:cx,y:cy};
+  const t=Math.min(dx?hw/Math.abs(dx):Infinity, dy?hh/Math.abs(dy):Infinity);
+  return {x:cx+dx*t, y:cy+dy*t};
+}
 function buildFlux(group){
   allEdges.forEach(e=>{
     if(!state.activeLink.has(e.type)) return;
     const a=visAnchor(e.from), b=visAnchor(e.to);
     if(!a||!b||a===b) return;
     const t=ltById.get(e.type)||{style:{color:'#888',width:2,dash:''}};
-    const x1=a._x+NODE_W/2, y1=a._y+NODE_H/2, x2=b._x+NODE_W/2, y2=b._y+NODE_H/2;
-    const dx=Math.max(70,Math.abs(x2-x1)/2);
-    const path=el(SVGNS,'path',{d:`M${x1},${y1} C${x1+dx},${y1} ${x2-dx},${y2} ${x2},${y2}`,
+    const ax=a._x+NODE_W/2, ay=a._y+NODE_H/2, bx=b._x+NODE_W/2, by=b._y+NODE_H/2;
+    const p1=borderPoint(ax,ay,bx,by), p2=borderPoint(bx,by,ax,ay);  // bords des deux nœuds
+    const sgn=Math.sign(p2.x-p1.x)||1, dxc=Math.max(40,Math.abs(p2.x-p1.x)/2);
+    const path=el(SVGNS,'path',{d:`M${p1.x},${p1.y} C${p1.x+sgn*dxc},${p1.y} ${p2.x-sgn*dxc},${p2.y} ${p2.x},${p2.y}`,
       fill:'none',stroke:t.style.color,'stroke-width':t.style.width,
-      'stroke-dasharray':t.style.dash||'','marker-end':'url(#arr-'+e.type+')',opacity:'.85'});
+      'stroke-dasharray':t.style.dash||'','marker-end':'url(#arr-'+e.type+')',opacity:'.9'});
     const title=el(SVGNS,'title'); title.textContent=(ltById.get(e.type)?ltById.get(e.type).label:e.type)+' — '+(e.note||'');
     path.appendChild(title);
     group.appendChild(path);
@@ -527,25 +537,34 @@ function openDetail(id, anchorEl){
   detail.classList.add('open');
   if(state.view==='tree') positionBubble(state.anchorEl); else syncBubble();
 }
-/* Bulle ANCRÉE au nœud (graphe/radial) : suit le pan/zoom et grossit avec le zoom. */
+/* Ferme la bulle proprement (et réinitialise les styles inline). */
+function closeBubble(){ detail.classList.remove('open'); state.detailId=null;
+  detail.style.visibility=''; detail.style.transform=''; }
+
+/* Bulle ANCRÉE au nœud (graphe/radial) : suit le pan/zoom et grossit avec le zoom.
+   Garantie : toujours ENTIÈREMENT dans la fenêtre (jamais de fantôme hors-écran). */
 function syncBubble(){
   if(!state.detailId || !detail.classList.contains('open') || state.view==='tree') return;
   const n=byId.get(state.detailId);
-  if(!n || !visSet.has(n.id)){ detail.style.visibility='hidden'; return; }
+  if(!n || !visSet.has(n.id)){ closeBubble(); return; }   // ancre disparue (repli/filtre) → on ferme
   detail.style.visibility='visible';
   const r=svg.getBoundingClientRect();
   const cx=n._x+NODE_W/2, cy=n._y+NODE_H/2;
   const sx=r.left+(cx-vb.x)/vb.w*r.width;        // position écran du centre du nœud
   const sy=r.top +(cy-vb.y)/vb.h*r.height;
-  const k=Math.min(2.2,Math.max(0.55,(state.bubbleRefW||vb.w)/vb.w));   // échelle ∝ zoom
-  detail.style.transformOrigin='top left';
+  const W=window.innerWidth||document.documentElement.clientWidth;
+  const H=window.innerHeight||document.documentElement.clientHeight;
+  let k=Math.min(2.2,Math.max(0.55,(state.bubbleRefW||vb.w)/vb.w));   // échelle ∝ zoom
+  // l'échelle ne doit jamais rendre la bulle plus grande que la fenêtre
+  k=Math.max(0.45,Math.min(k,(W-16)/detail.offsetWidth,(H-16)/detail.offsetHeight));
+  const bw=detail.offsetWidth*k, bh=detail.offsetHeight*k;
   const nodeHalf=(NODE_W/2)/vb.w*r.width;
   let left=sx+nodeHalf+10, top=sy-12;
-  const bw=detail.offsetWidth*k, bh=detail.offsetHeight*k;
-  if(left+bw>window.innerWidth-8) left=sx-nodeHalf-10-bw;   // bascule à gauche si déborde
-  if(left<8) left=8;
-  if(top+bh>window.innerHeight-8) top=Math.max(8,window.innerHeight-bh-8);
-  if(top<8) top=8;
+  if(left+bw>W-8) left=sx-nodeHalf-10-bw;        // tente d'abord le côté gauche du nœud
+  // CLAMP DUR : la bulle reste TOUJOURS entièrement visible (donc fermable)
+  left=Math.max(8,Math.min(left,W-bw-8));
+  top =Math.max(8,Math.min(top, H-bh-8));
+  detail.style.transformOrigin='top left';
   detail.style.left=left+'px'; detail.style.top=top+'px'; detail.style.transform='scale('+k+')';
 }
 /* Place la bulle d'info à côté de l'élément cliqué (vue arbre, sans zoom). */
@@ -574,7 +593,7 @@ function mkLink(type,toId,note){
   if(note){ const s=document.createElement('div'); s.style.color='var(--tx2)'; s.style.marginTop='2px'; s.textContent=note; d.appendChild(s); }
   return d;
 }
-document.getElementById('dClose').addEventListener('click',()=>{ detail.classList.remove('open'); state.detailId=null; });
+document.getElementById('dClose').addEventListener('click',()=>{ closeBubble(); });
 
 /* ── (G) Navigation, recherche, filtres ─────────────────────────── */
 function toggle(id){ if(isCollapsed(id)) state.collapsed.delete(id); else state.collapsed.add(id);
@@ -643,14 +662,17 @@ function buildFilters(){
       ch.classList.toggle('off'); rerender(); });
     lk.appendChild(ch);
   });
-  // légende des liens (échantillon de trait)
+  // légende des liens (échantillon de trait + FLÈCHE = sens du flux)
   const leg=document.getElementById('linkLegend');
   G.typesLien.forEach(t=>{
     const line=document.createElement('div'); line.className='legend-line';
-    const s=`<svg width="42" height="10"><line x1="2" y1="5" x2="40" y2="5" stroke="${t.style.color}" stroke-width="${t.style.width}" stroke-dasharray="${t.style.dash||''}" marker-end=""/></svg>`;
+    const s=`<svg width="48" height="12"><line x1="2" y1="6" x2="36" y2="6" stroke="${t.style.color}" stroke-width="${t.style.width}" stroke-dasharray="${t.style.dash||''}"/><path d="M35,2 L45,6 L35,10 z" fill="${t.style.color}"/></svg>`;
     line.innerHTML=s; line.appendChild(document.createTextNode(t.label));
     leg.appendChild(line);
   });
+  const note=document.createElement('div'); note.className='hint';
+  note.textContent='La flèche indique le sens du flux (de la source vers la cible).';
+  leg.appendChild(note);
 }
 
 /* ── (H) Pan & zoom (souris + tactile) ──────────────────────────── */
@@ -716,8 +738,8 @@ document.getElementById('recenter').addEventListener('click',()=>{ if(state.view
 document.getElementById('search').addEventListener('input',e=>runSearch(e.target.value));
 const burger=document.getElementById('burger'), side=document.getElementById('side'), backdrop=document.getElementById('backdrop');
 burger.addEventListener('click',()=>{ side.classList.toggle('open'); backdrop.classList.toggle('show',side.classList.contains('open')); });
-backdrop.addEventListener('click',()=>{ side.classList.remove('open'); backdrop.classList.remove('show'); detail.classList.remove('open'); });
-document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ detail.classList.remove('open'); side.classList.remove('open'); backdrop.classList.remove('show'); } });
+backdrop.addEventListener('click',()=>{ side.classList.remove('open'); backdrop.classList.remove('show'); closeBubble(); });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ closeBubble(); side.classList.remove('open'); backdrop.classList.remove('show'); } });
 window.addEventListener('resize',()=>{ /* la vue ne bascule pas d'elle-même : l'utilisateur choisit */ });
 
 let toastT=null;

@@ -1,8 +1,17 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
-  "genere_le": "2026-06-14T16:39:20.426Z",
+  "genere_le": "2026-06-14T20:40:25.386Z",
   "commits": [
+    {
+      "hash": "f2ba18cc357810f169a01ee259a9d8d31ad13dc4",
+      "short": "f2ba18c",
+      "auteur": "Orangentleman",
+      "date": "2026-06-14T18:39:20+02:00",
+      "sujet": "Merge remote-tracking branch 'origin/main' into claude/goofy-shockley-605dab",
+      "corps": "# Conflicts:\n#\tindex.html",
+      "tag": ""
+    },
     {
       "hash": "d3c6e31a1e74ebc2637d5074a40dcd0d82fdd426",
       "short": "d3c6e31",
@@ -47,6 +56,114 @@ window.FRISE = {
       "sujet": "Carte projet (P3/P4) : carte.html — renderer graphe autonome",
       "corps": "Graphe nœud-lien SVG (dorsale arbre + arêtes transverses de flux), pan/zoom\nsouris+tactile, repli/dépli au clic, panneau détail (Découverte+Technique)\nau double-clic, recherche plein-texte qui centre la cible, filtres par\ndomaine et par type de lien, fil d'Ariane, légende, bascule\nDécouverte/Technique, et repli en arbre indenté sur écran étroit. Zéro\ndépendance, hors-ligne. Lit window.CARTE, aucune donnée en dur.\n\nCo-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>",
       "tag": "Carte projet (P3/P4)"
+    },
+    {
+      "hash": "45cb075c594c631846f408d68b2ceb359270573b",
+      "short": "45cb075",
+      "auteur": "Orangentleman",
+      "date": "2026-06-14T13:57:52+02:00",
+      "sujet": "Barres de recherche : croix d'effacement + clic droit pour vider",
+      "corps": "- Croix ✕ dans les 3 barres sidebar (auteurs/concepts/repères) et la palette\n  Ctrl+K, visible seulement quand le champ contient du texte\n- Clic droit sur un champ de recherche : bloque le menu natif et vide le champ\n- Helpers sbSearchInput / clearSidebarSearch / searchCtxClear (sidebar) et\n  paletteSyncClear / clearPaletteSearch (palette)\n\nCo-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>",
+      "tag": "Barres de recherche"
+    },
+    {
+      "hash": "c581b1d60565ba39b91f96950d9701d871b408f3",
+      "short": "c581b1d",
+      "auteur": "Orangentleman",
+      "date": "2026-06-14T13:46:25+02:00",
+      "sujet": "Intègre 4 propositions : Hannah Arendt (liberté), concepts Existentialisme + Solipsisme",
+      "corps": "- BOX 42 : Hannah Arendt → liberté (idée nettoyée, œuvre « La Liberté d'être libre »)\n  + sujet de dissertation « La liberté consiste-t-elle à n'obéir à personne ? »\n- BOX 45 : concept Existentialisme (conscience/liberté/vérité, relation → absurde)\n- BOX 43+44 : concept Solipsisme (conscience, distinction → intersubjectivité)\n\nCo-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>",
+      "tag": "Intègre 4 propositions"
+    },
+    {
+      "hash": "f12b929d17218e76c93a85fe42ec463c646b9c59",
+      "short": "f12b929",
+      "auteur": "Orangentleman",
+      "date": "2026-06-14T12:51:17+02:00",
+      "sujet": "Tuto : mode fiche dans le noyau, partie Navigation plus concise, focus sur le bouton ?",
+      "corps": "- « Réglages & aide » (noyau) présenté sous forme de liste : Mode fiche + Mode édition\n- Partie « Naviguer » resserrée (textes raccourcis, recap redondant retiré)\n- Nouveau focus dédié sur le bouton ? (rouvrir la visite), en fin de parcours\n- CSS .tour-list pour les listes à puces dans la bulle\n\nCo-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>",
+      "tag": "Tuto"
+    },
+    {
+      "hash": "1f7e45da75bf9e8a646c903f6bbd2088ede1af93",
+      "short": "1f7e45d",
+      "auteur": "Orangentleman",
+      "date": "2026-06-14T12:37:30+02:00",
+      "sujet": "Ajout du sitemap pour Google",
+      "corps": "",
+      "tag": ""
+    },
+    {
+      "hash": "50cfffd274a0dbf84bba97dbcc0e9abed882d2c4",
+      "short": "50cfffd",
+      "auteur": "Orangentleman",
+      "date": "2026-06-14T06:07:37+02:00",
+      "sujet": "Mode fiche : synthèses manuelles pour justice, état, nature (31 auteurs)",
+      "corps": "Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>",
+      "tag": "Mode fiche"
+    },
+    {
+      "hash": "e301074c4170b56291648e01bda31c4e467f641c",
+      "short": "e301074",
+      "auteur": "Orangentleman",
+      "date": "2026-06-14T06:03:21+02:00",
+      "sujet": "Mode fiche : synthèses manuelles (langage, travail, art, technique)",
+      "corps": "42 synthèses 'fiche' rédigées à la main couvrant tous les auteurs de ces\n4 notions, dont les doublons par œuvre (travail : Nietzsche Aurore /\nHumain trop humain ; Arendt Condition / Crise de la culture) et le\nmulti-idées (langage : Cassin, 2 idées). sw.js : cache v49.\n\nCo-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>",
+      "tag": "Mode fiche"
+    },
+    {
+      "hash": "bb72b72cff726dc51daa2e038756e4f2f891b978",
+      "short": "bb72b72",
+      "auteur": "Orangentleman",
+      "date": "2026-06-14T00:42:07+02:00",
+      "sujet": "Mode fiche : synthèses manuelles pour 5 notions (bonheur, devoir, liberté, inconscient, religion)",
+      "corps": "54 synthèses 'fiche' rédigées à la main (7+11+12+4+20), couvrant tous les\nauteurs de ces notions — y compris les cas multi-idées (Freud/inconscient :\nfiche par idée), doublons (Sartre/liberté : 2 œuvres) et formats multi-idées\n(propagation entrée→idées dans normalizeAuthor).\n\n- data.js : champ fiche:\"...\" ajouté à chaque idée d'auteur des 5 notions.\n- index.html : normalizeAuthor propage une fiche d'entrée aux idées (format\n  multi-idées) — sinon perdue.\n- sw.js : cache v48.\n\nCo-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>",
+      "tag": "Mode fiche"
+    },
+    {
+      "hash": "f13fa173759672fb87d7ea8b13ef4336d6260e70",
+      "short": "f13fa17",
+      "auteur": "Orangentleman",
+      "date": "2026-06-13T23:31:39+02:00",
+      "sujet": "Notions : réordonnancement + fiches manuelles (conscience)",
+      "corps": "- Ordre des notions revu (KEYS explicite, sans déplacer les blocs de D) :\n  conscience, inconscient, devoir, liberté, bonheur, religion, langage, art,\n  technique, travail, justice, état, nature, raison, science, vérité, temps.\n- normalizeAuthor conserve désormais le champ 'fiche' (synthèse rédigée).\n- conscience : synthèse 'fiche' rédigée à la main pour les 12 auteurs\n  (mode fiche → thèse en une phrase au lieu de l'auto-extraction).\n- sw.js : cache v47.\n\nCo-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>",
+      "tag": "Notions"
+    },
+    {
+      "hash": "430d6540f4b587891684ce3e8df9e5d56b36664a",
+      "short": "430d654",
+      "auteur": "Orangentleman",
+      "date": "2026-06-13T18:38:58+02:00",
+      "sujet": "Mode fiche : vraie synthèse du contenu (thèse en 1 phrase), pas du CSS",
+      "corps": "Refonte du « mode fiche » : au lieu de masquer/tronquer visuellement le texte,\non affiche une SYNTHÈSE réellement condensée de chaque idée d'auteur.\n\n- ideaSynthese(it) : renvoie it.fiche (synthèse rédigée à la main, prioritaire)\n  ou, à défaut, la THÈSE = 1re phrase de l'idée (extraite hors balises, garde\n  anti-abréviation, rééquilibrage des balises <strong>/<em>/<span>).\n- Rendu : chaque .a-idea porte .ai (complet) + .ai-fiche (synthèse) ; le CSS\n  body.mode-fiche masque .ai et montre .ai-fiche (et masque les citations).\n- Champ optionnel it.fiche pour affiner une synthèse à la main, sans toucher\n  l'infra (remplissable au fil de l'eau).\n- sw.js : cache v46.\n\nVérifié : synthèses ~3-4× plus courtes, balises équilibrées, bascule OK.\n\nCo-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>",
+      "tag": "Mode fiche"
+    },
+    {
+      "hash": "f6cd97b78d808f6e4c832d82a61ca82ab7e68a19",
+      "short": "f6cd97b",
+      "auteur": "Orangentleman",
+      "date": "2026-06-13T18:25:58+02:00",
+      "sujet": "Réglages : « mode fiche » (lecture compressée des boîtes d'auteur)",
+      "corps": "Nouveau toggle dans ⚙ Réglages (à côté de révision/édition) : le « mode\nfiche » compresse chaque carte d'auteur des notions pour une lecture rapide.\n\n- CSS body.mode-fiche : .ac/.a-idea resserrés, .ai borné à 2 lignes (clamp)\n  + police réduite, citations (.aq/.aq-details) masquées. Le contenu complet\n  reste accessible sur la fiche de l'auteur.\n- JS : applyFicheMode()/toggleFicheMode() (localStorage 'philo-fiche'),\n  appliqué à chaque renderSB ; ligne dédiée dans renderSettingsBody.\n- sw.js : cache v45.\n\nCo-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>",
+      "tag": "Réglages"
+    },
+    {
+      "hash": "8661a12cbf3a22f61c303127a3756412518ceeec",
+      "short": "8661a12",
+      "auteur": "Orangentleman",
+      "date": "2026-06-13T13:33:53+02:00",
+      "sujet": "Site : retirer les mentions « cours/classe » (accessible à tous les élèves)",
+      "corps": "Le site ne suppose plus d'avoir suivi LE cours d'une prof précise.\n- index.html : onglet « Textes du cours » → « Textes » ; slabels « étudiés\n  en cours »/« citées dans le cours » → neutres ; champ de contribution\n  « Texte du cours » → « Texte / extrait » ; onboarding (titre, texte\n  « en classe », cible) ; nettoyage de la table de couleurs des tags.\n- data.js : tags d'exemples « X — Cours » → « X », titres « Cours — … » /\n  « Polycopié — … » → sans préfixe, « Polycopié » comme source retiré des\n  références, marqueurs « (Séance N) » / « PDF du cours » / « polycopié de\n  Séance 13 » supprimés.\n- PRÉSERVÉ : les vrais TITRES d'œuvres « Cours de linguistique générale »\n  (Saussure) et « Cours de philosophie positive » (Comte), et le vocabulaire\n  philosophique « classe(s) » (classe dominante/ouvrière, habitus de classe).\n- sw.js : cache v44.\n\nCo-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>",
+      "tag": "Site"
+    },
+    {
+      "hash": "ce2ccfbab5e4a64481e44fd737a14e441c756c80",
+      "short": "ce2ccfb",
+      "auteur": "Orangentleman",
+      "date": "2026-06-13T13:25:52+02:00",
+      "sujet": "Dashboard : filtre Statut (+ Intégrées) & Verdict en chips, liste à plat",
+      "corps": "- _filter_links : deux groupes de chips (Statut / Verdict IA) ; ajout du\n  statut « Intégrées » qui manquait + « Tous » en tête ; chip actif surligné.\n- _page : affichage à PLAT (une liste de cartes triées des plus récentes aux\n  plus anciennes) au lieu des sections par catégorie + sous-groupes, peu\n  lisibles. Chaque carte se décrit déjà (statut, verdict, type/cible, notion).\n- CSS .filt-row/.chip ; import view allégé (bucket_of/sub_key_of/SECTION_ORDER\n  n'étaient plus utilisés ici).\n\nCo-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>",
+      "tag": "Dashboard"
     },
     {
       "hash": "60d3f544f74eb4b87fd4465227a09760c7bbb877",
