@@ -203,6 +203,18 @@ body{font-family:'Inter',system-ui,sans-serif;background:#121212;height:100vh;he
    de grands vides dans la grille — un span pleine-rangée cassait le flux et
    laissait les colonnes restantes vides. (≤700px : retour à 1 colonne.) */
 .ac-multi{grid-column:span 2}
+/* « Mode fiche » (Réglages) : lecture RAPIDE façon fiche de révision. Chaque
+   boîte d'auteur des notions affiche la SYNTHÈSE (.ai-fiche = la thèse en une
+   phrase, cf. ideaSynthese) à la place du texte complet (.ai), masque les
+   citations, et resserre les zones. .ai-fiche est cachée hors mode fiche. */
+.ai-fiche{display:none}
+body.mode-fiche .ac{padding:7px 9px}
+body.mode-fiche .a-idea{padding:4px 7px}
+body.mode-fiche .aw{margin-bottom:2px}
+body.mode-fiche .ai{display:none}
+body.mode-fiche .ai-fiche{display:block;font-size:12px;line-height:1.45;color:var(--color-text-secondary)}
+body.mode-fiche .a-idea .aq,
+body.mode-fiche .a-idea .aq-details{display:none}
 /* Citations multiples d'une idée : la 1re est visible, les autres dans un déroulant. */
 .aq-details{margin-top:3px}
 .aq-details>summary{font-size:10px;color:var(--color-text-tertiary);cursor:pointer;list-style:none;padding-left:7px}
@@ -389,6 +401,23 @@ body{font-family:'Inter',system-ui,sans-serif;background:#121212;height:100vh;he
 .sb-search{flex:1;background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:5px 8px;font-size:11px;color:var(--color-text-primary);outline:none;font-family:inherit;min-width:0}
 .sb-search::placeholder{color:var(--color-text-tertiary)}
 .sb-search:focus{border-color:var(--color-border-secondary)}
+/* Croix d'effacement dans les barres de recherche de la sidebar : posée à
+   droite du champ (qui réserve un padding-right), visible seulement quand il y
+   a du texte (display piloté en JS). Le clic droit sur le champ vide aussi
+   (searchCtxClear). */
+.sb-search-field{position:relative;flex:1;display:flex;min-width:0}
+.sb-search-field .sb-search{flex:1;padding-right:21px}
+.sb-search-clear{position:absolute;right:3px;top:50%;transform:translateY(-50%);
+  width:16px;height:16px;align-items:center;justify-content:center;border:none;
+  background:transparent;color:var(--color-text-tertiary);font-size:11px;line-height:1;
+  cursor:pointer;border-radius:50%;padding:0}
+.sb-search-clear:hover{color:var(--color-text-primary);background:var(--color-background-secondary)}
+/* Croix d'effacement de la palette globale (Ctrl+K) : masquée tant que le
+   champ est vide (display piloté en JS, cf. renderPalette/openPalette). */
+.cmdp-clear{flex-shrink:0;width:24px;height:24px;display:none;align-items:center;
+  justify-content:center;border:none;background:transparent;color:var(--color-text-tertiary);
+  font-size:14px;line-height:1;cursor:pointer;border-radius:50%;padding:0}
+.cmdp-clear:hover{color:var(--color-text-primary);background:var(--color-background-tertiary)}
 .sb-filter-btn{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:5px 7px;cursor:pointer;font-size:11px;color:var(--color-text-tertiary);transition:all .15s;flex-shrink:0;line-height:1}
 .sb-filter-btn:hover{color:var(--color-text-primary);border-color:var(--color-border-secondary)}
 .sb-filter-btn.active{color:var(--color-new);border-color:var(--color-new-border);background:var(--color-new-bg)}
@@ -836,6 +865,10 @@ body.is-signed-in .sb-account{color:#7bd88f;border-color:rgba(123,216,143,.45)}
 .tour-title{font-size:15px;font-weight:600;margin-bottom:6px}
 .tour-text{font-size:12.5px;color:var(--color-text-secondary);line-height:1.55}
 .tour-text b{color:var(--color-text-primary);font-weight:600}
+/* Liste à puces dans une bulle de visite (étape « Réglages & aide ») : compacte,
+   puces discrètes — pour présenter plusieurs options sans pavé de texte. */
+.tour-text ul.tour-list{margin:8px 0 6px;padding-left:17px;display:flex;flex-direction:column;gap:5px}
+.tour-text ul.tour-list li{line-height:1.45}
 .tour-progress{display:flex;gap:5px;flex-wrap:wrap;margin:13px 0 11px}
 /* Progression ENCADRÉE par thème : chaque partie de la visite (cf.
    TOUR_PART_COLORS) forme un petit cadre arrondi à sa couleur — fond très
@@ -1476,6 +1509,7 @@ body.sb-open .sb-backdrop{display:block;opacity:1}
       <input class="cmdp-input" id="palette-input" type="text" autocomplete="off"
              placeholder="Rechercher une notion, un auteur, un concept…"
              aria-label="Rechercher" aria-controls="palette-results" role="combobox" aria-expanded="true">
+      <button class="cmdp-clear" id="palette-clear" type="button" title="Effacer (clic droit aussi)" aria-label="Effacer la recherche" onclick="clearPaletteSearch()">✕</button>
     </div>
     <div class="cmdp-results" id="palette-results" role="listbox" aria-label="Résultats"></div>
     <div class="cmdp-foot">
@@ -1584,7 +1618,7 @@ function normalizeAuthor(a){
   // Normalise une idée : garantit citations:[] et migre l'ancien q.
   const normIdea=(idea)=>{
     const out={};
-    ['w','i','new','modified'].forEach(k=>{ if(idea[k]!==undefined) out[k]=idea[k]; });
+    ['w','i','new','modified','fiche'].forEach(k=>{ if(idea[k]!==undefined) out[k]=idea[k]; });
     let cites=[];
     if(Array.isArray(idea.citations)) cites=idea.citations.slice();
     else if(idea.citations) cites=[idea.citations];
@@ -1592,7 +1626,13 @@ function normalizeAuthor(a){
     out.citations=cites.filter(c=>c!=null&&String(c).trim()!=='');
     return out;
   };
-  if(Array.isArray(a.ideas)) return {n:a.n, ideas:a.ideas.map(normIdea)};
+  if(Array.isArray(a.ideas)){
+    const ideas=a.ideas.map(normIdea);
+    // Une synthèse « fiche » posée au niveau ENTRÉE (format multi-idées) se
+    // propage aux idées qui n'en ont pas la leur (le mode fiche lit it.fiche).
+    if(a.fiche) ideas.forEach(it=>{ if(it.fiche===undefined) it.fiche=a.fiche; });
+    return {n:a.n, ideas};
+  }
   return {n:a.n, ideas:[normIdea(a)]};            // ancien format à plat
 }
 
@@ -2006,6 +2046,38 @@ function toggleFilter(k){
      · renderSBList()         → liste des notions (mode 'notions')
      · renderSBList()         → liste des auteurs (mode 'auteurs')
      · renderSBConceptsList() → liste des concepts (mode 'concepts')        */
+
+/* ── Barres de recherche de la sidebar : saisie, effacement, clic droit ──
+   Trois barres partagent le même comportement (auteurs / concepts / repères).
+   `which` ∈ 'author' | 'concept' | 'repere' identifie la variable d'état et la
+   fonction de rendu de liste à rafraîchir. */
+
+/* sbSearchInput(el, which) — appelé à chaque frappe : met à jour la variable
+   d'état, ne re-rend QUE la liste (pas toute la sidebar, pour la perf) et
+   ajuste la visibilité de la croix d'effacement de ce champ. */
+function sbSearchInput(el, which){
+  if(which==='author'){ authorSearch=el.value; renderSBList(); }
+  else if(which==='concept'){ conceptSearch=el.value; renderSBConceptsList(); }
+  else if(which==='repere'){ repereSearch=el.value; renderSBReperesList(); }
+  const btn=el.parentNode.querySelector('.sb-search-clear');
+  if(btn) btn.style.display=el.value?'flex':'none';
+}
+
+/* clearSidebarSearch(which) — vide la barre concernée et refait le rendu
+   complet de la sidebar (qui réécrit le champ vide + masque la croix), puis
+   redonne le focus au champ pour enchaîner une nouvelle saisie. */
+function clearSidebarSearch(which){
+  if(which==='author') authorSearch='';
+  else if(which==='concept') conceptSearch='';
+  else if(which==='repere') repereSearch='';
+  renderSB();
+  const inp=document.querySelector('.sb-search'); if(inp) inp.focus();
+}
+
+/* searchCtxClear(e, which) — clic droit sur la barre : on bloque le menu
+   contextuel natif du navigateur et on vide le champ à la place. */
+function searchCtxClear(e, which){ e.preventDefault(); clearSidebarSearch(which); return false; }
+
 function renderSB(){
   const sb=document.getElementById('sb');
 
@@ -2088,6 +2160,7 @@ function renderSB(){
   }
   renderAccountBtn();   // remplit la zone selon l'état (connecté / déconnecté)
   applyPhiloMode();   // met à jour le libellé selon l'état actuel
+  applyFicheMode();   // applique le « mode fiche » (lecture compressée) si actif
 
   if(sbMode==='notions'){
     KEYS.forEach(k=>{
@@ -2106,8 +2179,11 @@ function renderSB(){
       fixed.appendChild(searchRow);
     }
     searchRow.innerHTML=`
-      <input class="sb-search" type="text" placeholder="Rechercher…" value="${authorSearch.replace(/"/g,'&quot;')}"
-        oninput="authorSearch=this.value;renderSBList()" />
+      <div class="sb-search-field">
+        <input class="sb-search" type="text" placeholder="Rechercher…" value="${authorSearch.replace(/"/g,'&quot;')}"
+          oninput="sbSearchInput(this,'author')" oncontextmenu="searchCtxClear(event,'author')" />
+        <button class="sb-search-clear" style="display:${authorSearch?'flex':'none'}" title="Effacer (clic droit aussi)" aria-label="Effacer la recherche" onclick="clearSidebarSearch('author')">✕</button>
+      </div>
       <button class="sb-filter-btn${(authorFilter.size>0)||filterOpen?' active':''}" onclick="filterOpen=!filterOpen;renderSB()" title="Filtrer par notion">⊟</button>`;
     // Filter panel (dans la zone scrollable)
     if(filterOpen){
@@ -2148,8 +2224,11 @@ function renderSB(){
       fixed.appendChild(searchRow);
     }
     searchRow.innerHTML=`
-      <input class="sb-search" type="text" placeholder="Rechercher…" value="${conceptSearch.replace(/"/g,'&quot;')}"
-        oninput="conceptSearch=this.value;renderSBConceptsList()" />
+      <div class="sb-search-field">
+        <input class="sb-search" type="text" placeholder="Rechercher…" value="${conceptSearch.replace(/"/g,'&quot;')}"
+          oninput="sbSearchInput(this,'concept')" oncontextmenu="searchCtxClear(event,'concept')" />
+        <button class="sb-search-clear" style="display:${conceptSearch?'flex':'none'}" title="Effacer (clic droit aussi)" aria-label="Effacer la recherche" onclick="clearSidebarSearch('concept')">✕</button>
+      </div>
       <button class="sb-filter-btn${(conceptFilter.size>0)||conceptFilterOpen?' active':''}" onclick="conceptFilterOpen=!conceptFilterOpen;renderSB()" title="Filtrer par notion">⊟</button>`;
     if(conceptFilterOpen){
       const cfp=document.createElement('div');
@@ -2191,8 +2270,11 @@ function renderSB(){
       fixed.appendChild(searchRow);
     }
     searchRow.innerHTML=`
-      <input class="sb-search" type="text" placeholder="Rechercher un repère…" value="${repereSearch.replace(/"/g,'&quot;')}"
-        oninput="repereSearch=this.value;renderSBReperesList()" />`;
+      <div class="sb-search-field">
+        <input class="sb-search" type="text" placeholder="Rechercher un repère…" value="${repereSearch.replace(/"/g,'&quot;')}"
+          oninput="sbSearchInput(this,'repere')" oncontextmenu="searchCtxClear(event,'repere')" />
+        <button class="sb-search-clear" style="display:${repereSearch?'flex':'none'}" title="Effacer (clic droit aussi)" aria-label="Effacer la recherche" onclick="clearSidebarSearch('repere')">✕</button>
+      </div>`;
     const listWrap=document.createElement('div');
     listWrap.id='sb-reperes-list';
     list.appendChild(listWrap);
@@ -2982,6 +3064,38 @@ function ideaCitationsHTML(cites){
   const rest=cites.slice(1).map(c=>`<div class="aq aq-more">${linkTerms('<span>'+c+'</span>')}</div>`).join('');
   return first+`<details class="aq-details"><summary>+ ${n} autre${n>1?'s':''} citation${n>1?'s':''}</summary>${rest}</details>`;
 }
+/* ideaSynthese(it) — version CONDENSÉE d'une idée pour le « mode fiche »
+   (lecture rapide façon fiche de révision). Priorité à une synthèse rédigée
+   à la main (champ it.fiche) ; à défaut, on extrait la THÈSE = la 1re phrase
+   de l'idée (elles sont écrites thèse-d'abord, souvent avec un lead en gras).
+   On coupe au 1er point/!/? HORS balise, en évitant les abréviations proches
+   du début, puis on rééquilibre les balises ouvertes. Renvoie du HLML lié
+   (linkTerms) ou '' si pas d'idée. */
+function ideaSynthese(it){
+  if(it&&it.fiche) return linkTerms('<span>'+it.fiche+'</span>');
+  const html=(it&&it.i)||''; if(!html) return '';
+  let depth=0, cut=-1;
+  for(let i=0;i<html.length;i++){
+    const ch=html[i];
+    if(ch==='<') depth++;
+    else if(ch==='>'){ if(depth>0) depth--; }
+    else if(depth===0 && (ch==='.'||ch==='!'||ch==='?')){
+      const nxt=html[i+1];
+      // fin de phrase = ponctuation suivie d'espace/balise/fin ; on ignore les
+      // coupures trop précoces (abréviations type « av. », « p. ex. »).
+      if((nxt===undefined||nxt===' '||nxt==='<') && i>=45){ cut=i+1; break; }
+    }
+  }
+  let s=(cut>0?html.slice(0,cut):html).trim();
+  // Rééquilibrer les balises de mise en forme éventuellement laissées ouvertes.
+  ['strong','em','span'].forEach(tag=>{
+    const o=(s.match(new RegExp('<'+tag+'(?:\\s|>)','g'))||[]).length;
+    const c=(s.match(new RegExp('</'+tag+'>','g'))||[]).length;
+    for(let k=c;k<o;k++) s+='</'+tag+'>';
+  });
+  return linkTerms('<span>'+s+'</span>');
+}
+
 function renderAuthorContent(){
   renderCrumbs();
   const mainEl=document.getElementById('main');
@@ -3093,7 +3207,7 @@ function renderAuthorContent(){
     const wks=Object.keys(works);
     if(!wks.length){html+=`<div style="color:var(--color-text-tertiary);font-size:12px;padding:10px 0">Aucune œuvre référencée.</div>`;}
     else{
-      html+=`<div class="slabel">Œuvres de ${curAuthor} citées dans le cours</div>`;
+      html+=`<div class="slabel">Œuvres de ${curAuthor} à connaître</div>`;
       wks.forEach(w=>{
         const ks=Array.from(works[w]);
         const bdgs=ks.map(k=>`<span class="notion-pill" style="color:${D[k].c};border-color:${D[k].c}40;background:${D[k].c}12;font-size:10px;padding:2px 7px"
@@ -3152,7 +3266,7 @@ function renderContent(){
   const n=D[cur];
   const c=n.c;
   const tabs2=['auteurs','textes','concepts','diss','exemples'];
-  const tabLabels={'auteurs':'Auteurs','textes':'Textes du cours','concepts':'Concepts','diss':'Dissertations','exemples':'Exemples'};
+  const tabLabels={'auteurs':'Auteurs','textes':'Textes','concepts':'Concepts','diss':'Dissertations','exemples':'Exemples'};
 
   // Remplir la barre d'onglets (toujours fixe)
   tabsEl.innerHTML=backBtnHTML()+tabs2.map(t=>`<div class="tab${curTab===t?' active':''}" onclick="tab('${t}')">${tabLabels[t]}</div>`).join('');
@@ -3193,6 +3307,7 @@ function renderContent(){
         ideasHTML+=`<div class="a-idea${ic}">
           <div class="aw">${it.w||''} ${nb}${mb}</div>
           ${it.i?`<div class="ai">${linkTerms('<span>'+it.i+'</span>')}</div>`:''}
+          ${ideaSynthese(it)?`<div class="ai-fiche">${ideaSynthese(it)}</div>`:''}
           ${ideaCitationsHTML(it.citations)}
           ${pPlus('correction','auteur',cur,a.n+' — '+(it.w||'idée'))}
         </div>`;
@@ -3213,7 +3328,7 @@ function renderContent(){
     html+=pPlusCat('auteur',cur,'Proposer un auteur');
   }
   else if(curTab==='textes'){
-    html+=`<div class="slabel">Textes étudiés en cours</div><div class="tbox">`;
+    html+=`<div class="slabel">Textes &amp; extraits à connaître</div><div class="tbox">`;
     n.textes.forEach(t=>{
       const newBadge=t.new?`<span class="new-badge">✦ Nouveau</span>`:'';
       const modBadge=t.modified?`<span class="modified-badge">✎ Modifié</span>`:'';
@@ -3334,14 +3449,13 @@ function renderContent(){
       html+=`<div class="slabel">Exemples concrets mobilisables en dissertation</div>`;
       exs.forEach(e=>{
         const tagColors={
-          'Littérature':'#534AB7','Cas clinique':'#D85A30','Science':'#1D9E75','Société':'#5F5E5A',
-          'Écologie':'#1D9E75','Anthropologie':'#3B6D11','Mythe — Cours':'#EF9F27','Mythe':'#EF9F27',
-          'Psychologie':'#534AB7','Philosophie':'#185FA5','Cinéma':'#D4537E','Histoire':'#993556',
-          'Contemporain':'#185FA5','Actualité':'#D85A30','Droit':'#5F5E5A','Cours — texte':'#EF9F27',
-          'Philosophie — Cours':'#185FA5','Histoire — Cours':'#993556','Actualité — Cours':'#D85A30',
-          'Texte — Cours':'#EF9F27','Droit — Cours':'#5F5E5A','Art contemporain':'#8B5E3C',
-          'Musique':'#8B5E3C','Psychanalyse — Cours':'#993556','Littérature — Cours':'#534AB7',
-          'Science — Cours':'#1D9E75','Psychologie — Cours':'#534AB7'
+          'Littérature':'#534AB7','Cas clinique':'#D85A30','Science':'#1D9E75','Sciences':'#1D9E75',
+          'Société':'#5F5E5A','Écologie':'#1D9E75','Anthropologie':'#3B6D11','Mythe':'#EF9F27',
+          'Psychologie':'#534AB7','Psychanalyse':'#993556','Philosophie':'#185FA5','Cinéma':'#D4537E',
+          'Histoire':'#993556','Contemporain':'#185FA5','Actualité':'#D85A30','Droit':'#5F5E5A',
+          'Texte':'#EF9F27','Art contemporain':'#8B5E3C','Musique':'#8B5E3C','Sociologie':'#5F5E5A',
+          'Épistémologie':'#185FA5','Éthique':'#993556','Morale':'#993556','Logique':'#185FA5',
+          'Politique':'#5F5E5A','Numérique':'#185FA5','Clinique':'#D85A30'
         };
         const tc=tagColors[e.tag]||c;
         const newBadgeEx=e.new?`<span class="new-badge">✦ Nouveau</span>`:'';
@@ -3645,7 +3759,7 @@ const PROPOSAL_CATS=[
 const PROPOSAL_SOUSCIBLES={
   notion:[
     {v:'notion',      l:'Définition / approfondissement'},
-    {v:'texte',       l:'Texte du cours'},
+    {v:'texte',       l:'Texte / extrait'},
     {v:'plan',        l:'Plan de dissertation'},
     {v:'dissertation',l:'Sujet de dissertation'},
     {v:'exemple',     l:'Exemple'},
@@ -5169,6 +5283,19 @@ function togglePhiloMode(){
   syncOnPrefsChange();        // new (Phase 2) : reporte la préférence vers le compte si connecté
 }
 
+/* applyFicheMode() — applique le « mode fiche » (lecture compressée des cartes
+   d'auteur dans les notions) via la classe body.mode-fiche, lue dans
+   localStorage 'philo-fiche'. Rafraîchit le menu Réglages s'il est ouvert. */
+function applyFicheMode(){
+  document.body.classList.toggle('mode-fiche', localStorage.getItem('philo-fiche')==='1');
+  const ov=document.getElementById('settings-overlay');
+  if(ov && ov.classList.contains('open')) renderSettingsBody();
+}
+function toggleFicheMode(){
+  localStorage.setItem('philo-fiche', localStorage.getItem('philo-fiche')==='1'?'0':'1');
+  applyFicheMode();
+}
+
 /* ── Menu « ⚙ Réglages » ─────────────────────────────────────────────────
    Regroupe les fonctions NON nécessaires à la révision. Le toggle de mode y
    est rendu EXPLICITE : le bouton nomme le mode-CIBLE (l'action), avec le mode
@@ -5177,12 +5304,20 @@ function togglePhiloMode(){
 function renderSettingsBody(){
   const body=document.getElementById('settings-body'); if(!body) return;
   const isEd=(localStorage.getItem('philo-mode')||'revision')==='edition';
+  const isFiche=localStorage.getItem('philo-fiche')==='1';
   body.innerHTML=
     '<div class="set-row">'
     +'<div class="set-row-cur">Mode d\'affichage actuel : <strong>'+(isEd?'Édition':'Révision')+'</strong></div>'
     +'<div class="set-row-desc">Le mode <em>édition</em> révèle les badges « ✦ nouveau / ✎ modifié » et les boutons « + » pour proposer du contenu. Le mode <em>révision</em> épure l\'affichage pour se concentrer sur l\'apprentissage.</div>'
     +'<button class="pbtn pbtn-primary set-mode-btn" onclick="togglePhiloMode()">'
       +(isEd?'👁 Revenir au mode révision':'✎ Passer en mode édition')+'</button>'
+    +'</div>'
+    // Mode fiche : compresse les cartes d'auteur des notions pour une lecture rapide.
+    +'<div class="set-row">'
+    +'<div class="set-row-cur">Mode fiche : <strong>'+(isFiche?'activé':'désactivé')+'</strong></div>'
+    +'<div class="set-row-desc">Compresse chaque boîte d\'auteur dans les notions (idée bornée à 2 lignes, citations masquées) pour une <em>lecture rapide</em>, façon fiche de révision. Le contenu complet reste sur la fiche de l\'auteur.</div>'
+    +'<button class="pbtn pbtn-primary set-mode-btn" onclick="toggleFicheMode()">'
+      +(isFiche?'📖 Affichage complet':'🗂 Activer le mode fiche')+'</button>'
     +'</div>'
     // Carte technique du projet (doc) — discret, pour les curieux de l'envers du décor.
     +'<div class="set-row">'
@@ -5423,17 +5558,17 @@ const TOUR_STEPS=[
     target:()=>document.querySelector('.def-box details')||document.querySelector('.def-box') },
   { part:'fiches', side:'main', title:'Les onglets de la fiche',
     text:"Sous la définition, <b>cinq onglets</b> organisent tout le reste : <b>Auteurs</b>, "
-        +"<b>Textes du cours</b>, <b>Concepts</b>, <b>Dissertations</b> et <b>Exemples</b>. "
+        +"<b>Textes</b>, <b>Concepts</b>, <b>Dissertations</b> et <b>Exemples</b>. "
         +"Passons-les en revue.",
     setup:tourShowNotion, target:()=>document.querySelector('.tabs') },
   { part:'fiches', side:'main', title:'Onglet Auteurs',
     text:"Les <b>philosophes majeurs</b> sur cette notion : pour chacun, ses <b>idées clés</b> "
         +"(classées par œuvre) et ses <b>citations</b>. Ta matière première pour argumenter.",
     setup:()=>tourShowTab('auteurs'), target:()=>tourBoxEl('.ac','Auteurs') },
-  { part:'fiches', side:'main', title:'Onglet Textes du cours',
-    text:"Les <b>extraits étudiés</b> en classe, avec leur référence. À relire pour citer un "
+  { part:'fiches', side:'main', title:'Onglet Textes',
+    text:"Les <b>extraits clés</b> du programme, avec leur référence. À relire pour citer un "
         +"texte précis et montrer que tu connais les œuvres au programme.",
-    setup:()=>tourShowTab('textes'), target:()=>tourBoxEl('.ti2','Textes du cours') },
+    setup:()=>tourShowTab('textes'), target:()=>tourBoxEl('.ti2','Textes') },
   { part:'fiches', side:'main', title:'Onglet Concepts',
     text:"Les <b>concepts clés</b> liés à la notion, en <b>deux sous-onglets</b> : ceux qui "
         +"<b>éclairent la notion</b>, puis les <b>liens entre concepts</b> (oppositions, "
@@ -5461,29 +5596,26 @@ const TOUR_STEPS=[
             ||document.querySelector('.def-box') },
 
   // ── Partie 3 : Naviguer / revenir en arrière ──
+  // Volontairement CONCIS (retour utilisateur) : une phrase par outil de
+  // navigation, et l'étape « Réglages & aide » présentée sous forme de LISTE
+  // plutôt qu'en pavé. Le « mode fiche » y figure → il entre ainsi dans le NOYAU.
   { part:'nav', side:'main', title:'Le fil d’Ariane',
-    text:"En haut, ce <b>fil d’Ariane</b> indique où tu te trouves. Clique n’importe quel niveau "
-        +"pour y remonter en un clic.",
+    text:"En haut, le <b>fil d’Ariane</b> montre où tu te trouves : clique un niveau pour y remonter.",
     setup:tourShowNotion, target:()=>document.getElementById('crumbs') },
   { part:'nav', side:'main', title:'Revenir en arrière',
-    text:"Le bouton <b>← Retour</b> te ramène à la page précédente (il s’active dès que tu as "
-        +"navigué). Pratique pour suivre un lien puis revenir.",
+    text:"Le bouton <b>← Retour</b> te ramène à la page précédente — pratique après avoir suivi un lien.",
     setup:tourShowNotion, target:()=>document.querySelector('.back-btn') },
   { part:'nav', side:'main', title:'Chercher partout (Ctrl + K)',
-    text:"Ce bouton — ou le raccourci <b>Ctrl + K</b> (⌘ + K sur Mac) — ouvre une "
-        +"<b>recherche globale</b> : tape les premières lettres d’une notion, d’un auteur ou "
-        +"d’un concept et saute droit à sa fiche. Le plus rapide quand tu sais déjà ce que "
-        +"tu cherches.",
+    text:"Ce bouton, ou le raccourci <b>Ctrl + K</b> (⌘ + K sur Mac), ouvre la <b>recherche globale</b> : "
+        +"tape une notion, un auteur ou un concept et saute droit à sa fiche.",
     setup:tourShowNotion, target:()=>document.getElementById('topbar-search') },
-  { part:'nav', center:true, title:'Plusieurs façons de circuler',
-    text:"Pour résumer : la <b>barre latérale</b> (les listes), le <b>fil d’Ariane</b> (ta position), "
-        +"les <b>liens du texte</b> (de proche en proche) et la <b>recherche globale</b> "
-        +"(Ctrl + K, pour aller droit au but). À toi de choisir." },
   { part:'nav', side:'sidebar', title:'Réglages & aide',
-    text:"Tout en bas de la barre, <b>⚙ Réglages</b> regroupe les options secondaires (par ex. passer "
-        +"en <b>mode édition</b> pour proposer des corrections). Et le bouton <b>?</b>, en haut à droite, "
-        +"<b>rouvre cette visite</b> quand tu veux — en entier ou sur une partie précise. Tu peux donc "
-        +"y revenir sans crainte d’oublier quelque chose.",
+    text:"Tout en bas de la barre, <b>⚙ Réglages</b> regroupe deux options :"
+        +"<ul class='tour-list'>"
+        +"<li><b>Mode fiche</b> : compresse chaque fiche d’auteur en une <b>synthèse courte</b>, pour réviser vite.</li>"
+        +"<li><b>Mode édition</b> : fait apparaître les boutons <b>+</b> pour proposer des corrections.</li>"
+        +"</ul>"
+        +"Et le bouton <b>?</b>, en haut à droite, rouvre cette visite quand tu veux.",
     setup:()=>tourShowSidebarMode('notions'), target:()=>document.querySelector('.sb-settings') },
 
   // ── Partie 4 : Partager l'outil ──
@@ -5602,14 +5734,18 @@ const TOUR_STEPS=[
         +"Tu restes maître de tes données : on peut se <b>déconnecter</b> ou <b>supprimer son "
         +"compte</b> à tout moment." },
 
-  // ── Fin (carte centrée) ──
-  // Mentionne la PWA (installable + hors-ligne), ajoutée récemment et absente
-  // du reste de la visite, avant de renvoyer vers le bouton « ? ».
+  // ── Fin ──
+  // Un FOCUS dédié sur le bouton « ? » (rouvrir la visite) — demandé : au moins
+  // un projecteur réel sur ce bouton, ici en fin de parcours. Puis la carte
+  // finale (PWA installable + hors-ligne), centrée.
+  { part:'end', side:'main', title:'Revenir à la visite',
+    text:"Ce bouton <b>?</b>, en haut à droite, <b>rouvre cette visite</b> quand tu veux — "
+        +"en entier ou directement sur une partie précise. Tu peux donc y revenir sans crainte.",
+    setup:tourShowNotion, target:()=>document.getElementById('help-btn') },
   { part:'end', center:true, title:'C’est parti 🎓',
     text:"Voilà l’essentiel ! 💡 Astuce : le site s’<b>installe</b> comme une appli "
         +"(menu du navigateur → « Installer ») et fonctionne <b>hors-ligne</b> — pratique "
-        +"pour réviser dans le train. Le bouton <b>?</b> en haut à droite rouvre cette visite "
-        +"quand tu veux — en entier ou directement sur une partie. Bonnes révisions !",
+        +"pour réviser dans le train. Bonnes révisions !",
     nextLabel:'Terminer' },
 ];
 
@@ -7908,11 +8044,26 @@ function openPalette(){
   inp.value=''; paletteSel=0;
   ov.classList.add('open');
   renderPalette();
+  paletteSyncClear();   // champ vidé → croix masquée
   inp.focus();
 }
 
 /* closePalette() — referme la palette. */
 function closePalette(){ document.getElementById('palette-overlay').classList.remove('open'); }
+
+/* paletteSyncClear() — affiche/masque la croix d'effacement selon que le champ
+   contient ou non du texte. */
+function paletteSyncClear(){
+  const inp=document.getElementById('palette-input'); const btn=document.getElementById('palette-clear');
+  if(inp&&btn) btn.style.display=inp.value?'flex':'none';
+}
+
+/* clearPaletteSearch() — vide la recherche globale (croix ou clic droit),
+   recalcule la liste (tout l'index) et redonne le focus pour ressaisir. */
+function clearPaletteSearch(){
+  const inp=document.getElementById('palette-input'); if(!inp) return;
+  inp.value=''; paletteSel=0; renderPalette(); paletteSyncClear(); inp.focus();
+}
 
 /* paletteIsOpen() — la palette est-elle visible ? */
 function paletteIsOpen(){ return document.getElementById('palette-overlay').classList.contains('open'); }
@@ -7947,8 +8098,10 @@ function paletteActivate(){
   const res=document.getElementById('palette-results');
   const ov=document.getElementById('palette-overlay');
   if(!inp||!res||!ov) return;   // garde-fou si le DOM change
-  // Saisie : recalcule et repart du 1er résultat.
-  inp.addEventListener('input',()=>{ paletteSel=0; renderPalette(); });
+  // Saisie : recalcule, repart du 1er résultat et affiche la croix si non vide.
+  inp.addEventListener('input',()=>{ paletteSel=0; renderPalette(); paletteSyncClear(); });
+  // Clic droit dans le champ : pas de menu natif, on vide la recherche.
+  inp.addEventListener('contextmenu',e=>{ e.preventDefault(); clearPaletteSearch(); });
   // Clavier DANS le champ : flèches, Entrée, Échap.
   inp.addEventListener('keydown',e=>{
     if(e.key==='ArrowDown'){ e.preventDefault(); paletteMove(1); }

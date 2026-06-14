@@ -1,8 +1,17 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
-  "genere_le": "2026-06-14T16:23:02.193Z",
+  "genere_le": "2026-06-14T16:39:20.426Z",
   "commits": [
+    {
+      "hash": "d3c6e31a1e74ebc2637d5074a40dcd0d82fdd426",
+      "short": "d3c6e31",
+      "auteur": "Orangentleman",
+      "date": "2026-06-14T18:23:01+02:00",
+      "sujet": "Carte : pas de sélection de texte au déplacement + hook pre-commit (frise)",
+      "corps": "- carte.html : user-select:none sur le graphe et les nœuds → le glisser ne\n  sélectionne plus le texte (la bulle .detail reste sélectionnable).\n- .githooks/pre-commit : régénère et stage docs/carte/frise.data.js à chaque\n  commit (non bloquant). Activé via core.hooksPath=.githooks ; documenté dans\n  docs/carte/MAJ.md.\n\nCo-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>",
+      "tag": "Carte"
+    },
     {
       "hash": "1ceb50ddb6b655197468c9764d66e71ce482487a",
       "short": "1ceb50d",
