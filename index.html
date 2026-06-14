@@ -848,6 +848,10 @@ body.is-signed-in .sb-account{color:#7bd88f;border-color:rgba(123,216,143,.45)}
 .tour-title{font-size:15px;font-weight:600;margin-bottom:6px}
 .tour-text{font-size:12.5px;color:var(--color-text-secondary);line-height:1.55}
 .tour-text b{color:var(--color-text-primary);font-weight:600}
+/* Liste à puces dans une bulle de visite (étape « Réglages & aide ») : compacte,
+   puces discrètes — pour présenter plusieurs options sans pavé de texte. */
+.tour-text ul.tour-list{margin:8px 0 6px;padding-left:17px;display:flex;flex-direction:column;gap:5px}
+.tour-text ul.tour-list li{line-height:1.45}
 .tour-progress{display:flex;gap:5px;flex-wrap:wrap;margin:13px 0 11px}
 /* Progression ENCADRÉE par thème : chaque partie de la visite (cf.
    TOUR_PART_COLORS) forme un petit cadre arrondi à sa couleur — fond très
@@ -5526,29 +5530,26 @@ const TOUR_STEPS=[
             ||document.querySelector('.def-box') },
 
   // ── Partie 3 : Naviguer / revenir en arrière ──
+  // Volontairement CONCIS (retour utilisateur) : une phrase par outil de
+  // navigation, et l'étape « Réglages & aide » présentée sous forme de LISTE
+  // plutôt qu'en pavé. Le « mode fiche » y figure → il entre ainsi dans le NOYAU.
   { part:'nav', side:'main', title:'Le fil d’Ariane',
-    text:"En haut, ce <b>fil d’Ariane</b> indique où tu te trouves. Clique n’importe quel niveau "
-        +"pour y remonter en un clic.",
+    text:"En haut, le <b>fil d’Ariane</b> montre où tu te trouves : clique un niveau pour y remonter.",
     setup:tourShowNotion, target:()=>document.getElementById('crumbs') },
   { part:'nav', side:'main', title:'Revenir en arrière',
-    text:"Le bouton <b>← Retour</b> te ramène à la page précédente (il s’active dès que tu as "
-        +"navigué). Pratique pour suivre un lien puis revenir.",
+    text:"Le bouton <b>← Retour</b> te ramène à la page précédente — pratique après avoir suivi un lien.",
     setup:tourShowNotion, target:()=>document.querySelector('.back-btn') },
   { part:'nav', side:'main', title:'Chercher partout (Ctrl + K)',
-    text:"Ce bouton — ou le raccourci <b>Ctrl + K</b> (⌘ + K sur Mac) — ouvre une "
-        +"<b>recherche globale</b> : tape les premières lettres d’une notion, d’un auteur ou "
-        +"d’un concept et saute droit à sa fiche. Le plus rapide quand tu sais déjà ce que "
-        +"tu cherches.",
+    text:"Ce bouton, ou le raccourci <b>Ctrl + K</b> (⌘ + K sur Mac), ouvre la <b>recherche globale</b> : "
+        +"tape une notion, un auteur ou un concept et saute droit à sa fiche.",
     setup:tourShowNotion, target:()=>document.getElementById('topbar-search') },
-  { part:'nav', center:true, title:'Plusieurs façons de circuler',
-    text:"Pour résumer : la <b>barre latérale</b> (les listes), le <b>fil d’Ariane</b> (ta position), "
-        +"les <b>liens du texte</b> (de proche en proche) et la <b>recherche globale</b> "
-        +"(Ctrl + K, pour aller droit au but). À toi de choisir." },
   { part:'nav', side:'sidebar', title:'Réglages & aide',
-    text:"Tout en bas de la barre, <b>⚙ Réglages</b> regroupe les options secondaires (par ex. passer "
-        +"en <b>mode édition</b> pour proposer des corrections). Et le bouton <b>?</b>, en haut à droite, "
-        +"<b>rouvre cette visite</b> quand tu veux — en entier ou sur une partie précise. Tu peux donc "
-        +"y revenir sans crainte d’oublier quelque chose.",
+    text:"Tout en bas de la barre, <b>⚙ Réglages</b> regroupe deux options :"
+        +"<ul class='tour-list'>"
+        +"<li><b>Mode fiche</b> : compresse chaque fiche d’auteur en une <b>synthèse courte</b>, pour réviser vite.</li>"
+        +"<li><b>Mode édition</b> : fait apparaître les boutons <b>+</b> pour proposer des corrections.</li>"
+        +"</ul>"
+        +"Et le bouton <b>?</b>, en haut à droite, rouvre cette visite quand tu veux.",
     setup:()=>tourShowSidebarMode('notions'), target:()=>document.querySelector('.sb-settings') },
 
   // ── Partie 4 : Partager l'outil ──
@@ -5667,14 +5668,18 @@ const TOUR_STEPS=[
         +"Tu restes maître de tes données : on peut se <b>déconnecter</b> ou <b>supprimer son "
         +"compte</b> à tout moment." },
 
-  // ── Fin (carte centrée) ──
-  // Mentionne la PWA (installable + hors-ligne), ajoutée récemment et absente
-  // du reste de la visite, avant de renvoyer vers le bouton « ? ».
+  // ── Fin ──
+  // Un FOCUS dédié sur le bouton « ? » (rouvrir la visite) — demandé : au moins
+  // un projecteur réel sur ce bouton, ici en fin de parcours. Puis la carte
+  // finale (PWA installable + hors-ligne), centrée.
+  { part:'end', side:'main', title:'Revenir à la visite',
+    text:"Ce bouton <b>?</b>, en haut à droite, <b>rouvre cette visite</b> quand tu veux — "
+        +"en entier ou directement sur une partie précise. Tu peux donc y revenir sans crainte.",
+    setup:tourShowNotion, target:()=>document.getElementById('help-btn') },
   { part:'end', center:true, title:'C’est parti 🎓',
     text:"Voilà l’essentiel ! 💡 Astuce : le site s’<b>installe</b> comme une appli "
         +"(menu du navigateur → « Installer ») et fonctionne <b>hors-ligne</b> — pratique "
-        +"pour réviser dans le train. Le bouton <b>?</b> en haut à droite rouvre cette visite "
-        +"quand tu veux — en entier ou directement sur une partie. Bonnes révisions !",
+        +"pour réviser dans le train. Bonnes révisions !",
     nextLabel:'Terminer' },
 ];
 
