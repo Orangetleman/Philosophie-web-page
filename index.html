@@ -401,6 +401,23 @@ body.mode-fiche .a-idea .aq-details{display:none}
 .sb-search{flex:1;background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:5px 8px;font-size:11px;color:var(--color-text-primary);outline:none;font-family:inherit;min-width:0}
 .sb-search::placeholder{color:var(--color-text-tertiary)}
 .sb-search:focus{border-color:var(--color-border-secondary)}
+/* Croix d'effacement dans les barres de recherche de la sidebar : posée à
+   droite du champ (qui réserve un padding-right), visible seulement quand il y
+   a du texte (display piloté en JS). Le clic droit sur le champ vide aussi
+   (searchCtxClear). */
+.sb-search-field{position:relative;flex:1;display:flex;min-width:0}
+.sb-search-field .sb-search{flex:1;padding-right:21px}
+.sb-search-clear{position:absolute;right:3px;top:50%;transform:translateY(-50%);
+  width:16px;height:16px;align-items:center;justify-content:center;border:none;
+  background:transparent;color:var(--color-text-tertiary);font-size:11px;line-height:1;
+  cursor:pointer;border-radius:50%;padding:0}
+.sb-search-clear:hover{color:var(--color-text-primary);background:var(--color-background-secondary)}
+/* Croix d'effacement de la palette globale (Ctrl+K) : masquée tant que le
+   champ est vide (display piloté en JS, cf. renderPalette/openPalette). */
+.cmdp-clear{flex-shrink:0;width:24px;height:24px;display:none;align-items:center;
+  justify-content:center;border:none;background:transparent;color:var(--color-text-tertiary);
+  font-size:14px;line-height:1;cursor:pointer;border-radius:50%;padding:0}
+.cmdp-clear:hover{color:var(--color-text-primary);background:var(--color-background-tertiary)}
 .sb-filter-btn{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:5px 7px;cursor:pointer;font-size:11px;color:var(--color-text-tertiary);transition:all .15s;flex-shrink:0;line-height:1}
 .sb-filter-btn:hover{color:var(--color-text-primary);border-color:var(--color-border-secondary)}
 .sb-filter-btn.active{color:var(--color-new);border-color:var(--color-new-border);background:var(--color-new-bg)}
@@ -1492,6 +1509,7 @@ body.sb-open .sb-backdrop{display:block;opacity:1}
       <input class="cmdp-input" id="palette-input" type="text" autocomplete="off"
              placeholder="Rechercher une notion, un auteur, un concept…"
              aria-label="Rechercher" aria-controls="palette-results" role="combobox" aria-expanded="true">
+      <button class="cmdp-clear" id="palette-clear" type="button" title="Effacer (clic droit aussi)" aria-label="Effacer la recherche" onclick="clearPaletteSearch()">✕</button>
     </div>
     <div class="cmdp-results" id="palette-results" role="listbox" aria-label="Résultats"></div>
     <div class="cmdp-foot">
@@ -2028,6 +2046,38 @@ function toggleFilter(k){
      · renderSBList()         → liste des notions (mode 'notions')
      · renderSBList()         → liste des auteurs (mode 'auteurs')
      · renderSBConceptsList() → liste des concepts (mode 'concepts')        */
+
+/* ── Barres de recherche de la sidebar : saisie, effacement, clic droit ──
+   Trois barres partagent le même comportement (auteurs / concepts / repères).
+   `which` ∈ 'author' | 'concept' | 'repere' identifie la variable d'état et la
+   fonction de rendu de liste à rafraîchir. */
+
+/* sbSearchInput(el, which) — appelé à chaque frappe : met à jour la variable
+   d'état, ne re-rend QUE la liste (pas toute la sidebar, pour la perf) et
+   ajuste la visibilité de la croix d'effacement de ce champ. */
+function sbSearchInput(el, which){
+  if(which==='author'){ authorSearch=el.value; renderSBList(); }
+  else if(which==='concept'){ conceptSearch=el.value; renderSBConceptsList(); }
+  else if(which==='repere'){ repereSearch=el.value; renderSBReperesList(); }
+  const btn=el.parentNode.querySelector('.sb-search-clear');
+  if(btn) btn.style.display=el.value?'flex':'none';
+}
+
+/* clearSidebarSearch(which) — vide la barre concernée et refait le rendu
+   complet de la sidebar (qui réécrit le champ vide + masque la croix), puis
+   redonne le focus au champ pour enchaîner une nouvelle saisie. */
+function clearSidebarSearch(which){
+  if(which==='author') authorSearch='';
+  else if(which==='concept') conceptSearch='';
+  else if(which==='repere') repereSearch='';
+  renderSB();
+  const inp=document.querySelector('.sb-search'); if(inp) inp.focus();
+}
+
+/* searchCtxClear(e, which) — clic droit sur la barre : on bloque le menu
+   contextuel natif du navigateur et on vide le champ à la place. */
+function searchCtxClear(e, which){ e.preventDefault(); clearSidebarSearch(which); return false; }
+
 function renderSB(){
   const sb=document.getElementById('sb');
 
@@ -2129,8 +2179,11 @@ function renderSB(){
       fixed.appendChild(searchRow);
     }
     searchRow.innerHTML=`
-      <input class="sb-search" type="text" placeholder="Rechercher…" value="${authorSearch.replace(/"/g,'&quot;')}"
-        oninput="authorSearch=this.value;renderSBList()" />
+      <div class="sb-search-field">
+        <input class="sb-search" type="text" placeholder="Rechercher…" value="${authorSearch.replace(/"/g,'&quot;')}"
+          oninput="sbSearchInput(this,'author')" oncontextmenu="searchCtxClear(event,'author')" />
+        <button class="sb-search-clear" style="display:${authorSearch?'flex':'none'}" title="Effacer (clic droit aussi)" aria-label="Effacer la recherche" onclick="clearSidebarSearch('author')">✕</button>
+      </div>
       <button class="sb-filter-btn${(authorFilter.size>0)||filterOpen?' active':''}" onclick="filterOpen=!filterOpen;renderSB()" title="Filtrer par notion">⊟</button>`;
     // Filter panel (dans la zone scrollable)
     if(filterOpen){
@@ -2171,8 +2224,11 @@ function renderSB(){
       fixed.appendChild(searchRow);
     }
     searchRow.innerHTML=`
-      <input class="sb-search" type="text" placeholder="Rechercher…" value="${conceptSearch.replace(/"/g,'&quot;')}"
-        oninput="conceptSearch=this.value;renderSBConceptsList()" />
+      <div class="sb-search-field">
+        <input class="sb-search" type="text" placeholder="Rechercher…" value="${conceptSearch.replace(/"/g,'&quot;')}"
+          oninput="sbSearchInput(this,'concept')" oncontextmenu="searchCtxClear(event,'concept')" />
+        <button class="sb-search-clear" style="display:${conceptSearch?'flex':'none'}" title="Effacer (clic droit aussi)" aria-label="Effacer la recherche" onclick="clearSidebarSearch('concept')">✕</button>
+      </div>
       <button class="sb-filter-btn${(conceptFilter.size>0)||conceptFilterOpen?' active':''}" onclick="conceptFilterOpen=!conceptFilterOpen;renderSB()" title="Filtrer par notion">⊟</button>`;
     if(conceptFilterOpen){
       const cfp=document.createElement('div');
@@ -2214,8 +2270,11 @@ function renderSB(){
       fixed.appendChild(searchRow);
     }
     searchRow.innerHTML=`
-      <input class="sb-search" type="text" placeholder="Rechercher un repère…" value="${repereSearch.replace(/"/g,'&quot;')}"
-        oninput="repereSearch=this.value;renderSBReperesList()" />`;
+      <div class="sb-search-field">
+        <input class="sb-search" type="text" placeholder="Rechercher un repère…" value="${repereSearch.replace(/"/g,'&quot;')}"
+          oninput="sbSearchInput(this,'repere')" oncontextmenu="searchCtxClear(event,'repere')" />
+        <button class="sb-search-clear" style="display:${repereSearch?'flex':'none'}" title="Effacer (clic droit aussi)" aria-label="Effacer la recherche" onclick="clearSidebarSearch('repere')">✕</button>
+      </div>`;
     const listWrap=document.createElement('div');
     listWrap.id='sb-reperes-list';
     list.appendChild(listWrap);
@@ -7978,11 +8037,26 @@ function openPalette(){
   inp.value=''; paletteSel=0;
   ov.classList.add('open');
   renderPalette();
+  paletteSyncClear();   // champ vidé → croix masquée
   inp.focus();
 }
 
 /* closePalette() — referme la palette. */
 function closePalette(){ document.getElementById('palette-overlay').classList.remove('open'); }
+
+/* paletteSyncClear() — affiche/masque la croix d'effacement selon que le champ
+   contient ou non du texte. */
+function paletteSyncClear(){
+  const inp=document.getElementById('palette-input'); const btn=document.getElementById('palette-clear');
+  if(inp&&btn) btn.style.display=inp.value?'flex':'none';
+}
+
+/* clearPaletteSearch() — vide la recherche globale (croix ou clic droit),
+   recalcule la liste (tout l'index) et redonne le focus pour ressaisir. */
+function clearPaletteSearch(){
+  const inp=document.getElementById('palette-input'); if(!inp) return;
+  inp.value=''; paletteSel=0; renderPalette(); paletteSyncClear(); inp.focus();
+}
 
 /* paletteIsOpen() — la palette est-elle visible ? */
 function paletteIsOpen(){ return document.getElementById('palette-overlay').classList.contains('open'); }
@@ -8017,8 +8091,10 @@ function paletteActivate(){
   const res=document.getElementById('palette-results');
   const ov=document.getElementById('palette-overlay');
   if(!inp||!res||!ov) return;   // garde-fou si le DOM change
-  // Saisie : recalcule et repart du 1er résultat.
-  inp.addEventListener('input',()=>{ paletteSel=0; renderPalette(); });
+  // Saisie : recalcule, repart du 1er résultat et affiche la croix si non vide.
+  inp.addEventListener('input',()=>{ paletteSel=0; renderPalette(); paletteSyncClear(); });
+  // Clic droit dans le champ : pas de menu natif, on vide la recherche.
+  inp.addEventListener('contextmenu',e=>{ e.preventDefault(); clearPaletteSearch(); });
   // Clavier DANS le champ : flèches, Entrée, Échap.
   inp.addEventListener('keydown',e=>{
     if(e.key==='ArrowDown'){ e.preventDefault(); paletteMove(1); }
