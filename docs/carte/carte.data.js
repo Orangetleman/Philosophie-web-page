@@ -24,8 +24,8 @@
 window.CARTE = {
 
   meta: {
-    version: "1.0",
-    genere_le: "2026-06-13",
+    version: "1.1",
+    genere_le: "2026-06-14",
     a_propos: "Carte interactive et évolutive du projet (outil de révision Philo Terminale). " +
               "Du parcours élève jusqu'au nom des variables/fonctions. Édite ce fichier, pas carte.html.",
     fichiers: {
@@ -93,11 +93,11 @@ window.CARTE = {
       symbols:[{kind:"var",name:"PALETTE_INDEX",ref:"index.html:7803"},{kind:"var",name:"PALETTE_GROUPS",ref:"index.html:7840"},{kind:"var",name:"PALETTE_ORDER",ref:"index.html:7841"}],
       liens:[{to:"nav.open",type:"navigue",note:"Activer un résultat ouvre la cible via les points d'entrée open*."}] },
 
-    { id:"ux.settings", label:"Réglages & mode", niveau:1, parent:"ux", domaine:"ux",
-      novice:"Le menu ⚙ Réglages : aide, relance de la visite, et bascule entre mode révision (épuré) et mode édition (outils de contribution).",
-      ingenieur:"Overlay #settings-overlay regroupant les fonctions non nécessaires à la révision. Le toggle nomme le mode-cible ; applyPhiloMode() pose la classe body.mode-edition.",
-      symbols:[{kind:"fn",name:"openSettings",ref:"index.html:5189"},{kind:"fn",name:"renderSettingsBody",ref:"index.html:5177"},{kind:"fn",name:"applyPhiloMode",ref:"index.html:5157"},{kind:"fn",name:"togglePhiloMode",ref:"index.html:5165"}],
-      liens:[{to:"nav.keys.mode",type:"ecrit",note:"Le mode révision/édition est persisté dans philo-mode."}] },
+    { id:"ux.settings", label:"Réglages & modes", niveau:1, parent:"ux", domaine:"ux",
+      novice:"Le menu ⚙ Réglages : aide, relance de la visite, bascule révision/édition, « mode fiche » (lecture compressée), et accès à cette carte + à la frise.",
+      ingenieur:"Overlay #settings-overlay regroupant les fonctions non nécessaires à la révision. Deux bascules d'affichage : applyPhiloMode (révision/édition, classe body.mode-edition) et applyFicheMode (mode fiche, classe body.mode-fiche). Le menu offre aussi les liens vers docs/carte/carte.html et frise.html.",
+      symbols:[{kind:"fn",name:"openSettings",ref:"index.html:5331"},{kind:"fn",name:"renderSettingsBody",ref:"index.html:5304"},{kind:"fn",name:"applyPhiloMode",ref:"index.html:5271"},{kind:"fn",name:"togglePhiloMode",ref:"index.html:5279"},{kind:"fn",name:"applyFicheMode",ref:"index.html:5289"},{kind:"fn",name:"toggleFicheMode",ref:"index.html:5294"}],
+      liens:[{to:"nav.keys.mode",type:"ecrit",note:"Le mode révision/édition est persisté dans philo-mode."},{to:"nav.keys.fiche",type:"ecrit",note:"Le mode fiche est persisté dans philo-fiche."}] },
 
     { id:"ux.mobile", label:"Tiroir & gestes mobile", niveau:1, parent:"ux", domaine:"ux",
       novice:"Sur téléphone, le menu de gauche devient un tiroir qu'on ouvre avec le bouton ☰ ou en glissant le doigt depuis le bord.",
@@ -125,6 +125,10 @@ window.CARTE = {
         novice:"Les onglets d'une notion : Auteurs, Textes, Concepts, Dissertations, Exemples.",
         ingenieur:"NOTION_TABS fixe l'ordre des onglets. curTab/curConceptSubTab/curExempleSubTab (globales implicites) mémorisent l'onglet et le sous-onglet actifs.",
         symbols:[{kind:"var",name:"NOTION_TABS",ref:"index.html:1865"}] },
+      { id:"front.sidebar.search", label:"Recherche & effacement", niveau:2, parent:"front.sidebar", domaine:"front",
+        novice:"Les barres de recherche du menu, avec une croix (ou un clic droit) pour tout effacer d'un coup.",
+        ingenieur:"sbSearchInput() filtre la liste et affiche/masque la croix ; clearSidebarSearch() vide ; searchCtxClear() fait pareil au clic droit. clearPaletteSearch() vide la palette ⌘K. Bouton CSS .sb-search-clear.",
+        symbols:[{kind:"fn",name:"sbSearchInput",ref:"index.html:2058"},{kind:"fn",name:"clearSidebarSearch",ref:"index.html:2069"},{kind:"fn",name:"searchCtxClear",ref:"index.html:2079"},{kind:"fn",name:"clearPaletteSearch",ref:"index.html:8063"},{kind:"css",name:".sb-search-clear",ref:"index.html:410"}] },
 
     { id:"front.notion", label:"Vue notion", niveau:1, parent:"front", domaine:"front",
       novice:"La fiche d'une notion (ex. la conscience) avec sa définition et ses onglets.",
@@ -246,9 +250,9 @@ window.CARTE = {
       symbols:[{kind:"fn",name:"openNotionFromConcept",ref:"index.html:2455"},{kind:"fn",name:"openNotionFromAuthor",ref:"index.html:2468"},{kind:"fn",name:"openNotionAccroche",ref:"index.html:2480"},{kind:"var",name:"pendingConceptMention",ref:"index.html:2349"},{kind:"var",name:"pendingAuthorMention",ref:"index.html:2350"},{kind:"var",name:"pendingAccroche",ref:"index.html:2351"}] },
 
     { id:"nav.keys", label:"Clés localStorage", niveau:1, parent:"nav", domaine:"nav",
-      novice:"Les petits dossiers où le navigateur range ta position, ton historique, ton mode et le fait que tu as vu la visite.",
-      ingenieur:"Quatre clés de stockage local pour la navigation et l'affichage.",
-      symbols:[{kind:"key",name:"philo-nav",ref:"index.html:1894"},{kind:"key",name:"philo-navhist",ref:"index.html:1951"},{kind:"key",name:"philo-mode",ref:"index.html:5157"},{kind:"key",name:"philo-onboarded",ref:"index.html:6005"}] },
+      novice:"Les petits dossiers où le navigateur range ta position, ton historique, tes modes d'affichage et le fait que tu as vu la visite.",
+      ingenieur:"Cinq clés de stockage local pour la navigation et l'affichage.",
+      symbols:[{kind:"key",name:"philo-nav",ref:"index.html:1894"},{kind:"key",name:"philo-navhist",ref:"index.html:1951"},{kind:"key",name:"philo-mode",ref:"index.html:5271"},{kind:"key",name:"philo-fiche",ref:"index.html:5295"},{kind:"key",name:"philo-onboarded",ref:"index.html:6005"}] },
       { id:"nav.keys.nav", label:"philo-nav", niveau:2, parent:"nav.keys", domaine:"nav",
         novice:"Ta position actuelle dans le site.",
         ingenieur:"localStorage 'philo-nav' = état de position sérialisé (persistNav / restoreNavFromStorage). Inclus dans la sync cloud (preferences.nav).",
@@ -265,6 +269,10 @@ window.CARTE = {
         novice:"Le fait que tu as déjà vu la visite guidée.",
         ingenieur:"localStorage 'philo-onboarded' = drapeau de 1re visite (tourStartIfFirst).",
         symbols:[{kind:"key",name:"philo-onboarded",ref:"index.html:6005"}] },
+      { id:"nav.keys.fiche", label:"philo-fiche", niveau:2, parent:"nav.keys", domaine:"nav",
+        novice:"Le « mode fiche » : afficher les auteurs en version compressée (lecture rapide) ou complète.",
+        ingenieur:"localStorage 'philo-fiche' ∈ 0|1 (applyFicheMode/toggleFicheMode → classe body.mode-fiche). Borne chaque boîte d'auteur des notions à ~2 lignes et masque les citations.",
+        symbols:[{kind:"key",name:"philo-fiche",ref:"index.html:5295"}] },
 
   /* ═══════════════ QUIZ ═══════════════ */
   { id:"quiz", label:"Quiz (révision)", niveau:0, parent:null, domaine:"quiz",
@@ -400,6 +408,11 @@ window.CARTE = {
       novice:"La carte d'identité de l'appli installable (nom, icône, écran de démarrage).",
       ingenieur:"manifest.json : name, start_url, display:standalone, icons (icon.svg).",
       symbols:[{kind:"var",name:"start_url",ref:"manifest.json:6"},{kind:"var",name:"display",ref:"manifest.json:8"}] },
+
+    { id:"pwa.seo", label:"Référencement (sitemap)", niveau:1, parent:"pwa", domaine:"pwa",
+      novice:"Le plan du site donné à Google pour qu'il trouve et référence les pages.",
+      ingenieur:"sitemap.xml — plan d'URL (urlset) pour les moteurs de recherche.",
+      symbols:[{kind:"route",name:"sitemap",ref:"sitemap.xml:2"}] },
 
   /* ═══════════════ BACKEND AGRÉGATEUR ═══════════════ */
   { id:"backend", label:"Backend agrégateur", niveau:0, parent:null, domaine:"backend",

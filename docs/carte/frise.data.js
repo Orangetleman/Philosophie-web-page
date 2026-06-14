@@ -1,16 +1,16 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
-  "genere_le": "2026-06-14T17:38:27.640Z",
+  "genere_le": "2026-06-14T20:43:52.963Z",
   "commits": [
     {
-      "hash": "4d655a27d521280d04b1d5892430a011169cd75a",
-      "short": "4d655a2",
+      "hash": "d73bca95aabd6c4287461a3860b09a55db8493e8",
+      "short": "d73bca9",
       "auteur": "Orangentleman",
-      "date": "2026-06-14T18:39:32+02:00",
-      "sujet": "Merge pull request #4 from Orangetleman/claude/goofy-shockley-605dab",
-      "corps": "Carte interactive & frise du projet (outils de découverte technique)",
-      "tag": ""
+      "date": "2026-06-14T22:40:25+02:00",
+      "sujet": "Carte : MAJ archi (mode fiche, recherche, sitemap) + fix bulle hors-écran + flèches",
+      "corps": "carte.data.js (v1.1) — reflète les commits récents de main :\n- nouveaux nœuds : « Mode fiche » (applyFicheMode/toggleFicheMode, clé\n  philo-fiche), « Recherche & effacement » de la sidebar (clearSidebarSearch,\n  searchCtxClear, clearPaletteSearch, .sb-search-clear), « Référencement\n  (sitemap) ». Refs des Réglages rafraîchies. verifie.mjs : 0 périmé.\n\ncarte.html — deux corrections d'ergonomie :\n- BULLE d'info : clamp dur → elle reste TOUJOURS entièrement dans la fenêtre\n  (fini le fantôme invisible mais cliquable au déplacement) ; se ferme\n  proprement si son nœud disparaît (repli/filtre) ; échelle plafonnée à la\n  taille de la fenêtre. closeBubble() unifie la fermeture (✕ / Échap / fond).\n- FLÈCHES des liens : les arêtes de flux s'arrêtent au BORD du nœud cible\n  (la flèche n'est plus cachée dessous) + marqueurs agrandis (userSpaceOnUse).\n  Légende : échantillons fléchés + note « sens du flux ».\n\nCo-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>",
+      "tag": "Carte"
     },
     {
       "hash": "f2ba18cc357810f169a01ee259a9d8d31ad13dc4",
