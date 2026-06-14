@@ -629,6 +629,14 @@ body.is-signed-in .sb-account{color:#7bd88f;border-color:rgba(123,216,143,.45)}
   background:var(--color-background-secondary);color:var(--color-text-primary);
   border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);outline:none}
 .auth-input:focus{border-color:var(--color-border-info)}
+/* Champ mot de passe avec œil « afficher/masquer » : l'input réserve un
+   padding-right pour le bouton, posé en absolu dans le coin droit. */
+.auth-pw-wrap{position:relative;display:flex}
+.auth-pw-wrap .auth-input{flex:1;width:auto;padding-right:36px}
+.auth-pw-eye{position:absolute;right:5px;top:50%;transform:translateY(-50%);
+  border:none;background:transparent;cursor:pointer;font-size:15px;line-height:1;
+  padding:3px;opacity:.65;border-radius:6px}
+.auth-pw-eye:hover{opacity:1}
 .auth-btn{width:100%;padding:10px;font-family:inherit;font-size:13px;font-weight:600;
   border-radius:var(--border-radius-md);cursor:pointer;outline:none;
   border:0.5px solid transparent;transition:filter .15s}
@@ -6354,7 +6362,10 @@ function renderAuth(){
     body.innerHTML=`
       <div class="auth-intro">Choisis un nouveau mot de passe pour ton compte.</div>
       <form class="auth-form" onsubmit="authSetNewPassword(event)">
-        <input class="auth-input" id="auth-newpw" type="password" placeholder="Nouveau mot de passe (6 caractères min.)" autocomplete="new-password" minlength="6" required>
+        <div class="auth-pw-wrap">
+          <input class="auth-input" id="auth-newpw" type="password" placeholder="Nouveau mot de passe (6 caractères min.)" autocomplete="new-password" minlength="6" required>
+          <button type="button" class="auth-pw-eye" title="Afficher / masquer le mot de passe" aria-label="Afficher le mot de passe" onclick="togglePwEye(this)">👁</button>
+        </div>
         <button class="auth-btn auth-btn-primary" type="submit">Définir le mot de passe</button>
       </form>
       <div class="auth-status" id="auth-status"></div>`;
@@ -6412,7 +6423,10 @@ function renderAuth(){
     <form class="auth-form" onsubmit="authSubmit(event)">
       ${isSignup?'<input class="auth-input" id="auth-name" type="text" placeholder="Pseudo (nom affiché)" autocomplete="nickname" maxlength="40">':''}
       <input class="auth-input" id="auth-email" type="email" placeholder="Adresse e-mail" autocomplete="email" required>
-      <input class="auth-input" id="auth-pw" type="password" placeholder="Mot de passe (6 caractères min.)" autocomplete="${isSignup?'new-password':'current-password'}" minlength="6" required>
+      <div class="auth-pw-wrap">
+        <input class="auth-input" id="auth-pw" type="password" placeholder="Mot de passe (6 caractères min.)" autocomplete="${isSignup?'new-password':'current-password'}" minlength="6" required>
+        <button type="button" class="auth-pw-eye" title="Afficher / masquer le mot de passe" aria-label="Afficher le mot de passe" onclick="togglePwEye(this)">👁</button>
+      </div>
       <button class="auth-btn auth-btn-primary" type="submit">${isSignup?'Créer mon compte':'Se connecter'}</button>
     </form>
     ${isSignup?'':'<button class="auth-link-btn" onclick="authSetView(\'reset\')">Mot de passe oublié ?</button>'}
@@ -6422,6 +6436,19 @@ function renderAuth(){
 
 /* authSetView() — bascule Connexion / Création puis re-rend. */
 function authSetView(v){ authView=v; renderAuth(); }
+
+/* togglePwEye(btn) — affiche/masque le mot de passe du champ voisin (bouton œil
+   dans .auth-pw-wrap) : bascule type password↔text, met à jour l'icône et le
+   libellé, puis redonne le focus au champ. */
+function togglePwEye(btn){
+  const inp=btn.parentNode.querySelector('input');
+  if(!inp) return;
+  const show=inp.type==='password';
+  inp.type=show?'text':'password';
+  btn.textContent=show?'🙈':'👁';
+  btn.setAttribute('aria-label', show?'Masquer le mot de passe':'Afficher le mot de passe');
+  inp.focus();
+}
 
 /* authStatus() — message sous le formulaire (kind : 'err' | 'ok' | ''). */
 function authStatus(msg,kind){
