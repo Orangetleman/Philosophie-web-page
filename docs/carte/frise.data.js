@@ -1,8 +1,17 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
-  "genere_le": "2026-06-14T16:11:55.474Z",
+  "genere_le": "2026-06-14T16:23:02.193Z",
   "commits": [
+    {
+      "hash": "1ceb50ddb6b655197468c9764d66e71ce482487a",
+      "short": "1ceb50d",
+      "auteur": "Orangentleman",
+      "date": "2026-06-14T18:15:34+02:00",
+      "sujet": "Carte/frise : bulle ancrée+zoom, radial anti-chevauchement, focus, frise commits",
+      "corps": "- Bulle d'info ANCRÉE au nœud (graphe/radial) : suit le pan/zoom (syncBubble\n  appelée par applyVB) et grossit avec le zoom (échelle ∝ vb). Vue arbre garde\n  l'ancrage à la ligne.\n- Radial : rayons agrandis selon la densité (radScale ∝ feuilles) + nœuds\n  compacts → bien moins de chevauchement, liaisons plus lisibles. Hub central\n  dessiné APRÈS les traits (au-dessus).\n- Surbrillance de sélection = changement de fond + bordure (plus d'anneau\n  ajouté), dans les 3 vues.\n- Nouvelle fenêtre « Frise des commits » : frise.html (timeline autonome) +\n  frise.data.js (généré) + frise.gen.mjs (régénérateur depuis git log).\n- index.html : Réglages → « Découvrir l'envers du projet » (Carte + Frise).\n\nCo-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>",
+      "tag": "Carte/frise"
+    },
     {
       "hash": "4e4cde40824913c3bbd22d7244567fd580c68551",
       "short": "4e4cde4",

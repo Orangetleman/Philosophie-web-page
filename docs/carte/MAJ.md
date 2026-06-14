@@ -57,6 +57,12 @@ node docs/carte/frise.gen.mjs
 ```
 (relit `git log` et réécrit `frise.data.js` — ne pas éditer ce dernier à la main).
 
+**Automatique** : un hook `pre-commit` (`.githooks/pre-commit`) régénère et stage
+`frise.data.js` à chaque commit (non bloquant). Il est activé par
+`git config core.hooksPath .githooks` — à relancer **une fois** sur un nouveau
+clone du dépôt (la config locale n'est pas versionnée). La frise reflète alors
+l'historique jusqu'au commit précédent (le commit courant apparaît au suivant).
+
 ## Rappel
 Ces fichiers sont de la **documentation** : ne PAS les ajouter au `PRECACHE`
 de `sw.js`.
