@@ -49,6 +49,14 @@ node docs/carte/verifie.mjs
   garder les deux à jour.
 - Toute `ref` doit pointer un symbole **réel** (confirmé par `verifie.mjs`).
 
+## Frise des commits (`frise.html`)
+`frise.html` lit `frise.data.js` (généré). Pour rafraîchir la frise après de
+nouveaux commits :
+```
+node docs/carte/frise.gen.mjs
+```
+(relit `git log` et réécrit `frise.data.js` — ne pas éditer ce dernier à la main).
+
 ## Rappel
 Ces fichiers sont de la **documentation** : ne PAS les ajouter au `PRECACHE`
 de `sw.js`.

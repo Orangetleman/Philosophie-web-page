@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Frise du projet — Philosophie Terminale</title>
+<style>
+/* Frise chronologique des commits — autonome, hors-ligne (lit window.FRISE). */
+:root{
+  --bg:#121212; --panel:#16181d; --panel2:#1f232b; --bd:#2a2e37; --bd2:#3a414d;
+  --tx:#e8e8ea; --tx2:#a7adba; --tx3:#7c8290; --accent:#5aa0e6;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--tx);
+  font-family:Inter,-apple-system,Segoe UI,Roboto,system-ui,sans-serif;font-size:14px}
+.top{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  padding:10px 16px;background:var(--panel);border-bottom:1px solid var(--bd)}
+.top .title{font-weight:700;font-size:16px}
+.top .title small{font-weight:400;color:var(--tx3);font-size:11px}
+.spacer{flex:1 1 auto}
+.search{display:flex;align-items:center;gap:6px;background:var(--bg);border:1px solid var(--bd2);
+  border-radius:8px;padding:5px 9px;min-width:180px}
+.search input{background:transparent;border:0;outline:0;color:var(--tx);font-size:13px;width:100%}
+.btn{background:var(--panel2);border:1px solid var(--bd2);border-radius:8px;padding:6px 11px;
+  color:var(--tx);font-size:12.5px;cursor:pointer;white-space:nowrap}
+.btn:hover{border-color:var(--accent)}
+.cnt{color:var(--tx3);font-size:12px}
+
+.wrap{max-width:760px;margin:0 auto;padding:18px 16px 60px}
+.daysep{display:flex;align-items:center;gap:10px;margin:22px 0 10px;color:var(--tx2);font-size:12.5px}
+.daysep::before{content:"";width:11px;height:11px;border-radius:50%;background:var(--accent);
+  box-shadow:0 0 0 4px rgba(90,160,230,.18);flex:0 0 auto;margin-left:3px}
+.daysep b{color:var(--tx);font-weight:600}
+
+.rail{position:relative;margin-left:8px;padding-left:22px;border-left:2px solid var(--bd)}
+.item{position:relative;margin:0 0 12px}
+.item::before{content:"";position:absolute;left:-29px;top:14px;width:9px;height:9px;border-radius:50%;
+  background:var(--panel2);border:2px solid var(--bd2)}
+.card{background:var(--panel);border:1px solid var(--bd);border-radius:10px;padding:11px 13px}
+.card:hover{border-color:var(--bd2)}
+.row1{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:5px}
+.hash{font-family:ui-monospace,Consolas,monospace;font-size:11px;color:#cfe3fb;
+  background:#1b2a3d;border:1px solid #27384d;border-radius:5px;padding:1px 6px}
+.tag{font-size:10.5px;border-radius:11px;padding:1px 8px;border:1px solid var(--bd2)}
+.time{color:var(--tx3);font-size:11px;margin-left:auto}
+.subj{font-size:14px;font-weight:600;line-height:1.4}
+.auth{color:var(--tx3);font-size:11px;margin-top:4px}
+.body{margin-top:7px}
+.body summary{cursor:pointer;color:var(--accent);font-size:12px;list-style:none}
+.body summary::-webkit-details-marker{display:none}
+.body summary::before{content:"▸ ";color:var(--tx3)}
+.body[open] summary::before{content:"▾ "}
+.body pre{white-space:pre-wrap;word-break:break-word;font-family:inherit;font-size:12.5px;
+  color:var(--tx2);line-height:1.55;margin:7px 0 0;border-left:2px solid var(--bd);padding-left:10px}
+.empty{color:var(--tx3);text-align:center;padding:40px}
+a{color:var(--accent)}
+</style>
+</head>
+<body>
+<div class="top">
+  <span class="title">Frise du projet <small>— commits</small></span>
+  <div class="search"><span style="color:var(--tx3)">🔍</span>
+    <input id="q" type="search" placeholder="Filtrer (sujet, hash, tag…)" autocomplete="off"></div>
+  <button class="btn" id="order">↓ Récents d'abord</button>
+  <span class="spacer"></span>
+  <span class="cnt" id="cnt"></span>
+  <a class="btn" href="carte.html" style="text-decoration:none">🗺 Carte</a>
+</div>
+<div class="wrap" id="wrap"></div>
+
+<script src="frise.data.js"></script>
+<script>
+(function(){
+"use strict";
+const F = window.FRISE;
+const wrap = document.getElementById('wrap');
+if(!F || !Array.isArray(F.commits)){ wrap.innerHTML='<p class="empty">frise.data.js introuvable. Lancer : node docs/carte/frise.gen.mjs</p>'; return; }
+
+const esc = s => (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const norm = s => (s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
+
+// couleur stable par tag (teinte dérivée du nom)
+function tagColor(t){ if(!t) return null; let h=0; for(const c of t) h=(h*31+c.charCodeAt(0))%360;
+  return {bg:'hsl('+h+',38%,20%)', bd:'hsl('+h+',40%,40%)', tx:'hsl('+h+',70%,82%)'}; }
+
+const DAYS=['dimanche','lundi','mardi','mercredi','jeudi','vendredi','samedi'];
+const MONTHS=['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+function dayKey(iso){ return (iso||'').slice(0,10); }
+function dayLabel(iso){ const d=new Date(iso); if(isNaN(d)) return iso||'?';
+  return DAYS[d.getDay()]+' '+d.getDate()+' '+MONTHS[d.getMonth()]+' '+d.getFullYear(); }
+function timeLabel(iso){ const d=new Date(iso); if(isNaN(d)) return '';
+  return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); }
+
+let order='desc';   // desc = récents d'abord (ordre git natif), asc = anciens d'abord
+let query='';
+
+function render(){
+  const nq=norm(query.trim());
+  let list=F.commits.filter(c=> nq.length<1 ? true :
+    norm(c.sujet+' '+c.corps+' '+c.short+' '+c.tag+' '+c.auteur).includes(nq));
+  if(order==='asc') list=list.slice().reverse();
+  document.getElementById('cnt').textContent = list.length+' / '+F.commits.length+' commits';
+  if(!list.length){ wrap.innerHTML='<p class="empty">Aucun commit ne correspond.</p>'; return; }
+
+  let html='', curDay=null, railOpen=false;
+  for(const c of list){
+    const dk=dayKey(c.date);
+    if(dk!==curDay){
+      if(railOpen){ html+='</div>'; railOpen=false; }
+      html+='<div class="daysep"><b>'+esc(dayLabel(c.date))+'</b></div><div class="rail">';
+      curDay=dk; railOpen=true;
+    }
+    const tc=tagColor(c.tag);
+    const tagHtml = c.tag ? '<span class="tag" style="background:'+tc.bg+';border-color:'+tc.bd+';color:'+tc.tx+'">'+esc(c.tag)+'</span>' : '';
+    const bodyHtml = c.corps ? '<details class="body"><summary>détails</summary><pre>'+esc(c.corps)+'</pre></details>' : '';
+    html+='<div class="item"><div class="card">'
+      +'<div class="row1"><span class="hash">'+esc(c.short)+'</span>'+tagHtml
+      +'<span class="time">'+esc(timeLabel(c.date))+'</span></div>'
+      +'<div class="subj">'+esc(c.sujet)+'</div>'
+      +bodyHtml
+      +'<div class="auth">'+esc(c.auteur)+'</div>'
+      +'</div></div>';
+  }
+  if(railOpen) html+='</div>';
+  wrap.innerHTML=html;
+}
+
+document.getElementById('q').addEventListener('input',e=>{ query=e.target.value; render(); });
+document.getElementById('order').addEventListener('click',e=>{
+  order = order==='desc'?'asc':'desc';
+  e.target.textContent = order==='desc' ? '↓ Récents d’abord' : '↑ Anciens d’abord';
+  render();
+});
+render();
+})();
+</script>
+</body>
+</html>

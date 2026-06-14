@@ -84,7 +84,13 @@ svg.graph.grabbing{cursor:grabbing}
   padding:0 2px;border-radius:4px}
 .node .info:hover{color:var(--accent)}
 .node.match{outline:2px solid var(--flash);outline-offset:1px}
-.node.focus{box-shadow:0 0 0 2px var(--accent),0 1px 3px rgba(0,0,0,.4)}
+/* sélection : on change le FOND et la couleur de bordure (pas d'anneau ajouté) */
+.node.focus{background:#22384f!important;border-color:#6aa8e0}
+/* nœuds compacts (vue radiale) : largeur au contenu, centrés sur leur point */
+.node.compact{width:max-content;max-width:172px;margin:0 auto;height:24px;
+  border-left-width:3px;padding:0 6px;font-size:11px}
+.node.compact .info{display:none}
+.node.compact.l0{font-size:11.5px}
 .node .badge{flex:0 0 auto;font-size:9px;color:#e0a13b}
 
 /* arbre indenté (mobile / bascule) */
@@ -97,7 +103,7 @@ svg.graph.grabbing{cursor:grabbing}
 .trow.l0 .lbl{font-weight:700}
 .trow .info{border:0;background:transparent;color:var(--tx3);font-size:13px;padding:0 4px}
 .trow.match{outline:2px solid var(--flash)}
-.trow.focus{box-shadow:inset 0 0 0 2px var(--accent);background:var(--panel)}
+.trow.focus{background:#22384f;border-left-color:#6aa8e0}
 .tsub{font-size:11px;color:var(--tx3);margin:-1px 0 3px 0;line-height:1.4}
 
 /* ── Panneau de détail ───────────────────────────────────────── */
@@ -336,11 +342,11 @@ function buildFlux(group){
 
 /* Construit le nœud (foreignObject + interactions) — commun graphe/radial.
    On passe `div` comme ancre à openDetail pour positionner la bulle d'info. */
-function buildNode(n){
+function buildNode(n, compact){
   const fo=el(SVGNS,'foreignObject',{x:n._x,y:n._y,width:NODE_W,height:NODE_H});
   const div=document.createElementNS(XH,'div');
   const dom=domById.get(n.domaine)||{couleur:'#888'};
-  div.setAttribute('class','node'+(n.niveau===0?' l0':'')+(state.matches.has(n.id)?' match':'')+(state.focusId===n.id?' focus':''));
+  div.setAttribute('class','node'+(compact?' compact':'')+(n.niveau===0?' l0':'')+(state.matches.has(n.id)?' match':'')+(state.focusId===n.id?' focus':''));
   div.style.borderLeftColor=dom.couleur;
   if(n.niveau===0){ div.style.background='#1d2735'; }
   div.title=(state.mode==='novice'?n.novice:n.ingenieur)||'';
@@ -376,29 +382,32 @@ function renderGraph(){
 
 /* Vue 3 — arbre CIRCULAIRE (radial) : hub central, domaines en couronnes.
    Chaque sous-arbre reçoit un secteur angulaire ∝ son nombre de feuilles visibles. */
-const RING=160;
+const baseR0=240, baseStep=165;
 function leafCount(n){ const k=visKids(n); return k.length?k.reduce((s,c)=>s+leafCount(c),0):1; }
 function layoutRadial(){
   visList=[]; visSet=new Set();
+  const vr=roots.filter(domActive);
+  const L=vr.reduce((s,r)=>s+leafCount(r),0)||1;
+  // plus il y a de feuilles visibles, plus on écarte les couronnes (anti-chevauchement)
+  const radScale=Math.min(3.4,Math.max(1,L/32));
+  const radiusFor=niv=>(baseR0+niv*baseStep)*radScale;
   function assign(n,a0,a1){
     visList.push(n); visSet.add(n.id);
-    const ang=(a0+a1)/2, rad=(n.niveau+1)*RING;
+    const ang=(a0+a1)/2, rad=radiusFor(n.niveau);
     n._cx=rad*Math.cos(ang); n._cy=rad*Math.sin(ang);
     n._x=n._cx-NODE_W/2; n._y=n._cy-NODE_H/2;
     const k=visKids(n); if(!k.length) return;
     const tot=k.reduce((s,c)=>s+leafCount(c),0)||1; let a=a0;
     k.forEach(c=>{ const span=(a1-a0)*leafCount(c)/tot; assign(c,a,a+span); a+=span; });
   }
-  const vr=roots.filter(domActive); const tot=vr.reduce((s,r)=>s+leafCount(r),0)||1;
   let a=-Math.PI/2;
-  vr.forEach(r=>{ const span=2*Math.PI*leafCount(r)/tot; assign(r,a,a+span); a+=span; });
+  vr.forEach(r=>{ const span=2*Math.PI*leafCount(r)/L; assign(r,a,a+span); a+=span; });
 }
 function renderRadial(){
   layoutRadial(); ensureDefs();
   [...svg.childNodes].forEach(c=>{ if(c.nodeName!=='defs') svg.removeChild(c); });
   const gTree=el(SVGNS,'g'), gFlux=el(SVGNS,'g'), gNodes=el(SVGNS,'g');
   svg.appendChild(gTree); svg.appendChild(gFlux); svg.appendChild(gNodes);
-  gTree.appendChild(el(SVGNS,'circle',{cx:0,cy:0,r:7,fill:'#5aa0e6'}));
   // domaines reliés au hub
   visList.filter(n=>n.niveau===0).forEach(r=>
     gTree.appendChild(el(SVGNS,'line',{x1:0,y1:0,x2:r._cx,y2:r._cy,stroke:'#2c333d','stroke-width':'1'})));
@@ -406,8 +415,10 @@ function renderRadial(){
   visList.forEach(p=>visKids(p).forEach(c=>
     gTree.appendChild(el(SVGNS,'path',{d:`M${p._cx},${p._cy} L${c._cx},${c._cy}`,
       fill:'none',stroke:'#39414f','stroke-width':'1.3'}))));
+  // hub central dessiné APRÈS les traits (au-dessus, plus perturbant en dessous)
+  gTree.appendChild(el(SVGNS,'circle',{cx:0,cy:0,r:8,fill:'#5aa0e6',stroke:'#0c1220','stroke-width':'2.5'}));
   buildFlux(gFlux);
-  visList.forEach(n=>gNodes.appendChild(buildNode(n)));
+  visList.forEach(n=>gNodes.appendChild(buildNode(n,true)));
   if(!state.fitted){ fitView(); state.fitted=true; }
 }
 
@@ -424,7 +435,7 @@ function fitView(){
   if(vb.w<300)vb.w=300; if(vb.h<200)vb.h=200;
   applyVB();
 }
-function applyVB(){ svg.setAttribute('viewBox',`${vb.x} ${vb.y} ${vb.w} ${vb.h}`); }
+function applyVB(){ svg.setAttribute('viewBox',`${vb.x} ${vb.y} ${vb.w} ${vb.h}`); syncBubble(); }
 
 /* ── (E) Rendu de l'arbre indenté (mobile / bascule) ────────────── */
 const treeEl=document.getElementById('tree');
@@ -507,12 +518,35 @@ function openDetail(id, anchorEl){
       h.appendChild(mkLink(e.type, other, dir+(e.note||''))); });
     body.appendChild(h);
   }
+  state.bubbleRefW=vb.w;            // zoom de référence à l'ouverture (échelle = 1)
   rerender();                       // ré-applique la surbrillance (.focus) sur l'élément choisi
   detail.classList.add('open');
-  positionBubble(state.anchorEl);   // ancre la bulle près du nœud (sinon centrée)
+  if(state.view==='tree') positionBubble(state.anchorEl); else syncBubble();
 }
-/* Place la bulle d'info à côté de l'élément cliqué, repliée dans la fenêtre. */
+/* Bulle ANCRÉE au nœud (graphe/radial) : suit le pan/zoom et grossit avec le zoom. */
+function syncBubble(){
+  if(!state.detailId || !detail.classList.contains('open') || state.view==='tree') return;
+  const n=byId.get(state.detailId);
+  if(!n || !visSet.has(n.id)){ detail.style.visibility='hidden'; return; }
+  detail.style.visibility='visible';
+  const r=svg.getBoundingClientRect();
+  const cx=n._x+NODE_W/2, cy=n._y+NODE_H/2;
+  const sx=r.left+(cx-vb.x)/vb.w*r.width;        // position écran du centre du nœud
+  const sy=r.top +(cy-vb.y)/vb.h*r.height;
+  const k=Math.min(2.2,Math.max(0.55,(state.bubbleRefW||vb.w)/vb.w));   // échelle ∝ zoom
+  detail.style.transformOrigin='top left';
+  const nodeHalf=(NODE_W/2)/vb.w*r.width;
+  let left=sx+nodeHalf+10, top=sy-12;
+  const bw=detail.offsetWidth*k, bh=detail.offsetHeight*k;
+  if(left+bw>window.innerWidth-8) left=sx-nodeHalf-10-bw;   // bascule à gauche si déborde
+  if(left<8) left=8;
+  if(top+bh>window.innerHeight-8) top=Math.max(8,window.innerHeight-bh-8);
+  if(top<8) top=8;
+  detail.style.left=left+'px'; detail.style.top=top+'px'; detail.style.transform='scale('+k+')';
+}
+/* Place la bulle d'info à côté de l'élément cliqué (vue arbre, sans zoom). */
 function positionBubble(anchorEl){
+  detail.style.transform=''; detail.style.visibility='';
   const d=detail; const bw=Math.min(344, window.innerWidth-16), bh=d.offsetHeight||300;
   let left, top;
   if(anchorEl && anchorEl.getBoundingClientRect && anchorEl.isConnected){
@@ -660,7 +694,12 @@ function setView(v){ state.view=v;
   const svgVis=(v==='graph'||v==='radial');            // graphe et radial partagent le SVG
   document.getElementById('graph').style.display = svgVis?'block':'none';
   document.getElementById('tree').style.display  = v==='tree'?'block':'none';
-  if(svgVis){ state.fitted=false; } rerender(); }
+  if(svgVis){ state.fitted=false; } rerender();
+  if(detail.classList.contains('open')){               // ré-ancre la bulle selon la vue
+    if(v==='tree') positionBubble(state.anchorEl);
+    else { state.bubbleRefW=vb.w; syncBubble(); }
+  }
+}
 
 document.getElementById('modeNov').addEventListener('click',()=>setMode('novice'));
 document.getElementById('modeIng').addEventListener('click',()=>setMode('ingenieur'));
