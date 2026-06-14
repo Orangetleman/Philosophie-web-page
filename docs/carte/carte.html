@@ -97,13 +97,17 @@ svg.graph.grabbing{cursor:grabbing}
 .trow.l0 .lbl{font-weight:700}
 .trow .info{border:0;background:transparent;color:var(--tx3);font-size:13px;padding:0 4px}
 .trow.match{outline:2px solid var(--flash)}
+.trow.focus{box-shadow:inset 0 0 0 2px var(--accent);background:var(--panel)}
 .tsub{font-size:11px;color:var(--tx3);margin:-1px 0 3px 0;line-height:1.4}
 
 /* ── Panneau de détail ───────────────────────────────────────── */
-.detail{position:absolute;top:0;right:0;height:100%;width:380px;max-width:92vw;
-  background:var(--panel);border-left:1px solid var(--bd2);transform:translateX(102%);
-  transition:transform .22s ease;overflow-y:auto;z-index:30;box-shadow:-8px 0 24px rgba(0,0,0,.45)}
-.detail.open{transform:none}
+/* Bulle d'info flottante (ancrée près du nœud, taille limitée, défilable dedans) */
+.detail{position:fixed;top:80px;left:80px;width:344px;max-width:92vw;max-height:62vh;
+  background:var(--panel);border:1px solid var(--bd2);border-radius:12px;
+  opacity:0;visibility:hidden;transform:scale(.97);transform-origin:top left;
+  transition:opacity .15s ease,transform .15s ease;overflow-y:auto;z-index:40;
+  box-shadow:0 14px 36px rgba(0,0,0,.55)}
+.detail.open{opacity:1;visibility:visible;transform:none}
 .detail .dhead{position:sticky;top:0;background:var(--panel);padding:12px 14px;
   border-bottom:1px solid var(--bd);display:flex;align-items:flex-start;gap:8px}
 .detail .dhead h2{margin:0;font-size:16px;line-height:1.3;flex:1 1 auto}
@@ -146,7 +150,7 @@ svg.graph.grabbing{cursor:grabbing}
     transition:transform .2s;width:80vw;max-width:300px}
   .side.open{transform:none}
   .burger{display:inline-block}
-  .detail{width:100%;max-width:100%}
+  .detail{width:94vw;max-width:94vw;max-height:70vh}
   .topbar .title small{display:none}
   .search{min-width:120px;flex:1 1 120px}
 }
@@ -173,6 +177,7 @@ svg.graph.grabbing{cursor:grabbing}
     </div>
     <div class="seg" title="Affichage">
       <button id="viewGraph" class="on">Graphe</button>
+      <button id="viewRadial">Radial</button>
       <button id="viewTree">Arbre</button>
     </div>
     <button class="tb-btn" id="collapseAll" title="Tout replier (n'afficher que les domaines)">⊟ Replier</button>
@@ -310,63 +315,99 @@ function ensureDefs(){
   svg.appendChild(defs);
 }
 
-function renderGraph(){
-  layout();
-  ensureDefs();
-  // purge (on garde <defs>)
-  [...svg.childNodes].forEach(c=>{ if(c.nodeName!=='defs') svg.removeChild(c); });
-
-  const gFlux = el(SVGNS,'g'), gTree = el(SVGNS,'g'), gNodes = el(SVGNS,'g');
-  svg.appendChild(gFlux); svg.appendChild(gTree); svg.appendChild(gNodes);
-
-  // arêtes d'arbre (parent → enfants visibles)
-  visList.forEach(p=>{
-    visKids(p).forEach(c=>{
-      const x1=p._x+NODE_W, y1=p._y+NODE_H/2, x2=c._x, y2=c._y+NODE_H/2, mx=(x1+x2)/2;
-      gTree.appendChild(el(SVGNS,'path',{d:`M${x1},${y1} C${mx},${y1} ${mx},${y2} ${x2},${y2}`,
-        fill:'none',stroke:'#39414f','stroke-width':'1.4'}));
-    });
-  });
-
-  // arêtes transverses (flux de données), repliées vers l'ancêtre visible
+/* Dessine les arêtes transverses (flux) — commun au graphe et au radial.
+   Chaque extrémité est ancrée au 1er ancêtre VISIBLE ; courbe selon les centres. */
+function buildFlux(group){
   allEdges.forEach(e=>{
     if(!state.activeLink.has(e.type)) return;
     const a=visAnchor(e.from), b=visAnchor(e.to);
     if(!a||!b||a===b) return;
     const t=ltById.get(e.type)||{style:{color:'#888',width:2,dash:''}};
-    const x1=a._x+NODE_W, y1=a._y+NODE_H/2, x2=b._x, y2=b._y+NODE_H/2;
+    const x1=a._x+NODE_W/2, y1=a._y+NODE_H/2, x2=b._x+NODE_W/2, y2=b._y+NODE_H/2;
     const dx=Math.max(70,Math.abs(x2-x1)/2);
     const path=el(SVGNS,'path',{d:`M${x1},${y1} C${x1+dx},${y1} ${x2-dx},${y2} ${x2},${y2}`,
       fill:'none',stroke:t.style.color,'stroke-width':t.style.width,
       'stroke-dasharray':t.style.dash||'','marker-end':'url(#arr-'+e.type+')',opacity:'.85'});
     const title=el(SVGNS,'title'); title.textContent=(ltById.get(e.type)?ltById.get(e.type).label:e.type)+' — '+(e.note||'');
     path.appendChild(title);
-    gFlux.appendChild(path);
+    group.appendChild(path);
   });
+}
 
-  // nœuds
-  visList.forEach(n=>{
-    const fo=el(SVGNS,'foreignObject',{x:n._x,y:n._y,width:NODE_W,height:NODE_H});
-    const div=document.createElementNS(XH,'div');
-    const dom=domById.get(n.domaine)||{couleur:'#888'};
-    div.setAttribute('class','node'+(n.niveau===0?' l0':'')+(state.matches.has(n.id)?' match':'')+(state.focusId===n.id?' focus':''));
-    div.style.borderLeftColor=dom.couleur;
-    if(n.niveau===0){ div.style.background='#1d2735'; }
-    div.title=(state.mode==='novice'?n.novice:n.ingenieur)||'';
-    const chev=document.createElementNS(XH,'span'); chev.setAttribute('class','chev');
-    chev.textContent = hasKids(n.id) ? (isCollapsed(n.id)?'▸':'▾') : '·';
-    const lbl=document.createElementNS(XH,'span'); lbl.setAttribute('class','lbl'); lbl.textContent=n.label;
-    div.appendChild(chev); div.appendChild(lbl);
-    if(n.incertain || n.note){ const b=document.createElementNS(XH,'span'); b.setAttribute('class','badge'); b.textContent='⚑'; div.appendChild(b); }
-    const info=document.createElementNS(XH,'button'); info.setAttribute('class','info'); info.textContent='ⓘ';
-    div.appendChild(info);
-    // interactions
-    div.addEventListener('click',ev=>{ if(ev.target===info) return; if(hasKids(n.id)) toggle(n.id); else openDetail(n.id); });
-    div.addEventListener('dblclick',ev=>{ ev.preventDefault(); openDetail(n.id); });
-    info.addEventListener('click',ev=>{ ev.stopPropagation(); openDetail(n.id); });
-    fo.appendChild(div); gNodes.appendChild(fo);
-  });
+/* Construit le nœud (foreignObject + interactions) — commun graphe/radial.
+   On passe `div` comme ancre à openDetail pour positionner la bulle d'info. */
+function buildNode(n){
+  const fo=el(SVGNS,'foreignObject',{x:n._x,y:n._y,width:NODE_W,height:NODE_H});
+  const div=document.createElementNS(XH,'div');
+  const dom=domById.get(n.domaine)||{couleur:'#888'};
+  div.setAttribute('class','node'+(n.niveau===0?' l0':'')+(state.matches.has(n.id)?' match':'')+(state.focusId===n.id?' focus':''));
+  div.style.borderLeftColor=dom.couleur;
+  if(n.niveau===0){ div.style.background='#1d2735'; }
+  div.title=(state.mode==='novice'?n.novice:n.ingenieur)||'';
+  const chev=document.createElementNS(XH,'span'); chev.setAttribute('class','chev');
+  chev.textContent = hasKids(n.id) ? (isCollapsed(n.id)?'▸':'▾') : '·';
+  const lbl=document.createElementNS(XH,'span'); lbl.setAttribute('class','lbl'); lbl.textContent=n.label;
+  div.appendChild(chev); div.appendChild(lbl);
+  if(n.incertain || n.note){ const b=document.createElementNS(XH,'span'); b.setAttribute('class','badge'); b.textContent='⚑'; div.appendChild(b); }
+  const info=document.createElementNS(XH,'button'); info.setAttribute('class','info'); info.textContent='ⓘ';
+  div.appendChild(info);
+  div.addEventListener('click',ev=>{ if(ev.target===info) return; if(hasKids(n.id)) toggle(n.id); else openDetail(n.id,div); });
+  div.addEventListener('dblclick',ev=>{ ev.preventDefault(); openDetail(n.id,div); });
+  info.addEventListener('click',ev=>{ ev.stopPropagation(); openDetail(n.id,div); });
+  fo.appendChild(div);
+  return fo;
+}
 
+/* Vue 1 — graphe arborescent gauche→droite. */
+function renderGraph(){
+  layout(); ensureDefs();
+  [...svg.childNodes].forEach(c=>{ if(c.nodeName!=='defs') svg.removeChild(c); });
+  const gTree=el(SVGNS,'g'), gFlux=el(SVGNS,'g'), gNodes=el(SVGNS,'g');
+  svg.appendChild(gTree); svg.appendChild(gFlux); svg.appendChild(gNodes);
+  visList.forEach(p=>visKids(p).forEach(c=>{
+    const x1=p._x+NODE_W, y1=p._y+NODE_H/2, x2=c._x, y2=c._y+NODE_H/2, mx=(x1+x2)/2;
+    gTree.appendChild(el(SVGNS,'path',{d:`M${x1},${y1} C${mx},${y1} ${mx},${y2} ${x2},${y2}`,
+      fill:'none',stroke:'#39414f','stroke-width':'1.4'}));
+  }));
+  buildFlux(gFlux);
+  visList.forEach(n=>gNodes.appendChild(buildNode(n)));
+  if(!state.fitted){ fitView(); state.fitted=true; }
+}
+
+/* Vue 3 — arbre CIRCULAIRE (radial) : hub central, domaines en couronnes.
+   Chaque sous-arbre reçoit un secteur angulaire ∝ son nombre de feuilles visibles. */
+const RING=160;
+function leafCount(n){ const k=visKids(n); return k.length?k.reduce((s,c)=>s+leafCount(c),0):1; }
+function layoutRadial(){
+  visList=[]; visSet=new Set();
+  function assign(n,a0,a1){
+    visList.push(n); visSet.add(n.id);
+    const ang=(a0+a1)/2, rad=(n.niveau+1)*RING;
+    n._cx=rad*Math.cos(ang); n._cy=rad*Math.sin(ang);
+    n._x=n._cx-NODE_W/2; n._y=n._cy-NODE_H/2;
+    const k=visKids(n); if(!k.length) return;
+    const tot=k.reduce((s,c)=>s+leafCount(c),0)||1; let a=a0;
+    k.forEach(c=>{ const span=(a1-a0)*leafCount(c)/tot; assign(c,a,a+span); a+=span; });
+  }
+  const vr=roots.filter(domActive); const tot=vr.reduce((s,r)=>s+leafCount(r),0)||1;
+  let a=-Math.PI/2;
+  vr.forEach(r=>{ const span=2*Math.PI*leafCount(r)/tot; assign(r,a,a+span); a+=span; });
+}
+function renderRadial(){
+  layoutRadial(); ensureDefs();
+  [...svg.childNodes].forEach(c=>{ if(c.nodeName!=='defs') svg.removeChild(c); });
+  const gTree=el(SVGNS,'g'), gFlux=el(SVGNS,'g'), gNodes=el(SVGNS,'g');
+  svg.appendChild(gTree); svg.appendChild(gFlux); svg.appendChild(gNodes);
+  gTree.appendChild(el(SVGNS,'circle',{cx:0,cy:0,r:7,fill:'#5aa0e6'}));
+  // domaines reliés au hub
+  visList.filter(n=>n.niveau===0).forEach(r=>
+    gTree.appendChild(el(SVGNS,'line',{x1:0,y1:0,x2:r._cx,y2:r._cy,stroke:'#2c333d','stroke-width':'1'})));
+  // connecteurs parent → enfant (centre à centre)
+  visList.forEach(p=>visKids(p).forEach(c=>
+    gTree.appendChild(el(SVGNS,'path',{d:`M${p._cx},${p._cy} L${c._cx},${c._cy}`,
+      fill:'none',stroke:'#39414f','stroke-width':'1.3'}))));
+  buildFlux(gFlux);
+  visList.forEach(n=>gNodes.appendChild(buildNode(n)));
   if(!state.fitted){ fitView(); state.fitted=true; }
 }
 
@@ -392,7 +433,7 @@ function renderTree(){
   function walk(n){
     if(!domActive(n)) return;
     const row=document.createElement('div');
-    row.className='trow'+(n.niveau===0?' l0':'')+(state.matches.has(n.id)?' match':'');
+    row.className='trow'+(n.niveau===0?' l0':'')+(state.matches.has(n.id)?' match':'')+(state.focusId===n.id?' focus':'');
     row.style.marginLeft=(n.niveau*16)+'px';
     const dom=domById.get(n.domaine)||{couleur:'#888'}; row.style.borderLeftColor=dom.couleur;
     const chev=document.createElement('span'); chev.className='chev';
@@ -400,8 +441,8 @@ function renderTree(){
     const lbl=document.createElement('span'); lbl.className='lbl'; lbl.textContent=n.label;
     const info=document.createElement('button'); info.className='info'; info.textContent='ⓘ';
     row.appendChild(chev); row.appendChild(lbl); row.appendChild(info);
-    row.addEventListener('click',ev=>{ if(ev.target===info) return; if(hasKids(n.id)) toggle(n.id); else openDetail(n.id); });
-    info.addEventListener('click',ev=>{ ev.stopPropagation(); openDetail(n.id); });
+    row.addEventListener('click',ev=>{ if(ev.target===info) return; if(hasKids(n.id)) toggle(n.id); else openDetail(n.id,row); });
+    info.addEventListener('click',ev=>{ ev.stopPropagation(); openDetail(n.id,row); });
     row.dataset.id=n.id;
     treeEl.appendChild(row);
     // sous-titre (lecture courante) pour les domaines
@@ -415,9 +456,9 @@ function renderTree(){
 
 /* ── (F) Panneau de détail (toujours novice + ingénieur) ────────── */
 const detail=document.getElementById('detail');
-function openDetail(id){
+function openDetail(id, anchorEl){
   const n=byId.get(id); if(!n) return;
-  state.detailId=id; setFocus(id);
+  state.detailId=id; state.anchorEl=anchorEl||state.anchorEl||null; setFocus(id);
   document.getElementById('dTitle').textContent=n.label;
   const dom=domById.get(n.domaine)||{label:n.domaine,couleur:'#888'};
   const body=document.getElementById('dBody');
@@ -466,8 +507,22 @@ function openDetail(id){
       h.appendChild(mkLink(e.type, other, dir+(e.note||''))); });
     body.appendChild(h);
   }
+  rerender();                       // ré-applique la surbrillance (.focus) sur l'élément choisi
   detail.classList.add('open');
-  if(state.view==='graph') renderGraph(); else renderTree();
+  positionBubble(state.anchorEl);   // ancre la bulle près du nœud (sinon centrée)
+}
+/* Place la bulle d'info à côté de l'élément cliqué, repliée dans la fenêtre. */
+function positionBubble(anchorEl){
+  const d=detail; const bw=Math.min(344, window.innerWidth-16), bh=d.offsetHeight||300;
+  let left, top;
+  if(anchorEl && anchorEl.getBoundingClientRect && anchorEl.isConnected){
+    const r=anchorEl.getBoundingClientRect();
+    left=r.right+12; top=r.top;
+    if(left+bw>window.innerWidth-8) left=r.left-bw-12;     // bascule à gauche si déborde
+    if(left<8) left=Math.max(8,(window.innerWidth-bw)/2);
+    top=Math.min(Math.max(8,top), Math.max(8,window.innerHeight-bh-8));
+  } else { left=(window.innerWidth-bw)/2; top=Math.max(8,(window.innerHeight-bh)/2); }
+  d.style.left=left+'px'; d.style.top=top+'px';
 }
 function mkSec(k,v,cls){ const d=document.createElement('div'); d.className='dsec '+(cls||'');
   d.innerHTML='<div class="k"></div><div class="v"></div>';
@@ -592,7 +647,7 @@ function endPtr(e){ pts.delete(e.pointerId); if(pts.size<2) pinchPrev=null; if(p
 svg.addEventListener('pointerup',endPtr); svg.addEventListener('pointercancel',endPtr);
 
 /* ── (I) Bascules d'interface & initialisation ──────────────────── */
-function rerender(){ if(state.view==='graph') renderGraph(); else renderTree(); }
+function rerender(){ if(state.view==='tree') renderTree(); else if(state.view==='radial') renderRadial(); else renderGraph(); }
 
 function setMode(m){ state.mode=m;
   document.getElementById('modeNov').classList.toggle('on',m==='novice');
@@ -600,14 +655,17 @@ function setMode(m){ state.mode=m;
   rerender(); if(state.detailId) openDetail(state.detailId); }
 function setView(v){ state.view=v;
   document.getElementById('viewGraph').classList.toggle('on',v==='graph');
+  document.getElementById('viewRadial').classList.toggle('on',v==='radial');
   document.getElementById('viewTree').classList.toggle('on',v==='tree');
-  document.getElementById('graph').style.display = v==='graph'?'block':'none';
+  const svgVis=(v==='graph'||v==='radial');            // graphe et radial partagent le SVG
+  document.getElementById('graph').style.display = svgVis?'block':'none';
   document.getElementById('tree').style.display  = v==='tree'?'block':'none';
-  if(v==='graph'){ state.fitted=false; } rerender(); }
+  if(svgVis){ state.fitted=false; } rerender(); }
 
 document.getElementById('modeNov').addEventListener('click',()=>setMode('novice'));
 document.getElementById('modeIng').addEventListener('click',()=>setMode('ingenieur'));
 document.getElementById('viewGraph').addEventListener('click',()=>setView('graph'));
+document.getElementById('viewRadial').addEventListener('click',()=>setView('radial'));
 document.getElementById('viewTree').addEventListener('click',()=>setView('tree'));
 document.getElementById('collapseAll').addEventListener('click',()=>{
   G.nodes.forEach(n=>{ if(hasKids(n.id)) state.collapsed.add(n.id); }); state.fitted=false; setFocus(null); rerender(); });

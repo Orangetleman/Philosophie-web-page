@@ -5183,6 +5183,12 @@ function renderSettingsBody(){
     +'<div class="set-row-desc">Le mode <em>édition</em> révèle les badges « ✦ nouveau / ✎ modifié » et les boutons « + » pour proposer du contenu. Le mode <em>révision</em> épure l\'affichage pour se concentrer sur l\'apprentissage.</div>'
     +'<button class="pbtn pbtn-primary set-mode-btn" onclick="togglePhiloMode()">'
       +(isEd?'👁 Revenir au mode révision':'✎ Passer en mode édition')+'</button>'
+    +'</div>'
+    // Carte technique du projet (doc) — discret, pour les curieux de l'envers du décor.
+    +'<div class="set-row">'
+    +'<div class="set-row-cur">🗺 Carte du projet</div>'
+    +'<div class="set-row-desc">Une visualisation interactive de l\'architecture du site, du parcours élève jusqu\'au nom des fonctions — pour qui s\'interroge sur la technique.</div>'
+    +'<a class="pbtn pbtn-ghost set-mode-btn" href="docs/carte/carte.html" target="_blank" rel="noopener" style="display:inline-block;text-decoration:none">Ouvrir la carte technique ↗</a>'
     +'</div>';
 }
 /* openSettings / closeSettings — ouvre/ferme l'overlay de réglages. */
