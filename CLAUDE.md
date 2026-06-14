@@ -4,6 +4,18 @@ Outil de révision **Philosophie Terminale** : `index.html` (HTML + CSS + JS),
 dark mode, sans dépendance ni build. Les **données** vivent dans `data.js`,
 chargé en `<script src="data.js">` **avant** le `<script>` principal.
 
+## Carte du projet (`docs/carte/`)
+
+Vue d'ensemble **interactive et évolutive** du projet (du parcours élève
+jusqu'au nom des variables/fonctions). Source de vérité unique :
+`docs/carte/carte.data.js` (`window.CARTE` : nœuds L0→L3 + flux transverses) ;
+`docs/carte/carte.html` la rend (graphe nœud-lien, autonome, hors-ligne, zéro
+dépendance — ouvrable par double-clic). **À chaque changement d'archi (fonction,
+variable, table, route, clé, flux), mettre à jour `carte.data.js` dans le même
+commit**, puis lancer `node docs/carte/verifie.mjs` (anti-drift, 0 périmé). Voir
+`docs/carte/MAJ.md`. Ces fichiers sont de la **doc** : ne PAS les ajouter au
+`PRECACHE` de `sw.js`.
+
 ## Architecture de `index.html`
 
 1. `<head>` — métadonnées, police Google Fonts (Inter)
