@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://philosophie-fiches-web-chris.vercel.app/sitemap.xml
