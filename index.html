@@ -5318,6 +5318,13 @@ function renderSettingsBody(){
     +'<div class="set-row-desc">Compresse chaque boîte d\'auteur dans les notions (idée bornée à 2 lignes, citations masquées) pour une <em>lecture rapide</em>, façon fiche de révision. Le contenu complet reste sur la fiche de l\'auteur.</div>'
     +'<button class="pbtn pbtn-primary set-mode-btn" onclick="toggleFicheMode()">'
       +(isFiche?'📖 Affichage complet':'🗂 Activer le mode fiche')+'</button>'
+    +'</div>'
+    // Carte technique du projet (doc) — discret, pour les curieux de l'envers du décor.
+    +'<div class="set-row">'
+    +'<div class="set-row-cur">🔎 Découvrir l\'envers du projet</div>'
+    +'<div class="set-row-desc">Pour les curieux de la technique : une <strong>carte interactive</strong> de l\'architecture (du parcours élève jusqu\'au nom des fonctions) et une <strong>frise</strong> de l\'évolution du projet commit par commit.</div>'
+    +'<a class="pbtn pbtn-ghost set-mode-btn" href="docs/carte/carte.html" target="_blank" rel="noopener" style="display:inline-block;text-decoration:none;margin-right:6px">🗺 Carte du projet ↗</a>'
+    +'<a class="pbtn pbtn-ghost set-mode-btn" href="docs/carte/frise.html" target="_blank" rel="noopener" style="display:inline-block;text-decoration:none">🕓 Frise des commits ↗</a>'
     +'</div>';
 }
 /* openSettings / closeSettings — ouvre/ferme l'overlay de réglages. */

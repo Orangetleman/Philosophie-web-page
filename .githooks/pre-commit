@@ -1,0 +1,19 @@
+#!/bin/sh
+# ════════════════════════════════════════════════════════════════════
+# pre-commit — régénère la frise des commits (doc) avant chaque commit.
+#
+# Régénère docs/carte/frise.data.js depuis `git log` puis le stage, pour
+# que la frise reste à jour automatiquement. NON BLOQUANT : si Node n'est
+# pas disponible (ou si la génération échoue), le commit se fait quand même.
+#
+# Activé via :  git config core.hooksPath .githooks   (déjà fait dans ce dépôt)
+#
+# Note : exécuté AVANT la création du commit, la frise reflète donc
+# l'historique jusqu'au commit PRÉCÉDENT (le commit courant apparaîtra au
+# prochain). Pour forcer un rafraîchissement complet : node docs/carte/frise.gen.mjs
+# ════════════════════════════════════════════════════════════════════
+command -v node >/dev/null 2>&1 || exit 0
+ROOT="$(git rev-parse --show-toplevel)" || exit 0
+node "$ROOT/docs/carte/frise.gen.mjs" >/dev/null 2>&1 || exit 0
+git add "$ROOT/docs/carte/frise.data.js" >/dev/null 2>&1 || true
+exit 0

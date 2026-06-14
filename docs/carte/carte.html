@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
+<title>Carte du projet — Philosophie Terminale</title>
+<style>
+/* ════════════════════════════════════════════════════════════════════
+   carte.html — renderer AUTONOME de la carte du projet (zéro dépendance).
+   Lit window.CARTE (carte.data.js). Thème sombre proche du site.
+   Aucune donnée en dur ici : tout vient de carte.data.js.
+   ════════════════════════════════════════════════════════════════════ */
+:root{
+  --bg:#121212; --bg2:#1a1a1e; --panel:#16181d; --panel2:#1f232b;
+  --bd:#2a2e37; --bd2:#3a414d; --tx:#e8e8ea; --tx2:#a7adba; --tx3:#7c8290;
+  --accent:#5aa0e6; --flash:#e6b85a;
+  --node-h:30px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--tx);
+  font-family:Inter,-apple-system,Segoe UI,Roboto,system-ui,sans-serif;font-size:14px;}
+button{font-family:inherit;color:inherit;cursor:pointer}
+.app{display:flex;flex-direction:column;height:100vh;overflow:hidden}
+
+/* ── Barre du haut ───────────────────────────────────────────── */
+.topbar{display:flex;align-items:center;gap:10px;padding:8px 12px;
+  background:var(--panel);border-bottom:1px solid var(--bd);flex-wrap:wrap}
+.topbar .title{font-weight:700;font-size:15px;margin-right:4px;white-space:nowrap}
+.topbar .title small{font-weight:400;color:var(--tx3);font-size:11px}
+.spacer{flex:1 1 auto}
+.tb-btn{background:var(--panel2);border:1px solid var(--bd2);border-radius:8px;
+  padding:6px 10px;font-size:12.5px;color:var(--tx);white-space:nowrap}
+.tb-btn:hover{border-color:var(--accent)}
+.tb-btn.on{background:#21364f;border-color:var(--accent);color:#cfe3fb}
+.search{display:flex;align-items:center;gap:6px;background:var(--bg2);
+  border:1px solid var(--bd2);border-radius:8px;padding:4px 8px;min-width:180px}
+.search input{background:transparent;border:0;outline:0;color:var(--tx);font-size:13px;width:100%}
+.search .cnt{color:var(--tx3);font-size:11px;white-space:nowrap}
+.seg{display:flex;border:1px solid var(--bd2);border-radius:8px;overflow:hidden}
+.seg button{background:var(--panel2);border:0;padding:6px 10px;font-size:12px;color:var(--tx2)}
+.seg button.on{background:#21364f;color:#cfe3fb}
+
+/* ── Fil d'Ariane ────────────────────────────────────────────── */
+.crumbs{display:flex;align-items:center;gap:4px;flex-wrap:wrap;
+  padding:5px 12px;background:var(--bg2);border-bottom:1px solid var(--bd);
+  font-size:12px;color:var(--tx3);min-height:28px}
+.crumbs a{color:var(--tx2);cursor:pointer;text-decoration:none}
+.crumbs a:hover{color:var(--accent);text-decoration:underline}
+.crumbs .sep{color:var(--tx3);opacity:.6}
+
+/* ── Corps : panneau latéral + canvas + détail ───────────────── */
+.body{flex:1 1 auto;display:flex;min-height:0;position:relative}
+
+.side{width:248px;flex:0 0 248px;background:var(--panel);border-right:1px solid var(--bd);
+  overflow-y:auto;padding:10px 12px}
+.side h3{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--tx3);
+  margin:14px 0 7px}
+.side h3:first-child{margin-top:2px}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:4px 8px;margin:3px 3px 0 0;
+  border:1px solid var(--bd2);border-radius:14px;font-size:11.5px;color:var(--tx2);
+  background:var(--bg2);cursor:pointer;user-select:none}
+.chip .dot{width:10px;height:10px;border-radius:50%;flex:0 0 auto}
+.chip.off{opacity:.38;text-decoration:line-through}
+.chip:hover{border-color:var(--accent)}
+.legend-line{display:flex;align-items:center;gap:8px;margin:6px 0;font-size:11.5px;color:var(--tx2)}
+.legend-line svg{flex:0 0 auto}
+.hint{font-size:11px;color:var(--tx3);line-height:1.5;margin-top:6px}
+
+.canvas-wrap{flex:1 1 auto;position:relative;min-width:0;overflow:hidden;background:
+  radial-gradient(circle at 30% 20%, #16181d 0, var(--bg) 70%)}
+svg.graph{width:100%;height:100%;display:block;touch-action:none;cursor:grab;
+  user-select:none;-webkit-user-select:none}
+svg.graph.grabbing{cursor:grabbing}
+/* pas de sélection de texte dans le graphe (déplacement plus agréable) ;
+   la bulle de détail (.detail) reste sélectionnable pour copier le contenu. */
+.canvas-wrap, .node, .node *{user-select:none;-webkit-user-select:none}
+
+/* nœuds (foreignObject) */
+.node{display:flex;align-items:center;gap:5px;height:var(--node-h);
+  padding:0 7px;border:1px solid var(--bd2);border-left-width:4px;border-radius:7px;
+  background:var(--panel2);font-size:12px;color:var(--tx);overflow:hidden;cursor:pointer;
+  box-shadow:0 1px 3px rgba(0,0,0,.4)}
+.node:hover{border-color:var(--accent)}
+.node.l0{font-weight:700;font-size:12.5px}
+.node .lbl{flex:1 1 auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.node .chev{flex:0 0 auto;width:14px;text-align:center;color:var(--tx3);font-size:10px}
+.node .info{flex:0 0 auto;border:0;background:transparent;color:var(--tx3);font-size:12px;
+  padding:0 2px;border-radius:4px}
+.node .info:hover{color:var(--accent)}
+.node.match{outline:2px solid var(--flash);outline-offset:1px}
+/* sélection : on change le FOND et la couleur de bordure (pas d'anneau ajouté) */
+.node.focus{background:#22384f!important;border-color:#6aa8e0}
+/* nœuds compacts (vue radiale) : largeur au contenu, centrés sur leur point */
+.node.compact{width:max-content;max-width:172px;margin:0 auto;height:24px;
+  border-left-width:3px;padding:0 6px;font-size:11px}
+.node.compact .info{display:none}
+.node.compact.l0{font-size:11.5px}
+.node .badge{flex:0 0 auto;font-size:9px;color:#e0a13b}
+
+/* arbre indenté (mobile / bascule) */
+.tree{flex:1 1 auto;overflow:auto;padding:8px 4px 40px}
+.trow{display:flex;align-items:center;gap:6px;padding:5px 6px;border-radius:7px;
+  border-left:4px solid var(--bd2);margin:2px 0;background:var(--panel2);cursor:pointer}
+.trow:hover{background:var(--panel)}
+.trow .chev{width:14px;text-align:center;color:var(--tx3);font-size:10px;flex:0 0 auto}
+.trow .lbl{flex:1 1 auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:13px}
+.trow.l0 .lbl{font-weight:700}
+.trow .info{border:0;background:transparent;color:var(--tx3);font-size:13px;padding:0 4px}
+.trow.match{outline:2px solid var(--flash)}
+.trow.focus{background:#22384f;border-left-color:#6aa8e0}
+.tsub{font-size:11px;color:var(--tx3);margin:-1px 0 3px 0;line-height:1.4}
+
+/* ── Panneau de détail ───────────────────────────────────────── */
+/* Bulle d'info flottante (ancrée près du nœud, taille limitée, défilable dedans) */
+.detail{position:fixed;top:80px;left:80px;width:344px;max-width:92vw;max-height:62vh;
+  background:var(--panel);border:1px solid var(--bd2);border-radius:12px;
+  opacity:0;visibility:hidden;transform:scale(.97);transform-origin:top left;
+  transition:opacity .15s ease,transform .15s ease;overflow-y:auto;z-index:40;
+  box-shadow:0 14px 36px rgba(0,0,0,.55)}
+.detail.open{opacity:1;visibility:visible;transform:none}
+.detail .dhead{position:sticky;top:0;background:var(--panel);padding:12px 14px;
+  border-bottom:1px solid var(--bd);display:flex;align-items:flex-start;gap:8px}
+.detail .dhead h2{margin:0;font-size:16px;line-height:1.3;flex:1 1 auto}
+.detail .dclose{border:1px solid var(--bd2);background:var(--bg2);border-radius:7px;
+  width:28px;height:28px;flex:0 0 auto;font-size:15px;color:var(--tx2)}
+.detail .dbody{padding:12px 14px 40px}
+.dchip{display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--tx2);
+  border:1px solid var(--bd2);border-radius:12px;padding:2px 8px;margin-bottom:8px}
+.dsec{margin:12px 0}
+.dsec .k{font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--tx3);margin-bottom:3px}
+.dsec .v{font-size:13px;line-height:1.55;color:var(--tx)}
+.dsec.dim .v{color:var(--tx2)}
+.dsec.emph{background:var(--bg2);border:1px solid var(--bd);border-radius:9px;padding:9px 10px}
+.sym{display:flex;align-items:center;gap:8px;font-size:12px;padding:4px 0;border-bottom:1px dashed var(--bd)}
+.sym .kind{flex:0 0 auto;font-size:9.5px;text-transform:uppercase;color:#9fb0c8;
+  border:1px solid var(--bd2);border-radius:4px;padding:1px 5px}
+.sym .nm{font-family:ui-monospace,Consolas,monospace;color:#cfe3fb}
+.sym .ref{margin-left:auto;font-family:ui-monospace,Consolas,monospace;color:var(--tx3);
+  font-size:11px;cursor:copy;white-space:nowrap}
+.sym .ref:hover{color:var(--accent)}
+.lk{font-size:12px;padding:5px 0;border-bottom:1px dashed var(--bd);line-height:1.45}
+.lk .lt{font-size:9.5px;text-transform:uppercase;color:#9fb0c8;border:1px solid var(--bd2);
+  border-radius:4px;padding:1px 5px;margin-right:5px}
+.lk .to{color:#cfe3fb;cursor:pointer;text-decoration:underline dotted}
+.warn{color:#e0a13b;font-size:12px;border:1px solid #5a4a22;background:#2a2413;
+  border-radius:8px;padding:7px 9px;margin:10px 0}
+
+.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#21364f;
+  color:#cfe3fb;border:1px solid var(--accent);border-radius:8px;padding:8px 14px;font-size:12.5px;
+  opacity:0;pointer-events:none;transition:opacity .2s;z-index:60}
+.toast.show{opacity:1}
+
+.backdrop{position:absolute;inset:0;background:rgba(0,0,0,.5);z-index:20;display:none}
+.backdrop.show{display:block}
+
+/* ── Responsive ─────────────────────────────────────────────── */
+.burger{display:none}
+@media(max-width:760px){
+  .side{position:absolute;left:0;top:0;height:100%;z-index:25;transform:translateX(-102%);
+    transition:transform .2s;width:80vw;max-width:300px}
+  .side.open{transform:none}
+  .burger{display:inline-block}
+  .detail{width:94vw;max-width:94vw;max-height:70vh}
+  .topbar .title small{display:none}
+  .search{min-width:120px;flex:1 1 120px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="topbar">
+    <button class="tb-btn burger" id="burger" title="Filtres & légende">☰</button>
+    <span class="title">Carte du projet <small>Philosophie&nbsp;Terminale</small></span>
+
+    <div class="search">
+      <span style="color:var(--tx3)">🔍</span>
+      <input id="search" type="search" placeholder="Chercher (notion, fonction, variable…)" autocomplete="off">
+      <span class="cnt" id="searchCnt"></span>
+    </div>
+
+    <div class="spacer"></div>
+
+    <div class="seg" title="Lecture par défaut affichée au survol">
+      <button id="modeNov" class="on">Découverte</button>
+      <button id="modeIng">Technique</button>
+    </div>
+    <div class="seg" title="Affichage">
+      <button id="viewGraph" class="on">Graphe</button>
+      <button id="viewRadial">Radial</button>
+      <button id="viewTree">Arbre</button>
+    </div>
+    <button class="tb-btn" id="collapseAll" title="Tout replier (n'afficher que les domaines)">⊟ Replier</button>
+    <button class="tb-btn" id="recenter" title="Recentrer la vue">⌖ Recentrer</button>
+  </div>
+
+  <div class="crumbs" id="crumbs"></div>
+
+  <div class="body">
+    <div class="backdrop" id="backdrop"></div>
+
+    <aside class="side" id="side">
+      <h3>Filtrer par domaine</h3>
+      <div id="domFilters"></div>
+      <h3>Filtrer par type de lien</h3>
+      <div id="linkFilters"></div>
+      <h3>Légende — liens</h3>
+      <div id="linkLegend"></div>
+      <h3>Aide</h3>
+      <div class="hint">
+        <b>Clic</b> sur un nœud = déplier / replier ses enfants.<br>
+        <b>Double-clic</b> (ou ⓘ) = ouvrir le détail (Découverte + Technique).<br>
+        <b>Molette</b> = zoom · <b>glisser</b> = déplacer la carte.<br>
+        4 profondeurs : domaines → modules → fonctions → variables/détails.
+      </div>
+    </aside>
+
+    <div class="canvas-wrap" id="canvasWrap">
+      <svg class="graph" id="graph" xmlns="http://www.w3.org/2000/svg"></svg>
+      <div class="tree" id="tree" style="display:none"></div>
+    </div>
+
+    <aside class="detail" id="detail">
+      <div class="dhead">
+        <h2 id="dTitle">—</h2>
+        <button class="dclose" id="dClose">✕</button>
+      </div>
+      <div class="dbody" id="dBody"></div>
+    </aside>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="carte.data.js"></script>
+<script>
+/* ════════════════════════════════════════════════════════════════════
+   Logique de la carte. Données : window.CARTE (carte.data.js).
+   Sections : (A) préparation des données · (B) état · (C) layout ·
+   (D) rendu graphe SVG · (E) rendu arbre indenté · (F) détail ·
+   (G) navigation/recherche/filtres · (H) pan-zoom · (I) initialisation.
+   ════════════════════════════════════════════════════════════════════ */
+(function(){
+"use strict";
+const G = window.CARTE;
+if(!G){ document.body.innerHTML = '<p style="padding:20px">carte.data.js introuvable.</p>'; return; }
+
+/* ── (A) Index des données ──────────────────────────────────────── */
+const byId = new Map(G.nodes.map(n=>[n.id,n]));
+const kidsOf = new Map();                       // parentId → [enfants] (ordre source)
+G.nodes.forEach(n=>{ const p=n.parent||null; (kidsOf.get(p)||kidsOf.set(p,[]).get(p)).push(n); });
+const roots = kidsOf.get(null) || [];
+const domById = new Map(G.domaines.map(d=>[d.id,d]));
+const ltById  = new Map(G.typesLien.map(t=>[t.id,t]));
+const childrenIds = id => (kidsOf.get(id)||[]);
+const hasKids = id => childrenIds(id).length>0;
+
+/* Tous les liens transverses = edges globaux + liens internes des nœuds. */
+const allEdges = [];
+(G.edges||[]).forEach(e=> allEdges.push({from:e.from,to:e.to,type:e.type,note:e.note}));
+G.nodes.forEach(n=> (n.liens||[]).forEach(l=> allEdges.push({from:n.id,to:l.to,type:l.type,note:l.note})));
+
+/* ── (B) État de l'interface ────────────────────────────────────── */
+const state = {
+  collapsed: new Set(),                          // ids dont les enfants sont masqués
+  activeDom: new Set(G.domaines.map(d=>d.id)),   // domaines affichés
+  activeLink: new Set(G.typesLien.map(t=>t.id)), // types de lien affichés
+  mode: 'novice',                                // 'novice' (Découverte) | 'ingenieur' (Technique)
+  view: (window.innerWidth<=760 ? 'tree':'graph'),
+  query: '',
+  matches: new Set(),
+  focusId: null,
+  detailId: null,
+  fitted: false
+};
+/* Au départ : domaines + modules visibles ; on replie tout le niveau ≥ 1. */
+G.nodes.forEach(n=>{ if(n.niveau>=1 && hasKids(n.id)) state.collapsed.add(n.id); });
+
+const isCollapsed = id => state.collapsed.has(id);
+const domActive   = n  => state.activeDom.has(n.domaine);
+
+/* Enfants VISIBLES d'un nœud (filtre domaine ; repli respecté en amont). */
+function visKids(n){ return isCollapsed(n.id)?[]:childrenIds(n.id).filter(domActive); }
+
+/* ── (C) Layout en arbre (gauche→droite, empilement des feuilles) ── */
+const NODE_W=210, NODE_H=30, COLW=264, ROW=38;
+let visList=[], visSet=new Set();
+function layout(){
+  visList=[]; visSet=new Set();
+  let y=0;
+  function place(n){
+    visList.push(n); visSet.add(n.id);
+    n._x = n.niveau*COLW;
+    const kids = visKids(n);
+    if(kids.length===0){ n._y = y*ROW; y++; }
+    else { kids.forEach(place); n._y = (kids[0]._y + kids[kids.length-1]._y)/2; }
+  }
+  roots.filter(domActive).forEach(place);
+}
+
+/* Remonte vers le 1er ancêtre VISIBLE (pour ancrer une arête transverse). */
+function visAnchor(id){
+  let n = byId.get(id);
+  while(n && !visSet.has(n.id)) n = n.parent?byId.get(n.parent):null;
+  return n;
+}
+
+/* ── (D) Rendu du graphe SVG ────────────────────────────────────── */
+const SVGNS='http://www.w3.org/2000/svg', XH='http://www.w3.org/1999/xhtml';
+const svg = document.getElementById('graph');
+const vb = {x:0,y:0,w:1000,h:700};
+
+function el(ns,name,attrs){ const e=document.createElementNS(ns,name);
+  if(attrs) for(const k in attrs) e.setAttribute(k,attrs[k]); return e; }
+
+function ensureDefs(){
+  if(svg.querySelector('defs')) return;
+  const defs = el(SVGNS,'defs');
+  G.typesLien.forEach(t=>{
+    const m = el(SVGNS,'marker',{id:'arr-'+t.id,viewBox:'0 0 10 10',refX:'9',refY:'5',
+      markerWidth:'7',markerHeight:'7',orient:'auto-start-reverse'});
+    m.appendChild(el(SVGNS,'path',{d:'M0,0 L10,5 L0,10 z',fill:t.style.color}));
+    defs.appendChild(m);
+  });
+  svg.appendChild(defs);
+}
+
+/* Dessine les arêtes transverses (flux) — commun au graphe et au radial.
+   Chaque extrémité est ancrée au 1er ancêtre VISIBLE ; courbe selon les centres. */
+function buildFlux(group){
+  allEdges.forEach(e=>{
+    if(!state.activeLink.has(e.type)) return;
+    const a=visAnchor(e.from), b=visAnchor(e.to);
+    if(!a||!b||a===b) return;
+    const t=ltById.get(e.type)||{style:{color:'#888',width:2,dash:''}};
+    const x1=a._x+NODE_W/2, y1=a._y+NODE_H/2, x2=b._x+NODE_W/2, y2=b._y+NODE_H/2;
+    const dx=Math.max(70,Math.abs(x2-x1)/2);
+    const path=el(SVGNS,'path',{d:`M${x1},${y1} C${x1+dx},${y1} ${x2-dx},${y2} ${x2},${y2}`,
+      fill:'none',stroke:t.style.color,'stroke-width':t.style.width,
+      'stroke-dasharray':t.style.dash||'','marker-end':'url(#arr-'+e.type+')',opacity:'.85'});
+    const title=el(SVGNS,'title'); title.textContent=(ltById.get(e.type)?ltById.get(e.type).label:e.type)+' — '+(e.note||'');
+    path.appendChild(title);
+    group.appendChild(path);
+  });
+}
+
+/* Construit le nœud (foreignObject + interactions) — commun graphe/radial.
+   On passe `div` comme ancre à openDetail pour positionner la bulle d'info. */
+function buildNode(n, compact){
+  const fo=el(SVGNS,'foreignObject',{x:n._x,y:n._y,width:NODE_W,height:NODE_H});
+  const div=document.createElementNS(XH,'div');
+  const dom=domById.get(n.domaine)||{couleur:'#888'};
+  div.setAttribute('class','node'+(compact?' compact':'')+(n.niveau===0?' l0':'')+(state.matches.has(n.id)?' match':'')+(state.focusId===n.id?' focus':''));
+  div.style.borderLeftColor=dom.couleur;
+  if(n.niveau===0){ div.style.background='#1d2735'; }
+  div.title=(state.mode==='novice'?n.novice:n.ingenieur)||'';
+  const chev=document.createElementNS(XH,'span'); chev.setAttribute('class','chev');
+  chev.textContent = hasKids(n.id) ? (isCollapsed(n.id)?'▸':'▾') : '·';
+  const lbl=document.createElementNS(XH,'span'); lbl.setAttribute('class','lbl'); lbl.textContent=n.label;
+  div.appendChild(chev); div.appendChild(lbl);
+  if(n.incertain || n.note){ const b=document.createElementNS(XH,'span'); b.setAttribute('class','badge'); b.textContent='⚑'; div.appendChild(b); }
+  const info=document.createElementNS(XH,'button'); info.setAttribute('class','info'); info.textContent='ⓘ';
+  div.appendChild(info);
+  div.addEventListener('click',ev=>{ if(ev.target===info) return; if(hasKids(n.id)) toggle(n.id); else openDetail(n.id,div); });
+  div.addEventListener('dblclick',ev=>{ ev.preventDefault(); openDetail(n.id,div); });
+  info.addEventListener('click',ev=>{ ev.stopPropagation(); openDetail(n.id,div); });
+  fo.appendChild(div);
+  return fo;
+}
+
+/* Vue 1 — graphe arborescent gauche→droite. */
+function renderGraph(){
+  layout(); ensureDefs();
+  [...svg.childNodes].forEach(c=>{ if(c.nodeName!=='defs') svg.removeChild(c); });
+  const gTree=el(SVGNS,'g'), gFlux=el(SVGNS,'g'), gNodes=el(SVGNS,'g');
+  svg.appendChild(gTree); svg.appendChild(gFlux); svg.appendChild(gNodes);
+  visList.forEach(p=>visKids(p).forEach(c=>{
+    const x1=p._x+NODE_W, y1=p._y+NODE_H/2, x2=c._x, y2=c._y+NODE_H/2, mx=(x1+x2)/2;
+    gTree.appendChild(el(SVGNS,'path',{d:`M${x1},${y1} C${mx},${y1} ${mx},${y2} ${x2},${y2}`,
+      fill:'none',stroke:'#39414f','stroke-width':'1.4'}));
+  }));
+  buildFlux(gFlux);
+  visList.forEach(n=>gNodes.appendChild(buildNode(n)));
+  if(!state.fitted){ fitView(); state.fitted=true; }
+}
+
+/* Vue 3 — arbre CIRCULAIRE (radial) : hub central, domaines en couronnes.
+   Chaque sous-arbre reçoit un secteur angulaire ∝ son nombre de feuilles visibles. */
+const baseR0=240, baseStep=165;
+function leafCount(n){ const k=visKids(n); return k.length?k.reduce((s,c)=>s+leafCount(c),0):1; }
+function layoutRadial(){
+  visList=[]; visSet=new Set();
+  const vr=roots.filter(domActive);
+  const L=vr.reduce((s,r)=>s+leafCount(r),0)||1;
+  // plus il y a de feuilles visibles, plus on écarte les couronnes (anti-chevauchement)
+  const radScale=Math.min(3.4,Math.max(1,L/32));
+  const radiusFor=niv=>(baseR0+niv*baseStep)*radScale;
+  function assign(n,a0,a1){
+    visList.push(n); visSet.add(n.id);
+    const ang=(a0+a1)/2, rad=radiusFor(n.niveau);
+    n._cx=rad*Math.cos(ang); n._cy=rad*Math.sin(ang);
+    n._x=n._cx-NODE_W/2; n._y=n._cy-NODE_H/2;
+    const k=visKids(n); if(!k.length) return;
+    const tot=k.reduce((s,c)=>s+leafCount(c),0)||1; let a=a0;
+    k.forEach(c=>{ const span=(a1-a0)*leafCount(c)/tot; assign(c,a,a+span); a+=span; });
+  }
+  let a=-Math.PI/2;
+  vr.forEach(r=>{ const span=2*Math.PI*leafCount(r)/L; assign(r,a,a+span); a+=span; });
+}
+function renderRadial(){
+  layoutRadial(); ensureDefs();
+  [...svg.childNodes].forEach(c=>{ if(c.nodeName!=='defs') svg.removeChild(c); });
+  const gTree=el(SVGNS,'g'), gFlux=el(SVGNS,'g'), gNodes=el(SVGNS,'g');
+  svg.appendChild(gTree); svg.appendChild(gFlux); svg.appendChild(gNodes);
+  // domaines reliés au hub
+  visList.filter(n=>n.niveau===0).forEach(r=>
+    gTree.appendChild(el(SVGNS,'line',{x1:0,y1:0,x2:r._cx,y2:r._cy,stroke:'#2c333d','stroke-width':'1'})));
+  // connecteurs parent → enfant (centre à centre)
+  visList.forEach(p=>visKids(p).forEach(c=>
+    gTree.appendChild(el(SVGNS,'path',{d:`M${p._cx},${p._cy} L${c._cx},${c._cy}`,
+      fill:'none',stroke:'#39414f','stroke-width':'1.3'}))));
+  // hub central dessiné APRÈS les traits (au-dessus, plus perturbant en dessous)
+  gTree.appendChild(el(SVGNS,'circle',{cx:0,cy:0,r:8,fill:'#5aa0e6',stroke:'#0c1220','stroke-width':'2.5'}));
+  buildFlux(gFlux);
+  visList.forEach(n=>gNodes.appendChild(buildNode(n,true)));
+  if(!state.fitted){ fitView(); state.fitted=true; }
+}
+
+function contentBounds(){
+  if(!visList.length) return {x:0,y:0,w:1000,h:700};
+  let minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity;
+  visList.forEach(n=>{ minX=Math.min(minX,n._x); minY=Math.min(minY,n._y);
+    maxX=Math.max(maxX,n._x+NODE_W); maxY=Math.max(maxY,n._y+NODE_H); });
+  return {x:minX,y:minY,w:maxX-minX,h:maxY-minY};
+}
+function fitView(){
+  const b=contentBounds(), pad=60;
+  vb.x=b.x-pad; vb.y=b.y-pad; vb.w=b.w+pad*2; vb.h=b.h+pad*2;
+  if(vb.w<300)vb.w=300; if(vb.h<200)vb.h=200;
+  applyVB();
+}
+function applyVB(){ svg.setAttribute('viewBox',`${vb.x} ${vb.y} ${vb.w} ${vb.h}`); syncBubble(); }
+
+/* ── (E) Rendu de l'arbre indenté (mobile / bascule) ────────────── */
+const treeEl=document.getElementById('tree');
+function renderTree(){
+  treeEl.innerHTML='';
+  function walk(n){
+    if(!domActive(n)) return;
+    const row=document.createElement('div');
+    row.className='trow'+(n.niveau===0?' l0':'')+(state.matches.has(n.id)?' match':'')+(state.focusId===n.id?' focus':'');
+    row.style.marginLeft=(n.niveau*16)+'px';
+    const dom=domById.get(n.domaine)||{couleur:'#888'}; row.style.borderLeftColor=dom.couleur;
+    const chev=document.createElement('span'); chev.className='chev';
+    chev.textContent=hasKids(n.id)?(isCollapsed(n.id)?'▸':'▾'):'·';
+    const lbl=document.createElement('span'); lbl.className='lbl'; lbl.textContent=n.label;
+    const info=document.createElement('button'); info.className='info'; info.textContent='ⓘ';
+    row.appendChild(chev); row.appendChild(lbl); row.appendChild(info);
+    row.addEventListener('click',ev=>{ if(ev.target===info) return; if(hasKids(n.id)) toggle(n.id); else openDetail(n.id,row); });
+    info.addEventListener('click',ev=>{ ev.stopPropagation(); openDetail(n.id,row); });
+    row.dataset.id=n.id;
+    treeEl.appendChild(row);
+    // sous-titre (lecture courante) pour les domaines
+    if(n.niveau===0){ const s=document.createElement('div'); s.className='tsub';
+      s.style.marginLeft=(n.niveau*16+22)+'px';
+      s.textContent=(state.mode==='novice'?n.novice:n.ingenieur)||''; treeEl.appendChild(s); }
+    if(!isCollapsed(n.id)) childrenIds(n.id).forEach(walk);
+  }
+  roots.forEach(walk);
+}
+
+/* ── (F) Panneau de détail (toujours novice + ingénieur) ────────── */
+const detail=document.getElementById('detail');
+function openDetail(id, anchorEl){
+  const n=byId.get(id); if(!n) return;
+  state.detailId=id; state.anchorEl=anchorEl||state.anchorEl||null; setFocus(id);
+  document.getElementById('dTitle').textContent=n.label;
+  const dom=domById.get(n.domaine)||{label:n.domaine,couleur:'#888'};
+  const body=document.getElementById('dBody');
+  body.innerHTML='';
+  // pastille domaine + niveau
+  const chip=document.createElement('div'); chip.className='dchip';
+  chip.innerHTML='<span class="dot" style="width:9px;height:9px;border-radius:50%;display:inline-block;background:'+dom.couleur+'"></span>';
+  chip.appendChild(document.createTextNode(' '+dom.label+' · niveau '+n.niveau));
+  body.appendChild(chip);
+  // sections novice / ingénieur (ordre selon le mode, les deux toujours présentes)
+  const secNov=mkSec('Découverte (sans jargon)',n.novice,'emph'+(state.mode==='novice'?'':' dim'));
+  const secIng=mkSec('Technique',n.ingenieur,'emph'+(state.mode==='ingenieur'?'':' dim'));
+  if(state.mode==='novice'){ body.appendChild(secNov); body.appendChild(secIng); }
+  else { body.appendChild(secIng); body.appendChild(secNov); }
+  // alerte zone incertaine
+  if(n.incertain || n.note){ const w=document.createElement('div'); w.className='warn';
+    w.textContent='⚑ '+(n.note||'Zone signalée comme à vérifier.'); body.appendChild(w); }
+  // symboles
+  if(n.symbols&&n.symbols.length){
+    const h=document.createElement('div'); h.className='dsec';
+    h.innerHTML='<div class="k">Symboles (fichier:ligne — clic pour copier)</div>';
+    n.symbols.forEach(s=>{
+      const r=document.createElement('div'); r.className='sym';
+      const k=document.createElement('span'); k.className='kind'; k.textContent=s.kind;
+      const nm=document.createElement('span'); nm.className='nm'; nm.textContent=s.name;
+      const rf=document.createElement('span'); rf.className='ref'; rf.textContent=s.ref; rf.title='Copier '+s.ref;
+      rf.addEventListener('click',()=>copy(s.ref));
+      r.appendChild(k); r.appendChild(nm); r.appendChild(rf); h.appendChild(r);
+    });
+    body.appendChild(h);
+  }
+  // liens internes sortants
+  const outs=(n.liens||[]);
+  if(outs.length){
+    const h=document.createElement('div'); h.className='dsec';
+    h.innerHTML='<div class="k">Liens sortants</div>';
+    outs.forEach(l=>{ h.appendChild(mkLink(l.type,l.to,l.note)); });
+    body.appendChild(h);
+  }
+  // arêtes transverses entrantes/sortantes (flux)
+  const flux=allEdges.filter(e=>e.from===id||e.to===id);
+  if(flux.length){
+    const h=document.createElement('div'); h.className='dsec';
+    h.innerHTML='<div class="k">Flux de données</div>';
+    flux.forEach(e=>{ const other=e.from===id?e.to:e.from; const dir=e.from===id?'→ ':'← ';
+      h.appendChild(mkLink(e.type, other, dir+(e.note||''))); });
+    body.appendChild(h);
+  }
+  state.bubbleRefW=vb.w;            // zoom de référence à l'ouverture (échelle = 1)
+  rerender();                       // ré-applique la surbrillance (.focus) sur l'élément choisi
+  detail.classList.add('open');
+  if(state.view==='tree') positionBubble(state.anchorEl); else syncBubble();
+}
+/* Bulle ANCRÉE au nœud (graphe/radial) : suit le pan/zoom et grossit avec le zoom. */
+function syncBubble(){
+  if(!state.detailId || !detail.classList.contains('open') || state.view==='tree') return;
+  const n=byId.get(state.detailId);
+  if(!n || !visSet.has(n.id)){ detail.style.visibility='hidden'; return; }
+  detail.style.visibility='visible';
+  const r=svg.getBoundingClientRect();
+  const cx=n._x+NODE_W/2, cy=n._y+NODE_H/2;
+  const sx=r.left+(cx-vb.x)/vb.w*r.width;        // position écran du centre du nœud
+  const sy=r.top +(cy-vb.y)/vb.h*r.height;
+  const k=Math.min(2.2,Math.max(0.55,(state.bubbleRefW||vb.w)/vb.w));   // échelle ∝ zoom
+  detail.style.transformOrigin='top left';
+  const nodeHalf=(NODE_W/2)/vb.w*r.width;
+  let left=sx+nodeHalf+10, top=sy-12;
+  const bw=detail.offsetWidth*k, bh=detail.offsetHeight*k;
+  if(left+bw>window.innerWidth-8) left=sx-nodeHalf-10-bw;   // bascule à gauche si déborde
+  if(left<8) left=8;
+  if(top+bh>window.innerHeight-8) top=Math.max(8,window.innerHeight-bh-8);
+  if(top<8) top=8;
+  detail.style.left=left+'px'; detail.style.top=top+'px'; detail.style.transform='scale('+k+')';
+}
+/* Place la bulle d'info à côté de l'élément cliqué (vue arbre, sans zoom). */
+function positionBubble(anchorEl){
+  detail.style.transform=''; detail.style.visibility='';
+  const d=detail; const bw=Math.min(344, window.innerWidth-16), bh=d.offsetHeight||300;
+  let left, top;
+  if(anchorEl && anchorEl.getBoundingClientRect && anchorEl.isConnected){
+    const r=anchorEl.getBoundingClientRect();
+    left=r.right+12; top=r.top;
+    if(left+bw>window.innerWidth-8) left=r.left-bw-12;     // bascule à gauche si déborde
+    if(left<8) left=Math.max(8,(window.innerWidth-bw)/2);
+    top=Math.min(Math.max(8,top), Math.max(8,window.innerHeight-bh-8));
+  } else { left=(window.innerWidth-bw)/2; top=Math.max(8,(window.innerHeight-bh)/2); }
+  d.style.left=left+'px'; d.style.top=top+'px';
+}
+function mkSec(k,v,cls){ const d=document.createElement('div'); d.className='dsec '+(cls||'');
+  d.innerHTML='<div class="k"></div><div class="v"></div>';
+  d.querySelector('.k').textContent=k; d.querySelector('.v').textContent=v||'—'; return d; }
+function mkLink(type,toId,note){
+  const d=document.createElement('div'); d.className='lk';
+  const lt=document.createElement('span'); lt.className='lt'; lt.textContent=(ltById.get(type)?ltById.get(type).label:type);
+  const to=document.createElement('span'); to.className='to'; const tn=byId.get(toId);
+  to.textContent=tn?tn.label:toId; to.addEventListener('click',()=>{ revealAndFocus(toId); openDetail(toId); });
+  d.appendChild(lt); d.appendChild(to);
+  if(note){ const s=document.createElement('div'); s.style.color='var(--tx2)'; s.style.marginTop='2px'; s.textContent=note; d.appendChild(s); }
+  return d;
+}
+document.getElementById('dClose').addEventListener('click',()=>{ detail.classList.remove('open'); state.detailId=null; });
+
+/* ── (G) Navigation, recherche, filtres ─────────────────────────── */
+function toggle(id){ if(isCollapsed(id)) state.collapsed.delete(id); else state.collapsed.add(id);
+  setFocus(id); rerender(); }
+function setFocus(id){ state.focusId=id; renderCrumbs(); }
+function expandAncestors(id){ let n=byId.get(id);
+  while(n && n.parent){ n=byId.get(n.parent); if(n) state.collapsed.delete(n.id); } }
+function revealAndFocus(id){ expandAncestors(id); setFocus(id); rerender();
+  if(state.view==='graph') centerOn(id); else scrollTreeTo(id); }
+
+function centerOn(id){ const n=byId.get(id); if(!n||!visSet.has(n.id)) return;
+  const cx=n._x+NODE_W/2, cy=n._y+NODE_H/2;
+  vb.x=cx-vb.w/2; vb.y=cy-vb.h/2; applyVB(); }
+function scrollTreeTo(id){ const r=treeEl.querySelector('.trow[data-id="'+CSS.escape(id)+'"]');
+  if(r) r.scrollIntoView({block:'center',behavior:'smooth'}); }
+
+const norm = s => (s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
+function runSearch(q){
+  state.query=q; state.matches=new Set();
+  const nq=norm(q.trim());
+  if(nq.length>=2){
+    G.nodes.forEach(n=>{
+      const hay=norm(n.label+' '+(n.novice||'')+' '+(n.ingenieur||'')+' '+n.id+' '+
+        (n.symbols||[]).map(s=>s.name+' '+s.ref).join(' '));
+      if(hay.includes(nq)) state.matches.add(n.id);
+    });
+  }
+  document.getElementById('searchCnt').textContent = nq.length>=2 ? (state.matches.size+' résultat'+(state.matches.size>1?'s':'')) : '';
+  // déplie les ancêtres des résultats pour les rendre visibles
+  state.matches.forEach(id=>expandAncestors(id));
+  rerender();
+  // centre sur le 1er résultat
+  if(state.matches.size){ const first=G.nodes.find(n=>state.matches.has(n.id));
+    if(first){ setFocus(first.id); if(state.view==='graph') centerOn(first.id); else scrollTreeTo(first.id); } }
+}
+
+function renderCrumbs(){
+  const c=document.getElementById('crumbs'); c.innerHTML='';
+  const chain=[]; let n=state.focusId?byId.get(state.focusId):null;
+  while(n){ chain.unshift(n); n=n.parent?byId.get(n.parent):null; }
+  if(!chain.length){ c.innerHTML='<span style="color:var(--tx3)">Survole un nœud, clique pour déplier, double-clique pour le détail.</span>'; return; }
+  chain.forEach((node,i)=>{
+    if(i) { const s=document.createElement('span'); s.className='sep'; s.textContent='›'; c.appendChild(s); }
+    const a=document.createElement('a'); a.textContent=node.label;
+    a.addEventListener('click',()=>{ revealAndFocus(node.id); openDetail(node.id); });
+    c.appendChild(a);
+  });
+}
+
+function buildFilters(){
+  const dom=document.getElementById('domFilters');
+  G.domaines.forEach(d=>{
+    const ch=document.createElement('span'); ch.className='chip';
+    ch.innerHTML='<span class="dot" style="background:'+d.couleur+'"></span>';
+    ch.appendChild(document.createTextNode(d.label));
+    ch.addEventListener('click',()=>{ if(state.activeDom.has(d.id)) state.activeDom.delete(d.id); else state.activeDom.add(d.id);
+      ch.classList.toggle('off'); state.fitted=false; rerender(); });
+    dom.appendChild(ch);
+  });
+  const lk=document.getElementById('linkFilters');
+  G.typesLien.forEach(t=>{
+    const ch=document.createElement('span'); ch.className='chip';
+    ch.innerHTML='<span class="dot" style="background:'+t.style.color+'"></span>';
+    ch.appendChild(document.createTextNode(t.label));
+    ch.addEventListener('click',()=>{ if(state.activeLink.has(t.id)) state.activeLink.delete(t.id); else state.activeLink.add(t.id);
+      ch.classList.toggle('off'); rerender(); });
+    lk.appendChild(ch);
+  });
+  // légende des liens (échantillon de trait)
+  const leg=document.getElementById('linkLegend');
+  G.typesLien.forEach(t=>{
+    const line=document.createElement('div'); line.className='legend-line';
+    const s=`<svg width="42" height="10"><line x1="2" y1="5" x2="40" y2="5" stroke="${t.style.color}" stroke-width="${t.style.width}" stroke-dasharray="${t.style.dash||''}" marker-end=""/></svg>`;
+    line.innerHTML=s; line.appendChild(document.createTextNode(t.label));
+    leg.appendChild(line);
+  });
+}
+
+/* ── (H) Pan & zoom (souris + tactile) ──────────────────────────── */
+function clientToSvg(cx,cy){ const r=svg.getBoundingClientRect();
+  return { x:vb.x+(cx-r.left)/r.width*vb.w, y:vb.y+(cy-r.top)/r.height*vb.h }; }
+svg.addEventListener('wheel',e=>{ e.preventDefault();
+  const f=e.deltaY>0?1.12:0.89, p=clientToSvg(e.clientX,e.clientY);
+  vb.x=p.x-(p.x-vb.x)*f; vb.y=p.y-(p.y-vb.y)*f; vb.w*=f; vb.h*=f;
+  vb.w=Math.min(Math.max(vb.w,120),20000); vb.h=Math.min(Math.max(vb.h,90),20000); applyVB();
+},{passive:false});
+
+const pts=new Map(); let panStart=null, pinchPrev=null;
+svg.addEventListener('pointerdown',e=>{
+  // ne pas paner si on a cliqué sur un nœud (foreignObject)
+  if(e.target.closest && e.target.closest('foreignObject')) return;
+  svg.setPointerCapture(e.pointerId); pts.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(pts.size===1){ panStart={cx:e.clientX,cy:e.clientY,vx:vb.x,vy:vb.y}; svg.classList.add('grabbing'); }
+});
+svg.addEventListener('pointermove',e=>{
+  if(!pts.has(e.pointerId)) return; pts.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(pts.size>=2){ // pinch
+    const it=[...pts.values()]; const d=Math.hypot(it[0].x-it[1].x,it[0].y-it[1].y);
+    const mid=clientToSvg((it[0].x+it[1].x)/2,(it[0].y+it[1].y)/2);
+    if(pinchPrev){ const f=pinchPrev/d; vb.x=mid.x-(mid.x-vb.x)*f; vb.y=mid.y-(mid.y-vb.y)*f; vb.w*=f; vb.h*=f; applyVB(); }
+    pinchPrev=d; panStart=null; return;
+  }
+  if(panStart){ const r=svg.getBoundingClientRect();
+    vb.x=panStart.vx-(e.clientX-panStart.cx)*vb.w/r.width;
+    vb.y=panStart.vy-(e.clientY-panStart.cy)*vb.h/r.height; applyVB(); }
+});
+function endPtr(e){ pts.delete(e.pointerId); if(pts.size<2) pinchPrev=null; if(pts.size===0){ panStart=null; svg.classList.remove('grabbing'); } }
+svg.addEventListener('pointerup',endPtr); svg.addEventListener('pointercancel',endPtr);
+
+/* ── (I) Bascules d'interface & initialisation ──────────────────── */
+function rerender(){ if(state.view==='tree') renderTree(); else if(state.view==='radial') renderRadial(); else renderGraph(); }
+
+function setMode(m){ state.mode=m;
+  document.getElementById('modeNov').classList.toggle('on',m==='novice');
+  document.getElementById('modeIng').classList.toggle('on',m==='ingenieur');
+  rerender(); if(state.detailId) openDetail(state.detailId); }
+function setView(v){ state.view=v;
+  document.getElementById('viewGraph').classList.toggle('on',v==='graph');
+  document.getElementById('viewRadial').classList.toggle('on',v==='radial');
+  document.getElementById('viewTree').classList.toggle('on',v==='tree');
+  const svgVis=(v==='graph'||v==='radial');            // graphe et radial partagent le SVG
+  document.getElementById('graph').style.display = svgVis?'block':'none';
+  document.getElementById('tree').style.display  = v==='tree'?'block':'none';
+  if(svgVis){ state.fitted=false; } rerender();
+  if(detail.classList.contains('open')){               // ré-ancre la bulle selon la vue
+    if(v==='tree') positionBubble(state.anchorEl);
+    else { state.bubbleRefW=vb.w; syncBubble(); }
+  }
+}
+
+document.getElementById('modeNov').addEventListener('click',()=>setMode('novice'));
+document.getElementById('modeIng').addEventListener('click',()=>setMode('ingenieur'));
+document.getElementById('viewGraph').addEventListener('click',()=>setView('graph'));
+document.getElementById('viewRadial').addEventListener('click',()=>setView('radial'));
+document.getElementById('viewTree').addEventListener('click',()=>setView('tree'));
+document.getElementById('collapseAll').addEventListener('click',()=>{
+  G.nodes.forEach(n=>{ if(hasKids(n.id)) state.collapsed.add(n.id); }); state.fitted=false; setFocus(null); rerender(); });
+document.getElementById('recenter').addEventListener('click',()=>{ if(state.view==='graph'){ layout(); fitView(); } });
+document.getElementById('search').addEventListener('input',e=>runSearch(e.target.value));
+const burger=document.getElementById('burger'), side=document.getElementById('side'), backdrop=document.getElementById('backdrop');
+burger.addEventListener('click',()=>{ side.classList.toggle('open'); backdrop.classList.toggle('show',side.classList.contains('open')); });
+backdrop.addEventListener('click',()=>{ side.classList.remove('open'); backdrop.classList.remove('show'); detail.classList.remove('open'); });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ detail.classList.remove('open'); side.classList.remove('open'); backdrop.classList.remove('show'); } });
+window.addEventListener('resize',()=>{ /* la vue ne bascule pas d'elle-même : l'utilisateur choisit */ });
+
+let toastT=null;
+function copy(txt){ const done=()=>showToast('Copié : '+txt);
+  if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(txt).then(done,done); } else { showToast(txt); } }
+function showToast(m){ const t=document.getElementById('toast'); t.textContent=m; t.classList.add('show');
+  clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),1600); }
+
+buildFilters();
+setView(state.view);
+renderCrumbs();
+})();
+</script>
+</body>
+</html>
