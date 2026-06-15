@@ -1,8 +1,17 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
-  "genere_le": "2026-06-15T17:27:56.299Z",
+  "genere_le": "2026-06-15T17:50:43.045Z",
   "commits": [
+    {
+      "hash": "bd8d60cc021f693a2f99fb34fa8907117b8134c1",
+      "short": "bd8d60c",
+      "auteur": "Orangentleman",
+      "date": "2026-06-15T19:27:56+02:00",
+      "sujet": "Triage mobile : PWA admin + RPCs Supabase sécurisées",
+      "corps": "Page autonome triage/ (PWA installable) pour trier les contributions depuis le\ntéléphone (valider/intégrer/rejeter + note). Connexion au compte perso (Google\nou e-mail) avec la SEULE clé anon ; autorisation vérifiée côté base par deux\nfonctions SECURITY DEFINER (admin_list_contributions / admin_triage) gardées par\nla table app_admins. La clé service_role ne quitte jamais le PC.\n\n- triage/index.html : login + cartes de tri + filtres, écrit aggregator_state\n  au format de la synchro PC (granularité contribution)\n- triage/manifest.webmanifest + triage/sw.js : installable (scope /triage/)\n- philo-aggregator/migrations/2026_admin_mobile.sql : à lancer une fois\n- README agrégateur (section « Accès mobile ») + note CLAUDE.md\n\nCo-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>",
+      "tag": "Triage mobile"
+    },
     {
       "hash": "d31203b93264ba5fe6885643fa10d1933758d108",
       "short": "d31203b",

@@ -70,9 +70,9 @@ code{background:var(--bg3);padding:2px 6px;border-radius:6px;font-size:12.5px;
 .statut-pill{font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;
   border:0.5px solid var(--bd);color:var(--tx2)}
 .statut-pill.en_attente{color:var(--warn);border-color:var(--warn)}
-.statut-pill.validee_en_cours{color:var(--info);border-color:var(--info)}
-.statut-pill.validee_integree{color:var(--ok);border-color:var(--ok)}
-.statut-pill.refusee{color:var(--bad);border-color:var(--bad)}
+.statut-pill.validee{color:var(--info);border-color:var(--info)}
+.statut-pill.integree{color:var(--ok);border-color:var(--ok)}
+.statut-pill.rejetee{color:var(--bad);border-color:var(--bad)}
 .box{background:var(--bg3);border-radius:10px;padding:9px 10px;margin:7px 0;font-size:13.5px}
 .box .tag{display:inline-block;font-size:11px;font-weight:600;color:var(--accent);
   border:0.5px solid var(--bd);border-radius:6px;padding:1px 6px;margin:0 5px 5px 0}
@@ -155,10 +155,16 @@ const ACTIONS={
   integrer: {local:'integree',   remote:'validee_integree', label:'Intégrer',   cls:'integrer'},
   rejeter:  {local:'rejetee',    remote:'refusee',          label:'Rejeter',    cls:'rejeter'},
 };
-const STATUT_LABELS={en_attente:'En attente',validee_en_cours:'Validée (en cours)',
-  validee_integree:'Intégrée',refusee:'Refusée'};
-const FILTERS=[['',  'Toutes'],['en_attente','En attente'],['validee_en_cours','Validées'],
-  ['validee_integree','Intégrées'],['refusee','Refusées']];
+// Libellés/filtres en vocabulaire LOCAL (la vérité du mainteneur). Le statut
+// « contributeur » (remote) n'est qu'une projection downstream, parfois en
+// retard (le PC pousse l'état interne mais pas toujours ce statut) : on
+// affiche donc l'état INTERNE.
+const STATUT_LABELS={en_attente:'En attente',validee:'Validée',integree:'Intégrée',rejetee:'Rejetée'};
+const FILTERS=[['','Toutes'],['en_attente','En attente'],['validee','Validées'],
+  ['integree','Intégrées'],['rejetee','Rejetées']];
+// Même ordre de priorité que le PC (pipeline.derive_local_status) : on prend le
+// statut le plus « avancé » présent parmi les boîtes d'une contribution.
+const STATUS_PRIORITY=['integree','validee','rejetee','en_attente'];
 
 let rows=[];            // contributions chargées
 let curFilter='';       // filtre statut courant
@@ -234,10 +240,23 @@ function setAdminWarn(kind,detail){
 function copyUid(){ navigator.clipboard?.writeText(myUid).then(()=>toast('UID copié')); }
 
 /* ── Filtres ───────────────────────────────────────────────────────────── */
+/* Statut EFFECTIF (vérité du mainteneur) : on lit l'état interne
+   (aggregator_state.boxes), qui reflète le tri fait sur le PC OU le mobile ;
+   à défaut (jamais trié / contribution legacy) on retombe sur le statut
+   « contributeur ». Même priorité que le PC (le plus avancé l'emporte). */
+function effLocal(r){
+  const st=r.aggregator_state;
+  if(st&&Array.isArray(st.boxes)&&st.boxes.length){
+    const present=new Set(st.boxes.map(b=>b.status));
+    for(const s of STATUS_PRIORITY) if(present.has(s)) return s;
+  }
+  return localFromRemote(r.statut)||'en_attente';
+}
+
 function renderFilters(){
   const f=document.getElementById('filters'); f.classList.remove('hidden');
-  // Compte par statut, pour afficher le nombre sur chaque filtre.
-  const counts={}; rows.forEach(r=>{counts[r.statut]=(counts[r.statut]||0)+1;});
+  // Compte par statut EFFECTIF, pour afficher le nombre sur chaque filtre.
+  const counts={}; rows.forEach(r=>{const s=effLocal(r);counts[s]=(counts[s]||0)+1;});
   f.innerHTML=FILTERS.map(([val,lab])=>{
     const n=val?(counts[val]||0):rows.length;
     return `<button class="chip${val===curFilter?' active':''}" onclick="setFilter('${val}')">${lab} (${n})</button>`;
@@ -248,7 +267,7 @@ function setFilter(v){ curFilter=v; renderFilters(); renderList(); }
 /* ── Liste des cartes ──────────────────────────────────────────────────── */
 function renderList(){
   const list=document.getElementById('list');
-  const items=rows.filter(r=>!curFilter||r.statut===curFilter);
+  const items=rows.filter(r=>!curFilter||effLocal(r)===curFilter);
   if(!items.length){ list.innerHTML='<div class="empty">Aucune proposition ici.</div>'; return; }
   list.innerHTML=items.map(cardHtml).join('');
 }
@@ -287,7 +306,7 @@ function cardHtml(r){
   const boxesHtml=boxes.length?boxes.map(boxSummary).join('')
     :'<div class="box muted small">(format ancien — voir le PC pour le détail)</div>';
   const ai=firstAiMessage(r);
-  const cur=localFromRemote(r.statut);  // pour surligner le bouton courant
+  const cur=effLocal(r);  // statut effectif (état interne) → surligne le bon bouton
   const actBtns=Object.entries(ACTIONS).map(([key,a])=>{
     const isCur=a.local===cur;
     return `<button class="act ${a.cls}${isCur?' cur':''}" onclick="triage('${r.id}','${key}')">${a.label}</button>`;
@@ -296,7 +315,7 @@ function cardHtml(r){
     <div class="card-head">
       <span class="who">${who}</span>
       <span class="tiny muted">${date}</span>
-      <span class="statut-pill ${r.statut}">${STATUT_LABELS[r.statut]||r.statut}</span>
+      <span class="statut-pill ${cur}">${STATUT_LABELS[cur]||cur}</span>
     </div>
     ${boxesHtml}
     ${ai?`<div class="ai">🤖 ${escapeHtml(ai)}</div>`:''}
