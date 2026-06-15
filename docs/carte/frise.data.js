@@ -1,8 +1,17 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
-  "genere_le": "2026-06-15T12:48:40.279Z",
+  "genere_le": "2026-06-15T16:23:23.523Z",
   "commits": [
+    {
+      "hash": "130caa1910dccc21c86ba6d7677387d91437e95d",
+      "short": "130caa1",
+      "auteur": "Orangentleman",
+      "date": "2026-06-15T14:48:39+02:00",
+      "sujet": "Intègre 5 propositions : Épictète (bonheur), dialogue Sartre/Spinoza, concepts Antinomie + Arraisonnement",
+      "corps": "- BOX 52 : Épictète → bonheur (2 idées, Manuel) ; idée « métriopathie » mal\n  étiquetée reformulée correctement (Manuel §11 « je l'ai rendu »)\n- BOX 53 : dialogue Sartre oppose Spinoza (liberté/déterminisme)\n- BOX 54 : concept Antinomie (Kant, raison/vérité) — réécrit\n- BOX 55 : concept Arraisonnement de la nature (Gestell, Heidegger)\n- BOX 50/51 (déf. travail) et BOX 56 (remarque) non intégrées : voir résumé\n\nCo-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>",
+      "tag": "Intègre 5 propositions"
+    },
     {
       "hash": "a45917ac74acf190e08867efb9ccf7771ea0c86a",
       "short": "a45917a",
