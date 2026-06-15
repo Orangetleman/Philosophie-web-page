@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#121212">
+<title>Triage — Propositions Philo</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="../icon.svg">
+<style>
+/* ───────────────────────────────────────────────────────────────────────
+   Page de TRIAGE mobile des contributions (admin only).
+   Autonome : ne dépend que de supabase-js (CDN) + la clé « anon » (publique).
+   La vérification « es-tu admin ? » se fait CÔTÉ BASE (fonctions SECURITY
+   DEFINER admin_list_contributions / admin_triage). La clé service_role
+   n'apparaît JAMAIS ici. Thème sombre, calqué sur l'appli principale.
+   ─────────────────────────────────────────────────────────────────────── */
+:root{
+  --bg:#121212; --bg2:#1c1c1e; --bg3:#262629; --bd:#34343a;
+  --tx:#ececf0; --tx2:#a8a8b3; --tx3:#76767f;
+  --accent:#5b8def; --ok:#3fb96a; --warn:#e0a458; --bad:#e0556b; --info:#57bfd6;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--tx);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,sans-serif;
+  font-size:15px;line-height:1.5}
+body{padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+button{font-family:inherit;cursor:pointer}
+.wrap{max-width:640px;margin:0 auto;padding:14px 12px 60px}
+header.top{position:sticky;top:0;z-index:5;background:var(--bg);
+  padding:10px 12px;border-bottom:0.5px solid var(--bd);display:flex;
+  align-items:center;gap:10px}
+header.top h1{font-size:16px;margin:0;flex:1}
+.btn{border:0.5px solid var(--bd);background:var(--bg2);color:var(--tx);
+  border-radius:10px;padding:9px 12px;font-size:14px}
+.btn:hover{border-color:var(--accent)}
+.btn-sm{padding:6px 9px;font-size:13px;border-radius:8px}
+.btn-primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+.btn-ghost{background:transparent}
+.muted{color:var(--tx2)}
+.small{font-size:12.5px}
+.tiny{font-size:11.5px}
+code{background:var(--bg3);padding:2px 6px;border-radius:6px;font-size:12.5px;
+  word-break:break-all}
+
+/* ── Écran de connexion ── */
+.login{max-width:380px;margin:8vh auto 0;padding:0 16px;text-align:center}
+.login h1{font-size:22px;margin:0 0 6px}
+.login .sub{color:var(--tx2);font-size:14px;margin-bottom:22px}
+.login form{display:flex;flex-direction:column;gap:10px;margin-top:16px}
+.login input{background:var(--bg2);border:0.5px solid var(--bd);border-radius:10px;
+  padding:12px;color:var(--tx);font-size:15px;font-family:inherit}
+.login input:focus{outline:none;border-color:var(--accent)}
+.sep{display:flex;align-items:center;gap:10px;color:var(--tx3);font-size:12px;margin:18px 0 4px}
+.sep::before,.sep::after{content:"";flex:1;height:1px;background:var(--bd)}
+.status{min-height:20px;font-size:13px;margin-top:12px}
+.status.err{color:var(--bad)} .status.ok{color:var(--ok)}
+
+/* ── Barre de filtres ── */
+.filters{display:flex;gap:6px;overflow-x:auto;padding:10px 0 4px;-webkit-overflow-scrolling:touch}
+.chip{flex-shrink:0;border:0.5px solid var(--bd);background:var(--bg2);color:var(--tx2);
+  border-radius:999px;padding:6px 12px;font-size:13px;white-space:nowrap}
+.chip.active{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+
+/* ── Carte de contribution ── */
+.card{background:var(--bg2);border:0.5px solid var(--bd);border-radius:14px;
+  padding:13px 13px 11px;margin:11px 0}
+.card-head{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.who{font-weight:600;font-size:14px}
+.statut-pill{font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;
+  border:0.5px solid var(--bd);color:var(--tx2)}
+.statut-pill.en_attente{color:var(--warn);border-color:var(--warn)}
+.statut-pill.validee_en_cours{color:var(--info);border-color:var(--info)}
+.statut-pill.validee_integree{color:var(--ok);border-color:var(--ok)}
+.statut-pill.refusee{color:var(--bad);border-color:var(--bad)}
+.box{background:var(--bg3);border-radius:10px;padding:9px 10px;margin:7px 0;font-size:13.5px}
+.box .tag{display:inline-block;font-size:11px;font-weight:600;color:var(--accent);
+  border:0.5px solid var(--bd);border-radius:6px;padding:1px 6px;margin:0 5px 5px 0}
+.box .fld{margin:3px 0;color:var(--tx)}
+.box .fld b{color:var(--tx2);font-weight:600}
+.ai{font-size:12.5px;color:var(--tx2);margin:7px 0 0;padding:7px 9px;
+  background:var(--bg3);border-left:2px solid var(--warn);border-radius:0 8px 8px 0}
+.note-in{width:100%;background:var(--bg);border:0.5px solid var(--bd);border-radius:9px;
+  padding:8px 10px;color:var(--tx);font-size:13.5px;font-family:inherit;margin:9px 0 6px}
+.note-in:focus{outline:none;border-color:var(--accent)}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:6px}
+.act{border-radius:9px;padding:9px;font-size:13.5px;font-weight:600;border:0.5px solid var(--bd);
+  background:var(--bg3);color:var(--tx)}
+.act.cur{outline:2px solid currentColor}
+.act.valider{color:var(--info)} .act.integrer{color:var(--ok)}
+.act.rejeter{color:var(--bad)} .act.attente{color:var(--warn)}
+.act:disabled{opacity:.5}
+.empty{text-align:center;color:var(--tx2);padding:40px 10px}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);
+  background:var(--bg3);border:0.5px solid var(--bd);border-radius:10px;
+  padding:10px 16px;font-size:13.5px;z-index:20;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast.show{opacity:1}
+.hidden{display:none !important}
+.adminwarn{background:var(--bg2);border:0.5px solid var(--warn);border-radius:12px;
+  padding:14px;margin:14px 0;font-size:13.5px}
+</style>
+</head>
+<body>
+
+<!-- ░░ Écran 1 : connexion ░░ -->
+<section id="view-login" class="login">
+  <h1>🗂️ Triage</h1>
+  <div class="sub">Connecte-toi avec <b>ton compte</b> pour trier les propositions reçues.</div>
+  <button class="btn" style="width:100%" onclick="signInGoogle()">
+    <span style="font-weight:700;color:#4285f4">G</span>&nbsp; Continuer avec Google
+  </button>
+  <div class="sep">ou avec un e-mail</div>
+  <form onsubmit="signInEmail(event)">
+    <input id="email" type="email" placeholder="Adresse e-mail" autocomplete="email" required>
+    <input id="password" type="password" placeholder="Mot de passe" autocomplete="current-password" required>
+    <button class="btn btn-primary" type="submit">Se connecter</button>
+  </form>
+  <div id="login-status" class="status"></div>
+</section>
+
+<!-- ░░ Écran 2 : triage ░░ -->
+<div id="view-app" class="hidden">
+  <header class="top">
+    <h1>🗂️ Triage</h1>
+    <button class="btn btn-sm btn-ghost" onclick="refresh()" title="Rafraîchir">🔄</button>
+    <button class="btn btn-sm btn-ghost" onclick="signOut()" title="Se déconnecter">⏻</button>
+  </header>
+  <div class="wrap">
+    <div id="admin-warn" class="adminwarn hidden"></div>
+    <div id="filters" class="filters hidden"></div>
+    <div id="list"></div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+/* ════════════════════════════════════════════════════════════════════════
+   Réglages — MÊMES valeurs publiques que l'appli principale (index.html).
+   La clé « anon » est conçue pour vivre dans le navigateur ; elle n'autorise
+   QUE ce que les règles RLS et les fonctions admin_* permettent côté base.
+   ════════════════════════════════════════════════════════════════════════ */
+const SUPABASE_URL='https://fipdatwirklhgdbujobz.supabase.co';
+const SUPABASE_ANON_KEY='sb_publishable_7A5cSXlmufU1mDfjs1hIIA_PSHpXOdB';
+const SB=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+
+/* Vocabulaire des statuts.
+   - REMOTE = ce qui est stocké dans contributions.statut (vu par le contributeur)
+   - LOCAL  = vocabulaire interne de l'agrégateur (aggregator_state.boxes[].status)
+   ACTIONS mappe un bouton → (statut local, statut contributeur). */
+const ACTIONS={
+  attente:  {local:'en_attente', remote:'en_attente',       label:'En attente', cls:'attente'},
+  valider:  {local:'validee',    remote:'validee_en_cours', label:'Valider',    cls:'valider'},
+  integrer: {local:'integree',   remote:'validee_integree', label:'Intégrer',   cls:'integrer'},
+  rejeter:  {local:'rejetee',    remote:'refusee',          label:'Rejeter',    cls:'rejeter'},
+};
+const STATUT_LABELS={en_attente:'En attente',validee_en_cours:'Validée (en cours)',
+  validee_integree:'Intégrée',refusee:'Refusée'};
+const FILTERS=[['',  'Toutes'],['en_attente','En attente'],['validee_en_cours','Validées'],
+  ['validee_integree','Intégrées'],['refusee','Refusées']];
+
+let rows=[];            // contributions chargées
+let curFilter='';       // filtre statut courant
+let myUid=null;         // UID du compte connecté (pour le bootstrap admin)
+
+/* ── Connexion ─────────────────────────────────────────────────────────── */
+function loginStatus(msg,kind){ const e=document.getElementById('login-status');
+  e.className='status'+(kind?(' '+kind):''); e.textContent=msg||''; }
+
+async function signInGoogle(){
+  loginStatus('Redirection vers Google…');
+  // redirectTo = cette page, pour revenir ici après l'authentification.
+  const {error}=await SB.auth.signInWithOAuth({provider:'google',
+    options:{redirectTo:location.origin+location.pathname}});
+  if(error) loginStatus(error.message,'err');
+}
+async function signInEmail(ev){
+  ev.preventDefault();
+  loginStatus('Connexion…');
+  const email=document.getElementById('email').value.trim();
+  const password=document.getElementById('password').value;
+  const {error}=await SB.auth.signInWithPassword({email,password});
+  if(error) loginStatus(error.message,'err');
+  // En cas de succès, onAuthStateChange bascule l'écran.
+}
+async function signOut(){ await SB.auth.signOut(); location.reload(); }
+
+/* ── Aiguillage selon l'état de connexion ──────────────────────────────── */
+SB.auth.onAuthStateChange((_evt,session)=>{ applySession(session); });
+
+async function applySession(session){
+  const logged=!!(session&&session.user);
+  document.getElementById('view-login').classList.toggle('hidden',logged);
+  document.getElementById('view-app').classList.toggle('hidden',!logged);
+  if(logged){ myUid=session.user.id; await loadList(); }
+}
+
+/* ── Chargement des contributions (via la fonction admin) ──────────────── */
+async function loadList(){
+  setAdminWarn(null);
+  const {data,error}=await SB.rpc('admin_list_contributions');
+  if(error){
+    // 42501 (ou message « Accès refusé ») = compte pas encore admin.
+    if((error.code==='42501')||/refus|admin|denied|permission/i.test(error.message||'')){
+      setAdminWarn('notadmin');
+    }else{
+      setAdminWarn('error',error.message);
+    }
+    document.getElementById('filters').classList.add('hidden');
+    document.getElementById('list').innerHTML='';
+    return;
+  }
+  rows=data||[];
+  renderFilters();
+  renderList();
+}
+function refresh(){ loadList(); toast('Actualisé'); }
+
+/* Bandeau d'aide : « pas encore admin » (donne l'UID à coller dans le SQL). */
+function setAdminWarn(kind,detail){
+  const el=document.getElementById('admin-warn');
+  if(!kind){ el.classList.add('hidden'); el.innerHTML=''; return; }
+  el.classList.remove('hidden');
+  if(kind==='notadmin'){
+    el.innerHTML=`<b>⛔ Ce compte n'est pas encore administrateur.</b><br>
+      Pour t'autoriser, lance dans l'éditeur SQL de Supabase :<br>
+      <code>insert into public.app_admins (user_id) values ('${myUid}');</code><br>
+      <button class="btn btn-sm" style="margin-top:9px" onclick="copyUid()">Copier mon UID</button>`;
+  }else{
+    el.innerHTML=`<b>Erreur :</b> ${escapeHtml(detail||'inconnue')}`;
+  }
+}
+function copyUid(){ navigator.clipboard?.writeText(myUid).then(()=>toast('UID copié')); }
+
+/* ── Filtres ───────────────────────────────────────────────────────────── */
+function renderFilters(){
+  const f=document.getElementById('filters'); f.classList.remove('hidden');
+  // Compte par statut, pour afficher le nombre sur chaque filtre.
+  const counts={}; rows.forEach(r=>{counts[r.statut]=(counts[r.statut]||0)+1;});
+  f.innerHTML=FILTERS.map(([val,lab])=>{
+    const n=val?(counts[val]||0):rows.length;
+    return `<button class="chip${val===curFilter?' active':''}" onclick="setFilter('${val}')">${lab} (${n})</button>`;
+  }).join('');
+}
+function setFilter(v){ curFilter=v; renderFilters(); renderList(); }
+
+/* ── Liste des cartes ──────────────────────────────────────────────────── */
+function renderList(){
+  const list=document.getElementById('list');
+  const items=rows.filter(r=>!curFilter||r.statut===curFilter);
+  if(!items.length){ list.innerHTML='<div class="empty">Aucune proposition ici.</div>'; return; }
+  list.innerHTML=items.map(cardHtml).join('');
+}
+
+/* Résumé lisible d'une boîte du payload (v1/v2/v3). */
+function boxSummary(box){
+  const cat=box.categorie||'', cible=box.cible||'', type=box.type||'';
+  const f=box.fields||{};
+  const parts=[];
+  const tag=`<span class="tag">${escapeHtml([cat,cible,type].filter(Boolean).join(' · ')||'boîte')}</span>`;
+  // Champs intéressants, dans un ordre raisonnable, tronqués.
+  const order=['nom','notion','term','cnotions','oeuvre','citation','definition','idee',
+    'desc','description','remtexte','acctexte','remarque'];
+  const seen=new Set();
+  order.forEach(k=>{ if(f[k]!=null&&f[k]!==''){ parts.push(fld(k,f[k])); seen.add(k); }});
+  // Idées (cible auteur) : afficher notion + idée de chaque idée.
+  if(Array.isArray(f.ideas)) f.ideas.forEach((id,i)=>{
+    const bits=[id.notion&&('notion '+id.notion),id.oeuvre,id.idee].filter(Boolean).join(' — ');
+    if(bits) parts.push(`<div class="fld"><b>idée ${i+1} :</b> ${escapeHtml(truncate(bits,160))}</div>`);
+  });
+  // Reste des champs simples non déjà montrés.
+  Object.keys(f).forEach(k=>{ if(!seen.has(k)&&k!=='ideas'&&typeof f[k]==='string'&&f[k])
+    parts.push(fld(k,f[k])); });
+  return `<div class="box">${tag}${parts.join('')}</div>`;
+}
+function fld(k,v){
+  if(Array.isArray(v)) v=v.join(', ');
+  return `<div class="fld"><b>${escapeHtml(k)} :</b> ${escapeHtml(truncate(String(v),200))}</div>`;
+}
+
+function cardHtml(r){
+  const p=r.payload||{};
+  const who=escapeHtml(p.contributor||'anonyme');
+  const date=r.created_at?shortDate(r.created_at):'';
+  const boxes=Array.isArray(p.boxes)?p.boxes:[];
+  const boxesHtml=boxes.length?boxes.map(boxSummary).join('')
+    :'<div class="box muted small">(format ancien — voir le PC pour le détail)</div>';
+  const ai=firstAiMessage(r);
+  const cur=localFromRemote(r.statut);  // pour surligner le bouton courant
+  const actBtns=Object.entries(ACTIONS).map(([key,a])=>{
+    const isCur=a.local===cur;
+    return `<button class="act ${a.cls}${isCur?' cur':''}" onclick="triage('${r.id}','${key}')">${a.label}</button>`;
+  }).join('');
+  return `<div class="card" id="card-${r.id}">
+    <div class="card-head">
+      <span class="who">${who}</span>
+      <span class="tiny muted">${date}</span>
+      <span class="statut-pill ${r.statut}">${STATUT_LABELS[r.statut]||r.statut}</span>
+    </div>
+    ${boxesHtml}
+    ${ai?`<div class="ai">🤖 ${escapeHtml(ai)}</div>`:''}
+    <input class="note-in" id="note-${r.id}" placeholder="Mot pour le contributeur (facultatif)"
+      value="${escapeAttr(r.explication||'')}">
+    <div class="actions">${actBtns}</div>
+  </div>`;
+}
+
+/* Récupère un avis IA lisible dans l'état agrégateur (si présent). */
+function firstAiMessage(r){
+  const st=r.aggregator_state;
+  if(st&&Array.isArray(st.boxes)){
+    for(const b of st.boxes){ if(b.ai_user_message) return b.ai_user_message;
+      if(b.ai_verdict) return '['+b.ai_verdict+'] '+(b.ai_review||''); }
+  }
+  return r.avis_ia||'';
+}
+
+/* ── Action de tri ─────────────────────────────────────────────────────── */
+async function triage(id,actionKey){
+  const a=ACTIONS[actionKey]; if(!a) return;
+  const r=rows.find(x=>x.id===id); if(!r) return;
+  const note=(document.getElementById('note-'+id)||{}).value||'';
+  disableCard(id,true);
+  // Construire l'état agrégateur (compatible synchro PC) : on repart de l'état
+  // existant pour préserver notes/avis IA, sinon des boîtes du payload.
+  const state=buildState(r,a.local,note);
+  const {error}=await SB.rpc('admin_triage',{
+    p_id:id, p_statut:a.remote, p_explication:note, p_state:state
+  });
+  disableCard(id,false);
+  if(error){ toast('Échec : '+error.message); return; }
+  // Mise à jour locale + re-rendu (sans recharger tout le réseau).
+  r.statut=a.remote; r.explication=note; r.aggregator_state=state;
+  renderFilters(); renderList();
+  toast(a.label+' ✓');
+}
+
+/* État agrégateur au format attendu par le PC (sync « dernière écriture gagne ») :
+   { v:1, updated_at, boxes:[{position,status,note,ai_verdict,ai_review,ai_user_message}] } */
+function buildState(r,localStatus,note){
+  const now=new Date().toISOString();
+  const prev=(r.aggregator_state&&Array.isArray(r.aggregator_state.boxes))?r.aggregator_state.boxes:null;
+  const count=prev?prev.length:((r.payload&&Array.isArray(r.payload.boxes))?r.payload.boxes.length:1);
+  const boxes=[];
+  for(let i=0;i<count;i++){
+    const old=prev?prev[i]||{}:{};
+    boxes.push({
+      position:i, status:localStatus,
+      note: note || old.note || null,
+      ai_verdict: old.ai_verdict||null,
+      ai_review: old.ai_review||null,
+      ai_user_message: old.ai_user_message||null,
+    });
+  }
+  return {v:1, updated_at:now, boxes};
+}
+function disableCard(id,on){
+  const c=document.getElementById('card-'+id); if(!c) return;
+  c.querySelectorAll('.act').forEach(b=>b.disabled=on);
+}
+
+/* ── Utilitaires ───────────────────────────────────────────────────────── */
+function localFromRemote(remote){
+  return {en_attente:'en_attente',validee_en_cours:'validee',
+    validee_integree:'integree',refusee:'rejetee'}[remote]||'';
+}
+function truncate(s,n){ return s.length>n?s.slice(0,n-1)+'…':s; }
+function escapeHtml(s){ return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function escapeAttr(s){ return escapeHtml(s).replace(/"/g,'&quot;'); }
+function shortDate(iso){ try{ const d=new Date(iso);
+  return d.toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit'})+' '
+    +d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}); }catch(e){ return ''; } }
+let toastT=null;
+function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg;
+  t.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),1800); }
+
+/* ── Démarrage : reprend la session si déjà connecté ───────────────────── */
+(async function(){
+  const {data}=await SB.auth.getSession();
+  applySession(data.session);
+})();
+
+/* ── PWA : enregistre le service worker (installable sur le téléphone) ──── */
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+}
+</script>
+</body>
+</html>

@@ -447,6 +447,19 @@ la boîte n'a pas de `categorie` (déduite via `cibleCat`) et la cible `auteur`
 a ses champs d'idée à plat (v1) ou dans `ideas[]` sans `notion`/`citations`
 (v2). Tenir compte de ces différences dans tout code qui lit une proposition.
 
+### Page de triage mobile (`triage/`)
+
+Mini-PWA autonome (`triage/index.html` + `manifest.webmanifest` + `sw.js`,
+servie à la racine du site) pour **trier les contributions depuis le téléphone**
+(valider / intégrer / rejeter + note). Connexion par **compte perso** (Google ou
+e-mail) avec la **clé anon uniquement** — la clé `service_role` ne doit
+**JAMAIS** y figurer. L'autorisation est vérifiée côté base par deux fonctions
+`SECURITY DEFINER` (`admin_list_contributions`, `admin_triage`) gardées par la
+table `app_admins` (cf. `philo-aggregator/migrations/2026_admin_mobile.sql`). Le
+triage écrit `aggregator_state`/`aggregator_updated_at` au format de la synchro
+PC (« dernière écriture gagne »), à la **granularité contribution**. Voir le
+README de `philo-aggregator/` (section « Accès mobile »).
+
 ## Interface & ergonomie (déjà en place)
 
 - **Responsive ≤ 700 px** : la sidebar devient un **tiroir** ouvert par un

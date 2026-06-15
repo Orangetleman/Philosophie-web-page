@@ -1,8 +1,17 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
-  "genere_le": "2026-06-15T16:23:23.523Z",
+  "genere_le": "2026-06-15T17:27:56.299Z",
   "commits": [
+    {
+      "hash": "d31203b93264ba5fe6885643fa10d1933758d108",
+      "short": "d31203b",
+      "auteur": "Orangentleman",
+      "date": "2026-06-15T18:23:23+02:00",
+      "sujet": "Épictète/bonheur : idée 2 = mithridatisation (correction BOX 56 de Zukini)",
+      "corps": "Le terme correct voulu par la contributrice était « mithridatisation »\n(s'immuniser contre le chagrin en se répétant la perte à petites doses,\nprémeditation des maux, Manuel §3), non « métriopathie ». Idée 2 reformulée\nen conséquence + citation Manuel §3.\n\nCo-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>",
+      "tag": "Épictète/bonheur"
+    },
     {
       "hash": "130caa1910dccc21c86ba6d7677387d91437e95d",
       "short": "130caa1",

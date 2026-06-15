@@ -154,6 +154,45 @@ contributions **déjà validées ailleurs** (que `pull-cloud`, filtré sur
 > neuve : lance `sync` → le tableau de bord se reconstruit entièrement depuis
 > Supabase. Les relectures IA faites localement remontent au `sync` suivant.
 
+## Accès mobile — triage depuis le téléphone (`triage/`)
+
+Pour **trier en déplacement** (valider / intégrer / rejeter + note) sans le PC,
+une petite **page web installable** (PWA) vit dans `triage/` à la racine du
+dépôt (publiée avec le site). On s'y connecte avec **son propre compte**
+(Google ou e-mail + mot de passe) — **jamais** avec la clé `service_role`.
+
+**Modèle de sécurité.** La page n'embarque que la clé **anon** (publique). La
+vérification « es-tu l'administrateur ? » se fait **côté base**, via deux
+fonctions PostgreSQL `SECURITY DEFINER` qui refusent quiconque n'est pas dans
+la table `app_admins` :
+
+- `admin_list_contributions()` — renvoie toutes les contributions (le rôle
+  `authenticated` n'a normalement pas accès à `aggregator_state` ; la fonction,
+  elle, peut le lire pour préserver notes/avis IA) ;
+- `admin_triage(id, statut, explication, état)` — écrit le statut contributeur,
+  l'explication et l'état de tri interne, horodaté.
+
+### Mise en place (une fois)
+
+1. **SQL** : lancer `migrations/2026_admin_mobile.sql` dans l'éditeur SQL de
+   Supabase (Dashboard → SQL Editor → coller → Run).
+2. **Se déclarer admin** : ouvrir `…/triage/`, se connecter ; la page affiche
+   ton **UID**. Le coller dans :
+   `insert into public.app_admins (user_id) values ('TON-UID');`
+   (l'éditeur SQL Supabase), puis rafraîchir la page.
+3. **Installer l'appli** (option) : depuis le navigateur du téléphone, menu →
+   « Ajouter à l'écran d'accueil ». La page a son manifeste + service worker.
+
+### Cohérence avec le PC
+
+Un triage mobile écrit `aggregator_state` + `aggregator_updated_at` **au format
+exact** attendu par la synchro. Au prochain `python aggregate.py sync` (ou bouton
+« 🔄 Synchroniser »), le dashboard PC récupère ce qui a été trié au téléphone
+(et inversement — *dernière écriture gagne*). La page mobile trie à la
+**granularité contribution** (toutes les boîtes d'une contribution prennent le
+même statut) ; la relecture IA, l'export `.txt` et l'intégration dans `data.js`
+restent des étapes **sur le PC**.
+
 ## Commandes
 
 | Commande | Rôle |
