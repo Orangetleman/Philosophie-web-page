@@ -1,8 +1,17 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
-  "genere_le": "2026-06-14T20:47:14.953Z",
+  "genere_le": "2026-06-15T12:48:40.279Z",
   "commits": [
+    {
+      "hash": "a45917ac74acf190e08867efb9ccf7771ea0c86a",
+      "short": "a45917a",
+      "auteur": "Orangentleman",
+      "date": "2026-06-14T22:47:14+02:00",
+      "sujet": "Compte : œil « afficher/masquer » sur les champs mot de passe",
+      "corps": "- Bouton œil (👁/🙈) dans le champ de connexion/inscription (#auth-pw) et\n  l'écran « nouveau mot de passe » (#auth-newpw)\n- togglePwEye() bascule type password↔text, met à jour icône + aria-label\n- CSS .auth-pw-wrap / .auth-pw-eye (bouton en absolu, padding-right réservé)\n\nCo-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>",
+      "tag": "Compte"
+    },
     {
       "hash": "e528d6f31eb84cbfaefedbb1505f3b8e3cc53129",
       "short": "e528d6f",
