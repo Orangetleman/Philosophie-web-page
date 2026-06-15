@@ -9,11 +9,18 @@
 //
 // À chaque modif de cette coquille, incrémenter la version.
 
-const CACHE = 'triage-v2';
-const SHELL = ['./', './index.html', './manifest.webmanifest', '../icon.svg'];
+const CACHE = 'triage-v3';
+const SHELL = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
+  // Mise en cache RÉSILIENTE : on cache chaque ressource indépendamment. Un
+  // 404 sur l'une ne fait PLUS échouer toute l'installation du SW (sinon : pas
+  // d'installation possible de la PWA). Tous les fichiers sont en-scope (/triage/).
+  e.waitUntil(
+    caches.open(CACHE)
+      .then(c => Promise.allSettled(SHELL.map(u => c.add(u))))
+      .then(() => self.skipWaiting())
+  );
 });
 
 self.addEventListener('activate', e => {
