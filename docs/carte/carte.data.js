@@ -49,7 +49,8 @@ window.CARTE = {
     { id:"sync",    label:"Compte / Sync",          couleur:"#2bb3a3" },
     { id:"pwa",     label:"PWA (hors-ligne)",       couleur:"#8892b0" },
     { id:"backend", label:"Backend agrégateur",     couleur:"#e0654b" },
-    { id:"mailbox", label:"Boîte aux lettres",      couleur:"#d4646e" }
+    { id:"mailbox", label:"Boîte aux lettres",      couleur:"#d4646e" },
+    { id:"seo",     label:"Référencement (SEO)",    couleur:"#b08a3c" }
   ],
 
   /* ── Types de lien (légende des arêtes) ────────────────────────────── */
@@ -409,10 +410,20 @@ window.CARTE = {
       ingenieur:"manifest.json : name, start_url, display:standalone, icons (icon.svg).",
       symbols:[{kind:"var",name:"start_url",ref:"manifest.json:6"},{kind:"var",name:"display",ref:"manifest.json:8"}] },
 
-    { id:"pwa.seo", label:"Référencement (sitemap)", niveau:1, parent:"pwa", domaine:"pwa",
-      novice:"Le plan du site donné à Google pour qu'il trouve et référence les pages.",
-      ingenieur:"sitemap.xml — plan d'URL (urlset) pour les moteurs de recherche.",
-      symbols:[{kind:"route",name:"sitemap",ref:"sitemap.xml:2"}] },
+
+  /* ═══════════════ RÉFÉRENCEMENT (SEO) ═══════════════ */
+  { id:"seo", label:"Référencement (SEO)", niveau:0, parent:null, domaine:"seo",
+    novice:"Ce qui aide Google à trouver et indexer le site — ça n'a rien à voir avec le hors-ligne (PWA).",
+    ingenieur:"Fichiers statiques à la racine destinés aux moteurs de recherche (et non au fonctionnement de l'appli)." },
+
+    { id:"seo.sitemap", label:"sitemap.xml", niveau:1, parent:"seo", domaine:"seo",
+      novice:"Le plan du site : la liste des pages, donnée à Google.",
+      ingenieur:"sitemap.xml — un <urlset> listant les URL (loc, lastmod, changefreq, priority).",
+      symbols:[{kind:"route",name:"urlset",ref:"sitemap.xml:2"}] },
+    { id:"seo.robots", label:"robot.txt", niveau:1, parent:"seo", domaine:"seo",
+      novice:"Les consignes pour les robots des moteurs : ce qu'ils peuvent explorer.",
+      ingenieur:"robot.txt — User-agent / Allow + un pointeur Sitemap vers sitemap.xml.",
+      symbols:[{kind:"route",name:"User-agent",ref:"robot.txt:1"}] },
 
   /* ═══════════════ BACKEND AGRÉGATEUR ═══════════════ */
   { id:"backend", label:"Backend agrégateur", niveau:0, parent:null, domaine:"backend",

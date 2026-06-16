@@ -26,6 +26,9 @@ button{font-family:inherit;color:inherit;cursor:pointer}
 .topbar{display:flex;align-items:center;gap:10px;padding:8px 12px;
   background:var(--panel);border-bottom:1px solid var(--bd);flex-wrap:wrap}
 .topbar .title{font-weight:700;font-size:15px;margin-right:4px;white-space:nowrap}
+.title .logo{vertical-align:-5px;margin-right:5px}
+.side.collapsed{display:none}                 /* repli du panneau latéral (desktop) */
+#sideToggle.on{background:#21364f;border-color:var(--accent);color:#cfe3fb}
 .topbar .title small{font-weight:400;color:var(--tx3);font-size:11px}
 .spacer{flex:1 1 auto}
 .tb-btn{background:var(--panel2);border:1px solid var(--bd2);border-radius:8px;
@@ -83,7 +86,7 @@ svg.graph.grabbing{cursor:grabbing}
 .node:hover{border-color:var(--accent)}
 .node.l0{font-weight:700;font-size:12.5px}
 .node .lbl{flex:1 1 auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.node .chev{flex:0 0 auto;width:14px;text-align:center;color:var(--tx3);font-size:10px}
+.node .chev{flex:0 0 auto;width:15px;text-align:center;color:var(--accent);font-size:11px;line-height:1}
 .node .info{flex:0 0 auto;border:0;background:transparent;color:var(--tx3);font-size:12px;
   padding:0 2px;border-radius:4px}
 .node .info:hover{color:var(--accent)}
@@ -102,7 +105,7 @@ svg.graph.grabbing{cursor:grabbing}
 .trow{display:flex;align-items:center;gap:6px;padding:5px 6px;border-radius:7px;
   border-left:4px solid var(--bd2);margin:2px 0;background:var(--panel2);cursor:pointer}
 .trow:hover{background:var(--panel)}
-.trow .chev{width:14px;text-align:center;color:var(--tx3);font-size:10px;flex:0 0 auto}
+.trow .chev{width:15px;text-align:center;color:var(--accent);font-size:11px;flex:0 0 auto;line-height:1}
 .trow .lbl{flex:1 1 auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:13px}
 .trow.l0 .lbl{font-weight:700}
 .trow .info{border:0;background:transparent;color:var(--tx3);font-size:13px;padding:0 4px}
@@ -118,6 +121,10 @@ svg.graph.grabbing{cursor:grabbing}
   transition:opacity .15s ease,transform .15s ease;overflow-y:auto;z-index:40;
   box-shadow:0 14px 36px rgba(0,0,0,.55)}
 .detail.open{opacity:1;visibility:visible;transform:none}
+/* Mode PANNEAU LATÉRAL (alternative à la bulle) : fixe à droite, pleine hauteur, sans zoom. */
+.detail.panel{top:0;right:0;left:auto!important;bottom:0;width:360px;max-width:90vw;height:100%;
+  max-height:none;border-radius:0;border-left:1px solid var(--bd2);transform:none!important}
+.detail.panel.open{transform:none!important}
 .detail .dhead{position:sticky;top:0;background:var(--panel);padding:12px 14px;
   border-bottom:1px solid var(--bd);display:flex;align-items:flex-start;gap:8px}
 .detail .dhead h2{margin:0;font-size:16px;line-height:1.3;flex:1 1 auto}
@@ -171,7 +178,8 @@ svg.graph.grabbing{cursor:grabbing}
 
   <div class="topbar">
     <button class="tb-btn burger" id="burger" title="Filtres & légende">☰</button>
-    <span class="title">Carte du projet <small>Philosophie&nbsp;Terminale</small></span>
+    <button class="tb-btn" id="sideToggle" title="Replier / déplier le panneau latéral">⇤</button>
+    <span class="title"><svg class="logo" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="#5aa0e6" stroke-width="1.6"><line x1="5" y1="6" x2="19" y2="5"/><line x1="5" y1="6" x2="6" y2="18"/><line x1="19" y1="5" x2="18" y2="17"/><line x1="6" y1="18" x2="18" y2="17"/><circle cx="5" cy="6" r="2.4" fill="#5aa0e6"/><circle cx="19" cy="5" r="2.4" fill="#1d2735"/><circle cx="6" cy="18" r="2.4" fill="#1d2735"/><circle cx="18" cy="17" r="2.4" fill="#6cc24a"/></g></svg>Carte du projet <small>Philosophie&nbsp;Terminale</small></span>
 
     <div class="search">
       <span style="color:var(--tx3)">🔍</span>
@@ -191,7 +199,9 @@ svg.graph.grabbing{cursor:grabbing}
       <button id="viewTree">Arbre</button>
     </div>
     <button class="tb-btn" id="collapseAll" title="Tout replier (n'afficher que les domaines)">⊟ Replier</button>
+    <button class="tb-btn" id="expandAll" title="Tout déplier (afficher tous les niveaux)">⊞ Déplier</button>
     <button class="tb-btn" id="recenter" title="Recentrer la vue">⌖ Recentrer</button>
+    <a class="tb-btn" href="frise.html" title="Voir la frise des commits" style="text-decoration:none">🕓 Frise</a>
   </div>
 
   <div class="crumbs" id="crumbs"></div>
@@ -200,6 +210,12 @@ svg.graph.grabbing{cursor:grabbing}
     <div class="backdrop" id="backdrop"></div>
 
     <aside class="side" id="side">
+      <h3>Affichage des détails</h3>
+      <div class="seg" style="display:inline-flex" title="Comment afficher le détail d'un nœud">
+        <button id="detBubble" class="on">🫧 Bulle</button>
+        <button id="detPanel">📑 Panneau</button>
+      </div>
+      <label class="chip" id="isolateChip" style="margin-top:8px;display:flex"><input type="checkbox" id="isolateChk" style="margin-right:7px">🎯 N'afficher que les liens du nœud choisi</label>
       <h3>Filtrer par domaine</h3>
       <div id="domFilters"></div>
       <h3>Filtrer par type de lien</h3>
@@ -271,6 +287,8 @@ const state = {
   matches: new Set(),
   focusId: null,
   detailId: null,
+  detailMode: 'bubble',                          // 'bubble' (ancrée) | 'panel' (panneau latéral)
+  isolate: false,                                // n'afficher que les liens du nœud sélectionné
   fitted: false
 };
 /* Au départ : domaines + modules visibles ; on replie tout le niveau ≥ 1. */
@@ -341,11 +359,18 @@ function buildFlux(group){
     if(!state.activeLink.has(e.type)) return;
     const a=visAnchor(e.from), b=visAnchor(e.to);
     if(!a||!b||a===b) return;
+    // Option « isoler » : si un nœud est sélectionné, ne garder que SES liens.
+    if(state.isolate && state.detailId){ const f=visAnchor(state.detailId); if(f && a!==f && b!==f) return; }
     const t=ltById.get(e.type)||{style:{color:'#888',width:2,dash:''}};
     const ax=a._x+NODE_W/2, ay=a._y+NODE_H/2, bx=b._x+NODE_W/2, by=b._y+NODE_H/2;
     const p1=borderPoint(ax,ay,bx,by), p2=borderPoint(bx,by,ax,ay);  // bords des deux nœuds
-    const sgn=Math.sign(p2.x-p1.x)||1, dxc=Math.max(40,Math.abs(p2.x-p1.x)/2);
-    const path=el(SVGNS,'path',{d:`M${p1.x},${p1.y} C${p1.x+sgn*dxc},${p1.y} ${p2.x-sgn*dxc},${p2.y} ${p2.x},${p2.y}`,
+    // Poignées de Bézier ALIGNÉES sur la vraie direction a→b : la flèche arrive
+    // DROIT sur le nœud cible (orientation correcte), quel que soit l'angle.
+    const dx=bx-ax, dy=by-ay, len=Math.hypot(dx,dy)||1, ux=dx/len, uy=dy/len;
+    const off=Math.min(len*0.35,90), bow=Math.min(len*0.14,36);
+    const c1x=p1.x+ux*off-uy*bow, c1y=p1.y+uy*off+ux*bow;   // poignée source : légèrement bombée (lisibilité)
+    const c2x=p2.x-ux*off,        c2y=p2.y-uy*off;          // poignée cible : pile sur la direction → flèche bien orientée
+    const path=el(SVGNS,'path',{d:`M${p1.x},${p1.y} C${c1x},${c1y} ${c2x},${c2y} ${p2.x},${p2.y}`,
       fill:'none',stroke:t.style.color,'stroke-width':t.style.width,
       'stroke-dasharray':t.style.dash||'','marker-end':'url(#arr-'+e.type+')',opacity:'.9'});
     const title=el(SVGNS,'title'); title.textContent=(ltById.get(e.type)?ltById.get(e.type).label:e.type)+' — '+(e.note||'');
@@ -365,7 +390,7 @@ function buildNode(n, compact){
   if(n.niveau===0){ div.style.background='#1d2735'; }
   div.title=(state.mode==='novice'?n.novice:n.ingenieur)||'';
   const chev=document.createElementNS(XH,'span'); chev.setAttribute('class','chev');
-  chev.textContent = hasKids(n.id) ? (isCollapsed(n.id)?'▸':'▾') : '·';
+  chev.textContent = hasKids(n.id) ? (isCollapsed(n.id)?'○':'●') : '';   // ○ repliable · ● déplié
   const lbl=document.createElementNS(XH,'span'); lbl.setAttribute('class','lbl'); lbl.textContent=n.label;
   div.appendChild(chev); div.appendChild(lbl);
   if(n.incertain || n.note){ const b=document.createElementNS(XH,'span'); b.setAttribute('class','badge'); b.textContent='⚑'; div.appendChild(b); }
@@ -462,7 +487,7 @@ function renderTree(){
     row.style.marginLeft=(n.niveau*16)+'px';
     const dom=domById.get(n.domaine)||{couleur:'#888'}; row.style.borderLeftColor=dom.couleur;
     const chev=document.createElement('span'); chev.className='chev';
-    chev.textContent=hasKids(n.id)?(isCollapsed(n.id)?'▸':'▾'):'·';
+    chev.textContent=hasKids(n.id)?(isCollapsed(n.id)?'○':'●'):'';   // ○ repliable · ● déplié
     const lbl=document.createElement('span'); lbl.className='lbl'; lbl.textContent=n.label;
     const info=document.createElement('button'); info.className='info'; info.textContent='ⓘ';
     row.appendChild(chev); row.appendChild(lbl); row.appendChild(info);
@@ -533,18 +558,25 @@ function openDetail(id, anchorEl){
     body.appendChild(h);
   }
   state.bubbleRefW=vb.w;            // zoom de référence à l'ouverture (échelle = 1)
-  rerender();                       // ré-applique la surbrillance (.focus) sur l'élément choisi
+  detail.classList.toggle('panel', state.detailMode==='panel');
+  rerender();                       // ré-applique la surbrillance (.focus) + l'isolement des liens
   detail.classList.add('open');
+  positionDetail();
+}
+/* Positionne le détail selon le mode choisi (panneau = fixe à droite ; sinon bulle). */
+function positionDetail(){
+  if(state.detailMode==='panel'){ detail.style.transform=''; detail.style.visibility=''; detail.style.left=''; detail.style.top=''; return; }
   if(state.view==='tree') positionBubble(state.anchorEl); else syncBubble();
 }
-/* Ferme la bulle proprement (et réinitialise les styles inline). */
+/* Ferme le détail proprement (et réinitialise les styles inline). */
 function closeBubble(){ detail.classList.remove('open'); state.detailId=null;
-  detail.style.visibility=''; detail.style.transform=''; }
+  detail.style.visibility=''; detail.style.transform='';
+  if(state.isolate) rerender(); }   // ré-affiche tous les liens si l'isolement était actif
 
 /* Bulle ANCRÉE au nœud (graphe/radial) : suit le pan/zoom et grossit avec le zoom.
    Garantie : toujours ENTIÈREMENT dans la fenêtre (jamais de fantôme hors-écran). */
 function syncBubble(){
-  if(!state.detailId || !detail.classList.contains('open') || state.view==='tree') return;
+  if(!state.detailId || !detail.classList.contains('open') || state.view==='tree' || state.detailMode==='panel') return;
   const n=byId.get(state.detailId);
   if(!n || !visSet.has(n.id)){ closeBubble(); return; }   // ancre disparue (repli/filtre) → on ferme
   detail.style.visibility='visible';
@@ -721,10 +753,7 @@ function setView(v){ state.view=v;
   document.getElementById('graph').style.display = svgVis?'block':'none';
   document.getElementById('tree').style.display  = v==='tree'?'block':'none';
   if(svgVis){ state.fitted=false; } rerender();
-  if(detail.classList.contains('open')){               // ré-ancre la bulle selon la vue
-    if(v==='tree') positionBubble(state.anchorEl);
-    else { state.bubbleRefW=vb.w; syncBubble(); }
-  }
+  if(detail.classList.contains('open')){ state.bubbleRefW=vb.w; positionDetail(); }  // ré-ancre le détail selon la vue/mode
 }
 
 document.getElementById('modeNov').addEventListener('click',()=>setMode('novice'));
@@ -734,13 +763,32 @@ document.getElementById('viewRadial').addEventListener('click',()=>setView('radi
 document.getElementById('viewTree').addEventListener('click',()=>setView('tree'));
 document.getElementById('collapseAll').addEventListener('click',()=>{
   G.nodes.forEach(n=>{ if(hasKids(n.id)) state.collapsed.add(n.id); }); state.fitted=false; setFocus(null); rerender(); });
-document.getElementById('recenter').addEventListener('click',()=>{ if(state.view==='graph'){ layout(); fitView(); } });
+document.getElementById('expandAll').addEventListener('click',()=>{
+  state.collapsed.clear(); state.fitted=false; rerender(); });   // tout déplier
+document.getElementById('recenter').addEventListener('click',()=>{ state.fitted=false; if(state.view!=='tree'){ rerender(); } });
+// Repli du panneau latéral (desktop comme Claude) — sur mobile, le burger gère le tiroir.
+document.getElementById('sideToggle').addEventListener('click',e=>{
+  side.classList.toggle('collapsed'); e.currentTarget.classList.toggle('on',side.classList.contains('collapsed')); });
 document.getElementById('search').addEventListener('input',e=>runSearch(e.target.value));
 const burger=document.getElementById('burger'), side=document.getElementById('side'), backdrop=document.getElementById('backdrop');
 burger.addEventListener('click',()=>{ side.classList.toggle('open'); backdrop.classList.toggle('show',side.classList.contains('open')); });
 backdrop.addEventListener('click',()=>{ side.classList.remove('open'); backdrop.classList.remove('show'); closeBubble(); });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ closeBubble(); side.classList.remove('open'); backdrop.classList.remove('show'); } });
 window.addEventListener('resize',()=>{ /* la vue ne bascule pas d'elle-même : l'utilisateur choisit */ });
+
+// Réglage du détail : bulle ancrée ↔ panneau latéral fixe
+function setDetailMode(m){ state.detailMode=m;
+  document.getElementById('detBubble').classList.toggle('on',m==='bubble');
+  document.getElementById('detPanel').classList.toggle('on',m==='panel');
+  detail.classList.toggle('panel', m==='panel');
+  if(detail.classList.contains('open')){
+    detail.style.transform=''; detail.style.visibility=''; detail.style.left=''; detail.style.top='';
+    state.bubbleRefW=vb.w; positionDetail();
+  }
+}
+document.getElementById('detBubble').addEventListener('click',()=>setDetailMode('bubble'));
+document.getElementById('detPanel').addEventListener('click',()=>setDetailMode('panel'));
+document.getElementById('isolateChk').addEventListener('change',e=>{ state.isolate=e.target.checked; rerender(); });
 
 let toastT=null;
 function copy(txt){ const done=()=>showToast('Copié : '+txt);
