@@ -4,6 +4,27 @@ window.FRISE = {
   "genere_le": "2026-06-16T15:47:40.579Z",
   "commits": [
     {
+  "genere_le": "2026-06-16T15:48:06.172Z",
+  "commits": [
+    {
+      "hash": "29381a659699cab66004f5c119fc5e0d9e0af573",
+      "short": "29381a6",
+      "auteur": "Orangentleman",
+      "date": "2026-06-15T19:58:38+02:00",
+      "sujet": "Triage PWA : icône vectorielle dédiée + installation fiabilisée",
+      "corps": "- triage/icon.svg : icône 100% vectorielle (l'ancienne, un emoji dans un <text>\n  SVG, ne se rastérisait pas → logo blanc à l'installation)\n- manifest : icône in-scope (icon.svg) + start_url \"./\"\n- index.html : liens icon + apple-touch-icon (iOS)\n- sw.js v3 : shell in-scope (./icon.svg) + install résiliente (allSettled, un\n  404 ne casse plus l'enregistrement du SW → PWA installable)\n\nCo-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>",
+      "tag": "Triage PWA"
+    },
+    {
+      "hash": "297e2f391ff923a8ca78b2900f5a990b08d11e63",
+      "short": "297e2f3",
+      "auteur": "Orangentleman",
+      "date": "2026-06-15T19:50:42+02:00",
+      "sujet": "Triage mobile : afficher/filtrer selon l'état interne (pas le statut contributeur)",
+      "corps": "Le PC pousse aggregator_state mais pas toujours le statut « contributeur » :\nles propositions triées sur le PC restaient « en attente » côté mobile. La page\ncalcule désormais un statut EFFECTIF depuis aggregator_state.boxes (même\npriorité que pipeline.derive_local_status : integree>validee>rejetee>en_attente),\navec repli sur le statut contributeur. Pills/filtres/surbrillance s'alignent.\n\nCo-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>",
+      "tag": "Triage mobile"
+    },
+    {
       "hash": "bd8d60cc021f693a2f99fb34fa8907117b8134c1",
       "short": "bd8d60c",
       "auteur": "Orangentleman",
