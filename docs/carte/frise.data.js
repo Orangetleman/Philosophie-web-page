@@ -1,6 +1,9 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
+  "genere_le": "2026-06-16T15:47:40.579Z",
+  "commits": [
+    {
   "genere_le": "2026-06-16T15:48:06.172Z",
   "commits": [
     {
