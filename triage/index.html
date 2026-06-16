@@ -6,7 +6,8 @@
 <meta name="theme-color" content="#121212">
 <title>Triage — Propositions Philo</title>
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="icon" href="../icon.svg">
+<link rel="icon" href="icon.svg">
+<link rel="apple-touch-icon" href="icon.svg">
 <style>
 /* ───────────────────────────────────────────────────────────────────────
    Page de TRIAGE mobile des contributions (admin only).
@@ -70,9 +71,10 @@ code{background:var(--bg3);padding:2px 6px;border-radius:6px;font-size:12.5px;
 .statut-pill{font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;
   border:0.5px solid var(--bd);color:var(--tx2)}
 .statut-pill.en_attente{color:var(--warn);border-color:var(--warn)}
-.statut-pill.validee_en_cours{color:var(--info);border-color:var(--info)}
-.statut-pill.validee_integree{color:var(--ok);border-color:var(--ok)}
-.statut-pill.refusee{color:var(--bad);border-color:var(--bad)}
+.statut-pill.validee{color:var(--info);border-color:var(--info)}
+.statut-pill.integree{color:var(--ok);border-color:var(--ok)}
+.statut-pill.rejetee{color:var(--bad);border-color:var(--bad)}
+.statut-pill.archivee{color:var(--tx3);border-color:var(--tx3)}
 .box{background:var(--bg3);border-radius:10px;padding:9px 10px;margin:7px 0;font-size:13.5px}
 .box .tag{display:inline-block;font-size:11px;font-weight:600;color:var(--accent);
   border:0.5px solid var(--bd);border-radius:6px;padding:1px 6px;margin:0 5px 5px 0}
@@ -89,6 +91,7 @@ code{background:var(--bg3);padding:2px 6px;border-radius:6px;font-size:12.5px;
 .act.cur{outline:2px solid currentColor}
 .act.valider{color:var(--info)} .act.integrer{color:var(--ok)}
 .act.rejeter{color:var(--bad)} .act.attente{color:var(--warn)}
+.act.archiver{color:var(--tx2);grid-column:1/-1}
 .act:disabled{opacity:.5}
 .empty{text-align:center;color:var(--tx2);padding:40px 10px}
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);
@@ -154,11 +157,25 @@ const ACTIONS={
   valider:  {local:'validee',    remote:'validee_en_cours', label:'Valider',    cls:'valider'},
   integrer: {local:'integree',   remote:'validee_integree', label:'Intégrer',   cls:'integrer'},
   rejeter:  {local:'rejetee',    remote:'refusee',          label:'Rejeter',    cls:'rejeter'},
+  // Archiver = ranger (déjà traité, ne plus voir). N'a PAS de statut
+  // contributeur propre (remote:null → on garde le statut existant) ; seul
+  // l'état interne passe à « archivée », et les archivées sont masquées des
+  // onglets actifs (filtre « Archivées » pour les revoir).
+  archiver: {local:'archivee',   remote:null,               label:'Archiver',   cls:'archiver'},
 };
-const STATUT_LABELS={en_attente:'En attente',validee_en_cours:'Validée (en cours)',
-  validee_integree:'Intégrée',refusee:'Refusée'};
-const FILTERS=[['',  'Toutes'],['en_attente','En attente'],['validee_en_cours','Validées'],
-  ['validee_integree','Intégrées'],['refusee','Refusées']];
+// Libellés/filtres en vocabulaire LOCAL (la vérité du mainteneur). Le statut
+// « contributeur » (remote) n'est qu'une projection downstream, parfois en
+// retard (le PC pousse l'état interne mais pas toujours ce statut) : on
+// affiche donc l'état INTERNE.
+const STATUT_LABELS={en_attente:'En attente',validee:'Validée',integree:'Intégrée',
+  rejetee:'Rejetée',archivee:'Archivée'};
+const FILTERS=[['','Actives'],['en_attente','En attente'],['validee','Validées'],
+  ['integree','Intégrées'],['rejetee','Rejetées'],['archivee','Archivées']];
+// Même ordre de priorité que le PC (pipeline.derive_local_status) : on prend le
+// statut le plus « avancé » présent parmi les boîtes d'une contribution.
+// 'archivee' en dernier : une contribution n'est « archivée » que si TOUTES ses
+// boîtes le sont (rangement final).
+const STATUS_PRIORITY=['integree','validee','rejetee','en_attente','archivee'];
 
 let rows=[];            // contributions chargées
 let curFilter='';       // filtre statut courant
@@ -234,12 +251,26 @@ function setAdminWarn(kind,detail){
 function copyUid(){ navigator.clipboard?.writeText(myUid).then(()=>toast('UID copié')); }
 
 /* ── Filtres ───────────────────────────────────────────────────────────── */
+/* Statut EFFECTIF (vérité du mainteneur) : on lit l'état interne
+   (aggregator_state.boxes), qui reflète le tri fait sur le PC OU le mobile ;
+   à défaut (jamais trié / contribution legacy) on retombe sur le statut
+   « contributeur ». Même priorité que le PC (le plus avancé l'emporte). */
+function effLocal(r){
+  const st=r.aggregator_state;
+  if(st&&Array.isArray(st.boxes)&&st.boxes.length){
+    const present=new Set(st.boxes.map(b=>b.status));
+    for(const s of STATUS_PRIORITY) if(present.has(s)) return s;
+  }
+  return localFromRemote(r.statut)||'en_attente';
+}
+
 function renderFilters(){
   const f=document.getElementById('filters'); f.classList.remove('hidden');
-  // Compte par statut, pour afficher le nombre sur chaque filtre.
-  const counts={}; rows.forEach(r=>{counts[r.statut]=(counts[r.statut]||0)+1;});
+  // Compte par statut EFFECTIF, pour afficher le nombre sur chaque filtre.
+  const counts={}; rows.forEach(r=>{const s=effLocal(r);counts[s]=(counts[s]||0)+1;});
   f.innerHTML=FILTERS.map(([val,lab])=>{
-    const n=val?(counts[val]||0):rows.length;
+    // « Actives » (val vide) = tout sauf les archivées.
+    const n=val?(counts[val]||0):(rows.length-(counts['archivee']||0));
     return `<button class="chip${val===curFilter?' active':''}" onclick="setFilter('${val}')">${lab} (${n})</button>`;
   }).join('');
 }
@@ -248,7 +279,10 @@ function setFilter(v){ curFilter=v; renderFilters(); renderList(); }
 /* ── Liste des cartes ──────────────────────────────────────────────────── */
 function renderList(){
   const list=document.getElementById('list');
-  const items=rows.filter(r=>!curFilter||r.statut===curFilter);
+  // Filtre vide (« Actives ») = tout SAUF les archivées (rangées). Sinon, le
+  // statut effectif doit correspondre au filtre choisi.
+  const items=rows.filter(r=>{ const s=effLocal(r);
+    return curFilter ? s===curFilter : s!=='archivee'; });
   if(!items.length){ list.innerHTML='<div class="empty">Aucune proposition ici.</div>'; return; }
   list.innerHTML=items.map(cardHtml).join('');
 }
@@ -287,7 +321,7 @@ function cardHtml(r){
   const boxesHtml=boxes.length?boxes.map(boxSummary).join('')
     :'<div class="box muted small">(format ancien — voir le PC pour le détail)</div>';
   const ai=firstAiMessage(r);
-  const cur=localFromRemote(r.statut);  // pour surligner le bouton courant
+  const cur=effLocal(r);  // statut effectif (état interne) → surligne le bon bouton
   const actBtns=Object.entries(ACTIONS).map(([key,a])=>{
     const isCur=a.local===cur;
     return `<button class="act ${a.cls}${isCur?' cur':''}" onclick="triage('${r.id}','${key}')">${a.label}</button>`;
@@ -296,7 +330,7 @@ function cardHtml(r){
     <div class="card-head">
       <span class="who">${who}</span>
       <span class="tiny muted">${date}</span>
-      <span class="statut-pill ${r.statut}">${STATUT_LABELS[r.statut]||r.statut}</span>
+      <span class="statut-pill ${cur}">${STATUT_LABELS[cur]||cur}</span>
     </div>
     ${boxesHtml}
     ${ai?`<div class="ai">🤖 ${escapeHtml(ai)}</div>`:''}
@@ -325,13 +359,16 @@ async function triage(id,actionKey){
   // Construire l'état agrégateur (compatible synchro PC) : on repart de l'état
   // existant pour préserver notes/avis IA, sinon des boîtes du payload.
   const state=buildState(r,a.local,note);
+  // « Archiver » (remote:null) ne change PAS le statut contributeur : on renvoie
+  // le statut existant pour ne pas l'écraser (seul l'état interne passe à archivée).
+  const remote=(a.remote===null)?(r.statut||'en_attente'):a.remote;
   const {error}=await SB.rpc('admin_triage',{
-    p_id:id, p_statut:a.remote, p_explication:note, p_state:state
+    p_id:id, p_statut:remote, p_explication:note, p_state:state
   });
   disableCard(id,false);
   if(error){ toast('Échec : '+error.message); return; }
   // Mise à jour locale + re-rendu (sans recharger tout le réseau).
-  r.statut=a.remote; r.explication=note; r.aggregator_state=state;
+  r.statut=remote; r.explication=note; r.aggregator_state=state;
   renderFilters(); renderList();
   toast(a.label+' ✓');
 }

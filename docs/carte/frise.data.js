@@ -1,8 +1,17 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
-  "genere_le": "2026-06-16T15:47:40.579Z",
+  "genere_le": "2026-06-16T16:19:12.699Z",
   "commits": [
+    {
+      "hash": "7d522415a385256e65d0a65d5dc655e0662403d4",
+      "short": "7d52241",
+      "auteur": "Orangentleman",
+      "date": "2026-06-16T17:47:40+02:00",
+      "sujet": "Carte/frise UX : logos, navigation, indicateurs, flèches, modes détail, SEO",
+      "corps": "Lot A :\n- Logos (emblèmes SVG) sur la carte (graphe) et la frise (timeline).\n- Lien carte → frise (le retour manquait) ; bouton « Tout déplier » (à côté de Replier).\n- Indicateur de dépliage : cercle ○ (repliable) / ● (déplié) au lieu de la flèche, plus lisible.\n- Incohérence corrigée : sitemap.xml + robot.txt sortis de « PWA » vers un nouveau\n  domaine « Référencement (SEO) » (carte.data.js).\n\nLot B :\n- Repli du panneau latéral sur PC (bouton ⇤, classe .side.collapsed).\n- Flèches : poignées de Bézier alignées sur la vraie direction a→b → la flèche\n  arrive droit sur le nœud cible, quel que soit l'angle (fini le toujours-horizontal).\n\nLot C :\n- Réglage « Détails : 🫧 Bulle / 📑 Panneau » (panneau latéral fixe, sans zoom,\n  alternative fiable à la bulle). positionDetail() unifie l'ancrage.\n- Bulle : déjà clampée dans la fenêtre (corrigé précédemment) ; le mode panneau\n  contourne définitivement les soucis de zoom/position.\n- Option « N'afficher que les liens du nœud choisi » (isolement, buildFlux).\n\nCo-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>",
+      "tag": "Carte/frise UX"
+    },
     {
       "hash": "bd8d60cc021f693a2f99fb34fa8907117b8134c1",
       "short": "bd8d60c",
