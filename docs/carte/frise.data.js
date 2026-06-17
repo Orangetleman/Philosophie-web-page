@@ -1,8 +1,17 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
-  "genere_le": "2026-06-17T18:24:30.481Z",
+  "genere_le": "2026-06-17T18:24:47.396Z",
   "commits": [
+    {
+      "hash": "59fd3d7d214afc4ae3267b013e825bceb4e1fc2d",
+      "short": "59fd3d7",
+      "auteur": "Orangentleman",
+      "date": "2026-06-17T20:24:30+02:00",
+      "sujet": "Carte/frise : favicons dédiés + emblème de barre lisible",
+      "corps": "- Ajout de favicons SVG dédiés : docs/carte/icone-carte.svg (nœuds reliés) et\n  icone-frise.svg (timeline), liés via <link rel=\"icon\"> dans chaque page —\n  fini l'icône de document par défaut dans l'onglet.\n- Emblème de la barre de la carte refait : nœuds aux couleurs des domaines\n  (avant, 2 nœuds en couleur sombre étaient quasi invisibles sur fond sombre).\n\nCo-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>",
+      "tag": "Carte/frise"
+    },
     {
       "hash": "bbff75bcf3dde4ac1aa6ec97983ce37e62c298da",
       "short": "bbff75b",

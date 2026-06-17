@@ -523,15 +523,16 @@ def _page(status, verdict_filter, rows, flash=None):
         "<header>",
         "<h1>🧠 Curation des propositions — Graphe Philosophie</h1>",
         '<div class="bar">',
-        # Récupération : Supabase (comptes) puis boîte anonyme (PythonAnywhere).
+        # Récupération : les deux « Récupérer » côte à côte (Supabase comptes +
+        # boîte anonyme PythonAnywhere), puis la synchro cross-plateforme.
         f'<form method="post" action="/pull-cloud">'
         f'<button class="toolbtn" type="submit">☁ Récupérer (Supabase)</button></form>',
+        '<form method="post" action="/pull">'
+        '<button class="toolbtn" type="submit">⬇ Récupérer (anonyme)</button></form>',
         # Synchro cross-plateforme : récupère TOUT (états validés ailleurs inclus)
         # et arbitre local/cloud par horodatage (phase 6).
         f'<form method="post" action="/sync">'
         f'<button class="toolbtn" type="submit">🔄 Synchroniser (cloud)</button></form>',
-        '<form method="post" action="/pull">'
-        '<button class="toolbtn" type="submit">⬇ Récupérer (anonyme)</button></form>',
         # Relecture IA (par lot borné).
         f'<form method="post" action="/review">{keep}'
         f'<button class="toolbtn" type="submit">🤖 Relire (IA) — {REVIEW_BATCH} max</button></form>',
