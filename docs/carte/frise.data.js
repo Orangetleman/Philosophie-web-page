@@ -1,8 +1,17 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
-  "genere_le": "2026-06-17T18:11:06.125Z",
+  "genere_le": "2026-06-17T18:24:30.481Z",
   "commits": [
+    {
+      "hash": "bbff75bcf3dde4ac1aa6ec97983ce37e62c298da",
+      "short": "bbff75b",
+      "auteur": "Orangentleman",
+      "date": "2026-06-17T20:11:05+02:00",
+      "sujet": "Merge remote-tracking branch 'origin/main' into claude/carte-ux-batch",
+      "corps": "# Conflicts:\n#\tdocs/carte/frise.data.js",
+      "tag": ""
+    },
     {
       "hash": "b85d25b23603cc4772225aae6c126b87d23bcce0",
       "short": "b85d25b",
@@ -11,6 +20,24 @@ window.FRISE = {
       "sujet": "Carte : refonte de la bulle en élément SVG ancré (suit pan/zoom nativement)",
       "corps": "La bulle de détail (mode « bulle ») est désormais un <foreignObject> DANS le\ngraphe SVG, ancré au nœud : elle suit le pan et grossit avec le zoom sans aucun\ncalcul d'écran (fini les soucis de position/échelle). Contenu factorisé dans\nfillDetail() (partagé avec le panneau latéral et la bulle de la vue arbre).\ndrawSvgBubble() la dessine au-dessus des nœuds ; molette interceptée pour\ndéfiler dans la bulle sans zoomer le graphe ; ✕ ferme et re-rend (retrait).\nLe mode « Panneau » et la vue Arbre continuent d'utiliser #detail (HTML).\n\nCo-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>",
       "tag": "Carte"
+    },
+    {
+      "hash": "1cd3cd6acbb68eda9698e2e504e47ac94a715dff",
+      "short": "1cd3cd6",
+      "auteur": "Orangentleman",
+      "date": "2026-06-16T18:50:41+02:00",
+      "sujet": "Merge pull request #6 from Orangetleman/claude/carte-ux-batch",
+      "corps": "Carte/Frise — UX : logos, navigation, indicateurs ○/●, flèches, modes détail, SEO",
+      "tag": ""
+    },
+    {
+      "hash": "80d2f656981b1c318f331369b23abf6e411913f5",
+      "short": "80d2f65",
+      "auteur": "Orangentleman",
+      "date": "2026-06-16T18:50:22+02:00",
+      "sujet": "Merge branch 'main' into claude/carte-ux-batch",
+      "corps": "",
+      "tag": ""
     },
     {
       "hash": "281fc7d987aca7814c58e98d121127ddf1df8ce4",
