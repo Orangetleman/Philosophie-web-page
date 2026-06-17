@@ -1,8 +1,17 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
-  "genere_le": "2026-06-17T18:10:34.653Z",
+  "genere_le": "2026-06-17T18:11:06.125Z",
   "commits": [
+    {
+      "hash": "b85d25b23603cc4772225aae6c126b87d23bcce0",
+      "short": "b85d25b",
+      "auteur": "Orangentleman",
+      "date": "2026-06-17T20:10:34+02:00",
+      "sujet": "Carte : refonte de la bulle en élément SVG ancré (suit pan/zoom nativement)",
+      "corps": "La bulle de détail (mode « bulle ») est désormais un <foreignObject> DANS le\ngraphe SVG, ancré au nœud : elle suit le pan et grossit avec le zoom sans aucun\ncalcul d'écran (fini les soucis de position/échelle). Contenu factorisé dans\nfillDetail() (partagé avec le panneau latéral et la bulle de la vue arbre).\ndrawSvgBubble() la dessine au-dessus des nœuds ; molette interceptée pour\ndéfiler dans la bulle sans zoomer le graphe ; ✕ ferme et re-rend (retrait).\nLe mode « Panneau » et la vue Arbre continuent d'utiliser #detail (HTML).\n\nCo-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>",
+      "tag": "Carte"
+    },
     {
       "hash": "281fc7d987aca7814c58e98d121127ddf1df8ce4",
       "short": "281fc7d",
