@@ -125,6 +125,15 @@ svg.graph.grabbing{cursor:grabbing}
 .detail.panel{top:0;right:0;left:auto!important;bottom:0;width:360px;max-width:90vw;height:100%;
   max-height:none;border-radius:0;border-left:1px solid var(--bd2);transform:none!important}
 .detail.panel.open{transform:none!important}
+/* Bulle ANCRÉE dans le SVG (foreignObject) : suit pan/zoom, taille en unités SVG. */
+.svgbub{width:300px;height:336px;display:flex;flex-direction:column;background:var(--panel);
+  border:1px solid var(--bd2);border-radius:12px;box-shadow:0 14px 36px rgba(0,0,0,.55);overflow:hidden}
+.svgbub-head{display:flex;align-items:flex-start;gap:8px;padding:9px 11px;border-bottom:1px solid var(--bd);flex:0 0 auto}
+.svgbub-title{font-weight:700;font-size:15px;flex:1 1 auto;line-height:1.25}
+.svgbub-close{border:1px solid var(--bd2);background:var(--bg2);border-radius:7px;width:26px;height:26px;
+  flex:0 0 auto;color:var(--tx2);font-size:14px;cursor:pointer}
+.svgbub-close:hover{border-color:var(--accent);color:var(--tx)}
+.svgbub-body{padding:10px 12px;overflow-y:auto;flex:1 1 auto}
 .detail .dhead{position:sticky;top:0;background:var(--panel);padding:12px 14px;
   border-bottom:1px solid var(--bd);display:flex;align-items:flex-start;gap:8px}
 .detail .dhead h2{margin:0;font-size:16px;line-height:1.3;flex:1 1 auto}
@@ -416,6 +425,7 @@ function renderGraph(){
   }));
   buildFlux(gFlux);
   visList.forEach(n=>gNodes.appendChild(buildNode(n)));
+  if(state.detailMode==='bubble'&&state.detailId&&visSet.has(state.detailId)) drawSvgBubble(gNodes, byId.get(state.detailId));
   if(!state.fitted){ fitView(); state.fitted=true; }
 }
 
@@ -458,6 +468,7 @@ function renderRadial(){
   gTree.appendChild(el(SVGNS,'circle',{cx:0,cy:0,r:8,fill:'#5aa0e6',stroke:'#0c1220','stroke-width':'2.5'}));
   buildFlux(gFlux);
   visList.forEach(n=>gNodes.appendChild(buildNode(n,true)));
+  if(state.detailMode==='bubble'&&state.detailId&&visSet.has(state.detailId)) drawSvgBubble(gNodes, byId.get(state.detailId));
   if(!state.fitted){ fitView(); state.fitted=true; }
 }
 
@@ -509,24 +520,29 @@ const detail=document.getElementById('detail');
 function openDetail(id, anchorEl){
   const n=byId.get(id); if(!n) return;
   state.detailId=id; state.anchorEl=anchorEl||state.anchorEl||null; setFocus(id);
+  const usesSvg=(state.detailMode==='bubble' && state.view!=='tree');   // bulle = foreignObject DANS le SVG
   document.getElementById('dTitle').textContent=n.label;
-  const dom=domById.get(n.domaine)||{label:n.domaine,couleur:'#888'};
-  const body=document.getElementById('dBody');
+  fillDetail(document.getElementById('dBody'), n);   // contenu (panneau latéral / bulle d'arbre)
+  state.bubbleRefW=vb.w;
+  detail.classList.toggle('panel', state.detailMode==='panel');
+  rerender();                       // surbrillance + isolement (+ dessine la bulle SVG si applicable)
+  if(usesSvg){ detail.classList.remove('open'); }    // la bulle vit dans le SVG, pas dans #detail
+  else { detail.classList.add('open'); positionDetail(); }
+}
+/* Remplit un conteneur avec le détail d'un nœud — commun au #detail HTML et à la bulle SVG. */
+function fillDetail(body, n){
   body.innerHTML='';
-  // pastille domaine + niveau
+  const dom=domById.get(n.domaine)||{label:n.domaine,couleur:'#888'};
   const chip=document.createElement('div'); chip.className='dchip';
   chip.innerHTML='<span class="dot" style="width:9px;height:9px;border-radius:50%;display:inline-block;background:'+dom.couleur+'"></span>';
   chip.appendChild(document.createTextNode(' '+dom.label+' · niveau '+n.niveau));
   body.appendChild(chip);
-  // sections novice / ingénieur (ordre selon le mode, les deux toujours présentes)
   const secNov=mkSec('Découverte (sans jargon)',n.novice,'emph'+(state.mode==='novice'?'':' dim'));
   const secIng=mkSec('Technique',n.ingenieur,'emph'+(state.mode==='ingenieur'?'':' dim'));
   if(state.mode==='novice'){ body.appendChild(secNov); body.appendChild(secIng); }
   else { body.appendChild(secIng); body.appendChild(secNov); }
-  // alerte zone incertaine
   if(n.incertain || n.note){ const w=document.createElement('div'); w.className='warn';
     w.textContent='⚑ '+(n.note||'Zone signalée comme à vérifier.'); body.appendChild(w); }
-  // symboles
   if(n.symbols&&n.symbols.length){
     const h=document.createElement('div'); h.className='dsec';
     h.innerHTML='<div class="k">Symboles (fichier:ligne — clic pour copier)</div>';
@@ -540,7 +556,6 @@ function openDetail(id, anchorEl){
     });
     body.appendChild(h);
   }
-  // liens internes sortants
   const outs=(n.liens||[]);
   if(outs.length){
     const h=document.createElement('div'); h.className='dsec';
@@ -548,20 +563,29 @@ function openDetail(id, anchorEl){
     outs.forEach(l=>{ h.appendChild(mkLink(l.type,l.to,l.note)); });
     body.appendChild(h);
   }
-  // arêtes transverses entrantes/sortantes (flux)
-  const flux=allEdges.filter(e=>e.from===id||e.to===id);
+  const flux=allEdges.filter(e=>e.from===n.id||e.to===n.id);
   if(flux.length){
     const h=document.createElement('div'); h.className='dsec';
     h.innerHTML='<div class="k">Flux de données</div>';
-    flux.forEach(e=>{ const other=e.from===id?e.to:e.from; const dir=e.from===id?'→ ':'← ';
+    flux.forEach(e=>{ const other=e.from===n.id?e.to:e.from; const dir=e.from===n.id?'→ ':'← ';
       h.appendChild(mkLink(e.type, other, dir+(e.note||''))); });
     body.appendChild(h);
   }
-  state.bubbleRefW=vb.w;            // zoom de référence à l'ouverture (échelle = 1)
-  detail.classList.toggle('panel', state.detailMode==='panel');
-  rerender();                       // ré-applique la surbrillance (.focus) + l'isolement des liens
-  detail.classList.add('open');
-  positionDetail();
+}
+/* Bulle de détail ANCRÉE dans le SVG (suit pan/zoom et grossit avec le zoom, nativement). */
+function drawSvgBubble(group, n){
+  const fo=el(SVGNS,'foreignObject',{x:n._x+NODE_W+18, y:n._y-8, width:300, height:336});
+  const wrap=document.createElementNS(XH,'div'); wrap.setAttribute('class','svgbub');
+  const head=document.createElementNS(XH,'div'); head.setAttribute('class','svgbub-head');
+  const ttl=document.createElementNS(XH,'div'); ttl.setAttribute('class','svgbub-title'); ttl.textContent=n.label;
+  const cls=document.createElementNS(XH,'button'); cls.setAttribute('class','svgbub-close'); cls.textContent='✕';
+  cls.addEventListener('click',ev=>{ ev.stopPropagation(); closeBubble(); });
+  head.appendChild(ttl); head.appendChild(cls);
+  const bod=document.createElementNS(XH,'div'); bod.setAttribute('class','svgbub-body');
+  fillDetail(bod, n);
+  wrap.appendChild(head); wrap.appendChild(bod);
+  wrap.addEventListener('wheel',ev=>ev.stopPropagation());   // défiler DANS la bulle sans zoomer le graphe
+  fo.appendChild(wrap); group.appendChild(fo);
 }
 /* Positionne le détail selon le mode choisi (panneau = fixe à droite ; sinon bulle). */
 function positionDetail(){
@@ -571,7 +595,7 @@ function positionDetail(){
 /* Ferme le détail proprement (et réinitialise les styles inline). */
 function closeBubble(){ detail.classList.remove('open'); state.detailId=null;
   detail.style.visibility=''; detail.style.transform='';
-  if(state.isolate) rerender(); }   // ré-affiche tous les liens si l'isolement était actif
+  rerender(); }   // retire la bulle SVG ; ré-affiche tous les liens si l'isolement était actif
 
 /* Bulle ANCRÉE au nœud (graphe/radial) : suit le pan/zoom et grossit avec le zoom.
    Garantie : toujours ENTIÈREMENT dans la fenêtre (jamais de fantôme hors-écran). */
@@ -753,7 +777,7 @@ function setView(v){ state.view=v;
   document.getElementById('graph').style.display = svgVis?'block':'none';
   document.getElementById('tree').style.display  = v==='tree'?'block':'none';
   if(svgVis){ state.fitted=false; } rerender();
-  if(detail.classList.contains('open')){ state.bubbleRefW=vb.w; positionDetail(); }  // ré-ancre le détail selon la vue/mode
+  if(state.detailId){ openDetail(state.detailId); }   // ré-affiche le détail selon la nouvelle vue (bulle SVG ↔ HTML)
 }
 
 document.getElementById('modeNov').addEventListener('click',()=>setMode('novice'));
@@ -781,10 +805,9 @@ function setDetailMode(m){ state.detailMode=m;
   document.getElementById('detBubble').classList.toggle('on',m==='bubble');
   document.getElementById('detPanel').classList.toggle('on',m==='panel');
   detail.classList.toggle('panel', m==='panel');
-  if(detail.classList.contains('open')){
-    detail.style.transform=''; detail.style.visibility=''; detail.style.left=''; detail.style.top='';
-    state.bubbleRefW=vb.w; positionDetail();
-  }
+  detail.style.transform=''; detail.style.visibility=''; detail.style.left=''; detail.style.top='';
+  if(state.detailId) openDetail(state.detailId);   // ré-applique le bon affichage (bulle SVG ↔ panneau)
+  else rerender();
 }
 document.getElementById('detBubble').addEventListener('click',()=>setDetailMode('bubble'));
 document.getElementById('detPanel').addEventListener('click',()=>setDetailMode('panel'));

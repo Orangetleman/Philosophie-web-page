@@ -1,8 +1,26 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
-  "genere_le": "2026-06-16T16:19:12.699Z",
+  "genere_le": "2026-06-17T18:10:34.653Z",
   "commits": [
+    {
+      "hash": "281fc7d987aca7814c58e98d121127ddf1df8ce4",
+      "short": "281fc7d",
+      "auteur": "Orangentleman",
+      "date": "2026-06-16T18:19:12+02:00",
+      "sujet": "Merge remote-tracking branch 'origin/main' into claude/carte-ux-batch",
+      "corps": "# Conflicts:\n#\tdocs/carte/frise.data.js",
+      "tag": ""
+    },
+    {
+      "hash": "1c8787728ef05f2974dc2dbe4a28cb095de8ba41",
+      "short": "1c87877",
+      "auteur": "Orangentleman",
+      "date": "2026-06-16T17:48:05+02:00",
+      "sujet": "Triage mobile : action « Archiver » (ranger une proposition hors des onglets actifs)",
+      "corps": "5e action Archiver : passe l'état interne des boîtes à « archivée » sans toucher\nau statut contributeur (remote:null → on renvoie le statut existant). Les\narchivées sont masquées du filtre « Actives » (ex-« Toutes ») et regroupées dans\nun nouveau filtre « Archivées ». effLocal/priorité gèrent le statut effectif.\n\nCo-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>",
+      "tag": "Triage mobile"
+    },
     {
       "hash": "7d522415a385256e65d0a65d5dc655e0662403d4",
       "short": "7d52241",
@@ -11,6 +29,24 @@ window.FRISE = {
       "sujet": "Carte/frise UX : logos, navigation, indicateurs, flèches, modes détail, SEO",
       "corps": "Lot A :\n- Logos (emblèmes SVG) sur la carte (graphe) et la frise (timeline).\n- Lien carte → frise (le retour manquait) ; bouton « Tout déplier » (à côté de Replier).\n- Indicateur de dépliage : cercle ○ (repliable) / ● (déplié) au lieu de la flèche, plus lisible.\n- Incohérence corrigée : sitemap.xml + robot.txt sortis de « PWA » vers un nouveau\n  domaine « Référencement (SEO) » (carte.data.js).\n\nLot B :\n- Repli du panneau latéral sur PC (bouton ⇤, classe .side.collapsed).\n- Flèches : poignées de Bézier alignées sur la vraie direction a→b → la flèche\n  arrive droit sur le nœud cible, quel que soit l'angle (fini le toujours-horizontal).\n\nLot C :\n- Réglage « Détails : 🫧 Bulle / 📑 Panneau » (panneau latéral fixe, sans zoom,\n  alternative fiable à la bulle). positionDetail() unifie l'ancrage.\n- Bulle : déjà clampée dans la fenêtre (corrigé précédemment) ; le mode panneau\n  contourne définitivement les soucis de zoom/position.\n- Option « N'afficher que les liens du nœud choisi » (isolement, buildFlux).\n\nCo-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>",
       "tag": "Carte/frise UX"
+    },
+    {
+      "hash": "29381a659699cab66004f5c119fc5e0d9e0af573",
+      "short": "29381a6",
+      "auteur": "Orangentleman",
+      "date": "2026-06-15T19:58:38+02:00",
+      "sujet": "Triage PWA : icône vectorielle dédiée + installation fiabilisée",
+      "corps": "- triage/icon.svg : icône 100% vectorielle (l'ancienne, un emoji dans un <text>\n  SVG, ne se rastérisait pas → logo blanc à l'installation)\n- manifest : icône in-scope (icon.svg) + start_url \"./\"\n- index.html : liens icon + apple-touch-icon (iOS)\n- sw.js v3 : shell in-scope (./icon.svg) + install résiliente (allSettled, un\n  404 ne casse plus l'enregistrement du SW → PWA installable)\n\nCo-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>",
+      "tag": "Triage PWA"
+    },
+    {
+      "hash": "297e2f391ff923a8ca78b2900f5a990b08d11e63",
+      "short": "297e2f3",
+      "auteur": "Orangentleman",
+      "date": "2026-06-15T19:50:42+02:00",
+      "sujet": "Triage mobile : afficher/filtrer selon l'état interne (pas le statut contributeur)",
+      "corps": "Le PC pousse aggregator_state mais pas toujours le statut « contributeur » :\nles propositions triées sur le PC restaient « en attente » côté mobile. La page\ncalcule désormais un statut EFFECTIF depuis aggregator_state.boxes (même\npriorité que pipeline.derive_local_status : integree>validee>rejetee>en_attente),\navec repli sur le statut contributeur. Pills/filtres/surbrillance s'alignent.\n\nCo-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>",
+      "tag": "Triage mobile"
     },
     {
       "hash": "bd8d60cc021f693a2f99fb34fa8907117b8134c1",
