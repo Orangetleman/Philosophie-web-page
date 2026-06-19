@@ -1,8 +1,17 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
-  "genere_le": "2026-06-19T14:37:17.893Z",
+  "genere_le": "2026-06-19T14:49:12.855Z",
   "commits": [
+    {
+      "hash": "eec42eea5283758aa64799a355ca0650d16fa4f1",
+      "short": "eec42ee",
+      "auteur": "Orangentleman",
+      "date": "2026-06-19T16:37:17+02:00",
+      "sujet": "Filtre Catégorie → cible (cascade) sur le dashboard ET le triage en ligne",
+      "corps": "Calqué sur le formulaire de proposition (Catégorie : notion/auteur/concept/site\n→ cible : texte, plan, citation, dialogue, bug, fonctionnalité…).\n\n- db.py : mapping CIBLE_CAT / cible_cat() + CATEGORIES\n- dashboard.py : rangées de filtres Catégorie + Cible (cascade), filtrage des\n  boîtes, préservation des filtres (centralisée dans _redirect_back + champs\n  cachés des cartes/barre d'outils)\n- triage/index.html : rangées Catégorie + Cible (cascade), une contribution\n  matche si une de ses boîtes correspond (box.categorie, repli sur la cible)\n- triage/sw.js v5\n\nCo-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>",
+      "tag": ""
+    },
     {
       "hash": "d7b55667fc653fdcb883b240a052f71cf700e5bc",
       "short": "d7b5566",

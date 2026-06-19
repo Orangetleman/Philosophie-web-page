@@ -5,9 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#121212">
 <title>Triage — Propositions Philo</title>
-<link rel="manifest" href="manifest.webmanifest">
-<link rel="icon" href="icon.svg">
-<link rel="apple-touch-icon" href="icon.svg">
+<!-- Chemins ABSOLUS (/triage/…) : l'URL peut être « /triage » SANS slash final
+     (Vercel) ; un chemin relatif s'y résoudrait alors vers la racine du site
+     (/icon.svg, /manifest.webmanifest, /sw.js) → mauvaise icône, manifeste 404,
+     mauvais service worker. L'absolu est robuste avec ou sans slash. -->
+<link rel="manifest" href="/triage/manifest.webmanifest">
+<link rel="icon" href="/triage/icon.svg">
+<link rel="apple-touch-icon" href="/triage/icon.svg">
 <style>
 /* ───────────────────────────────────────────────────────────────────────
    Page de TRIAGE mobile des contributions (admin only).
@@ -461,7 +465,10 @@ function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg
 
 /* ── PWA : enregistre le service worker (installable sur le téléphone) ──── */
 if('serviceWorker' in navigator){
-  window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+  // Chemin ABSOLU : à l'URL « /triage » (sans slash), 'sw.js' s'enregistrerait
+  // comme /sw.js (le SW principal !) au lieu de /triage/sw.js. scope explicite.
+  window.addEventListener('load',()=>navigator.serviceWorker
+    .register('/triage/sw.js',{scope:'/triage/'}).catch(()=>{}));
 }
 </script>
 </body>
