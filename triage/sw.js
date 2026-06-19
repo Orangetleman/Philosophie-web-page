@@ -9,7 +9,7 @@
 //
 // À chaque modif de cette coquille, incrémenter la version.
 
-const CACHE = 'triage-v4';
+const CACHE = 'triage-v5';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {

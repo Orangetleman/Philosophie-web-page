@@ -293,34 +293,72 @@ STATUS_FILTERS = [
 ]
 
 
-def _filter_links(current_status, current_verdict):
+# Catégorie (niveau 1, calqué sur le formulaire de proposition).
+CAT_FILTERS = [("all", "Toutes"), ("notion", "Notion"), ("auteur", "Auteur"),
+               ("concept", "Concept"), ("site", "Site")]
+# Cibles par catégorie (niveau 2, cascade) + libellés courts pour les chips.
+CIBLES_BY_CAT = {
+    "notion":  ["notion", "texte", "plan", "dissertation", "exemple", "accroche"],
+    "auteur":  ["auteur", "auteur-citation", "auteur-dialogue", "auteur-bio"],
+    "concept": ["concept", "concept-relation"],
+    "site":    ["site-bug", "site-fonction"],
+}
+CIBLE_CHIP_LABELS = {
+    "notion": "Définition", "texte": "Texte", "plan": "Plan",
+    "dissertation": "Sujet", "exemple": "Exemple", "accroche": "Accroche",
+    "auteur": "Idée/œuvre", "auteur-citation": "Citation",
+    "auteur-dialogue": "Dialogue", "auteur-bio": "Bio",
+    "concept": "Définition", "concept-relation": "Relation",
+    "site-bug": "Bug", "site-fonction": "Fonctionnalité",
+}
+
+
+def _filter_links(status, verdict, cat, cible):
     """
-    Barre de filtres en DEUX groupes (Statut / Verdict IA), chacun une rangée
-    de « chips » cliquables (sélection unique par groupe). Le chip actif porte
-    la classe « on ». Chaque lien conserve l'autre filtre courant.
+    Barre de filtres : Statut / Verdict IA / Catégorie, plus une rangée « cible »
+    en CASCADE (n'apparaît que si une catégorie précise est choisie — calqué sur
+    le menu à 2 niveaux du formulaire de proposition). Chaque chip conserve les
+    autres filtres courants. Le chip actif porte la classe « on ».
     """
-    def chips(items, param, current, other_param, other_val):
+    import urllib.parse
+    cur = {"status": status, "verdict": verdict, "cat": cat, "cible": cible}
+
+    def chips(items, param, current, **override):
         out = []
         for key, label in items:
+            q = dict(cur); q[param] = key; q.update(override)
             cls = "chip on" if key == current else "chip"
-            out.append(f'<a class="{cls}" '
-                       f'href="/?{param}={key}&{other_param}={other_val}">{esc(label)}</a>')
+            out.append(f'<a class="{cls}" href="/?{urllib.parse.urlencode(q)}">'
+                       f'{esc(label)}</a>')
         return "".join(out)
-    return (
-        '<div class="filters">'
+
+    rows = [
         '<div class="filt-row"><span class="filt-lbl">Statut</span>'
-        + chips(STATUS_FILTERS, "status", current_status, "verdict", current_verdict)
-        + '</div>'
+        + chips(STATUS_FILTERS, "status", status) + '</div>',
         '<div class="filt-row"><span class="filt-lbl">Verdict IA</span>'
-        + chips([(k, l.capitalize()) for k, l in VERDICT_FILTERS],
-                "verdict", current_verdict, "status", current_status)
-        + '</div>'
-        '</div>'
-    )
+        + chips([(k, l.capitalize()) for k, l in VERDICT_FILTERS], "verdict", verdict)
+        + '</div>',
+        # Changer de catégorie réinitialise la cible (override cible="all").
+        '<div class="filt-row"><span class="filt-lbl">Catégorie</span>'
+        + chips(CAT_FILTERS, "cat", cat, cible="all") + '</div>',
+    ]
+    # Rangée « cible » en cascade : seulement si une catégorie précise est active.
+    if cat in CIBLES_BY_CAT:
+        items = [("all", "Toutes")] + [
+            (c, CIBLE_CHIP_LABELS.get(c, c)) for c in CIBLES_BY_CAT[cat]]
+        rows.append('<div class="filt-row"><span class="filt-lbl">Cible</span>'
+                    + chips(items, "cible", cible) + '</div>')
+    return '<div class="filters">' + "".join(rows) + '</div>'
 
 
-def _card(row, status, verdict_filter):
+def _card(row, status, verdict_filter, cat="all", cible="all"):
     """Rend une boîte sous forme de carte HTML (infos + actions)."""
+    # Champs cachés communs aux formulaires de la carte : préservent TOUS les
+    # filtres courants (statut, verdict, catégorie, cible) après une action.
+    keep_filters = (f'<input type="hidden" name="status" value="{esc(status)}">'
+                    f'<input type="hidden" name="verdict" value="{esc(verdict_filter)}">'
+                    f'<input type="hidden" name="cat" value="{esc(cat)}">'
+                    f'<input type="hidden" name="cible" value="{esc(cible)}">')
     bid = row["id"]
     type_lbl = TYPE_LABELS.get(row["type"], row["type"])
     cible_lbl = CIBLE_LABELS.get(row["cible"], row["cible"])
@@ -381,8 +419,7 @@ def _card(row, status, verdict_filter):
     # statut/verdict courants en champs cachés pour revenir au même filtre.
     parts.append('<form class="actions" method="post" action="/action">')
     parts.append(f'<input type="hidden" name="id" value="{bid}">')
-    parts.append(f'<input type="hidden" name="status" value="{esc(status)}">')
-    parts.append(f'<input type="hidden" name="verdict" value="{esc(verdict_filter)}">')
+    parts.append(keep_filters)
     # On masque le bouton correspondant au statut actuel (inutile).
     if row["status"] != "validee":
         parts.append('<button class="b-val" name="to" value="validee">✓ Valider</button>')
@@ -410,8 +447,7 @@ def _card(row, status, verdict_filter):
     # Formulaire de note (pose / remplace la note libre).
     parts.append('<form class="noteform" method="post" action="/note">')
     parts.append(f'<input type="hidden" name="id" value="{bid}">')
-    parts.append(f'<input type="hidden" name="status" value="{esc(status)}">')
-    parts.append(f'<input type="hidden" name="verdict" value="{esc(verdict_filter)}">')
+    parts.append(keep_filters)
     parts.append(f'<input name="note" placeholder="Ajouter une note…" '
                  f'value="{esc(row["note"] or "")}">')
     parts.append('<button class="toolbtn" type="submit">Noter</button>')
@@ -503,12 +539,14 @@ PROGRESS_JS = """
 """
 
 
-def _page(status, verdict_filter, rows, flash=None):
+def _page(status, verdict_filter, cat, cible, rows, flash=None):
     """Assemble la page HTML complète."""
-    # Champs cachés (statut/verdict courants) communs aux formulaires de la
-    # barre d'outils : ils permettent de revenir au même filtre après l'action.
+    # Champs cachés (filtres courants) communs aux formulaires de la barre
+    # d'outils : ils permettent de revenir au même filtre après l'action.
     keep = (f'<input type="hidden" name="status" value="{esc(status)}">'
-            f'<input type="hidden" name="verdict" value="{esc(verdict_filter)}">')
+            f'<input type="hidden" name="verdict" value="{esc(verdict_filter)}">'
+            f'<input type="hidden" name="cat" value="{esc(cat)}">'
+            f'<input type="hidden" name="cible" value="{esc(cible)}">')
     # En-tête + barre d'outils (cockpit : toutes les commandes) + stats + filtres.
     head = [
         "<!doctype html><html lang='fr'><head><meta charset='utf-8'>",
@@ -549,7 +587,7 @@ def _page(status, verdict_filter, rows, flash=None):
         f'<button class="toolbtn danger" type="submit">🗑 Purger archivées</button></form>',
         '</div>',
         _stats_panel(),
-        _filter_links(status, verdict_filter),
+        _filter_links(status, verdict_filter, cat, cible),
         "</header>",
     ]
     # Barre de progression de la relecture IA. Cachée par défaut ; le script
@@ -581,7 +619,7 @@ def _page(status, verdict_filter, rows, flash=None):
                 f'— triées des plus récentes aux plus anciennes.</p>')
     head.append('<div class="proplist">')
     for r in rows_sorted:
-        head.append(_card(r, status, verdict_filter))
+        head.append(_card(r, status, verdict_filter, cat, cible))
     head.append('</div>')
 
     head.append("</main>" + PROGRESS_JS + "</body></html>")
@@ -593,7 +631,12 @@ def _page(status, verdict_filter, rows, flash=None):
 def _redirect_back(status, verdict_filter, msg=None):
     """Redirige vers la liste en conservant les filtres (motif PRG)."""
     import urllib.parse
-    q = {"status": status, "verdict": verdict_filter}
+    # cat/cible (filtrage Catégorie→cible) : lus directement de la requête
+    # (POST puis GET) pour les préserver sans avoir à les threader dans les
+    # ~18 appels à cette fonction.
+    cat = request.form.get("cat") or request.args.get("cat", "all")
+    cible = request.form.get("cible") or request.args.get("cible", "all")
+    q = {"status": status, "verdict": verdict_filter, "cat": cat, "cible": cible}
     if msg:
         q["msg"] = msg
     return redirect("/?" + urllib.parse.urlencode(q))
@@ -618,6 +661,8 @@ def index():
     """Page principale : liste filtrée des propositions."""
     status = request.args.get("status", "en_attente")
     verdict_filter = request.args.get("verdict", "all")
+    cat = request.args.get("cat", "all")
+    cible = request.args.get("cible", "all")
     flash = request.args.get("msg")
 
     # Statut : 'all' → pas de filtre SQL.
@@ -631,7 +676,13 @@ def index():
     elif verdict_filter in ("valide", "douteux", "rejet"):
         rows = [r for r in rows if r["ai_verdict"] == verdict_filter]
 
-    return _page(status, verdict_filter, rows, flash=flash)
+    # Filtre Catégorie → cible (cascade), calqué sur le formulaire de proposition.
+    if cat != "all":
+        rows = [r for r in rows if db.cible_cat(r["cible"]) == cat]
+    if cible != "all":
+        rows = [r for r in rows if r["cible"] == cible]
+
+    return _page(status, verdict_filter, cat, cible, rows, flash=flash)
 
 
 @app.route("/action", methods=["POST"])

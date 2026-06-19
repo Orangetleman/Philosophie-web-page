@@ -56,6 +56,24 @@ CIBLES = (
 # cf. get_unreviewed_boxes et review.py.
 SITE_CIBLES = ("site-bug", "site-fonction")
 
+# Catégorie (niveau 1 du menu de proposition du site) déduite de la cible
+# (niveau 2). Sert au FILTRAGE groupé du dashboard et du triage mobile, calqué
+# sur le formulaire de proposition (Catégorie → cible).
+CATEGORIES = ("notion", "auteur", "concept", "site")
+CIBLE_CAT = {
+    "notion": "notion", "texte": "notion", "plan": "notion", "axe": "notion",
+    "exemple": "notion", "accroche": "notion", "dissertation": "notion",
+    "auteur": "auteur", "auteur-citation": "auteur",
+    "auteur-dialogue": "auteur", "auteur-bio": "auteur",
+    "concept": "concept", "concept-relation": "concept",
+    "site-bug": "site", "site-fonction": "site",
+}
+
+
+def cible_cat(cible):
+    """Catégorie (niveau 1) d'une cible, ou 'notion' par défaut (rétro-compat)."""
+    return CIBLE_CAT.get(cible, "notion")
+
 # Les trois types de boîte.
 TYPES = ("ajout", "correction", "remarque")
 

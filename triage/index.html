@@ -58,7 +58,8 @@ code{background:var(--bg3);padding:2px 6px;border-radius:6px;font-size:12.5px;
 .status.err{color:var(--bad)} .status.ok{color:var(--ok)}
 
 /* ── Barre de filtres ── */
-.filters{display:flex;gap:6px;overflow-x:auto;padding:10px 0 4px;-webkit-overflow-scrolling:touch}
+.filters{display:flex;flex-direction:column;gap:6px;padding:8px 0 4px}
+.filter-row{display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:2px}
 .chip{flex-shrink:0;border:0.5px solid var(--bd);background:var(--bg2);color:var(--tx2);
   border-radius:999px;padding:6px 12px;font-size:13px;white-space:nowrap}
 .chip.active{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
@@ -177,6 +178,22 @@ const FILTERS=[['','Actives'],['en_attente','En attente'],['validee','Validées'
 // boîtes le sont (rangement final).
 const STATUS_PRIORITY=['integree','validee','rejetee','en_attente','archivee'];
 
+// Filtrage Catégorie → cible (cascade), calqué sur le formulaire de proposition.
+// Une contribution « matche » si AU MOINS une de ses boîtes correspond.
+const CIBLE_CAT={notion:'notion',texte:'notion',plan:'notion',axe:'notion',
+  exemple:'notion',accroche:'notion',dissertation:'notion',
+  auteur:'auteur','auteur-citation':'auteur','auteur-dialogue':'auteur','auteur-bio':'auteur',
+  concept:'concept','concept-relation':'concept','site-bug':'site','site-fonction':'site'};
+const CAT_FILTERS=[['all','Toutes'],['notion','Notion'],['auteur','Auteur'],['concept','Concept'],['site','Site']];
+const CIBLES_BY_CAT={notion:['notion','texte','plan','dissertation','exemple','accroche'],
+  auteur:['auteur','auteur-citation','auteur-dialogue','auteur-bio'],
+  concept:['concept','concept-relation'],site:['site-bug','site-fonction']};
+const CIBLE_CHIP={notion:'Définition',texte:'Texte',plan:'Plan',dissertation:'Sujet',
+  exemple:'Exemple',accroche:'Accroche',auteur:'Idée/œuvre','auteur-citation':'Citation',
+  'auteur-dialogue':'Dialogue','auteur-bio':'Bio',concept:'Définition',
+  'concept-relation':'Relation','site-bug':'Bug','site-fonction':'Fonctionnalité'};
+let catFilter='all', cibleFilter='all';
+
 let rows=[];            // contributions chargées
 let curFilter='';       // filtre statut courant
 let myUid=null;         // UID du compte connecté (pour le bootstrap admin)
@@ -264,25 +281,49 @@ function effLocal(r){
   return localFromRemote(r.statut)||'en_attente';
 }
 
+function chip(active,onclick,label){
+  return `<button class="chip${active?' active':''}" onclick="${onclick}">${label}</button>`;
+}
+/* Une contribution matche-t-elle la catégorie/cible courantes ? (au moins une
+   boîte correspond). box.categorie existe en v3 ; sinon on déduit de la cible. */
+function matchesCatCible(r){
+  if(catFilter==='all'&&cibleFilter==='all') return true;
+  const boxes=(r.payload&&Array.isArray(r.payload.boxes))?r.payload.boxes:[];
+  if(catFilter!=='all' && !boxes.some(b=>(b.categorie||CIBLE_CAT[b.cible]||'notion')===catFilter)) return false;
+  if(cibleFilter!=='all' && !boxes.some(b=>b.cible===cibleFilter)) return false;
+  return true;
+}
+/* Matche-t-elle le filtre de statut courant ? (« Actives » = tout sauf archivées) */
+function matchesStatus(r){ const s=effLocal(r); return curFilter ? s===curFilter : s!=='archivee'; }
+
 function renderFilters(){
   const f=document.getElementById('filters'); f.classList.remove('hidden');
-  // Compte par statut EFFECTIF, pour afficher le nombre sur chaque filtre.
-  const counts={}; rows.forEach(r=>{const s=effLocal(r);counts[s]=(counts[s]||0)+1;});
-  f.innerHTML=FILTERS.map(([val,lab])=>{
-    // « Actives » (val vide) = tout sauf les archivées.
-    const n=val?(counts[val]||0):(rows.length-(counts['archivee']||0));
-    return `<button class="chip${val===curFilter?' active':''}" onclick="setFilter('${val}')">${lab} (${n})</button>`;
+  // Statut : compté parmi les contributions qui matchent la catégorie/cible.
+  const sRows=rows.filter(matchesCatCible);
+  const counts={}; sRows.forEach(r=>{const s=effLocal(r);counts[s]=(counts[s]||0)+1;});
+  const statusRow=FILTERS.map(([val,lab])=>{
+    const n=val?(counts[val]||0):(sRows.length-(counts['archivee']||0));
+    return chip(val===curFilter,`setFilter('${val}')`,`${lab} (${n})`);
   }).join('');
+  const catRow=CAT_FILTERS.map(([val,lab])=>chip(val===catFilter,`setCat('${val}')`,lab)).join('');
+  let html=`<div class="filter-row">${statusRow}</div><div class="filter-row">${catRow}</div>`;
+  // Rangée « cible » en cascade : seulement si une catégorie précise est choisie.
+  if(CIBLES_BY_CAT[catFilter]){
+    const items=[['all','Toutes']].concat(CIBLES_BY_CAT[catFilter].map(c=>[c,CIBLE_CHIP[c]||c]));
+    html+=`<div class="filter-row">${items.map(([val,lab])=>chip(val===cibleFilter,`setCible('${val}')`,lab)).join('')}</div>`;
+  }
+  f.innerHTML=html;
 }
 function setFilter(v){ curFilter=v; renderFilters(); renderList(); }
+function setCat(v){ catFilter=v; cibleFilter='all'; renderFilters(); renderList(); }  // changer cat réinitialise cible
+function setCible(v){ cibleFilter=v; renderFilters(); renderList(); }
 
 /* ── Liste des cartes ──────────────────────────────────────────────────── */
 function renderList(){
   const list=document.getElementById('list');
-  // Filtre vide (« Actives ») = tout SAUF les archivées (rangées). Sinon, le
-  // statut effectif doit correspondre au filtre choisi.
-  const items=rows.filter(r=>{ const s=effLocal(r);
-    return curFilter ? s===curFilter : s!=='archivee'; });
+  // Combine le filtre de statut (« Actives » = tout sauf archivées) ET le
+  // filtre Catégorie→cible.
+  const items=rows.filter(r=>matchesStatus(r)&&matchesCatCible(r));
   if(!items.length){ list.innerHTML='<div class="empty">Aucune proposition ici.</div>'; return; }
   list.innerHTML=items.map(cardHtml).join('');
 }

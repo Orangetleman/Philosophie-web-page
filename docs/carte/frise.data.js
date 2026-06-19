@@ -1,8 +1,17 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
-  "genere_le": "2026-06-19T13:54:56.436Z",
+  "genere_le": "2026-06-19T14:37:17.893Z",
   "commits": [
+    {
+      "hash": "d7b55667fc653fdcb883b240a052f71cf700e5bc",
+      "short": "d7b5566",
+      "auteur": "Orangentleman",
+      "date": "2026-06-19T15:54:56+02:00",
+      "sujet": "PWA triage : appli séparée (SW principal ignore /triage/, manifest id distinct)",
+      "corps": "- sw.js (v58) : le service worker principal (scope /) n'intercepte plus /triage/\n  → l'appli de triage possède entièrement sa portée (bonne icône, install séparée)\n- triage/manifest.webmanifest : id \"/triage/\" → identité d'appli distincte\n\nCo-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>",
+      "tag": "PWA triage"
+    },
     {
       "hash": "44913fdd0223619684c6737a1a5d32f82c82b83b",
       "short": "44913fd",
