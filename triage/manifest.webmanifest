@@ -1,4 +1,5 @@
 {
+  "id": "/triage/",
   "name": "Triage — Propositions Philo",
   "short_name": "Triage",
   "description": "Trier les propositions de contribution depuis le téléphone (admin).",

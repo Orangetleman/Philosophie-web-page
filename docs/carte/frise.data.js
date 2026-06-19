@@ -1,8 +1,17 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
-  "genere_le": "2026-06-17T18:24:47.396Z",
+  "genere_le": "2026-06-19T13:54:56.436Z",
   "commits": [
+    {
+      "hash": "44913fdd0223619684c6737a1a5d32f82c82b83b",
+      "short": "44913fd",
+      "auteur": "Orangentleman",
+      "date": "2026-06-17T20:24:47+02:00",
+      "sujet": "Merge remote-tracking branch 'origin/main' into claude/carte-ux-batch",
+      "corps": "# Conflicts:\n#\tdocs/carte/frise.data.js",
+      "tag": ""
+    },
     {
       "hash": "59fd3d7d214afc4ae3267b013e825bceb4e1fc2d",
       "short": "59fd3d7",
@@ -11,6 +20,15 @@ window.FRISE = {
       "sujet": "Carte/frise : favicons dédiés + emblème de barre lisible",
       "corps": "- Ajout de favicons SVG dédiés : docs/carte/icone-carte.svg (nœuds reliés) et\n  icone-frise.svg (timeline), liés via <link rel=\"icon\"> dans chaque page —\n  fini l'icône de document par défaut dans l'onglet.\n- Emblème de la barre de la carte refait : nœuds aux couleurs des domaines\n  (avant, 2 nœuds en couleur sombre étaient quasi invisibles sur fond sombre).\n\nCo-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>",
       "tag": "Carte/frise"
+    },
+    {
+      "hash": "e406cb8e592fd259823d48833938d83c4d29daee",
+      "short": "e406cb8",
+      "auteur": "Orangentleman",
+      "date": "2026-06-17T20:15:41+02:00",
+      "sujet": "Dashboard agrégateur : regrouper les deux « Récupérer » (Synchroniser après)",
+      "corps": "☁ Récupérer (Supabase) et ⬇ Récupérer (anonyme) sont désormais côte à côte ;\n🔄 Synchroniser passe après eux, au lieu d'être coincé entre les deux.\n\nCo-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>",
+      "tag": "Dashboard agrégateur"
     },
     {
       "hash": "bbff75bcf3dde4ac1aa6ec97983ce37e62c298da",

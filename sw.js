@@ -9,7 +9,7 @@
 // Permet l'usage hors-ligne tout en restant à jour dès qu'on a du réseau.
 // Pour invalider le cache après une mise à jour, incrémenter la version.
 
-const CACHE = 'philo-v57';
+const CACHE = 'philo-v58';
 const PRECACHE = ['./', './index.html', './data.js', './manifest.json', './icon.svg'];
 
 // Installation : on précache les ressources critiques.
@@ -37,6 +37,13 @@ self.addEventListener('fetch', e => {
   const sameOrigin = url.origin === location.origin;
   const isFonts = url.hostname.includes('fonts.g');     // fonts.googleapis / gstatic
   if (!sameOrigin && !isFonts) return;                  // les autres : laissés au navigateur
+  // L'appli de TRIAGE (/triage/) est une PWA SÉPARÉE, avec son propre service
+  // worker (scope /triage/). Bien que le scope de CE SW soit « / » (donc couvre
+  // /triage/), on s'en désintéresse explicitement : sinon on intercepterait son
+  // manifeste/icône (cache-first) et on brouillerait son identité d'appli
+  // (mauvaise icône, pas d'install séparée). On laisse le SW de triage / le
+  // réseau gérer entièrement /triage/.
+  if (sameOrigin && url.pathname.includes('/triage/')) return;
 
   // Le « code » du site = HTML et JS de même origine (et toute navigation).
   // C'est ce qui change à chaque déploiement → réseau d'abord.
