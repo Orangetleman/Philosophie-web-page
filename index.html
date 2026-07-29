@@ -4770,10 +4770,39 @@ function sendProposalToSupabase(){
   });
 }
 
+/* Envoi ANONYME via Supabase (remplace la boîte PythonAnywhere).
+   Insère la proposition avec user_id NULL (aucun compte) : une règle RLS dédiée
+   (migration 2026_anon_contributions.sql) autorise le rôle « anon » à insérer
+   une ligne non rattachée à un compte, au statut « en_attente ». Le pseudo
+   saisi voyage dans payload.contributor (pas de suivi de statut, faute de
+   compte). Repli mailto automatique en cas d'échec — la contribution n'est
+   jamais perdue. */
+function sendProposalAnonSupabase(){
+  const btn=document.getElementById('psend-btn');
+  const status=document.getElementById('psend-status');
+  const setStatus=function(msg,color){ if(status){ status.textContent=msg; status.style.color=color||''; } };
+  if(btn){ btn.disabled=true; btn.textContent='Envoi…'; }
+  setStatus('Envoi en cours…','');
+  SB.from('contributions').insert({
+    user_id: null,                   // envoi anonyme : ligne non liée à un compte
+    payload: generateProposalJSON()  // JSON v3 (le pseudo est dans payload.contributor)
+  }).then(function(res){
+    if(res.error) throw res.error;
+    if(btn){ btn.textContent='✓ Envoyé'; }   // reste désactivé : évite le double envoi
+    setStatus('Merci ! Ta proposition anonyme a bien été envoyée. 🎉','#2ecc71');
+    clearDrafts();
+  }).catch(function(err){
+    proposalMailtoFallback((err&&err.message)||err);
+  });
+}
+
 /* new (Phase 3) : aiguillage du bouton « Envoyer en ligne ».
    - Édition d'un envoi « en attente » (connecté) → UPDATE de la ligne Supabase.
    - Connecté (nouvelle proposition) → Supabase (suivi du statut possible).
-   - Non connecté → ancienne boîte PythonAnywhere (envoi anonyme, sans suivi). */
+   - Non connecté, Supabase dispo → Supabase anonyme (user_id NULL) — voie
+     principale des anonymes depuis la migration (remplace PythonAnywhere).
+   - Supabase indisponible (hors-ligne / CDN non chargé) → ancienne boîte
+     PythonAnywhere en tout dernier repli. */
 /* ── Validation des champs obligatoires avant envoi ─────────────────────────
    Avant, on pouvait envoyer une proposition même si des champs obligatoires
    étaient vides (aucun avertissement). proposalMissing() reconstruit la liste
@@ -4817,7 +4846,8 @@ function submitProposalOnline(){
   if(!proposalGuardOk()) return;   // bloque si des champs obligatoires sont vides
   if(SB && authUser && editingContribId) updateProposalInSupabase();
   else if(SB && authUser) sendProposalToSupabase();
-  else sendProposalOnline();
+  else if(SB) sendProposalAnonSupabase();   // anonyme → Supabase (remplace PythonAnywhere)
+  else sendProposalOnline();                // repli ultime : Supabase indisponible
 }
 
 /* new : UPDATE d'une proposition « en attente » (édition, pas un nouvel insert).

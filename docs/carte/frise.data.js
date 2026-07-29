@@ -1,8 +1,17 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
-  "genere_le": "2026-06-19T14:49:12.855Z",
+  "genere_le": "2026-07-29T19:03:48.654Z",
   "commits": [
+    {
+      "hash": "6f5f6f1a44b4ee6d44ff782d8157994da3dd2703",
+      "short": "6f5f6f1",
+      "auteur": "Orangentleman",
+      "date": "2026-06-19T16:49:12+02:00",
+      "sujet": "Triage PWA : chemins absolus (/triage/…) — corrige l'icône & l'install sur /triage sans slash",
+      "corps": "À l'URL « /triage » (sans slash final, cas Vercel), les chemins relatifs se\nrésolvaient vers la racine : /icon.svg (icône du site), /manifest.webmanifest\n(404), /sw.js (SW principal). D'où la mauvaise icône et l'absence d'install.\n\n- index.html : liens manifest/icon/apple-touch + register() en absolu /triage/…\n- manifest : start_url/scope/icon en absolu /triage/…\n- sw.js v6\n\nCo-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>",
+      "tag": "Triage PWA"
+    },
     {
       "hash": "eec42eea5283758aa64799a355ca0650d16fa4f1",
       "short": "eec42ee",

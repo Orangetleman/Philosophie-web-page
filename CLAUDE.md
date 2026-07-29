@@ -397,8 +397,12 @@ d'ouverture `.sb-propose` (« 💡 Proposer du contenu ») intégré à la sideb
   `[PHILO-PROPOSAL-JSON-END]`, destiné à un programme d'agrégation externe.
 - **Envoi** — `submitProposalOnline()` aiguille la **voie principale** : si
   connecté → table Supabase `contributions` (`sendProposalToSupabase`, suivi
-  du statut dans « Mes propositions ») ; sinon → boîte anonyme PythonAnywhere
-  (`sendProposalOnline`). Le **`mailto:`** (constante `PROPOSAL_EMAIL`,
+  du statut dans « Mes propositions ») ; sinon (anonyme) → **aussi Supabase**
+  avec `user_id NULL` (`sendProposalAnonSupabase`, autorisé par la policy RLS
+  `anon_insert_contributions`, cf. `philo-aggregator/migrations/2026_anon_contributions.sql`).
+  La **boîte anonyme PythonAnywhere** (`sendProposalOnline`) n'est plus qu'un
+  **repli ultime** si le client Supabase `SB` est indisponible (hors-ligne /
+  CDN non chargé). Le **`mailto:`** (constante `PROPOSAL_EMAIL`,
   `sendProposal`) n'est **plus une voie à choisir** mais un **repli
   automatique** : en cas d'échec en ligne, `proposalMailtoFallback(reason)`
   ouvre l'appli mail du contributeur (sans quitter la page) et l'annonce
