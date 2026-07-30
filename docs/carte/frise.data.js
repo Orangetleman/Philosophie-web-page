@@ -1,8 +1,17 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
-  "genere_le": "2026-07-30T10:50:32.780Z",
+  "genere_le": "2026-07-30T11:06:03.439Z",
   "commits": [
+    {
+      "hash": "fcb2c852d2920053ccd482975066973ec5b23778",
+      "short": "fcb2c85",
+      "auteur": "Orangentleman",
+      "date": "2026-07-30T12:50:32+02:00",
+      "sujet": "Migration anon : rendre contributions.user_id NULLABLE (envois anonymes)",
+      "corps": "La colonne user_id était NOT NULL → l'insert anonyme (user_id NULL) violait la\ncontrainte avant même la policy RLS. Ajout de ALTER COLUMN user_id DROP NOT NULL.\n\nCo-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>",
+      "tag": "Migration anon"
+    },
     {
       "hash": "9e839b71518c5876068ffa204c2bcf653a181dfb",
       "short": "9e839b7",

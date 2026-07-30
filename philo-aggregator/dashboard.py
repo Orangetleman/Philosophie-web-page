@@ -39,7 +39,9 @@ site (index.html / data.js) reste une étape manuelle séparée.
 """
 
 import html
+import os
 import threading
+import time
 
 from flask import Flask, request, redirect, jsonify
 
@@ -57,6 +59,40 @@ PORT = int(localenv.get("DASHBOARD_PORT", "5002"))
 # Combien de boîtes Gemini relit-il au clic sur « Relire (IA) ». On borne
 # pour ne pas bloquer la page trop longtemps ni épuiser le quota gratuit.
 REVIEW_BATCH = int(localenv.get("DASHBOARD_REVIEW_BATCH", "20"))
+
+# ── Arrêt auto quand l'onglet est fermé (« battement de cœur ») ───────────
+# La page ping /heartbeat toutes les ~3 s. Un watchdog (démarré dans run())
+# arrête le serveur s'il ne reçoit plus de ping pendant IDLE_TIMEOUT_S : donc
+# quand on FERME l'onglet. Un simple rafraîchissement / une action POST ne
+# coupe le ping qu'une seconde → bien en-dessous du seuil, le serveur survit.
+IDLE_TIMEOUT_S = 10.0
+_last_beat = None            # time.monotonic() du dernier ping (None = jamais)
+# Interrupteur : mettre DASHBOARD_AUTOCLOSE=0 dans .env pour désactiver l'arrêt
+# automatique (le serveur reste alors ouvert jusqu'à Ctrl+C, comme avant).
+AUTO_CLOSE = localenv.get("DASHBOARD_AUTOCLOSE", "1") != "0"
+
+
+@app.route("/heartbeat", methods=["POST"])
+def heartbeat():
+    """Signal « la page est toujours ouverte » (cf. watchdog d'arrêt auto)."""
+    global _last_beat
+    _last_beat = time.monotonic()
+    return ("", 204)
+
+
+def _shutdown_watchdog():
+    """
+    Thread démon : dès qu'au moins un ping a été reçu, surveille le silence.
+    Plus de ping depuis IDLE_TIMEOUT_S ⇒ l'onglet est fermé ⇒ on arrête le
+    serveur (os._exit, seul moyen fiable de tuer le serveur de dev Flask depuis
+    un thread). Tant qu'aucune page ne s'est connectée (_last_beat None), on ne
+    fait rien (le serveur attend sa page, comme avant).
+    """
+    while True:
+        time.sleep(2.0)
+        if _last_beat is not None and (time.monotonic() - _last_beat) > IDLE_TIMEOUT_S:
+            print("Onglet fermé (plus de battement de cœur) — arrêt du dashboard.")
+            os._exit(0)
 
 
 # ── État partagé de la relecture IA (pour la barre de progression) ──────────
@@ -536,6 +572,17 @@ PROGRESS_JS = """
   poll();
 })();
 </script>
+<script>
+(function(){
+  // « Battement de cœur » : tant que cette page est ouverte, on ping le serveur
+  // toutes les 3 s. Quand on FERME l'onglet, les pings cessent et le serveur
+  // s'arrête tout seul (watchdog Python). Un rafraîchissement / une action ne
+  // coupe le ping qu'une seconde → le serveur survit sans problème.
+  function beat(){ fetch('/heartbeat',{method:'POST',cache:'no-store',keepalive:true}).catch(function(){}); }
+  beat();
+  setInterval(beat, 3000);
+})();
+</script>
 """
 
 
@@ -951,7 +998,11 @@ def run(port=None, open_browser=True):
     db.init_db()
     p = port or PORT
     url = f"http://127.0.0.1:{p}"
-    print(f"Dashboard local : {url}  (Ctrl+C pour arrêter)")
+    hint = "Ctrl+C pour arrêter, ou ferme l'onglet" if AUTO_CLOSE else "Ctrl+C pour arrêter"
+    print(f"Dashboard local : {url}  ({hint})")
+    # Arrêt auto quand l'onglet du navigateur est fermé (cf. _shutdown_watchdog).
+    if AUTO_CLOSE:
+        threading.Thread(target=_shutdown_watchdog, daemon=True).start()
     if open_browser:
         import threading
         import webbrowser
