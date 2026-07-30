@@ -1,8 +1,17 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
-  "genere_le": "2026-07-30T10:37:11.462Z",
+  "genere_le": "2026-07-30T10:50:32.780Z",
   "commits": [
+    {
+      "hash": "9e839b71518c5876068ffa204c2bcf653a181dfb",
+      "short": "9e839b7",
+      "auteur": "Orangentleman",
+      "date": "2026-07-30T12:37:11+02:00",
+      "sujet": "Dashboard : retirer le bouton « Récupérer (anonyme) » (boîte PythonAnywhere)",
+      "corps": "Les envois anonymes passent désormais par Supabase → ☁ Récupérer (Supabase) et\n🔄 Synchroniser les rapatrient. Le bouton PythonAnywhere n'a plus lieu d'être.\nLa route /pull et la commande CLI `pull` sont conservées pour un éventuel\nrattrapage d'anciens envois si l'app PythonAnywhere est réactivée.\n\nCo-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>",
+      "tag": "Dashboard"
+    },
     {
       "hash": "8b1845105afd1b8d859460a4715e16e369fef7f9",
       "short": "8b18451",

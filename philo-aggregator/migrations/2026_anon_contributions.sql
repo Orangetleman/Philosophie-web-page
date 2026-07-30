@@ -18,6 +18,11 @@
 
 alter table public.contributions enable row level security;
 
+-- La colonne user_id est NOT NULL (chaque ligne était liée à un compte). Un
+-- envoi anonyme n'a pas de compte → on la rend NULLABLE. Idempotent (no-op si
+-- déjà nullable). Les lignes anonymes auront user_id = NULL.
+alter table public.contributions alter column user_id drop not null;
+
 -- Le rôle anon a normalement déjà l'INSERT (grants Supabase par défaut) ; on le
 -- pose explicitement par sécurité (sans effet s'il existe déjà).
 grant insert on public.contributions to anon;
