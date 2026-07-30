@@ -1,8 +1,17 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
-  "genere_le": "2026-07-30T11:06:03.439Z",
+  "genere_le": "2026-07-30T17:32:22.692Z",
   "commits": [
+    {
+      "hash": "a574c807df98baff8db92067ecb1cdd8004b59cf",
+      "short": "a574c80",
+      "auteur": "Orangentleman",
+      "date": "2026-07-30T13:06:03+02:00",
+      "sujet": "Dashboard : arrêt automatique quand l'onglet est fermé (battement de cœur)",
+      "corps": "La page ping /heartbeat toutes les 3 s ; un watchdog arrête le serveur s'il ne\nreçoit plus de ping pendant 10 s (onglet fermé). Un rafraîchissement ou une\naction POST ne coupe le ping qu'une seconde → le serveur survit. Désactivable\nvia DASHBOARD_AUTOCLOSE=0 dans .env.\n\nCo-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>",
+      "tag": "Dashboard"
+    },
     {
       "hash": "fcb2c852d2920053ccd482975066973ec5b23778",
       "short": "fcb2c85",
