@@ -22,8 +22,8 @@ Les boîtes anonymes (boîte PythonAnywhere ou .txt) n'ont pas de pendant en
 ligne : rien n'est poussé pour elles.
 
 Barre d'outils (actions globales) :
-  - ☁ Récupérer (Supabase) : pull-cloud → ingestion.
-  - ⬇ Récupérer (anonyme)  : pull de la boîte PythonAnywhere → ingestion + ack.
+  - ☁ Récupérer (Supabase) : pull-cloud → ingestion (comptes ET anonymes).
+  - 🔄 Synchroniser (cloud) : synchro bidirectionnelle de l'état de tri.
   - 🤖 Relire (IA)          : soumet à Gemini les boîtes pas encore relues.
   - 📤 Exporter (.txt)      : génère le review_*.txt pour une session Claude.
   - 🗄 Archiver intégrées   : integree → archivee.
@@ -561,12 +561,13 @@ def _page(status, verdict_filter, cat, cible, rows, flash=None):
         "<header>",
         "<h1>🧠 Curation des propositions — Graphe Philosophie</h1>",
         '<div class="bar">',
-        # Récupération : les deux « Récupérer » côte à côte (Supabase comptes +
-        # boîte anonyme PythonAnywhere), puis la synchro cross-plateforme.
+        # Récupération depuis Supabase (comptes ET anonymes : les envois anonymes
+        # passent désormais par Supabase, plus par PythonAnywhere). Le bouton
+        # « Récupérer (anonyme) » (boîte PythonAnywhere) a été retiré ; la route
+        # /pull et la commande CLI `pull` subsistent pour un éventuel rattrapage
+        # d'anciens envois si l'app PythonAnywhere est un jour réactivée.
         f'<form method="post" action="/pull-cloud">'
         f'<button class="toolbtn" type="submit">☁ Récupérer (Supabase)</button></form>',
-        '<form method="post" action="/pull">'
-        '<button class="toolbtn" type="submit">⬇ Récupérer (anonyme)</button></form>',
         # Synchro cross-plateforme : récupère TOUT (états validés ailleurs inclus)
         # et arbitre local/cloud par horodatage (phase 6).
         f'<form method="post" action="/sync">'

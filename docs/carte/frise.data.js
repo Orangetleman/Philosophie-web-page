@@ -1,8 +1,17 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
-  "genere_le": "2026-07-29T19:03:48.654Z",
+  "genere_le": "2026-07-30T10:37:11.462Z",
   "commits": [
+    {
+      "hash": "8b1845105afd1b8d859460a4715e16e369fef7f9",
+      "short": "8b18451",
+      "auteur": "Orangentleman",
+      "date": "2026-07-29T21:03:48+02:00",
+      "sujet": "Envois anonymes via Supabase (fin de la dépendance PythonAnywhere)",
+      "corps": "Les visiteurs non connectés envoient désormais leur proposition dans la table\ncontributions avec user_id NULL (sendProposalAnonSupabase), au lieu de la boîte\nPythonAnywhere (dont l'app gratuite se désactive tous les 3 mois). Tout arrive\nau même endroit, visible dans le triage mobile / l'agrégateur.\n\n- index.html : sendProposalAnonSupabase() + aiguillage (SB anonyme ; PythonAnywhere\n  seulement en repli ultime si SB indisponible) ; sw.js v59\n- migrations/2026_anon_contributions.sql : policy RLS anon_insert_contributions\n  (insert user_id NULL, statut en_attente, aucun champ interne pré-rempli)\n- CLAUDE.md : maj de l'aiguillage d'envoi\n\nCo-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>",
+      "tag": ""
+    },
     {
       "hash": "6f5f6f1a44b4ee6d44ff782d8157994da3dd2703",
       "short": "6f5f6f1",
