@@ -1,8 +1,17 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
-  "genere_le": "2026-07-30T17:32:22.692Z",
+  "genere_le": "2026-09-21T11:32:33.471Z",
   "commits": [
+    {
+      "hash": "1e6583524e143d64f14bb0e6f022ab1dc6df2bad",
+      "short": "1e65835",
+      "auteur": "Orangentleman",
+      "date": "2026-07-30T19:32:22+02:00",
+      "sujet": "Docs : ajout de docs/PASSATION.md (résumé de passation des travaux récents)",
+      "corps": "Récapitulatif structuré (triage mobile + PWA, envois anonymes via Supabase,\nfiltre Catégorie→cible, arrêt auto du dashboard, intégrations data.js) destiné\nà une session de documentation précise. Inclut prérequis de migration et pièges.\n\nCo-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>",
+      "tag": "Docs"
+    },
     {
       "hash": "a574c807df98baff8db92067ecb1cdd8004b59cf",
       "short": "a574c80",

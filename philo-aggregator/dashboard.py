@@ -1004,7 +1004,9 @@ def run(port=None, open_browser=True):
     if AUTO_CLOSE:
         threading.Thread(target=_shutdown_watchdog, daemon=True).start()
     if open_browser:
-        import threading
+        # NB : ne PAS ré-importer threading ici — un « import » local rend le
+        # nom local à toute la fonction, et l'usage plus haut (watchdog)
+        # lèverait UnboundLocalError. Le module est importé en tête de fichier.
         import webbrowser
         # 1 s de délai : laisse à Flask le temps de se lier au port.
         threading.Timer(1.0, lambda: webbrowser.open(url)).start()
