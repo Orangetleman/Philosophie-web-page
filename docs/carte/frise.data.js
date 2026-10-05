@@ -1,8 +1,26 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
-  "genere_le": "2026-10-05T18:03:55.790Z",
+  "genere_le": "2026-10-05T18:07:04.447Z",
   "commits": [
+    {
+      "hash": "877e627500892786c59e4c88f11af53b6f7f4d9f",
+      "short": "877e627",
+      "auteur": "Orangentleman",
+      "date": "2026-10-05T20:06:58+02:00",
+      "sujet": "Agrégateur : passage au SDK google-genai pour la relecture Gemini",
+      "corps": "google-generativeai n'est plus maintenu par Google depuis le 30 novembre\n2025 (diagnostic § 2.4). review.py crée désormais un client genai.Client ;\nun petit adaptateur (_GeminiModel) garde la même forme d'appel, donc\nreview_box() et la gestion des quotas ne changent pas. L'appel de\nfonctions automatique (inutile ici) est coupé, et une surcharge passagère\ndu modèle (503 UNAVAILABLE) est traitée comme un quota par minute :\non patiente puis on réessaie.\n\nÉprouvé avec la clé de l'auteur (modèle gemini-2.5-flash-lite, un verdict\nréel) et sur des erreurs 429 « par minute » et « par jour » construites\navec la classe d'erreur du SDK.\n\nÀ faire une fois sur le PC : pip install -r requirements.txt.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": "Agrégateur"
+    },
+    {
+      "hash": "35606cbc62b0d93436d367e7fc118d10bd337aa7",
+      "short": "35606cb",
+      "auteur": "Orangentleman",
+      "date": "2026-10-05T20:03:55+02:00",
+      "sujet": "Suppression de la boîte PythonAnywhere (philo-mailbox)",
+      "corps": "Le service était éteint depuis la bascule des envois anonymes vers\nSupabase ; décision de l'auteur (docs/diagnostic-2026-10.md, § 10).\n\n- site : constante MAILBOX_URL et sendProposalOnline retirées ; si le\n  client Supabase manque, l'envoi passe directement au repli mail ;\n- agrégateur : commande `pull`, route /pull, pipeline.pull_and_ingest et\n  mailbox_client.py retirés, MAILBOX_* sortis de .env.example ; les\n  anciennes boîtes « pull#… » déjà en base restent lisibles ;\n- dossier philo-mailbox/ supprimé ;\n- CLAUDE.md, README de l'agrégateur et carte du projet (domaine « Boîte\n  aux lettres » et ses arêtes) mis à jour ; cache philo-v61.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": ""
+    },
     {
       "hash": "ef4c0f30fbd343b6e82ed55d558da0932a945624",
       "short": "ef4c0f3",

@@ -5,10 +5,11 @@
 # de ces commandes n'a besoin des paquets ci-dessous.
 #
 # Ces dépendances ne servent qu'aux nouvelles commandes :
-#   - `review`    → google-generativeai (appel à Gemini)
+#   - `review`    → google-genai (appel à Gemini ; SDK unifié de Google,
+#                   remplace google-generativeai, abandonné fin 2025)
 #   - `dashboard` → Flask (le tableau de bord local)
-#   - `pull`      → n'utilise QUE urllib (stdlib), rien à installer.
+#   - `pull-cloud`, `sync`, `push` → n'utilisent QUE urllib (stdlib).
 #
 # Installation :  pip install -r requirements.txt
 Flask>=3.0
-google-generativeai>=0.7
+google-genai>=1.0

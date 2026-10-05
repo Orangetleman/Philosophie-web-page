@@ -456,8 +456,8 @@ window.CARTE = {
 
     { id:"backend.review", label:"Relecture Gemini", niveau:1, parent:"backend", domaine:"backend",
       novice:"Une IA lit chaque proposition et donne un avis (valable, douteux, à rejeter) avant la décision humaine.",
-      ingenieur:"review.py : modèle DEFAULT_MODEL='gemini-flash-latest', SYSTEM_INSTRUCTION (rôle + format JSON). review_box() interroge Gemini (gestion des quotas) ; parse_verdict() extrait le verdict ; run() boucle. Exclut les retours « site » (SITE_CIBLES).",
-      symbols:[{kind:"var",name:"DEFAULT_MODEL",ref:"philo-aggregator/review.py:41"},{kind:"var",name:"SYSTEM_INSTRUCTION",ref:"philo-aggregator/review.py:67"},{kind:"fn",name:"parse_verdict",ref:"philo-aggregator/review.py:130"},{kind:"fn",name:"review_box",ref:"philo-aggregator/review.py:222"},{kind:"fn",name:"run",ref:"philo-aggregator/review.py:276"}] },
+      ingenieur:"review.py : SDK google-genai (client genai.Client, adaptateur _GeminiModel ; remplace google-generativeai, abandonné par Google fin 2025), modèle DEFAULT_MODEL='gemini-flash-latest' (surchargé par GEMINI_MODEL), SYSTEM_INSTRUCTION (rôle + format JSON). review_box() interroge Gemini (gestion des quotas) ; parse_verdict() extrait le verdict ; run() boucle. Exclut les retours « site » (SITE_CIBLES).",
+      symbols:[{kind:"var",name:"DEFAULT_MODEL",ref:"philo-aggregator/review.py:41"},{kind:"var",name:"SYSTEM_INSTRUCTION",ref:"philo-aggregator/review.py:67"},{kind:"fn",name:"_configure_model",ref:"philo-aggregator/review.py:117"},{kind:"fn",name:"parse_verdict",ref:"philo-aggregator/review.py:130"},{kind:"fn",name:"review_box",ref:"philo-aggregator/review.py:222"},{kind:"fn",name:"run",ref:"philo-aggregator/review.py:276"}] },
 
     { id:"backend.db", label:"Base locale (SQLite)", niveau:1, parent:"backend", domaine:"backend",
       novice:"Le carnet où le programme range les propositions reçues et leur état.",

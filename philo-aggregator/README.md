@@ -22,7 +22,7 @@ généré par le formulaire de contribution du site). Ce programme :
   `hashlib`, `difflib`, `unicodedata`, `pathlib`, `urllib`).
 - **Cerveau local** (`review`, `dashboard`) : nécessite deux paquets,
   installés via `pip install -r requirements.txt` (Flask pour le dashboard,
-  google-generativeai pour la relecture IA). Les commandes réseau
+  google-genai pour la relecture IA). Les commandes réseau
   `pull-cloud`, `sync` et `push` n'utilisent qu'`urllib` (stdlib) ; seuls
   les secrets du `.env` leur sont nécessaires.
 
@@ -221,7 +221,7 @@ philo-aggregator/
   pipeline.py         orchestration pull-cloud → ingestion + écriture-retour
   review.py           relecture IA (Gemini)
   dashboard.py        tableau de bord local (Flask)
-  requirements.txt    dépendances du cerveau (Flask, google-generativeai)
+  requirements.txt    dépendances du cerveau (Flask, google-genai)
   .env.example        modèle de configuration (à copier en .env)
   .env                secrets locaux (gitignored — jamais publié)
   inbox/              à déposer ici (gitignored)

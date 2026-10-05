@@ -156,7 +156,7 @@ def cmd_review(args):
     Lance la pré-vérification IA (Gemini) des boîtes en attente.
 
     `review` est importé localement : il ne sert qu'ici et tire la
-    dépendance google-generativeai, qu'on ne veut pas charger pour les
+    dépendance google-genai, qu'on ne veut pas charger pour les
     commandes hors-ligne.
     """
     import review
