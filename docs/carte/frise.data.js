@@ -1,8 +1,17 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
-  "genere_le": "2026-10-05T18:08:50.319Z",
+  "genere_le": "2026-10-05T18:12:01.235Z",
   "commits": [
+    {
+      "hash": "9e3101d464efb7ed7e883f8438acd25668972952",
+      "short": "9e3101d",
+      "auteur": "Orangentleman",
+      "date": "2026-10-05T20:08:50+02:00",
+      "sujet": "Ménage des données : renvois « TEXTE n » retirés, état sorti de data.js",
+      "corps": "- 71 renvois au recueil de textes d'un cours (« TEXTE 9 », « (TEXTE 10) »,\n  « TEXTES 11-15 ») retirés des titres, œuvres et références : un visiteur\n  ne les comprend pas, et une source se cite par son œuvre (diagnostic\n  § 2.3 et § 4). Le résumé des textes de Simondon est renuméroté (1) à (5).\n- Les variables d'état de l'affichage (cur, curTab, curConceptSubTab,\n  curExempleSubTab, sbMode, curAuthor, curAuthorTab) quittent data.js pour\n  la tête du script d'index.html (section B) : data.js ne garde que les\n  données. KEYS, l'ordre des notions, y reste.\n- CLAUDE.md et carte du projet corrigés (la carte les disait « globales\n  implicites » sans déclaration).\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": "Ménage des données"
+    },
     {
       "hash": "8bf2de67d8b2f06dc4f16713714bf3959d92e9fe",
       "short": "8bf2de6",

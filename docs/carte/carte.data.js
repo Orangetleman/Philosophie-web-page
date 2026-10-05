@@ -33,7 +33,8 @@ window.CARTE = {
       "data.js":    "Données globales : D (notions), KEYS, AM (auteurs), CONCEPTS (glossaire + repères), CC (couleurs).",
       "sw.js":      "Service Worker PWA (cache, hors-ligne).",
       "manifest.json": "Métadonnées d'installation PWA.",
-      "philo-aggregator/": "Pipeline Python local : ingest des propositions, relecture Gemini, dashboard, export."
+      "philo-aggregator/": "Pipeline Python local : ingest des propositions, relecture Gemini, dashboard, export.",
+      "outils/":           "Outillage Node sans dépendance : verifier_contenu.mjs (contrôle de data.js, avec témoins)."
     }
   },
 
@@ -170,6 +171,11 @@ window.CARTE = {
     novice:"La matière du site : toutes les notions, auteurs, concepts et repères du programme. C'est là qu'on ajoute ou corrige le contenu.",
     ingenieur:"data.js expose des globales (D, KEYS, AM, CONCEPTS, CC). index.html les normalise au chargement, en dérive l'index auteurs (AI), le tri et le moteur de liens (linkTerms)." },
 
+    { id:"donnees.verif", label:"Vérificateur du contenu", niveau:1, parent:"donnees", domaine:"donnees",
+      novice:"Le contrôle qui relit tout le contenu avant chaque envoi : doublons, auteurs sans biographie, citations mal guillemetées, renvois à un cours… et qui prouve qu'il voit vraiment les fautes.",
+      ingenieur:"outils/verifier_contenu.mjs (Node seul, oct. 2026, modèle verifier_corpus.py de Fiches BUT) : charger() exécute data.js dans un bac à sable vm ; QUESTIONS = 9 contrôles {err, warn} ; TEMOINS = une faute glissée par question (--temoins) ; sortie « cohérent » (0) ou « À CORRIGER » (1). Lancé par .githooks/pre-commit quand data.js est commité. Règles : docs/protocole-contenu.md.",
+      symbols:[{kind:"fn",name:"charger",ref:"outils/verifier_contenu.mjs:39"},{kind:"var",name:"QUESTIONS",ref:"outils/verifier_contenu.mjs:71"},{kind:"var",name:"TEMOINS",ref:"outils/verifier_contenu.mjs:174"},{kind:"fn",name:"main",ref:"outils/verifier_contenu.mjs:191"}],
+      liens:[{to:"donnees.globales",type:"lit",note:"Lit D, KEYS, AM, CONCEPTS (et AUTHOR_ALIASES d'index.html)."}] },
     { id:"donnees.globales", label:"Globales data.js", niveau:1, parent:"donnees", domaine:"donnees",
       novice:"Les grandes listes du contenu : notions, auteurs, concepts, couleurs.",
       ingenieur:"Constantes globales (script classique, pas de module) consommées directement par index.html.",

@@ -51,6 +51,23 @@ ressource statique (comme `data.js`) doit être ajoutée au `PRECACHE` de `sw.js
 et la version du cache (`philo-vN`) incrémentée, sinon le hors-ligne sert une
 version périmée.
 
+## Contrôler le contenu (depuis oct. 2026)
+
+- **D'où vient le contenu, à quelle condition il entre** : `docs/protocole-contenu.md`
+  (sources acceptées, citation exacte ou reformulation, trois statuts
+  programme / hors liste / hors programme, compte rendu). À suivre pour tout
+  ajout de notion, d'auteur, de concept ou de citation.
+- **`node outils/verifier_contenu.mjs`** : 9 questions sur `data.js` (KEYS,
+  notions, ids et termes uniques, relations, repères, fiche `AM` de chaque
+  auteur, dialogues, guillemets des citations, traces de support de cours).
+  Doit finir par « cohérent » avant de livrer. `--temoins` glisse une faute
+  par question dans une copie et vérifie qu'elle est vue (à relancer après
+  toute modification du vérificateur ; une règle nouvelle = une question +
+  son témoin). `--racine <dossier>` contrôle une autre copie du site.
+- Le hook `.githooks/pre-commit` le lance (bloquant) dès que `data.js` est
+  dans le commit. ⚠ `core.hooksPath` pointe vers le `.githooks` du dépôt
+  PRINCIPAL : dans une worktree, c'est la version de `main` qui s'exécute.
+
 ## Règles de modification (IMPÉRATIVES)
 
 - **Réécrire les sections complètes**, jamais des snippets partiels qui
