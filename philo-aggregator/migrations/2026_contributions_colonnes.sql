@@ -13,7 +13,14 @@
 -- personne connectée pouvait donc lire (sur SES propositions, la RLS restant
 -- en place) les notes internes du tri, et même ÉCRIRE dans aggregator_state,
 -- explication ou avis_ia tant que sa proposition était « en attente ».
--- Constaté sur un banc d'essai PGlite reproduisant les droits de Supabase.
+-- Constaté sur un banc d'essai PGlite reproduisant les droits de Supabase,
+-- puis CONFIRMÉ sur la base réelle (photographie du 5 octobre 2026, requête 6
+-- de 2026_schema_lecture.sql) : authenticated avait SELECT sur toutes les
+-- colonnes, aggregator_state comprise. La même photo montre un second défaut :
+-- authenticated n'avait AUCUN droit UPDATE, si bien que « ✎ Modifier » une
+-- proposition en attente (updateProposalInSupabase) devait échouer avec
+-- « permission denied ». Le « grant update (payload, updated_at) » ci-dessous
+-- le rétablit. (anon, lui, n'avait déjà plus SELECT.)
 --
 -- Le remède : retirer les droits sur la table, puis rendre colonne par colonne
 -- ce dont le site a besoin, et rien d'autre :

@@ -1,8 +1,17 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
-  "genere_le": "2026-10-05T18:21:04.852Z",
+  "genere_le": "2026-10-05T19:42:30.735Z",
   "commits": [
+    {
+      "hash": "c77ba9aecc1b7a608f4b71bd78beac4a6f4c41f0",
+      "short": "c77ba9a",
+      "auteur": "Orangentleman",
+      "date": "2026-10-05T20:21:04+02:00",
+      "sujet": "Diagnostic : avancement de l'étape 2",
+      "corps": "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": "Diagnostic"
+    },
     {
       "hash": "2a2b736f4ddc5a2810c5ece78a940644cc2ce8a4",
       "short": "2a2b736",

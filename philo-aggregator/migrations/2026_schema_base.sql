@@ -18,6 +18,13 @@
 --   2026_aggregator_state.sql, 2026_admin_mobile.sql, 2026_anon_contributions.sql.
 --
 -- Idempotent pour une base neuve (« if not exists », « drop … if exists »).
+--
+-- Écart CONNU avec la base réelle (photographie du 5 octobre 2026, droits sur
+-- contributions) : anon n'y a ni SELECT ni UPDATE, authenticated a INSERT et
+-- SELECT mais pas UPDATE. Ce fichier garde les droits par défaut de Supabase ;
+-- 2026_contributions_colonnes.sql fixe ensuite les droits définitifs, colonne
+-- par colonne, quelle que soit la situation de départ. Les colonnes, les
+-- règles RLS et les fonctions restent à comparer (requêtes 1 à 5).
 -- ════════════════════════════════════════════════════════════════════════
 
 
