@@ -1,8 +1,17 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
-  "genere_le": "2026-10-05T17:59:28.852Z",
+  "genere_le": "2026-10-05T17:59:40.672Z",
   "commits": [
+    {
+      "hash": "2977db2528f0c450a4d4b510340a685d506eb8f9",
+      "short": "2977db2",
+      "auteur": "Orangentleman",
+      "date": "2026-10-05T19:59:20+02:00",
+      "sujet": "Quiz v4 : sessions variées, questions sans réponse, synchro par fusion",
+      "corps": "Le quiz tournait en rond et donnait parfois la réponse dans la question\n(diagnostic docs/diagnostic-2026-10.md, § 2.1). Corrections :\n\n- cartes neuves tirées au hasard dans tout le filtre (avant : les 15\n  premiers concepts du fichier à chaque nouvelle session) ;\n- « Quel concept ? » : le terme et sa famille de mots sont masqués dans la\n  définition (quizMaskTerm), la carte est écartée si le mot reste lisible ;\n- QCM de citation : noms d'auteurs seuls, jamais le même auteur en leurre,\n  œuvre affichée après la réponse ;\n- seules les citations exactes (entre « ») font des cartes, une citation\n  sous plusieurs notions ne fait qu'une carte (champ notions) ;\n- identifiants de citation tirés du texte (quizHash), avec migration de la\n  progression existante (QUIZ_LEGACY, migrateQuizState) ;\n- carte notion → auteurs réduite à 4 auteurs et une thèse courte ;\n- état lu une fois par affichage (288 ms → 5 ms), date locale, badges à\n  80 % de cartes mémorisées, bouton « Relire la fiche » (quizReread).\n\nSynchro : fusion carte par carte au lieu d'adopter le distant, remises à\nzéro datées (epoch, resetAt), session gardée selon activeAt, envoi\nimmédiat quand la page se cache (syncFlush), nouvelle tentative au retour\ndu réseau. Éprouvé sur une fausse base en mémoire, avec un témoin.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": "Quiz v4"
+    },
     {
       "hash": "c6bbcd93c57c2cff74f1f920cde41917ba5fd159",
       "short": "c6bbcd9",
