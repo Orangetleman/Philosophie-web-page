@@ -1,8 +1,17 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
-  "genere_le": "2026-10-05T20:01:29.332Z",
+  "genere_le": "2026-10-05T20:03:22.260Z",
   "commits": [
+    {
+      "hash": "1c775cbc6a07cd7db18619962ad649268f727343",
+      "short": "1c775cb",
+      "auteur": "Orangentleman",
+      "date": "2026-10-05T22:01:29+02:00",
+      "sujet": "Documentation de l'étape 3 : CLAUDE.md réduit aux règles, architecture dans docs/",
+      "corps": "- CLAUDE.md passe de 770 à 150 lignes : où est quoi (sources, fichiers\n  produits), comment travailler (build, contrôles, commit), règles,\n  pièges. Il est relu à chaque session : il ne garde que ce qui sert à\n  chaque fois.\n- docs/architecture.md reprend les descriptions détaillées (formats de\n  données, onglets, liens dynamiques, contribution, interface, quiz), avec\n  une table des morceaux de js/ ; les passages devenus faux (conversions\n  « au chargement », philo-vN, « dans index.html ») sont corrigés.\n- docs/carte/MAJ.md : nœuds et textes à la main, refs tenues par le build.\n- README : structure du dépôt, build, recherche et adresses par page, rôle\n  des icônes du tableau de bord, contribuer directement dans contenu/.\n- Diagnostic § 11 : avancement de l'étape 3 et décisions de l'auteur.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": "Documentation de l'étape 3"
+    },
     {
       "hash": "465bc7700c2885fa66277b942ff83e93842372d8",
       "short": "465bc77",
