@@ -15,9 +15,10 @@
      requis), le QR étant la seule ressource réseau (avec repli si KO).
    ══════════════════════════════════════════════════════════════════ */
 
-// URL canonique à partager : origine + chemin, sans le hash de navigation
-// interne (#notion…) ni les paramètres, pour un lien propre et stable.
-function shareUrl(){ return location.origin + location.pathname; }
+// URL à partager : celle de la PAGE ouverte (origine + chemin + adresse
+// #/notion/…, cf. adresseDe), sans paramètres. Depuis oct. 2026 chaque page a
+// son adresse : partager depuis « Liberté » envoie sur « Liberté ».
+function shareUrl(){ return location.origin + location.pathname + adresseDe(navStateNow()); }
 
 // Ouverture / fermeture de la modale (même mécanique que les autres modales).
 function openShare(){ renderShare(); document.getElementById('share-overlay').classList.add('open'); }
@@ -41,7 +42,7 @@ function renderShare(){
     ? `<button class="share-btn share-btn-primary share-native" onclick="shareNative()">📲 Partager…</button>`
     : '';
   body.innerHTML=`
-    <div class="share-intro">Partage l'outil de révision à tes camarades : scanne le QR code, copie le lien, ou utilise le partage de ton appareil.</div>
+    <div class="share-intro">Partage cette page (${paletteEsc(titrePage().replace(/ · Graphe Philosophie$/,''))}) à tes camarades : scanne le QR code, copie le lien, ou utilise le partage de ton appareil. Le lien ouvre le site directement sur cette page.</div>
     ${nativeBtn}
     <div class="share-qr-wrap">
       <img class="share-qr" src="${qr}" alt="QR code vers le site" loading="lazy"

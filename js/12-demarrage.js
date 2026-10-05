@@ -8,6 +8,7 @@
    renderContent() → affiche le contenu de cette première notion        */
 restoreDraftsFromStorage();   // new (Phase 3) : recharge le brouillon de proposition local
 restoreNavFromStorage();      // position survit à l'actualisation (philo-nav)
+restoreNavFromAddress();      // … mais une adresse #/… (lien partagé, favori) l'emporte
 restoreNavHistory();          // pile « ← Retour » survit aussi (philo-navhist)
 renderSB();renderCurrentView();
 initAuth();           // new (comptes) : récupère la session + s'abonne aux changements d'état

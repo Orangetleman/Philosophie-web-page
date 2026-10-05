@@ -1,11 +1,11 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
-  "genere_le": "2026-10-05T19:53:53.759Z",
+  "genere_le": "2026-10-05T19:55:46.299Z",
   "commits": [
     {
-      "hash": "2b8380df1532a086138156fc7cf7ff5643cfd57a",
-      "short": "2b8380d",
+      "hash": "e568d31eaea27aa4cda52a88a723331400ba4a75",
+      "short": "e568d31",
       "auteur": "Orangentleman",
       "date": "2026-10-05T21:53:48+02:00",
       "sujet": "Découpage d'index.html : le code passe dans js/ et css/, recollé par le build",

@@ -238,6 +238,7 @@ let navTouched=false;
 function pushHistory(){
   if(_navigating) return;
   navTouched=true;   // une navigation utilisateur a eu lieu (cf. persistNav / adoption distante)
+  navAdresseEnAttente=true;   // la page qui va s'afficher aura sa propre entrée dans l'historique du navigateur
   const last=navHistory[navHistory.length-1];
   // Ne pas pousser si on est déjà sur la même page
   if(last&&last.sbMode===sbMode&&last.cur===cur&&last.curTab===curTab
@@ -315,6 +316,7 @@ function sameNav(a,b){
    position vers le cloud. Appelée depuis renderCrumbs (commun aux 4 vues). */
 function persistNav(){
   try{ localStorage.setItem('philo-nav', JSON.stringify(navStateNow())); }catch(e){}
+  majAdresse();   // l'adresse #/… et le titre de l'onglet suivent la page affichée
   if(navTouched && typeof syncOnPrefsChange==='function') syncOnPrefsChange();
 }
 
@@ -384,6 +386,103 @@ function restoreNavHistory(){
 function backBtnHTML(){
   const disabled=navHistory.length===0;
   return `<button class="back-btn"${disabled?' disabled':''} onclick="goBack()" title="${disabled?'Aucune page précédente':`Retour (${navHistory.length} page${navHistory.length>1?'s':''})`}">← Retour</button>`;
+}
+
+/* ── Adresses de page (#/…) — étape 3, octobre 2026 ──────────────────────
+   Chaque vue a son adresse, dans le fragment de l'URL (après le #) :
+     #/notion/<clé>[/<onglet>]      #/auteur/<nom>[/<onglet>]
+     #/concept/<id>                 #/repere/<id>      #/methodo/<parcours>
+   Le # plutôt qu'un vrai chemin : il marche partout, y compris index.html
+   ouvert par double-clic, et Vercel n'a aucune réécriture à faire.
+   Ce que ça apporte : un lien partagé ouvre la bonne page (« Partager »
+   copie l'adresse de la page ouverte), le bouton « précédent » du
+   navigateur revient à la page d'avant, et le titre de l'onglet nomme la
+   page (favoris, historique du navigateur).
+   Mécanique : majAdresse() est appelée à chaque rendu (par persistNav) ;
+   après une vraie navigation (pushHistory pose navAdresseEnAttente) elle
+   AJOUTE une entrée à l'historique du navigateur (pushState), sinon elle
+   remplace l'adresse courante (replaceState). « popstate » (précédent /
+   suivant du navigateur) rejoue l'adresse atteinte. */
+const ONGLETS_AUTEUR=['idees','citations','oeuvres','dialogues'];
+let navAdresseEnAttente=false;   // la prochaine majAdresse doit-elle créer une entrée ?
+
+/* adresseDe(s) — l'adresse (#/…) d'un état de navigation. */
+function adresseDe(s){
+  const e=encodeURIComponent;
+  if(s.sbMode==='auteurs'&&s.curAuthor) return '#/auteur/'+e(s.curAuthor)+(s.curAuthorTab&&s.curAuthorTab!=='idees'?'/'+e(s.curAuthorTab):'');
+  if(s.sbMode==='concepts'&&s.curConcept) return '#/concept/'+e(s.curConcept);
+  if(s.sbMode==='reperes'&&s.curConcept) return '#/repere/'+e(s.curConcept);
+  if(s.sbMode==='methodo') return '#/methodo/'+e(s.methodoTopic||'dissertation');
+  return '#/notion/'+e(s.cur)+(s.curTab&&s.curTab!=='auteurs'?'/'+e(s.curTab):'');
+}
+
+/* etatDe(h) — l'état de navigation d'une adresse #/…, ou null si l'adresse
+   n'en est pas une. Un nom d'auteur sous une forme courte (« Arendt ») est
+   ramené au nom canonique. La validité de la cible est vérifiée ensuite par
+   applyNavState (une adresse vers une fiche disparue est ignorée). */
+function etatDe(h){
+  const m=/^#\/([a-z]+)\/([^/]+)(?:\/([^/]+))?$/.exec(h||'');
+  if(!m) return null;
+  let v, o;
+  try{ v=decodeURIComponent(m[2]); o=m[3]?decodeURIComponent(m[3]):null; }catch(e){ return null; }
+  switch(m[1]){
+    case 'notion':  return {sbMode:'notions',cur:v,curTab:o||'auteurs'};
+    case 'auteur':  return {sbMode:'auteurs',curAuthor:(AI[v]||!AUTHOR_ALIASES[v])?v:AUTHOR_ALIASES[v],curAuthorTab:ONGLETS_AUTEUR.includes(o)?o:'idees'};
+    case 'concept': return {sbMode:'concepts',curConcept:v};
+    case 'repere':  return {sbMode:'reperes',curConcept:v};
+    case 'methodo': return {sbMode:'methodo',methodoTopic:v};
+  }
+  return null;
+}
+
+/* titrePage() — le titre de l'onglet : « Liberté · Graphe Philosophie ». */
+function titrePage(){
+  let t='';
+  if(sbMode==='auteurs'&&curAuthor) t=curAuthor;
+  else if((sbMode==='concepts'||sbMode==='reperes')&&curConcept){ const c=CONCEPTS.find(x=>x.id===curConcept); t=c?c.term:''; }
+  else if(sbMode==='methodo') t='Méthodo';
+  else if(D[cur]) t=D[cur].l;
+  return (t?t+' · ':'')+'Graphe Philosophie';
+}
+
+/* adresseProtegee() — l'URL porte-t-elle un jeton de connexion (retour d'un
+   lien « mot de passe oublié » ou de Google) ? supabase-js le lit dans le #
+   puis nettoie l'URL lui-même : il ne faut surtout pas l'écraser avant. */
+function adresseProtegee(){ return /access_token|refresh_token|type=recovery|error_description/.test(location.hash); }
+
+/* majAdresse() — aligne l'adresse et le titre sur la page affichée. */
+function majAdresse(){
+  document.title=titrePage();
+  if(adresseProtegee()) return;
+  const h=adresseDe(navStateNow());
+  if(location.hash!==h){
+    try{ history[navAdresseEnAttente?'pushState':'replaceState'](null,'',h); }catch(e){}
+  }
+  navAdresseEnAttente=false;
+}
+
+/* Précédent / suivant du navigateur : on affiche la page de l'adresse
+   atteinte, sans rien empiler. Si c'est aussi le sommet de la pile
+   « ← Retour » du site, on l'en retire, pour que les deux restent d'accord. */
+window.addEventListener('popstate',()=>{
+  const s=etatDe(location.hash);
+  if(!s||!applyNavState(s)) return;
+  _navigating=true;
+  renderSB(); renderCurrentView();
+  _navigating=false;
+  const top=navHistory[navHistory.length-1];
+  if(top&&sameNav(top,navStateNow())){ navHistory.pop(); updateBackBtn(); }
+});
+
+/* restoreNavFromAddress() — au démarrage : une adresse #/… valide (lien
+   partagé, favori) l'emporte sur la position mémorisée. Compte comme une
+   navigation de l'utilisateur (navTouched) : la position d'un autre appareil
+   ne viendra pas la remplacer. Renvoie true si elle a été appliquée. */
+function restoreNavFromAddress(){
+  const s=etatDe(location.hash);
+  if(!s||!applyNavState(s)) return false;
+  navTouched=true;
+  return true;
 }
 /* js/03-barre-laterale.js — morceau du script du site. Le build (outils/construire.mjs)
    recolle js/*.js dans l'ORDRE des noms en UN SEUL script, app.js : les
@@ -5027,9 +5126,10 @@ function authHumanError(e){
      requis), le QR étant la seule ressource réseau (avec repli si KO).
    ══════════════════════════════════════════════════════════════════ */
 
-// URL canonique à partager : origine + chemin, sans le hash de navigation
-// interne (#notion…) ni les paramètres, pour un lien propre et stable.
-function shareUrl(){ return location.origin + location.pathname; }
+// URL à partager : celle de la PAGE ouverte (origine + chemin + adresse
+// #/notion/…, cf. adresseDe), sans paramètres. Depuis oct. 2026 chaque page a
+// son adresse : partager depuis « Liberté » envoie sur « Liberté ».
+function shareUrl(){ return location.origin + location.pathname + adresseDe(navStateNow()); }
 
 // Ouverture / fermeture de la modale (même mécanique que les autres modales).
 function openShare(){ renderShare(); document.getElementById('share-overlay').classList.add('open'); }
@@ -5053,7 +5153,7 @@ function renderShare(){
     ? `<button class="share-btn share-btn-primary share-native" onclick="shareNative()">📲 Partager…</button>`
     : '';
   body.innerHTML=`
-    <div class="share-intro">Partage l'outil de révision à tes camarades : scanne le QR code, copie le lien, ou utilise le partage de ton appareil.</div>
+    <div class="share-intro">Partage cette page (${paletteEsc(titrePage().replace(/ · Graphe Philosophie$/,''))}) à tes camarades : scanne le QR code, copie le lien, ou utilise le partage de ton appareil. Le lien ouvre le site directement sur cette page.</div>
     ${nativeBtn}
     <div class="share-qr-wrap">
       <img class="share-qr" src="${qr}" alt="QR code vers le site" loading="lazy"
@@ -5572,6 +5672,7 @@ function syncResetState(){
    renderContent() → affiche le contenu de cette première notion        */
 restoreDraftsFromStorage();   // new (Phase 3) : recharge le brouillon de proposition local
 restoreNavFromStorage();      // position survit à l'actualisation (philo-nav)
+restoreNavFromAddress();      // … mais une adresse #/… (lien partagé, favori) l'emporte
 restoreNavHistory();          // pile « ← Retour » survit aussi (philo-navhist)
 renderSB();renderCurrentView();
 initAuth();           // new (comptes) : récupère la session + s'abonne aux changements d'état
