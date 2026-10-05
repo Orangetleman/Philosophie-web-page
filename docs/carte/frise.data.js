@@ -1,8 +1,17 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
-  "genere_le": "2026-10-05T18:20:47.953Z",
+  "genere_le": "2026-10-05T18:21:04.852Z",
   "commits": [
+    {
+      "hash": "2a2b736f4ddc5a2810c5ece78a940644cc2ce8a4",
+      "short": "2a2b736",
+      "auteur": "Orangentleman",
+      "date": "2026-10-05T20:20:47+02:00",
+      "sujet": "Base Supabase : schéma versionné, droits colonne par colonne, banc d'essai",
+      "corps": "Les tables contributions, preferences, quiz_progress et la fonction\ndelete_own_account n'étaient décrites nulle part (diagnostic § 2.4).\n\n- migrations/2026_schema_base.sql : schéma reconstitué depuis le code (ce\n  que le site, le triage et l'agrégateur lisent et écrivent), avec ses\n  règles RLS. À comparer d'abord à la base réelle :\n  migrations/2026_schema_lecture.sql (lecture seule) en donne la photo.\n- Défaut trouvé : le « REVOKE SELECT (aggregator_state) » de\n  2026_aggregator_state.sql ne cache rien, car Supabase donne d'office tous\n  les droits sur la table, et un retrait sur une colonne ne retire pas un\n  droit de table. Un contributeur connecté pouvait lire les notes internes\n  du tri sur ses propositions, et écrire aggregator_state, explication ou\n  avis_ia tant qu'elles étaient en attente.\n  migrations/2026_contributions_colonnes.sql corrige : droits retirés sur\n  la table, puis rendus colonne par colonne (lecture des 8 colonnes\n  utiles, insertion de user_id et payload, modification de payload).\n  À LANCER dans l'éditeur SQL de Supabase.\n- outils/banc/ : banc PGlite (décor Supabase repris de Fiches BUT), 10\n  essais sur les règles d'accès, chacun avec son témoin ; 10 sur 10.\n- README de l'agrégateur, CLAUDE.md et carte du projet mis à jour.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": "Base Supabase"
+    },
     {
       "hash": "7025f6e30f4fd8b328363c6ccd72cb20aab722aa",
       "short": "7025f6e",
