@@ -29,7 +29,7 @@ node docs/carte/verifie.mjs
 | Ajouter un **module** entier (nouvelle zone de logique) | ajouter un nœud `niveau:1` sous le domaine, + ses L2 |
 | Ajouter/retirer une **clé localStorage** | domaine `nav` → `nav.keys.*` (ou le domaine porteur) ; `kind:"key"` |
 | Ajouter/retirer une **table Supabase** | `sync.tables.*` et/ou `backend.supabase` ; `kind:"table"` |
-| Ajouter/modifier une **route Flask** (mailbox/dashboard) | `mailbox.api.*` / `backend.dashboard` ; `kind:"route"` |
+| Ajouter/modifier une **route Flask** (dashboard) | `backend.dashboard` ; `kind:"route"` |
 | Changer la **version du cache** PWA (`philo-vN`) | `pwa.sw` (texte `ingenieur`) — la `ref` `sw.js:12` reste valable |
 | Modifier le **schéma de proposition** (vX) | `contrib.generate` + `backend.ingest` (`SUPPORTED_SCHEMAS`) |
 | Modifier un **flux** (envoi, pull, review, sync) | tableau `edges[]` (note + `from`/`to`) |

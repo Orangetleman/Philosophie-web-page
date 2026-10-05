@@ -31,6 +31,12 @@ commit**, puis lancer `node docs/carte/verifie.mjs` (anti-drift, 0 périmé). Vo
 5. `<script>` — toute la logique JS et le rendu (consomme les données globales)
 
 ### Données (dans `data.js`, globales)
+
+`data.js` ne contient QUE des données (plus aucune variable d'état depuis
+oct. 2026 : `cur`, `curTab`, `sbMode`… sont déclarées en tête du script
+d'`index.html`, section B). Les renvois au recueil de textes d'un cours
+(« TEXTE 9 ») ont été retirés : ne pas en réintroduire, une source se cite
+par son œuvre.
 - `const D` — les notions du programme (conscience, nature, science…)
 - `const KEYS` — `Object.keys(D)` (ordre des notions)
 - `const AM` — métadonnées des auteurs (bio, courant, période, thèmes, dialogues)
@@ -44,6 +50,34 @@ relancer la vérif syntaxe sur les **deux** (concaténés). Toute nouvelle
 ressource statique (comme `data.js`) doit être ajoutée au `PRECACHE` de `sw.js`
 et la version du cache (`philo-vN`) incrémentée, sinon le hors-ligne sert une
 version périmée.
+
+## Contrôler le contenu (depuis oct. 2026)
+
+- **D'où vient le contenu, à quelle condition il entre** : `docs/protocole-contenu.md`
+  (sources acceptées, citation exacte ou reformulation, trois statuts
+  programme / hors liste / hors programme, compte rendu). À suivre pour tout
+  ajout de notion, d'auteur, de concept ou de citation.
+- **`node outils/verifier_contenu.mjs`** : 9 questions sur `data.js` (KEYS,
+  notions, ids et termes uniques, relations, repères, fiche `AM` de chaque
+  auteur, dialogues, guillemets des citations, traces de support de cours).
+  Doit finir par « cohérent » avant de livrer. `--temoins` glisse une faute
+  par question dans une copie et vérifie qu'elle est vue (à relancer après
+  toute modification du vérificateur ; une règle nouvelle = une question +
+  son témoin). `--racine <dossier>` contrôle une autre copie du site.
+- **Base Supabase** : son schéma est versionné dans `philo-aggregator/migrations/`
+  (ordre et usage : README de l'agrégateur). `2026_schema_base.sql` est une
+  RECONSTITUTION depuis le code : la comparer à la base réelle
+  (`2026_schema_lecture.sql`, lecture seule) avant de s'en servir. Le banc
+  `outils/banc/` (PGlite, `npm ci && node banc_schema.mjs`) joue toutes les
+  migrations et éprouve les règles d'accès, chacune avec son témoin. Toute
+  migration nouvelle : l'ajouter à `ORDRE` dans `banc_schema.mjs`, avec ses
+  essais. ⚠ En PostgreSQL, un `REVOKE` sur une COLONNE ne retire rien si le rôle
+  garde le droit sur la TABLE (Supabase donne tout d'office à anon et
+  authenticated) : restreindre par `revoke all` sur la table puis `grant`
+  colonne par colonne.
+- Le hook `.githooks/pre-commit` le lance (bloquant) dès que `data.js` est
+  dans le commit. ⚠ `core.hooksPath` pointe vers le `.githooks` du dépôt
+  PRINCIPAL : dans une worktree, c'est la version de `main` qui s'exécute.
 
 ## Règles de modification (IMPÉRATIVES)
 
@@ -84,8 +118,8 @@ version périmée.
 (« Dissertations »), `exemples`. L'ancien onglet `axes` a été supprimé,
 remplacé par les **plans** dans l'onglet Dissertations.
 
-**Onglet « Exemples » — deux sous-onglets (`curExempleSubTab`, dans
-`data.js`).** « Exemples » (`exemples:[]`, cartes `.ex-card` — vue historique
+**Onglet « Exemples » — deux sous-onglets (`curExempleSubTab`, état
+déclaré en tête du script d'`index.html`).** « Exemples » (`exemples:[]`, cartes `.ex-card` — vue historique
 inchangée) et « Accroches » (`accroches:[]`, cartes `.accroche-card`). Une
 **accroche** = une **phrase d'ouverture rédigée, prête à recopier** pour
 amorcer une dissertation : `{type, t, src?, new?, modified?}` où `type` est un
@@ -426,9 +460,11 @@ d'ouverture `.sb-propose` (« 💡 Proposer du contenu ») intégré à la sideb
   du statut dans « Mes propositions ») ; sinon (anonyme) → **aussi Supabase**
   avec `user_id NULL` (`sendProposalAnonSupabase`, autorisé par la policy RLS
   `anon_insert_contributions`, cf. `philo-aggregator/migrations/2026_anon_contributions.sql`).
-  La **boîte anonyme PythonAnywhere** (`sendProposalOnline`) n'est plus qu'un
-  **repli ultime** si le client Supabase `SB` est indisponible (hors-ligne /
-  CDN non chargé). Le **`mailto:`** (constante `PROPOSAL_EMAIL`,
+  Si le client Supabase `SB` est indisponible (hors-ligne / CDN non chargé),
+  on passe directement au repli mail. (L'ancienne **boîte anonyme
+  PythonAnywhere**, `sendProposalOnline` et le dossier `philo-mailbox/`, a
+  été **supprimée** en oct. 2026 : le service était éteint ; la commande
+  `pull` et la route `/pull` de l'agrégateur aussi.) Le **`mailto:`** (constante `PROPOSAL_EMAIL`,
   `sendProposal`) n'est **plus une voie à choisir** mais un **repli
   automatique** : en cas d'échec en ligne, `proposalMailtoFallback(reason)`
   ouvre l'appli mail du contributeur (sans quitter la page) et l'annonce

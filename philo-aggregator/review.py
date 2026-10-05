@@ -15,8 +15,8 @@ priorité ce qui mérite un coup d'œil.
 
 Choix techniques :
   - La clé API est lue dans .env (GEMINI_API_KEY) — jamais en dur.
-  - Le module `google.generativeai` est importé PARESSEUSEMENT (au moment
-    de l'appel), pour que les commandes hors-ligne (list, show, export…)
+  - Le SDK `google-genai` (`from google import genai`) est importé
+    PARESSEUSEMENT (au moment de l'appel), pour que les commandes hors-ligne (list, show, export…)
     continuent de marcher même si cette dépendance n'est pas installée.
   - On réutilise `export.render_box` pour décrire la boîte à Gemini : le
     contributeur et l'IA voient ainsi exactement le même rendu lisible.
@@ -97,34 +97,54 @@ forme exacte :
 """
 
 
+class _GeminiModel:
+    """
+    Petit adaptateur autour du client `google.genai` : expose
+    `generate_content(prompt)` (réponse munie de `.text`), la même forme que
+    l'ancien `GenerativeModel`, pour que review_box() n'ait pas à changer.
+    """
+
+    def __init__(self, client, model_name, config):
+        self._client = client
+        self._model = model_name
+        self._config = config
+
+    def generate_content(self, prompt):
+        return self._client.models.generate_content(
+            model=self._model, contents=prompt, config=self._config)
+
+
 def _configure_model():
     """
     Importe et configure le client Gemini, puis renvoie un objet modèle
     prêt à `generate_content`. Import paresseux : si le paquet n'est pas
     installé, on donne un message d'installation clair au lieu d'un
     ImportError brut.
+
+    Octobre 2026 : passage au SDK unifié `google-genai` (import
+    `from google import genai`). L'ancien `google-generativeai` n'est plus
+    maintenu par Google depuis le 30 novembre 2025. Avec la nouvelle
+    bibliothèque, on crée un CLIENT (porteur de la clé), et l'instruction
+    système passe dans la configuration de chaque appel.
     """
     try:
-        # Le paquet google.generativeai émet un FutureWarning bruyant à
-        # l'import (Google le marque « déprécié » au profit de google.genai).
-        # Il reste fonctionnel ; on masque juste l'avertissement le temps de
-        # l'import pour garder une sortie lisible.
-        import warnings
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore", FutureWarning)
-            import google.generativeai as genai
+        from google import genai
+        from google.genai import types
     except ImportError:
         raise SystemExit(
-            "Le paquet 'google-generativeai' n'est pas installé.\n"
+            "Le paquet 'google-genai' n'est pas installé.\n"
             "Installe les dépendances du cerveau local avec :\n"
             "  pip install -r requirements.txt"
         )
-    genai.configure(api_key=localenv.require("GEMINI_API_KEY"))
+    client = genai.Client(api_key=localenv.require("GEMINI_API_KEY"))
     model_name = localenv.get("GEMINI_MODEL", DEFAULT_MODEL)
-    return genai.GenerativeModel(
-        model_name,
+    # Pas d'appel de fonctions automatique (« AFC ») : on ne déclare aucun
+    # outil, et sa présence par défaut ajoute un avertissement à chaque appel.
+    config = types.GenerateContentConfig(
         system_instruction=SYSTEM_INSTRUCTION,
+        automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True),
     )
+    return _GeminiModel(client, model_name, config)
 
 
 def parse_verdict(text):
@@ -184,10 +204,16 @@ ABORT_VERDICT = "__abort__"
 
 
 def _is_rate_limit(err):
-    """Vrai si l'exception ressemble à un dépassement de quota / débit (429)."""
+    """
+    Vrai si l'exception ressemble à un dépassement de quota / débit (429),
+    ou à une surcharge passagère du modèle (503 UNAVAILABLE, « high demand »,
+    vue lors du passage à google-genai en oct. 2026) : dans les deux cas,
+    patienter puis réessayer est la bonne réponse.
+    """
     s = str(err).lower()
     return ("429" in s or "quota" in s or "rate" in s
-            or "resourceexhausted" in s or "exceeded" in s)
+            or "resourceexhausted" in s or "resource_exhausted" in s or "exceeded" in s
+            or "503" in s or "unavailable" in s)
 
 
 def _is_daily_quota(err):

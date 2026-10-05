@@ -495,6 +495,40 @@ sans fiche (Wittgenstein arrive à l'étape 4) ; la référence de
 *Théétète* parle d'opinion vraie accompagnée de raison), qui relève de la
 vérification des citations de l'étape 4.
 
+### Étape 2, « Outiller » (5 octobre 2026)
+
+**Fait.**
+
+- **PythonAnywhere supprimé** : `philo-mailbox/`, le repli du site, la
+  commande `pull` et la route `/pull` de l'agrégateur, `mailbox_client.py`.
+  Si Supabase manque, l'envoi passe directement au repli mail.
+- **SDK Gemini** : l'agrégateur passe à `google-genai`. Éprouvé par un vrai
+  verdict (modèle `gemini-2.5-flash-lite`) et sur des erreurs 429 « par
+  minute » et « par jour » construites avec la classe d'erreur du SDK ; une
+  surcharge passagère (503) est maintenant attendue puis réessayée. Sur le
+  PC : `pip install -r requirements.txt`.
+- **Ménage des données** : 71 renvois « TEXTE n » retirés ; les variables
+  d'état de l'affichage sorties de `data.js`.
+- **Vérificateur** `outils/verifier_contenu.mjs` : 9 questions, chacune
+  avec son témoin, branché sur le hook de commit. Lancé sur le `data.js` de
+  `main`, il retrouve toutes les erreurs corrigées à l'étape 1.
+- **Protocole** `docs/protocole-contenu.md`.
+- **Base Supabase** : schéma reconstitué et versionné, photographie en
+  lecture seule pour le comparer à la base réelle, banc PGlite
+  (`outils/banc/`, 10 essais et leurs témoins). Le banc a trouvé un vrai
+  défaut : le retrait de lecture de `aggregator_state` ne retirait rien
+  (droit de table conservé). Correction : `2026_contributions_colonnes.sql`,
+  **à lancer** dans l'éditeur SQL de Supabase.
+
+**Reporté à l'étape 3**, parce que le build les fera d'office : la
+conversion des anciens formats de la source (auteurs à plat, `tensions`,
+`axes`), l'allègement de `CLAUDE.md`, et une carte du projet extraite du
+code (le vérificateur actuel compte plus de 200 références « déplacées »).
+
+**À décider par l'auteur** : `icon.ico` et `icon_gear.ico` (référencés
+nulle part dans le dépôt : servent-ils à un raccourci Windows ?) ; le tri
+des branches `claude/*` et des worktrees anciennes.
+
 ## Sources
 
 - Programme de philosophie de terminale, [BO spécial n° 8 du 25 juillet 2019](https://www.education.gouv.fr/bo/19/Special8/MENE1921238A.htm) ([annexe en PDF](https://cache.media.education.gouv.fr/file/SPE8_MENJ_25_7_2019/16/1/spe238_annexe2_1159161.pdf)) : notions, repères, liste des auteurs et son usage.

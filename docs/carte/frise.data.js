@@ -1,8 +1,62 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
-  "genere_le": "2026-10-05T17:59:48.415Z",
+  "genere_le": "2026-10-05T18:21:04.852Z",
   "commits": [
+    {
+      "hash": "2a2b736f4ddc5a2810c5ece78a940644cc2ce8a4",
+      "short": "2a2b736",
+      "auteur": "Orangentleman",
+      "date": "2026-10-05T20:20:47+02:00",
+      "sujet": "Base Supabase : schéma versionné, droits colonne par colonne, banc d'essai",
+      "corps": "Les tables contributions, preferences, quiz_progress et la fonction\ndelete_own_account n'étaient décrites nulle part (diagnostic § 2.4).\n\n- migrations/2026_schema_base.sql : schéma reconstitué depuis le code (ce\n  que le site, le triage et l'agrégateur lisent et écrivent), avec ses\n  règles RLS. À comparer d'abord à la base réelle :\n  migrations/2026_schema_lecture.sql (lecture seule) en donne la photo.\n- Défaut trouvé : le « REVOKE SELECT (aggregator_state) » de\n  2026_aggregator_state.sql ne cache rien, car Supabase donne d'office tous\n  les droits sur la table, et un retrait sur une colonne ne retire pas un\n  droit de table. Un contributeur connecté pouvait lire les notes internes\n  du tri sur ses propositions, et écrire aggregator_state, explication ou\n  avis_ia tant qu'elles étaient en attente.\n  migrations/2026_contributions_colonnes.sql corrige : droits retirés sur\n  la table, puis rendus colonne par colonne (lecture des 8 colonnes\n  utiles, insertion de user_id et payload, modification de payload).\n  À LANCER dans l'éditeur SQL de Supabase.\n- outils/banc/ : banc PGlite (décor Supabase repris de Fiches BUT), 10\n  essais sur les règles d'accès, chacun avec son témoin ; 10 sur 10.\n- README de l'agrégateur, CLAUDE.md et carte du projet mis à jour.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": "Base Supabase"
+    },
+    {
+      "hash": "7025f6e30f4fd8b328363c6ccd72cb20aab722aa",
+      "short": "7025f6e",
+      "auteur": "Orangentleman",
+      "date": "2026-10-05T20:12:00+02:00",
+      "sujet": "Vérificateur du contenu, avec témoins, et protocole du contenu",
+      "corps": "Rien ne contrôlait data.js (diagnostic § 5). Sur le modèle de\nverifier_corpus.py de Fiches BUT :\n\n- outils/verifier_contenu.mjs (Node seul) pose 9 questions : KEYS, champs\n  des notions, ids et termes de concept uniques, relations valides, format\n  des repères, fiche AM de chaque auteur, dialogues, guillemets des\n  citations, traces de support de cours. Sortie « cohérent » ou\n  « À CORRIGER » ; les avertissements (reformulations, dialogues vers un\n  auteur sans fiche) ne bloquent pas.\n- --temoins glisse une faute par question dans une copie des données :\n  les 9 sont vues. Témoin réel : lancé sur le data.js de main, il retrouve\n  les erreurs corrigées à l'étape 1 (10 doublons, 12 fiches sans bio,\n  143 citations mal guillemetées, 63 traces de cours).\n- .githooks/pre-commit le lance, bloquant, quand data.js est commité\n  (éprouvé : refus sur un id en double, passage sur les données saines).\n- docs/protocole-contenu.md : d'où vient le contenu, citation exacte ou\n  reformulation, trois statuts, minimum d'une notion, vérifications,\n  compte rendu.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": ""
+    },
+    {
+      "hash": "9e3101d464efb7ed7e883f8438acd25668972952",
+      "short": "9e3101d",
+      "auteur": "Orangentleman",
+      "date": "2026-10-05T20:08:50+02:00",
+      "sujet": "Ménage des données : renvois « TEXTE n » retirés, état sorti de data.js",
+      "corps": "- 71 renvois au recueil de textes d'un cours (« TEXTE 9 », « (TEXTE 10) »,\n  « TEXTES 11-15 ») retirés des titres, œuvres et références : un visiteur\n  ne les comprend pas, et une source se cite par son œuvre (diagnostic\n  § 2.3 et § 4). Le résumé des textes de Simondon est renuméroté (1) à (5).\n- Les variables d'état de l'affichage (cur, curTab, curConceptSubTab,\n  curExempleSubTab, sbMode, curAuthor, curAuthorTab) quittent data.js pour\n  la tête du script d'index.html (section B) : data.js ne garde que les\n  données. KEYS, l'ordre des notions, y reste.\n- CLAUDE.md et carte du projet corrigés (la carte les disait « globales\n  implicites » sans déclaration).\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": "Ménage des données"
+    },
+    {
+      "hash": "8bf2de67d8b2f06dc4f16713714bf3959d92e9fe",
+      "short": "8bf2de6",
+      "auteur": "Orangentleman",
+      "date": "2026-10-05T20:06:58+02:00",
+      "sujet": "Agrégateur : passage au SDK google-genai pour la relecture Gemini",
+      "corps": "google-generativeai n'est plus maintenu par Google depuis le 30 novembre\n2025 (diagnostic § 2.4). review.py crée désormais un client genai.Client ;\nun petit adaptateur (_GeminiModel) garde la même forme d'appel, donc\nreview_box() et la gestion des quotas ne changent pas. L'appel de\nfonctions automatique (inutile ici) est coupé, et une surcharge passagère\ndu modèle (503 UNAVAILABLE) est traitée comme un quota par minute :\non patiente puis on réessaie.\n\nÉprouvé avec la clé de l'auteur (modèle gemini-2.5-flash-lite, un verdict\nréel) et sur des erreurs 429 « par minute » et « par jour » construites\navec la classe d'erreur du SDK.\n\nÀ faire une fois sur le PC : pip install -r requirements.txt.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": "Agrégateur"
+    },
+    {
+      "hash": "35606cbc62b0d93436d367e7fc118d10bd337aa7",
+      "short": "35606cb",
+      "auteur": "Orangentleman",
+      "date": "2026-10-05T20:03:55+02:00",
+      "sujet": "Suppression de la boîte PythonAnywhere (philo-mailbox)",
+      "corps": "Le service était éteint depuis la bascule des envois anonymes vers\nSupabase ; décision de l'auteur (docs/diagnostic-2026-10.md, § 10).\n\n- site : constante MAILBOX_URL et sendProposalOnline retirées ; si le\n  client Supabase manque, l'envoi passe directement au repli mail ;\n- agrégateur : commande `pull`, route /pull, pipeline.pull_and_ingest et\n  mailbox_client.py retirés, MAILBOX_* sortis de .env.example ; les\n  anciennes boîtes « pull#… » déjà en base restent lisibles ;\n- dossier philo-mailbox/ supprimé ;\n- CLAUDE.md, README de l'agrégateur et carte du projet (domaine « Boîte\n  aux lettres » et ses arêtes) mis à jour ; cache philo-v61.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": ""
+    },
+    {
+      "hash": "ef4c0f30fbd343b6e82ed55d558da0932a945624",
+      "short": "ef4c0f3",
+      "auteur": "Orangentleman",
+      "date": "2026-10-05T19:59:48+02:00",
+      "sujet": "Site et documentation : robots.txt, Supabase figé, diagnostic d'octobre",
+      "corps": "- robot.txt renommé robots.txt : les moteurs cherchent ce nom exact,\n  l'ancien fichier n'était jamais lu ;\n- supabase-js figé en 2.117.2 avec empreinte d'intégrité (SRI), sur le\n  site et sur la page de triage (avant : « @2 » suivait toute nouvelle\n  version) ; caches philo-v60 et triage-v7 ;\n- docs/diagnostic-2026-10.md : diagnostic complet, comparaison avec Fiches\n  BUT, feuille de route validée par l'auteur (§ 10) et avancement (§ 11) ;\n- README.md, en-tête d'index.html et CLAUDE.md remis d'accord avec le\n  code (envoi des propositions, stratégie de cache, 5 modes, mode fiche,\n  convention des citations, quiz v4, pièges) ;\n- carte du projet : nœuds du quiz et de la synchro à jour (la progression\n  du quiz était décrite dans la table preferences), robots.txt.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": "Site et documentation"
+    },
     {
       "hash": "bd038368b4a969bbea45795932275d81d81ca0a6",
       "short": "bd03836",

@@ -34,7 +34,7 @@ window.CARTE = {
       "sw.js":      "Service Worker PWA (cache, hors-ligne).",
       "manifest.json": "Métadonnées d'installation PWA.",
       "philo-aggregator/": "Pipeline Python local : ingest des propositions, relecture Gemini, dashboard, export.",
-      "philo-mailbox/":    "Mini-service Flask public (PythonAnywhere) : reçoit les propositions anonymes."
+      "outils/":           "Outillage Node : verifier_contenu.mjs (contrôle de data.js, avec témoins, sans dépendance) ; banc/ (règles d'accès Supabase sur PGlite)."
     }
   },
 
@@ -49,7 +49,6 @@ window.CARTE = {
     { id:"sync",    label:"Compte / Sync",          couleur:"#2bb3a3" },
     { id:"pwa",     label:"PWA (hors-ligne)",       couleur:"#8892b0" },
     { id:"backend", label:"Backend agrégateur",     couleur:"#e0654b" },
-    { id:"mailbox", label:"Boîte aux lettres",      couleur:"#d4646e" },
     { id:"seo",     label:"Référencement (SEO)",    couleur:"#b08a3c" }
   ],
 
@@ -116,7 +115,7 @@ window.CARTE = {
       symbols:[{kind:"fn",name:"renderSB",ref:"index.html:2009"}] },
       { id:"front.sidebar.render", label:"renderSB()", niveau:2, parent:"front.sidebar", domaine:"front",
         novice:"La fonction qui dessine le menu de gauche.",
-        ingenieur:"renderSB() : onglets de mode + barre de recherche/filtres + liste de l'item actif. sbMode ∈ notions|auteurs|concepts|reperes|methodo (variable globale implicite).",
+        ingenieur:"renderSB() : onglets de mode + barre de recherche/filtres + liste de l'item actif. sbMode ∈ notions|auteurs|concepts|reperes|methodo (déclarée par let dans index.html, section B).",
         symbols:[{kind:"fn",name:"renderSB",ref:"index.html:2009"},{kind:"fn",name:"goMode",ref:"index.html:2942"}] },
       { id:"front.sidebar.lists", label:"Listes Concepts / Repères", niveau:2, parent:"front.sidebar", domaine:"front",
         novice:"La liste filtrable des concepts, et celle des repères du programme.",
@@ -124,7 +123,7 @@ window.CARTE = {
         symbols:[{kind:"fn",name:"renderSBConceptsList",ref:"index.html:2231"},{kind:"fn",name:"renderSBReperesList",ref:"index.html:2274"},{kind:"var",name:"repereSearch",ref:"index.html:1558"}] },
       { id:"front.sidebar.tabs", label:"Onglets de notion", niveau:2, parent:"front.sidebar", domaine:"front",
         novice:"Les onglets d'une notion : Auteurs, Textes, Concepts, Dissertations, Exemples.",
-        ingenieur:"NOTION_TABS fixe l'ordre des onglets. curTab/curConceptSubTab/curExempleSubTab (globales implicites) mémorisent l'onglet et le sous-onglet actifs.",
+        ingenieur:"NOTION_TABS fixe l'ordre des onglets. curTab/curConceptSubTab/curExempleSubTab (déclarées par let dans index.html, section B) mémorisent l'onglet et le sous-onglet actifs.",
         symbols:[{kind:"var",name:"NOTION_TABS",ref:"index.html:1865"}] },
       { id:"front.sidebar.search", label:"Recherche & effacement", niveau:2, parent:"front.sidebar", domaine:"front",
         novice:"Les barres de recherche du menu, avec une croix (ou un clic droit) pour tout effacer d'un coup.",
@@ -172,6 +171,11 @@ window.CARTE = {
     novice:"La matière du site : toutes les notions, auteurs, concepts et repères du programme. C'est là qu'on ajoute ou corrige le contenu.",
     ingenieur:"data.js expose des globales (D, KEYS, AM, CONCEPTS, CC). index.html les normalise au chargement, en dérive l'index auteurs (AI), le tri et le moteur de liens (linkTerms)." },
 
+    { id:"donnees.verif", label:"Vérificateur du contenu", niveau:1, parent:"donnees", domaine:"donnees",
+      novice:"Le contrôle qui relit tout le contenu avant chaque envoi : doublons, auteurs sans biographie, citations mal guillemetées, renvois à un cours… et qui prouve qu'il voit vraiment les fautes.",
+      ingenieur:"outils/verifier_contenu.mjs (Node seul, oct. 2026, modèle verifier_corpus.py de Fiches BUT) : charger() exécute data.js dans un bac à sable vm ; QUESTIONS = 9 contrôles {err, warn} ; TEMOINS = une faute glissée par question (--temoins) ; sortie « cohérent » (0) ou « À CORRIGER » (1). Lancé par .githooks/pre-commit quand data.js est commité. Règles : docs/protocole-contenu.md.",
+      symbols:[{kind:"fn",name:"charger",ref:"outils/verifier_contenu.mjs:39"},{kind:"var",name:"QUESTIONS",ref:"outils/verifier_contenu.mjs:71"},{kind:"var",name:"TEMOINS",ref:"outils/verifier_contenu.mjs:174"},{kind:"fn",name:"main",ref:"outils/verifier_contenu.mjs:191"}],
+      liens:[{to:"donnees.globales",type:"lit",note:"Lit D, KEYS, AM, CONCEPTS (et AUTHOR_ALIASES d'index.html)."}] },
     { id:"donnees.globales", label:"Globales data.js", niveau:1, parent:"donnees", domaine:"donnees",
       novice:"Les grandes listes du contenu : notions, auteurs, concepts, couleurs.",
       ingenieur:"Constantes globales (script classique, pas de module) consommées directement par index.html.",
@@ -232,7 +236,7 @@ window.CARTE = {
       novice:"La photo de « où tu es » dans le site, vérifiée avant d'être ré-appliquée.",
       ingenieur:"navStateNow() capture {sbMode,cur,curTab,curConceptSubTab,curExempleSubTab,curAuthor,curAuthorTab,curConcept,methodoTopic}. applyNavState() valide (la cible doit exister) avant d'appliquer. navTouched : l'utilisateur a-t-il navigué ici ? (cf. adoption distante).",
       symbols:[{kind:"fn",name:"navStateNow",ref:"index.html:1877"},{kind:"fn",name:"applyNavState",ref:"index.html:1903"},{kind:"fn",name:"sameNav",ref:"index.html:1884"},{kind:"fn",name:"navEntryValid",ref:"index.html:1942"},{kind:"var",name:"navTouched",ref:"index.html:1811"}],
-      note:"sbMode/cur/curTab/curAuthor/curAuthorTab sont des globales implicites (assignées sans déclaration `let`) : décrites ici en prose, pas listées comme symboles." },
+      note:"sbMode/cur/curTab/curAuthor/curAuthorTab sont déclarées par let en tête du script d'index.html (section B) ; elles vivaient dans data.js jusqu'en oct. 2026." },
 
     { id:"nav.persist", label:"Persistance locale", niveau:1, parent:"nav", domaine:"nav",
       novice:"Ce qui écrit ta position et ton historique dans le navigateur pour les retrouver au prochain démarrage.",
@@ -329,7 +333,7 @@ window.CARTE = {
   /* ═══════════════ CONTRIBUTION ═══════════════ */
   { id:"contrib", label:"Contribution", niveau:0, parent:null, domaine:"contrib",
     novice:"Les visiteurs peuvent proposer du contenu (une idée d'auteur, un concept, un exemple…). La proposition part en ligne pour être relue avant d'être ajoutée.",
-    ingenieur:"Modale de proposition « boîtes ». Génère un texte lisible + un bloc JSON (schéma philo-proposal/v3). Envoi prioritaire Supabase (connecté) sinon mailbox anonyme, repli mailto automatique." },
+    ingenieur:"Modale de proposition « boîtes ». Génère un texte lisible + un bloc JSON (schéma philo-proposal/v3). Envoi dans Supabase (connecté, ou anonyme avec user_id NULL), repli mailto automatique." },
 
     { id:"contrib.model", label:"Modèle « boîtes »", niveau:1, parent:"contrib", domaine:"contrib",
       novice:"Une proposition = une ou plusieurs boîtes, chacune avec un menu à deux niveaux et une action (ajout/correction/remarque).",
@@ -353,8 +357,8 @@ window.CARTE = {
 
     { id:"contrib.submit", label:"Envoi", niveau:1, parent:"contrib", domaine:"contrib",
       novice:"L'envoi de la proposition : par ton compte si tu es connecté, sinon en anonyme ; en dernier recours, par e-mail.",
-      ingenieur:"submitProposalOnline() aiguille : connecté → sendProposalToSupabase (table contributions) ; sinon → sendProposalOnline (mailbox PythonAnywhere). proposalMailtoFallback() = repli mailto (PROPOSAL_EMAIL).",
-      symbols:[{kind:"fn",name:"submitProposalOnline",ref:"index.html:4694"},{kind:"fn",name:"sendProposalToSupabase",ref:"index.html:4631"},{kind:"fn",name:"sendProposalOnline",ref:"index.html:4591"},{kind:"fn",name:"sendProposal",ref:"index.html:4550"},{kind:"fn",name:"proposalMailtoFallback",ref:"index.html:4565"},{kind:"var",name:"PROPOSAL_EMAIL",ref:"index.html:3596"}] },
+      ingenieur:"submitProposalOnline() aiguille : connecté → sendProposalToSupabase (table contributions) ; anonyme → sendProposalAnonSupabase (même table, user_id NULL) ; Supabase indisponible ou échec → proposalMailtoFallback() = repli mailto (PROPOSAL_EMAIL). La boîte PythonAnywhere (sendProposalOnline) a été retirée en oct. 2026.",
+      symbols:[{kind:"fn",name:"submitProposalOnline",ref:"index.html:4694"},{kind:"fn",name:"sendProposalToSupabase",ref:"index.html:4631"},{kind:"fn",name:"sendProposalAnonSupabase",ref:"index.html:4755"},{kind:"fn",name:"sendProposal",ref:"index.html:4550"},{kind:"fn",name:"proposalMailtoFallback",ref:"index.html:4565"},{kind:"var",name:"PROPOSAL_EMAIL",ref:"index.html:3596"}] },
 
     { id:"contrib.edit", label:"Édition d'un envoi", niveau:1, parent:"contrib", domaine:"contrib",
       novice:"Tant qu'une proposition n'est pas traitée, tu peux la modifier depuis « Mes propositions ».",
@@ -388,9 +392,15 @@ window.CARTE = {
       symbols:[{kind:"fn",name:"mergeQuiz",ref:"index.html:6939"},{kind:"fn",name:"syncOnLogin",ref:"index.html:7002"},{kind:"fn",name:"syncOnFocus",ref:"index.html:7175"},{kind:"var",name:"syncDirty",ref:"index.html:7092"},{kind:"fn",name:"syncPushQuiz",ref:"index.html:7094"},{kind:"fn",name:"syncFlush",ref:"index.html:7135"},{kind:"fn",name:"quizDiffers",ref:"index.html:7146"}],
       liens:[{to:"quiz.state",type:"lit",note:"Lit et réécrit philo-quiz (fusion)."},{to:"sync.tables.quiz_progress",type:"ecrit",note:"Upsert du blob quiz."}] },
 
+    { id:"sync.banc", label:"Banc d'essai des règles d'accès", niveau:1, parent:"sync", domaine:"sync",
+      novice:"Une fausse base de données, montée sur l'ordinateur, sur laquelle on vérifie que personne ne peut lire ou modifier ce qui ne lui appartient pas.",
+      ingenieur:"outils/banc/banc_schema.mjs (oct. 2026) : PGlite + decor_supabase.sql (rôles et droits par défaut de Supabase, auth.uid()) ; joue ORDRE (les migrations) puis 10 essais sous un rôle via sous(), chacun avec un témoin qui retire la règle. A révélé que le REVOKE colonne de 2026_aggregator_state.sql ne cachait rien.",
+      symbols:[{kind:"var",name:"ORDRE",ref:"outils/banc/banc_schema.mjs:29"},{kind:"var",name:"ESSAIS",ref:"outils/banc/banc_schema.mjs:63"},{kind:"fn",name:"sous",ref:"outils/banc/banc_schema.mjs:47"}],
+      liens:[{to:"sync.tables",type:"lit",note:"Éprouve les règles des tables Supabase."}] },
+
     { id:"sync.tables", label:"Tables Supabase", niveau:1, parent:"sync", domaine:"sync",
       novice:"Les trois tableaux en ligne : tes propositions, tes préférences et ta progression au quiz.",
-      ingenieur:"Trois tables PostgREST, protégées par RLS (auth.uid() = user_id). Leur schéma n'est pas encore versionné dans le dépôt (diagnostic § 2.4).",
+      ingenieur:"Trois tables PostgREST, protégées par RLS (auth.uid() = user_id). Schéma versionné depuis oct. 2026 dans philo-aggregator/migrations/ (2026_schema_base.sql, reconstitué depuis le code ; droits colonne par colonne sur contributions : 2026_contributions_colonnes.sql), éprouvé par outils/banc/banc_schema.mjs (PGlite, un témoin par essai).",
       symbols:[{kind:"table",name:"contributions",ref:"index.html:4776"},{kind:"table",name:"preferences",ref:"index.html:7011"},{kind:"table",name:"quiz_progress",ref:"index.html:7010"}] },
       { id:"sync.tables.quiz_progress", label:"quiz_progress", niveau:2, parent:"sync.tables", domaine:"sync",
         novice:"Le tableau qui stocke ta progression au quiz pour la retrouver sur un autre appareil.",
@@ -444,12 +454,12 @@ window.CARTE = {
   /* ═══════════════ BACKEND AGRÉGATEUR ═══════════════ */
   { id:"backend", label:"Backend agrégateur", niveau:0, parent:null, domaine:"backend",
     novice:"Côté coulisses (sur l'ordinateur de l'enseignant) : un programme récupère les propositions, les fait relire par une IA, puis les présente pour décider quoi garder.",
-    ingenieur:"Pipeline Python local (philo-aggregator/) : pull (Supabase/mailbox) → ingest (dédup par signature) → relecture Gemini → dashboard Flask de tri → push statut → export pour intégration manuelle dans data.js." },
+    ingenieur:"Pipeline Python local (philo-aggregator/) : pull-cloud (Supabase) → ingest (dédup par signature) → relecture Gemini → dashboard Flask de tri → push statut → export pour intégration manuelle dans data.js." },
 
     { id:"backend.pipeline", label:"Orchestration", niveau:1, parent:"backend", domaine:"backend",
       novice:"Le chef d'orchestre qui va chercher les propositions et renvoie les décisions.",
-      ingenieur:"pipeline.py : pull_and_ingest (mailbox), pull_cloud_and_ingest (Supabase, idempotent via remote_id), sync_cloud (bidirectionnel), push_contribution_status (renvoie statut + explication au contributeur).",
-      symbols:[{kind:"fn",name:"pull_and_ingest",ref:"philo-aggregator/pipeline.py:18"},{kind:"fn",name:"pull_cloud_and_ingest",ref:"philo-aggregator/pipeline.py:75"},{kind:"fn",name:"sync_cloud",ref:"philo-aggregator/pipeline.py:242"},{kind:"fn",name:"push_contribution_status",ref:"philo-aggregator/pipeline.py:153"},{kind:"fn",name:"derive_local_status",ref:"philo-aggregator/pipeline.py:140"}] },
+      ingenieur:"pipeline.py : pull_cloud_and_ingest (Supabase, idempotent via remote_id), sync_cloud (bidirectionnel), push_contribution_status (renvoie statut + explication au contributeur).",
+      symbols:[{kind:"fn",name:"pull_cloud_and_ingest",ref:"philo-aggregator/pipeline.py:75"},{kind:"fn",name:"sync_cloud",ref:"philo-aggregator/pipeline.py:242"},{kind:"fn",name:"push_contribution_status",ref:"philo-aggregator/pipeline.py:153"},{kind:"fn",name:"derive_local_status",ref:"philo-aggregator/pipeline.py:140"}] },
 
     { id:"backend.ingest", label:"Ingestion & dédup", niveau:1, parent:"backend", domaine:"backend",
       novice:"Le tri d'entrée : lit le code d'une proposition, vérifie qu'il est valide, repère les doublons.",
@@ -458,8 +468,8 @@ window.CARTE = {
 
     { id:"backend.review", label:"Relecture Gemini", niveau:1, parent:"backend", domaine:"backend",
       novice:"Une IA lit chaque proposition et donne un avis (valable, douteux, à rejeter) avant la décision humaine.",
-      ingenieur:"review.py : modèle DEFAULT_MODEL='gemini-flash-latest', SYSTEM_INSTRUCTION (rôle + format JSON). review_box() interroge Gemini (gestion des quotas) ; parse_verdict() extrait le verdict ; run() boucle. Exclut les retours « site » (SITE_CIBLES).",
-      symbols:[{kind:"var",name:"DEFAULT_MODEL",ref:"philo-aggregator/review.py:41"},{kind:"var",name:"SYSTEM_INSTRUCTION",ref:"philo-aggregator/review.py:67"},{kind:"fn",name:"parse_verdict",ref:"philo-aggregator/review.py:130"},{kind:"fn",name:"review_box",ref:"philo-aggregator/review.py:222"},{kind:"fn",name:"run",ref:"philo-aggregator/review.py:276"}] },
+      ingenieur:"review.py : SDK google-genai (client genai.Client, adaptateur _GeminiModel ; remplace google-generativeai, abandonné par Google fin 2025), modèle DEFAULT_MODEL='gemini-flash-latest' (surchargé par GEMINI_MODEL), SYSTEM_INSTRUCTION (rôle + format JSON). review_box() interroge Gemini (gestion des quotas) ; parse_verdict() extrait le verdict ; run() boucle. Exclut les retours « site » (SITE_CIBLES).",
+      symbols:[{kind:"var",name:"DEFAULT_MODEL",ref:"philo-aggregator/review.py:41"},{kind:"var",name:"SYSTEM_INSTRUCTION",ref:"philo-aggregator/review.py:67"},{kind:"fn",name:"_configure_model",ref:"philo-aggregator/review.py:117"},{kind:"fn",name:"parse_verdict",ref:"philo-aggregator/review.py:130"},{kind:"fn",name:"review_box",ref:"philo-aggregator/review.py:222"},{kind:"fn",name:"run",ref:"philo-aggregator/review.py:276"}] },
 
     { id:"backend.db", label:"Base locale (SQLite)", niveau:1, parent:"backend", domaine:"backend",
       novice:"Le carnet où le programme range les propositions reçues et leur état.",
@@ -483,7 +493,7 @@ window.CARTE = {
 
     { id:"backend.cli", label:"Ligne de commande", niveau:1, parent:"backend", domaine:"backend",
       novice:"Les commandes tapées au clavier pour piloter le programme (ingest, pull, review, dashboard…).",
-      ingenieur:"aggregate.py : point d'entrée. build_parser() déclare les sous-commandes (ingest/pull/pull_cloud/sync/push/review/list/show/dupes/export/mark/note/archive/purge/stats/dashboard) ; main() initialise la base et dispatch.",
+      ingenieur:"aggregate.py : point d'entrée. build_parser() déclare les sous-commandes (ingest/pull_cloud/sync/push/review/list/show/dupes/export/mark/note/archive/purge/stats/dashboard) ; main() initialise la base et dispatch.",
       symbols:[{kind:"fn",name:"build_parser",ref:"philo-aggregator/aggregate.py:342"},{kind:"fn",name:"main",ref:"philo-aggregator/aggregate.py:485"}] },
 
     { id:"backend.view", label:"Affichage terminal", niveau:1, parent:"backend", domaine:"backend",
@@ -492,55 +502,17 @@ window.CARTE = {
       symbols:[{kind:"var",name:"BUCKETS",ref:"philo-aggregator/view.py:28"},{kind:"var",name:"SECTION_ORDER",ref:"philo-aggregator/view.py:49"}] },
 
     { id:"backend.config", label:"Config & clients externes", niveau:1, parent:"backend", domaine:"backend",
-      novice:"Les réglages secrets (clés, adresses) et le lien vers la boîte aux lettres en ligne.",
-      ingenieur:"localenv.py : lecteur .env minimal (get/require) — MAILBOX_URL/SECRET, GEMINI_*, SUPABASE_*. mailbox_client.py : client HTTP du mailbox (pull/ack derrière X-Mailbox-Secret).",
-      symbols:[{kind:"fn",name:"get",ref:"philo-aggregator/localenv.py:72"},{kind:"fn",name:"require",ref:"philo-aggregator/localenv.py:85"},{kind:"fn",name:"pull",ref:"philo-aggregator/mailbox_client.py:75"},{kind:"fn",name:"ack",ref:"philo-aggregator/mailbox_client.py:93"}] },
-
-  /* ═══════════════ BOÎTE AUX LETTRES ═══════════════ */
-  { id:"mailbox", label:"Boîte aux lettres", niveau:0, parent:null, domaine:"mailbox",
-    novice:"Une petite boîte en ligne qui reçoit les propositions des visiteurs non connectés, en attendant que le programme des coulisses vienne les chercher.",
-    ingenieur:"Mini-service Flask public (philo-mailbox/, PythonAnywhere) : reçoit les propositions anonymes, les stocke en SQLite, et les sert à l'agrégateur derrière un secret partagé." },
-
-    { id:"mailbox.api", label:"API Flask", niveau:1, parent:"mailbox", domaine:"mailbox",
-      novice:"Les adresses web qui reçoivent une proposition et la remettent au programme des coulisses.",
-      ingenieur:"app.py : routes publiques/privées. receive_proposal (POST /api/proposals) accepte une soumission ; pull/ack servent l'agrégateur ; _check_secret() valide X-Mailbox-Secret ; add_cors_headers() gère le CORS.",
-      symbols:[{kind:"route",name:"receive_proposal",ref:"philo-mailbox/app.py:110"},{kind:"route",name:"pull",ref:"philo-mailbox/app.py:155"},{kind:"route",name:"ack",ref:"philo-mailbox/app.py:168"},{kind:"route",name:"health",ref:"philo-mailbox/app.py:104"},{kind:"fn",name:"_check_secret",ref:"philo-mailbox/app.py:87"},{kind:"fn",name:"add_cors_headers",ref:"philo-mailbox/app.py:70"}] },
-      { id:"mailbox.api.proposals", label:"POST /api/proposals", niveau:2, parent:"mailbox.api", domaine:"mailbox",
-        novice:"L'adresse qui reçoit une nouvelle proposition anonyme.",
-        ingenieur:"receive_proposal() : valide la taille/forme (looks_like_proposal), applique le rate-limit, stocke via add_incoming().",
-        symbols:[{kind:"route",name:"receive_proposal",ref:"philo-mailbox/app.py:110"}] },
-      { id:"mailbox.api.pull", label:"GET /api/pull", niveau:2, parent:"mailbox.api", domaine:"mailbox",
-        novice:"L'adresse privée d'où l'agrégateur récupère les propositions en attente.",
-        ingenieur:"pull() : derrière secret, renvoie les propositions non encore tirées (get_unpulled).",
-        symbols:[{kind:"route",name:"pull",ref:"philo-mailbox/app.py:155"}] },
-      { id:"mailbox.api.ack", label:"POST /api/ack", niveau:2, parent:"mailbox.api", domaine:"mailbox",
-        novice:"L'adresse par laquelle l'agrégateur confirme avoir bien reçu, pour ne pas les retirer deux fois.",
-        ingenieur:"ack() : derrière secret, marque les ids comme tirés (mark_pulled).",
-        symbols:[{kind:"route",name:"ack",ref:"philo-mailbox/app.py:168"}] },
-
-    { id:"mailbox.store", label:"Stockage SQLite", niveau:1, parent:"mailbox", domaine:"mailbox",
-      novice:"Le petit carnet où la boîte garde les propositions reçues.",
-      ingenieur:"store.py : SQLite mailbox.db, table incoming. add_incoming() insère ; get_unpulled() liste les non-tirées ; mark_pulled() les marque ; init_db() crée la table.",
-      symbols:[{kind:"table",name:"incoming",ref:"philo-mailbox/store.py:31"},{kind:"fn",name:"add_incoming",ref:"philo-mailbox/store.py:61"},{kind:"fn",name:"get_unpulled",ref:"philo-mailbox/store.py:75"},{kind:"fn",name:"mark_pulled",ref:"philo-mailbox/store.py:90"},{kind:"fn",name:"init_db",ref:"philo-mailbox/store.py:55"}] },
-
-    { id:"mailbox.util", label:"Anti-abus & détection", niveau:1, parent:"mailbox", domaine:"mailbox",
-      novice:"Les garde-fous : limiter le nombre d'envois et vérifier qu'un message ressemble bien à une proposition.",
-      ingenieur:"util.py (sans Flask) : RateLimiter (fenêtre glissante), looks_like_proposal() (présence des marqueurs JSON), client_ip().",
-      symbols:[{kind:"fn",name:"RateLimiter",ref:"philo-mailbox/util.py:49"},{kind:"fn",name:"looks_like_proposal",ref:"philo-mailbox/util.py:23"}],
-      note:"RateLimiter est une classe (class RateLimiter) ; déclarée kind:fn par simplicité du schéma." }
-
+      novice:"Les réglages secrets (clés, adresses) du cerveau local.",
+      ingenieur:"localenv.py : lecteur .env minimal (get/require) — GEMINI_*, SUPABASE_*. (mailbox_client.py, client de la boîte PythonAnywhere, retiré en oct. 2026.)",
+      symbols:[{kind:"fn",name:"get",ref:"philo-aggregator/localenv.py:72"},{kind:"fn",name:"require",ref:"philo-aggregator/localenv.py:85"}] },
   ],
 
   /* ── Arêtes transverses : le « grand circuit » des données ───────────── */
   edges: [
     { from:"contrib.submit", to:"sync.tables.contributions", type:"ecrit",
       note:"Connecté : sendProposalToSupabase INSÈRE la proposition dans la table Supabase contributions." },
-    { from:"contrib.submit", to:"mailbox.api.proposals", type:"ecrit",
-      note:"Anonyme : sendProposalOnline POST /api/proposals → store.add_incoming (mailbox.db). Repli mailto si échec." },
     { from:"backend.pipeline", to:"sync.tables.contributions", type:"lit",
       note:"pull_cloud_and_ingest récupère les contributions en attente depuis Supabase (idempotent via remote_id)." },
-    { from:"backend.pipeline", to:"mailbox.api.pull", type:"lit",
-      note:"pull_and_ingest tire les propositions anonymes via GET /api/pull, puis confirme par POST /api/ack." },
     { from:"backend.pipeline", to:"backend.ingest", type:"appelle",
       note:"Chaque proposition tirée est ingérée (validée + dédupliquée par signature)." },
     { from:"backend.ingest", to:"backend.db", type:"ecrit",

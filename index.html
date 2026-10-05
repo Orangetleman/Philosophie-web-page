@@ -1604,6 +1604,20 @@ body.sb-open .sb-backdrop{display:block;opacity:1}
    ══════════════════════════════════════════════════════════════════ */
 
 
+/* ── B. ÉTAT GLOBAL DE L'AFFICHAGE ───────────────────────────────────
+   Ces variables mémorisent ce qui est affiché à l'écran. Toute
+   modification doit être suivie d'un appel à renderSB() et/ou
+   renderContent() / renderAuthorContent() pour mettre à jour l'UI.
+   (Déclarées dans data.js jusqu'en oct. 2026 ; data.js ne garde plus que
+   les données. KEYS, l'ordre des notions, y reste.) */
+let cur=KEYS[0];             // notion active (ex: "conscience")
+let curTab='auteurs';        // onglet actif dans la vue notion
+let curConceptSubTab='concepts'; // sous-onglet de l'onglet Concepts : 'concepts' | 'liens'
+let curExempleSubTab='exemples';  // sous-onglet de l'onglet Exemples : 'exemples' | 'accroches'
+let sbMode='notions';        // mode sidebar : 'notions' | 'auteurs' | 'concepts' | 'reperes' | 'methodo'
+let curAuthor=null;          // auteur actif (chaîne = nom exact dans AM/AI)
+let curAuthorTab='idees';    // onglet actif dans la fiche auteur
+
 /* ── Concept state ───────────────────────────────────────────── */
 let curConcept=null;
 let conceptSearch='';
@@ -3741,11 +3755,6 @@ function linkTerms(html){
 // Adresse de réception des propositions — repli si l'envoi en ligne échoue.
 const PROPOSAL_EMAIL='compte.secondaire.toi@gmail.com';
 
-// new: Boîte aux lettres en ligne (déployée sur PythonAnywhere). Le bouton
-// « Envoyer en ligne » y poste la proposition (route publique). En cas
-// d'échec (hors-ligne, service endormi…), on retombe sur le mailto:.
-const MAILBOX_URL='https://orangentleman.pythonanywhere.com';
-
 // new (comptes) : configuration Supabase (BaaS = Backend-as-a-Service —
 // base PostgreSQL + authentification hébergées en ligne). Ces deux valeurs
 // sont PUBLIQUES par conception :
@@ -4721,54 +4730,10 @@ function proposalMailtoFallback(reason){
   sendProposal();
 }
 
-/* new: Envoie la proposition à la boîte aux lettres en ligne (POST sur
-   MAILBOX_URL/api/proposals). Voie principale depuis l'étape 4.
-
-   On poste le texte BRUT (Content-Type text/plain) : c'est une « requête
-   simple » au sens CORS — pas de préflight OPTIONS — et la boîte sait
-   lire ce corps (elle y cherche les marqueurs du bloc JSON). En cas
-   d'échec (hors-ligne, service endormi, erreur serveur), on n'ouvre PAS
-   l'email automatiquement (cela quitterait la page) : on affiche un
-   message clair invitant à utiliser le bouton « Envoyer par email », qui
-   reste disponible juste à côté. La contribution n'est donc jamais perdue.
-
-   Les éléments #psend-btn et #psend-status sont rendus par renderProposal
-   (vue aperçu) ; on les met à jour pour refléter l'état (envoi/succès/échec). */
-function sendProposalOnline(){
-  const btn=document.getElementById('psend-btn');
-  const status=document.getElementById('psend-status');
-  const txt=generateProposalText();
-  const setStatus=function(msg,color){
-    if(status){ status.textContent=msg; status.style.color=color||''; }
-  };
-  if(btn){ btn.disabled=true; btn.textContent='Envoi…'; }
-  setStatus('Envoi en cours…','');
-  fetch(MAILBOX_URL+'/api/proposals',{
-    method:'POST',
-    headers:{'Content-Type':'text/plain;charset=utf-8'},
-    body:txt
-  }).then(function(r){
-    // La boîte répond toujours du JSON ; on tolère une réponse non-JSON.
-    return r.json().catch(function(){return {};}).then(function(data){
-      if(r.ok && data.ok){
-        if(btn){ btn.textContent='✓ Envoyé'; }   // reste désactivé : évite le double envoi
-        setStatus('Merci ! Ta proposition a bien été reçue. 🎉','#2ecc71');
-        clearDrafts();   // new (Phase 3) : proposition soumise → on vide le brouillon
-      } else {
-        // Réponse reçue mais refus (format, débit…) : on remonte le motif.
-        throw new Error((data && data.error) || ('HTTP '+r.status));
-      }
-    });
-  }).catch(function(err){
-    // new (Phase 5) : repli mailto automatique (plus de message « clique ici »).
-    proposalMailtoFallback(err.message);
-  });
-}
-
 /* new (Phase 3) : envoi de la proposition RATTACHÉE AU COMPTE.
    Quand l'utilisateur est connecté, « Envoyer en ligne » insère la
-   proposition dans la table Supabase « contributions » (au lieu de la boîte
-   anonyme PythonAnywhere). Avantage : on peut ensuite suivre son statut dans
+   proposition dans la table Supabase « contributions » (rattachée au
+   compte). Avantage : on peut ensuite suivre son statut dans
    « Mes propositions ». La sécurité RLS impose user_id = auth.uid() : on le
    renseigne donc explicitement. Le statut prend sa valeur par défaut côté
    base ('en_attente'). En cas d'échec : on n'ouvre PAS l'email (cela
@@ -4794,7 +4759,7 @@ function sendProposalToSupabase(){
   });
 }
 
-/* Envoi ANONYME via Supabase (remplace la boîte PythonAnywhere).
+/* Envoi ANONYME via Supabase (a remplacé la boîte PythonAnywhere, retirée).
    Insère la proposition avec user_id NULL (aucun compte) : une règle RLS dédiée
    (migration 2026_anon_contributions.sql) autorise le rôle « anon » à insérer
    une ligne non rattachée à un compte, au statut « en_attente ». Le pseudo
@@ -4824,9 +4789,10 @@ function sendProposalAnonSupabase(){
    - Édition d'un envoi « en attente » (connecté) → UPDATE de la ligne Supabase.
    - Connecté (nouvelle proposition) → Supabase (suivi du statut possible).
    - Non connecté, Supabase dispo → Supabase anonyme (user_id NULL) — voie
-     principale des anonymes depuis la migration (remplace PythonAnywhere).
-   - Supabase indisponible (hors-ligne / CDN non chargé) → ancienne boîte
-     PythonAnywhere en tout dernier repli. */
+     principale des anonymes.
+   - Supabase indisponible (hors-ligne / CDN non chargé) → repli mailto direct
+     (proposalMailtoFallback). L'ancienne boîte anonyme PythonAnywhere, éteinte,
+     a été retirée en oct. 2026 (dossier philo-mailbox/ supprimé). */
 /* ── Validation des champs obligatoires avant envoi ─────────────────────────
    Avant, on pouvait envoyer une proposition même si des champs obligatoires
    étaient vides (aucun avertissement). proposalMissing() reconstruit la liste
@@ -4870,8 +4836,8 @@ function submitProposalOnline(){
   if(!proposalGuardOk()) return;   // bloque si des champs obligatoires sont vides
   if(SB && authUser && editingContribId) updateProposalInSupabase();
   else if(SB && authUser) sendProposalToSupabase();
-  else if(SB) sendProposalAnonSupabase();   // anonyme → Supabase (remplace PythonAnywhere)
-  else sendProposalOnline();                // repli ultime : Supabase indisponible
+  else if(SB) sendProposalAnonSupabase();   // anonyme → Supabase
+  else proposalMailtoFallback('service en ligne indisponible');   // Supabase non chargé : repli mail
 }
 
 /* new : UPDATE d'une proposition « en attente » (édition, pas un nouvel insert).
@@ -5145,7 +5111,7 @@ function renderProposal(){
       +'<button class="pbtn" onclick="showProposalEdit()">← Modifier</button>'
       +fallbackBtns
       +mineBtn
-      // new (Phase 3): voie principale — UPDATE si édition, sinon Supabase/PythonAnywhere.
+      // new (Phase 3): voie principale — UPDATE si édition, sinon insertion Supabase.
       +'<button class="pbtn pbtn-primary" id="psend-btn" onclick="submitProposalOnline()">'+sendLabel+'</button>'
       +'</div>';
     return;
