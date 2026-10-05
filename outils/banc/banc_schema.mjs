@@ -112,7 +112,7 @@ const ESSAIS = [
       return !ins && !maj;
     } },
   { nom: "le site garde ce qu'il lui faut : « Mes propositions » et la correction",
-    temoin: remplace('2026_contributions_colonnes.sql', 'grant update (payload, updated_at)', 'grant update (updated_at)'),
+    temoin: remplace('2026_contributions_colonnes.sql', 'grant update (payload, updated_at) on public.contributions to authenticated;', 'grant update (updated_at) on public.contributions to authenticated;'),
     async f(db) {
       const a = await inscrire(db, 'a@x');
       await sous(db, a, tx => tx.query("insert into public.contributions (user_id, payload) values ($1, '{}')", [a]));

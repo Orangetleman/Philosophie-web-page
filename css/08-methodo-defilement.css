@@ -1,0 +1,69 @@
+/* css/08-methodo-defilement.css — morceau de la feuille de style du site. Le build
+   (outils/construire.mjs) recolle css/*.css dans l'ORDRE des noms pour
+   produire app.css : l'ordre compte (cascade CSS). */
+/* ── Onglet Méthodo (guide) — interface dédiée (renderMethodoContent) ──
+   Volontairement DIFFÉRENTE des fiches concept/notion : un squelette
+   VISUEL de la copie en haut (la structure « vue de loin »), puis le
+   détail pas à pas dans des blocs dépliables (<details>) en dessous.
+   Thème accent bleu (réutilise les variables du quiz) pour le démarquer. */
+.methodo-wrap{max-width:780px}
+/* En-tête épuré : un libellé discret + une bascule « segmentée » (segmented
+   control), bien plus légère que deux gros boutons. Le titre redondant (déjà
+   donné par l'onglet sélectionné + le fil d'Ariane) a été retiré. */
+.methodo-eyebrow{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;
+  color:var(--color-text-tertiary);margin-bottom:8px}
+.methodo-switch{display:flex;gap:4px;margin-bottom:18px;padding:4px;max-width:460px;
+  background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);
+  border-radius:11px}
+.methodo-switch button{flex:1;min-height:36px;padding:7px 12px;border:0;border-radius:8px;background:transparent;
+  color:var(--color-text-secondary);font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;
+  font-family:inherit;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.methodo-switch button:hover{color:var(--color-text-primary)}
+.methodo-switch button.active{background:var(--color-accent-quiz);color:#fff;box-shadow:0 1px 4px rgba(0,0,0,.25)}
+.methodo-intro{font-size:14px;line-height:1.62;color:var(--color-text-secondary);margin-bottom:6px}
+.methodo-intro b,.methodo-intro strong{color:var(--color-text-primary)}
+.methodo-sectitle{font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;
+  color:var(--color-text-tertiary);margin:22px 0 10px}
+/* Squelette : pile verticale de « blocs de copie ». */
+.methodo-skel{display:flex;flex-direction:column;gap:7px;margin:4px 0 8px}
+.methodo-skel-row{display:flex;gap:0;align-items:stretch;border:0.5px solid var(--color-border-tertiary);
+  border-left:3px solid var(--color-accent-quiz);border-radius:var(--border-radius-md);overflow:hidden;
+  background:var(--color-background-secondary)}
+.methodo-skel-bloc{flex:0 0 140px;padding:10px 12px;font-weight:700;font-size:13px;color:var(--color-text-primary);
+  background:var(--color-background-quiz);display:flex;align-items:center}
+.methodo-skel-detail{padding:10px 12px;font-size:12.5px;line-height:1.5;color:var(--color-text-secondary);flex:1}
+/* Étapes détaillées dépliables. */
+.methodo-step{border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);
+  margin-bottom:8px;background:var(--color-background-secondary);overflow:hidden}
+.methodo-step>summary{list-style:none;cursor:pointer;padding:12px 14px;font-weight:600;font-size:13.5px;
+  color:var(--color-text-primary);display:flex;align-items:center;gap:8px}
+.methodo-step>summary::-webkit-details-marker{display:none}
+.methodo-step>summary::after{content:'▸';margin-left:auto;color:var(--color-text-tertiary);transition:transform .15s}
+.methodo-step[open]>summary::after{transform:rotate(90deg)}
+.methodo-step>summary:hover{background:var(--color-background-tertiary)}
+.methodo-step-num{flex:0 0 auto;width:22px;height:22px;border-radius:50%;background:var(--color-accent-quiz);
+  color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.methodo-step-body{padding:2px 14px 14px;font-size:13px;line-height:1.62;color:var(--color-text-secondary)}
+.methodo-step-body p{margin:0 0 9px}
+.methodo-block-title{font-size:11.5px;font-weight:700;color:var(--color-text-tertiary);
+  text-transform:uppercase;letter-spacing:.03em;margin:12px 0 6px}
+.methodo-phrases{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:5px}
+.methodo-phrases li{padding:7px 11px;background:var(--color-background-quiz);border-radius:var(--border-radius-md);
+  border-left:2px solid var(--color-border-quiz,var(--color-accent-quiz));font-size:12.5px;
+  font-style:italic;color:var(--color-text-secondary)}
+.methodo-tip{margin-top:10px;padding:9px 12px;border-radius:var(--border-radius-md);
+  background:var(--color-background-info,rgba(59,130,214,.12));font-size:12.5px;line-height:1.5;
+  color:var(--color-text-secondary)}
+.methodo-tip b{color:var(--color-text-primary)}
+@media(max-width:700px){
+  .methodo-skel-row{flex-direction:column}
+  .methodo-skel-bloc{flex:none;border-bottom:0.5px solid var(--color-border-tertiary)}
+}
+
+/* ── Barres de défilement assorties au thème sombre ───────────
+   Corrige les scrollbars blanches par défaut (Windows). Purement additif. */
+*{scrollbar-width:thin;scrollbar-color:var(--color-border-secondary) transparent}
+::-webkit-scrollbar{width:9px;height:9px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--color-border-tertiary);border-radius:5px}
+::-webkit-scrollbar-thumb:hover{background:var(--color-border-secondary)}

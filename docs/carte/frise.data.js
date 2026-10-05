@@ -1,8 +1,71 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
-  "genere_le": "2026-10-05T19:42:30.735Z",
+  "genere_le": "2026-10-05T20:03:22.260Z",
   "commits": [
+    {
+      "hash": "1c775cbc6a07cd7db18619962ad649268f727343",
+      "short": "1c775cb",
+      "auteur": "Orangentleman",
+      "date": "2026-10-05T22:01:29+02:00",
+      "sujet": "Documentation de l'étape 3 : CLAUDE.md réduit aux règles, architecture dans docs/",
+      "corps": "- CLAUDE.md passe de 770 à 150 lignes : où est quoi (sources, fichiers\n  produits), comment travailler (build, contrôles, commit), règles,\n  pièges. Il est relu à chaque session : il ne garde que ce qui sert à\n  chaque fois.\n- docs/architecture.md reprend les descriptions détaillées (formats de\n  données, onglets, liens dynamiques, contribution, interface, quiz), avec\n  une table des morceaux de js/ ; les passages devenus faux (conversions\n  « au chargement », philo-vN, « dans index.html ») sont corrigés.\n- docs/carte/MAJ.md : nœuds et textes à la main, refs tenues par le build.\n- README : structure du dépôt, build, recherche et adresses par page, rôle\n  des icônes du tableau de bord, contribuer directement dans contenu/.\n- Diagnostic § 11 : avancement de l'étape 3 et décisions de l'auteur.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": "Documentation de l'étape 3"
+    },
+    {
+      "hash": "465bc7700c2885fa66277b942ff83e93842372d8",
+      "short": "465bc77",
+      "auteur": "Orangentleman",
+      "date": "2026-10-05T21:59:03+02:00",
+      "sujet": "Recherche plein texte : citations, œuvres, sujets, textes, exemples, définitions",
+      "corps": "Ctrl+K ne trouvait que les titres : ni « roseau pensant », ni « Léviathan »,\nni un exemple, ni un sujet (diagnostic § 3).\n\n- L'index gagne cinq types (citation, œuvre, sujet de dissertation ou de\n  plan, texte, exemple) et un champ texte (définitions des notions et des\n  concepts, corps des textes et des exemples) : ≈1 200 entrées, une\n  recherche prend environ 1 ms.\n- Classement : libellé qui commence par la saisie, puis chaîne, puis\n  inclusion, puis texte seul ; 8 résultats par type au plus, pour que les\n  citations ne cachent pas le reste. Saisie vide : comme avant.\n- Un résultat ouvre la fiche sur le bon onglet et fait briller l'élément\n  trouvé (pendingCible, lu par focusAfterRender), à la place de l'en-tête.\n\nVérifié dans le navigateur : « roseau pensant » → la citation de Pascal,\n« Léviathan » → l'œuvre de Hobbes, « volonte generale » (sans accents) →\nle texte de Rousseau, « Prométhée » → l'exemple du mythe ; à chaque fois un\nseul élément brille, le bon.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": "Recherche plein texte"
+    },
+    {
+      "hash": "b845b58546aca1690233b6b481346930445d1f2f",
+      "short": "b845b58",
+      "auteur": "Orangentleman",
+      "date": "2026-10-05T21:55:46+02:00",
+      "sujet": "Une adresse par page (#/notion/…, #/auteur/…) : liens partageables, bouton « précédent »",
+      "corps": "Le site n'avait qu'une adresse : impossible d'envoyer un lien vers une\nnotion, le bouton « précédent » du navigateur sortait du site, et\n« Partager » donnait la page d'accueil (diagnostic § 3).\n\n- Chaque vue a son adresse dans le fragment de l'URL : #/notion/<clé>\n  [/<onglet>], #/auteur/<nom>[/<onglet>], #/concept/<id>, #/repere/<id>,\n  #/methodo/<parcours>. Le # marche partout (double-clic, Vercel sans\n  réécriture).\n- majAdresse() suit chaque rendu : une navigation crée une entrée dans\n  l'historique du navigateur, un simple rafraîchissement la remplace ; le\n  titre de l'onglet nomme la page. popstate rejoue l'adresse (précédent /\n  suivant), et la pile « ← Retour » du site reste d'accord.\n- Au démarrage, un lien partagé l'emporte sur la position mémorisée.\n- Un jeton de connexion Supabase dans l'URL n'est jamais écrasé.\n- « Partager » donne l'adresse de la page ouverte.\n\nVérifié dans le navigateur : lien direct vers Spinoza › Citations, trois\n« précédent » puis « suivant », adresse d'une page inexistante ignorée,\nforme courte « Arendt » ramenée à Hannah Arendt, nom avec apostrophe\nencodé puis relu, jeton laissé intact.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": ""
+    },
+    {
+      "hash": "e568d31eaea27aa4cda52a88a723331400ba4a75",
+      "short": "e568d31",
+      "auteur": "Orangentleman",
+      "date": "2026-10-05T21:53:48+02:00",
+      "sujet": "Découpage d'index.html : le code passe dans js/ et css/, recollé par le build",
+      "corps": "index.html faisait 8 371 lignes (CSS + HTML + tout le JS) et devait être\nréécrit par sections entières. Il garde le squelette HTML (275 lignes) et\ncharge app.css, data.js, puis app.js.\n\n- js/ : 14 morceaux coupés aux bannières de section existantes (données et\n  état, navigation, barre latérale, fiches, liens, contribution, réglages,\n  visite guidée, compte, partage, synchro, démarrage, quiz, recherche).\n  css/ : 8 morceaux. L'ordre n'a pas changé.\n- Le build les recolle dans l'ordre des noms en UN SEUL app.js (et app.css) :\n  le JavaScript se comporte exactement comme l'ancien <script> unique (une\n  fonction reste utilisable avant la ligne où elle est écrite, ce qui ne\n  serait plus vrai avec plusieurs <script>). Il vérifie la syntaxe d'app.js\n  et nomme le fichier source et la ligne d'une faute (--temoins le prouve).\n  app.js et app.css entrent dans le précache.\n- Preuve : app.js et app.css sont identiques à l'ancien <script> et à\n  l'ancien <style>, hors lignes vides aux coupures (témoin : une espace\n  ajoutée est vue). Rendu vérifié dans le navigateur.\n- Carte du projet : verifie.mjs cherche désormais la DÉFINITION d'un\n  symbole et non une simple mention (une fonction supprimée mais encore\n  citée dans un commentaire passait pour présente : témoin vu), retrouve un\n  symbole qui a changé de fichier, et --corriger réécrit les refs. Le build\n  le lance ; son --controle exige des refs exactes (240 refs corrigées).\n- Vérificateur du contenu : AUTHOR_ALIASES est lu dans js/.\n- Hook de commit : déclenché aussi par js/, css/, docs/carte/, app.*.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": "Découpage d'index.html"
+    },
+    {
+      "hash": "abb3b176e6791663ef09a36622e1a9641ef4dd74",
+      "short": "abb3b17",
+      "auteur": "Orangentleman",
+      "date": "2026-10-05T21:48:19+02:00",
+      "sujet": "contenu : fiche de Ricœur nommée ricoeur.js (la ligature avait été perdue)",
+      "corps": "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": "contenu"
+    },
+    {
+      "hash": "4f15c9f3ca1d82076edef740cc3813b538cbbb36",
+      "short": "4f15c9f",
+      "auteur": "Orangentleman",
+      "date": "2026-10-05T21:48:11+02:00",
+      "sujet": "Build léger : le contenu passe dans contenu/, data.js devient généré",
+      "corps": "Étape 3 de la feuille de route (docs/diagnostic-2026-10.md, § 7, option B).\n\n- contenu/ : un fichier par notion (17), par auteur (93), concepts.js,\n  reperes.js, ordre.js. Des appels NOTION(…), AUTEUR(…), CONCEPT(…),\n  REPERE(…), ORDRE(…) au format canonique, lisibles et commentables.\n  Produits une fois depuis l'ancien data.js (script de migration).\n- outils/construire.mjs (Node seul) : charge contenu/, convertit les\n  anciens formats (outils/lib/formats.mjs, reprise exacte des fonctions\n  que index.html appliquait à chaque chargement), écrit data.js, recalcule\n  CACHE et PRECACHE de sw.js (empreinte du contenu : plus de philo-vN à\n  incrémenter), lance le vérificateur. --controle vérifie sans écrire.\n- index.html ne convertit plus rien au chargement (normalizeD,\n  normalizeAuthor, migrateAxeToPlan, normalizeConcepts retirés).\n- Non-régression : les données du nouveau data.js sont identiques à celles\n  que le site obtenait avant, après ses conversions (17 notions, 93\n  auteurs, 203 concepts ; seul l'ordre change : les repères passent après\n  les concepts). Témoin : une lettre changée est vue. Rendu vérifié dans\n  le navigateur (plans « à enrichir », repères, fiches, quiz).\n- Vérificateur : question 10, data.js au format canonique (témoin vu).\n- Hook de commit : refuse un commit si data.js ou sw.js ne sont pas à\n  jour du contenu (construire.mjs --controle).\n- Carte du projet : nœud « Build : sources → data.js ».\n\nLa documentation (CLAUDE.md, README) suivra en fin d'étape.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": "Build léger"
+    },
+    {
+      "hash": "39b320120bc3eee4b42f2dbba73a1f2a5a564387",
+      "short": "39b3201",
+      "auteur": "Orangentleman",
+      "date": "2026-10-05T21:42:30+02:00",
+      "sujet": "Migrations : la photographie de la base réelle confirme le défaut, et en montre un second",
+      "corps": "Requête 6 de 2026_schema_lecture.sql lancée par l'auteur : authenticated lit\ntoutes les colonnes de contributions (aggregator_state comprise) et n'a aucun\ndroit UPDATE, donc « Modifier » une proposition en attente devait échouer.\n2026_contributions_colonnes.sql corrige les deux ; commentaires mis à jour.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": "Migrations"
+    },
     {
       "hash": "c77ba9aecc1b7a608f4b71bd78beac4a6f4c41f0",
       "short": "c77ba9a",

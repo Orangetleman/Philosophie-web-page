@@ -1,24 +1,37 @@
 # Mettre à jour la carte (`docs/carte/`)
 
 La carte est **pilotée par les données** : `carte.data.js` est la **seule
-source de vérité**. `carte.html` n'a aucune donnée en dur et n'a jamais besoin
-d'être modifié pour une mise à jour de contenu. On édite `carte.data.js`, on
-relance `verifie.mjs`, c'est tout.
+source de vérité** des nœuds et de leurs textes. `carte.html` n'a aucune
+donnée en dur et n'a jamais besoin d'être modifié pour une mise à jour.
+
+Depuis l'étape 3 (octobre 2026), le partage des rôles est le suivant :
+- **à la main** : les nœuds (ajouter, retirer, rattacher), leurs textes
+  (`novice`, `ingenieur`), les `symbols[]` (sorte et nom) et les liens ;
+- **automatique** : les `ref` « fichier:ligne ». Le build
+  (`node outils/construire.mjs`) lance `verifie.mjs --corriger`, qui retrouve
+  la DÉFINITION de chaque symbole dans le code et réécrit sa ref, même si le
+  symbole a changé de fichier. Pour un nouveau symbole, une ref approximative
+  (`js/04-fiches.js:1`) suffit : le build la corrige.
 
 ## Règle de PR
 > **Toute PR qui modifie l'architecture (ajout/suppression/renommage d'une
 > fonction, variable, table, route, clé localStorage, ou d'un flux de données)
-> met à jour `docs/carte/carte.data.js` dans le MÊME commit**, puis fait passer
-> `node docs/carte/verifie.mjs` (0 périmé).
+> met à jour les nœuds de `docs/carte/carte.data.js` dans le MÊME commit**.
+> Le build échoue si un symbole cité n'existe plus.
 
-## Vérifier (anti-drift)
+## Vérifier (anti-dérive)
 ```
-node docs/carte/verifie.mjs
+node docs/carte/verifie.mjs              # contrôle
+node docs/carte/verifie.mjs --corriger   # réécrit les refs (le build le fait)
 ```
-- **PÉRIMÉ** → un `name` n'existe plus dans le fichier cité : corriger le nœud.
-- **DÉPLACÉ** → le `name` existe mais a changé de ligne : mettre à jour la `ref`
-  (non bloquant, le script indique la nouvelle ligne).
-- **FICHIER?** → fichier renommé/supprimé : corriger la `ref`.
+- **PÉRIMÉ** → le symbole n'est DÉFINI nulle part dans le code (une mention
+  en commentaire ne compte pas pour une fonction) : corriger ou retirer le nœud.
+- **DÉPLACÉ** → défini ailleurs que la ref : `--corriger` (ou le build) la
+  réécrit. En contrôle simple, c'est un écart (sortie 1) : le hook de commit
+  exige des refs exactes.
+- Sortes : `fn` exige une définition (`function nom(`, `(function nom(`,
+  `def nom(`, `class nom`, `create function nom`) ; `var` et `table` cherchent
+  une définition puis une mention ; `key`, `css`, `route` une mention.
 
 ## Quand je change X dans le code → quel nœud mettre à jour
 
@@ -47,7 +60,7 @@ node docs/carte/verifie.mjs
 - `liens[]` (par nœud) = liens internes ; `edges[]` (global) = flux transverses.
 - Chaque nœud porte **`novice`** (sans jargon) **et** `ingenieur` (précis) :
   garder les deux à jour.
-- Toute `ref` doit pointer un symbole **réel** (confirmé par `verifie.mjs`).
+- Toute `ref` pointe la définition **réelle** du symbole (tenue à jour par le build).
 
 ## Frise des commits (`frise.html`)
 `frise.html` lit `frise.data.js` (généré). Pour rafraîchir la frise après de

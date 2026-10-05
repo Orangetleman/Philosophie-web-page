@@ -1,0 +1,1322 @@
+/* app.css — GÉNÉRÉ par outils/construire.mjs : css/*.css recollés dans l'ordre des noms.
+   NE PAS ÉDITER : modifier css/, puis lancer « node outils/construire.mjs ». */
+/* css/01-base.css — morceau de la feuille de style du site. Le build
+   (outils/construire.mjs) recolle css/*.css dans l'ORDRE des noms pour
+   produire app.css : l'ordre compte (cascade CSS). */
+/* ══════════════════════════════════════════════════════════════════
+   CSS — TABLE DES MATIÈRES
+   ──────────────────────────────────────────────────────────────────
+   1. Variables globales (:root)
+   2. Layout de base  — body, .wrap, .sidebar, .main
+   3. Sidebar         — items de notion (.nb), titre (.stitle)
+   4. Tabs            — barre d'onglets (.tab)
+   5. En-tête notion  — .notion-head, .ntitle, .nsub, .def-box
+   6. Contenu notion  — .ag/.ac (auteurs), .tbox (textes),
+                        .axe-card (axes), .ex-card (exemples),
+                        .lpill/.dq (liens & dissertations)
+   7. Badges          — .new-badge (nouveau), .modified-badge (modifié)
+   8. Bouton retour   — .back-btn
+   9. Définition enrichie — .def-box details/summary
+  10. Sidebar Auteurs — onglets (.sb-tab), recherche/filtre
+  11. Liste auteurs   — .ab, .ab-badges
+  12. Fiche auteur    — .author-title, .idea-card, .cit-card,
+                        .oeuvre-card, .dial-card
+  13. Sidebar Concepts — .cb
+  14. Fiche concept   — .concept-title, .tension-item
+  15. Liens inline    — .cterm/.aterm/.nterm (liens typés), .an-link (auteur)
+   ══════════════════════════════════════════════════════════════════ */
+
+/* ── 1. Variables globales ───────────────────────────────────────── */
+:root{
+  --color-background-primary:#1e1e1e;
+  --color-background-secondary:#2a2a2a;
+  --color-text-primary:#f5f5f5;
+  --color-text-secondary:#d4d4d4;
+  --color-text-tertiary:#a0a0a0;
+  --color-border-tertiary:#3a3a3a;
+  --color-border-secondary:#555555;
+  --color-background-info:#1e2d1e;
+  --color-border-info:#2d5a2d;
+  --color-text-info:#6abf6a;
+  /* Thème BLEU dédié au mode quiz (bouton sidebar + accent de l'overlay) */
+  --color-background-quiz:#1c2533;
+  --color-border-quiz:#2f4d7a;
+  --color-text-quiz:#6aa8e0;
+  --color-accent-quiz:#3b82d6;
+  --border-radius-lg:12px;
+  --border-radius-md:8px;
+}
+/* ── 2. Layout de base ───────────────────────────────────────────── */
+body{font-family:'Inter',system-ui,sans-serif;background:#121212;height:100vh;height:100dvh;padding:16px;overflow:hidden;}
+*{box-sizing:border-box;margin:0;padding:0}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+/* Accessibilité clavier : anneau de focus visible UNIQUEMENT lors de la
+   navigation au clavier (:focus-visible). Les nombreux `outline:none` du
+   CSS suppriment l'anneau disgracieux au clic souris ; cette règle le
+   rétablit pour qui tabule, sans rien changer à l'apparence à la souris. */
+:focus-visible{outline:2px solid var(--color-text-quiz);outline-offset:2px}
+.wrap{height:calc(100vh - 32px);height:calc(100dvh - 32px);display:flex;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);overflow:hidden;}
+.sidebar{width:155px;flex-shrink:0;background:var(--color-background-secondary);border-right:0.5px solid var(--color-border-tertiary);display:flex;flex-direction:column;overflow:hidden;}
+.sb-fixed{flex-shrink:0;padding:0 7px;}
+.sidebar-list{flex:1;overflow-y:auto;padding:0 7px 8px;padding-bottom:calc(8px + env(safe-area-inset-bottom,0px));height:0;min-height:0;}
+/* ── 3. Sidebar — liste des notions ─────────────────────────────── */
+.stitle{font-size:10px;font-weight:500;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:.06em;padding:0 6px 8px;flex-shrink:0;}
+.nb{padding:7px 9px;border-radius:var(--border-radius-md);cursor:pointer;font-size:12px;color:var(--color-text-secondary);border:0.5px solid transparent;transition:all .15s;line-height:1.3;display:flex;align-items:center;gap:6px;flex-shrink:0;}
+.nb:hover{background:var(--color-background-primary);color:var(--color-text-primary)}
+.nb.active{background:var(--color-background-primary);color:var(--color-text-primary);border-color:var(--color-border-secondary);font-weight:500}
+.dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.main-content{flex:1;overflow-y:auto;padding:18px 22px 24px;padding-bottom:calc(24px + env(safe-area-inset-bottom,0px));height:0;min-height:0;}
+
+/* ── 3b. Fil d'Ariane (« crumbs ») — style explorateur ──────────────
+   Affiché au-dessus de la barre d'onglets. Chaque segment est cliquable
+   (sauf le dernier, « current ») et ramène à son niveau de hiérarchie. */
+.crumbs{padding:10px 22px 0;font-size:11px;color:var(--color-text-tertiary);
+  display:flex;flex-wrap:wrap;align-items:center;gap:3px;min-height:14px}
+.crumb{cursor:pointer;color:var(--color-text-tertiary);padding:3px 7px;
+  border-radius:var(--border-radius-md);transition:color .15s,background .15s;
+  white-space:nowrap}
+.crumb:hover{color:var(--color-text-info);background:var(--color-background-info)}
+.crumb.current{color:var(--color-text-primary);font-weight:500;cursor:default}
+.crumb.current:hover{color:var(--color-text-primary);background:transparent}
+.crumb-sep{color:var(--color-text-tertiary);opacity:.45;font-size:11px;padding:0 1px}
+
+/* ── 4. Tabs — barre d'onglets principale ────────────────────────── */
+.tabs{display:flex;gap:2px;border-bottom:0.5px solid var(--color-border-tertiary);padding:10px 22px 0;flex-shrink:0;}
+.tab{padding:7px 14px;font-size:12px;cursor:pointer;color:var(--color-text-secondary);border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s;border-radius:0}
+.tab:hover{color:var(--color-text-primary)}
+.tab.active{color:var(--color-text-primary);font-weight:500;border-bottom-color:currentColor}
+
+.notion-head{display:flex;align-items:center;gap:10px;margin-bottom:14px;margin-top:18px}
+.nbadge{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.ntitle{font-size:17px;font-weight:500;color:var(--color-text-primary)}
+.nsub{font-size:12px;color:var(--color-text-secondary);margin-top:2px}
+
+.def-box{background:var(--color-background-secondary);border-left:2.5px solid var(--color-border-secondary);padding:11px 13px;border-radius:0 var(--border-radius-md) var(--border-radius-md) 0;margin-bottom:16px;font-size:13px;color:var(--color-text-secondary);line-height:1.65}
+.kw{font-weight:500;color:var(--color-text-primary)}
+
+.slabel{font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.06em;color:var(--color-text-tertiary);margin-bottom:8px}
+
+/* ── 6. Contenu notion — onglet Auteurs (.ag/.ac) ────────────────── */
+.ag{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:9px;margin-bottom:16px}
+.ac{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:10px 12px}
+.an{font-size:12px;font-weight:500;margin-bottom:2px}
+.aw{font-size:11px;color:var(--color-text-tertiary);font-style:italic;margin-bottom:4px}
+.ai{font-size:12px;color:var(--color-text-secondary);line-height:1.5}
+.aq{font-size:11px;color:var(--color-text-tertiary);font-style:italic;margin-top:5px;border-left:2px solid var(--color-border-tertiary);padding-left:7px;line-height:1.4}
+/* Carte auteur multi-idées : chaque idée est une ZONE autonome (.a-idea) avec
+   sa propre couleur (is-new / is-modified) et ses badges ; les zones se
+   disposent HORIZONTALEMENT (flex-wrap) au lieu d'être empilées. */
+.a-ideas{display:flex;flex-wrap:wrap;gap:8px}
+.a-idea{flex:1 1 200px;min-width:0;padding:7px 9px;border-radius:var(--border-radius-md);
+        border:0.5px solid transparent}
+/* Plusieurs idées dans une carte → on matérialise les zones par un liseré
+   discret (les zones colorées, elles, l'emportent ci-dessous). */
+.ac-multi .a-idea{border-color:var(--color-border-tertiary)}
+.a-idea.is-new{border-color:var(--color-new-border);background:var(--color-new-bg)}
+.a-idea.is-new .aw{color:var(--color-new)}
+.a-idea.is-modified{border-color:var(--color-mod-border);background:var(--color-mod-bg)}
+.a-idea.is-modified .aw{color:var(--color-mod)}
+/* Carte d'un auteur à plusieurs idées : s'élargit sur 2 colonnes (au lieu de
+   toute la rangée) pour que les zones d'idées tiennent côte à côte SANS laisser
+   de grands vides dans la grille — un span pleine-rangée cassait le flux et
+   laissait les colonnes restantes vides. (≤700px : retour à 1 colonne.) */
+.ac-multi{grid-column:span 2}
+/* « Mode fiche » (Réglages) : lecture RAPIDE façon fiche de révision. Chaque
+   boîte d'auteur des notions affiche la SYNTHÈSE (.ai-fiche = la thèse en une
+   phrase, cf. ideaSynthese) à la place du texte complet (.ai), masque les
+   citations, et resserre les zones. .ai-fiche est cachée hors mode fiche. */
+.ai-fiche{display:none}
+body.mode-fiche .ac{padding:7px 9px}
+body.mode-fiche .a-idea{padding:4px 7px}
+body.mode-fiche .aw{margin-bottom:2px}
+body.mode-fiche .ai{display:none}
+body.mode-fiche .ai-fiche{display:block;font-size:12px;line-height:1.45;color:var(--color-text-secondary)}
+body.mode-fiche .a-idea .aq,
+body.mode-fiche .a-idea .aq-details{display:none}
+/* Citations multiples d'une idée : la 1re est visible, les autres dans un déroulant. */
+.aq-details{margin-top:3px}
+.aq-details>summary{font-size:10px;color:var(--color-text-tertiary);cursor:pointer;list-style:none;padding-left:7px}
+.aq-details>summary::-webkit-details-marker{display:none}
+.aq-details>summary:hover{color:var(--color-text-secondary)}
+.aq-more{margin-top:4px}
+
+/* ── 6b. Contenu notion — onglet Textes (.tbox/.ti2) ─────────────── */
+.tbox{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:11px 13px;margin-bottom:16px}
+.ti2{display:flex;flex-direction:column;gap:3px;padding:8px 0;border-bottom:0.5px solid var(--color-border-tertiary);font-size:12px;line-height:1.5}
+.ti2:last-child{border-bottom:none;padding-bottom:0}
+.tinum{font-weight:500;color:var(--color-text-primary);flex-shrink:0}
+.titxt{color:var(--color-text-secondary)}
+
+/* ── 6c. Contenu notion — onglet Axes (.axe-card/.sp) ───────────── */
+.axe-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:12px 14px;margin-bottom:10px}
+.axe-head{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.axe-num{font-size:10px;font-weight:500;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:.05em}
+.axe-title{font-size:13px;font-weight:500;color:var(--color-text-primary)}
+.axe-pb{font-size:11px;color:var(--color-text-secondary);margin-bottom:8px;font-style:italic}
+.sp{margin:4px 0 0 0;padding:0}
+.sp-item{display:flex;gap:7px;font-size:12px;color:var(--color-text-secondary);padding:3px 0;line-height:1.45;border-bottom:0.5px solid var(--color-border-tertiary)}
+.sp-item:last-child{border-bottom:none}
+.sp-letter{font-weight:500;color:var(--color-text-primary);flex-shrink:0;min-width:14px}
+.sp-content{color:var(--color-text-secondary)}
+.sp-ref{font-size:10px;color:var(--color-text-tertiary);display:block;margin-top:1px}
+
+/* ── Plans de dissertation (onglet Dissertations) ──────────────────
+   .plan-card : carte d'un plan complet (1 sujet + 3 axes I/II/III), elle-
+   même DÉROULABLE (<details>) — on ne voit que le sujet (summary .plan-q)
+   et on déplie le plan qu'on veut travailler (divulgation progressive).
+   .plan-axe  : un axe ; .plan-sp : une sous-partie DÉROULABLE (<details>)
+   Les « limites » marquent les transitions : la limite de sous-partie est
+   discrète, la limite d'axe (transition vers l'axe suivant) est plus
+   marquée (encadré coloré).                                            */
+.plan-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:13px 15px;margin-bottom:12px}
+.plan-q{font-size:13.5px;font-weight:600;color:var(--color-text-primary);line-height:1.4;margin-bottom:9px}
+/* Sujet = résumé cliquable du plan déroulable. Marqueur ▶/▼ maison (comme
+   .plan-sp), puce native masquée ; pas de marge sous le sujet quand replié. */
+.plan-card>summary{list-style:none;cursor:pointer;margin-bottom:0}
+.plan-card>summary::-webkit-details-marker{display:none}
+.plan-card>summary::before{content:"▶ ";color:var(--color-text-tertiary);font-size:9px}
+.plan-card[open]>summary::before{content:"▼ "}
+.plan-card[open]>summary{margin-bottom:9px}
+.plan-card>summary:hover{color:var(--color-text-primary)}
+.plan-intro,.plan-pb{font-size:12px;color:var(--color-text-secondary);line-height:1.55;margin-bottom:6px}
+.plan-lbl{font-weight:600;color:var(--color-text-primary)}
+.plan-pb{margin-bottom:11px}
+.plan-axe{margin:0 0 11px 0;padding:9px 0 0 0;border-top:0.5px solid var(--color-border-tertiary)}
+.plan-axe-head{font-size:12.5px;font-weight:600;color:var(--color-text-primary);margin-bottom:6px}
+.plan-todo{color:var(--color-text-tertiary);font-weight:400;font-style:italic}
+.plan-sp{margin:4px 0;border-left:2px solid var(--color-border-tertiary);padding-left:9px}
+.plan-sp>summary{font-size:12px;color:var(--color-text-secondary);cursor:pointer;line-height:1.45;list-style:none;padding:2px 0}
+.plan-sp>summary::-webkit-details-marker{display:none}
+.plan-sp>summary::before{content:"▸ ";color:var(--color-text-tertiary);font-size:10px}
+.plan-sp[open]>summary::before{content:"▾ "}
+.plan-sp>summary:hover{color:var(--color-text-primary)}
+.plan-sp[open]>summary{font-weight:600;color:var(--color-text-primary);margin-bottom:4px}
+.plan-sp-letter{font-weight:600;color:var(--color-text-primary)}
+/* Sous-partie sans titre (plan migré) : affichée en entier, lettre flottante. */
+.plan-sp-flat{margin:6px 0}
+.plan-sp-flat .plan-sp-letter{float:left;margin-right:5px}
+.plan-sp-flat .plan-sp-body{overflow:hidden}
+.plan-sp-body{font-size:12px;color:var(--color-text-secondary);line-height:1.55;padding:2px 0 6px 4px}
+.plan-sp-args{margin-bottom:5px}
+.plan-sp-meta,.plan-sp-ref{font-size:11px;color:var(--color-text-tertiary);margin-top:3px}
+.plan-sp-limite{font-size:11px;color:var(--color-text-secondary);margin-top:5px;padding:4px 8px;background:var(--color-background-secondary);border-radius:var(--border-radius-md)}
+.plan-axe-limite{font-size:11.5px;color:var(--color-text-secondary);line-height:1.5;margin-top:7px;padding:7px 10px;background:var(--color-background-secondary);border-left:3px solid var(--color-border-secondary);border-radius:0 var(--border-radius-md) var(--border-radius-md) 0}
+.plan-migr{font-size:9.5px;font-weight:600;color:var(--color-text-tertiary);border:0.5px dashed var(--color-border-tertiary);border-radius:20px;padding:1px 7px;white-space:nowrap}
+
+/* ── 6d. Contenu notion — onglet Exemples (.ex-card) ─────────────── */
+.ex-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:11px 13px;margin-bottom:9px}
+.ex-head{display:flex;align-items:center;gap:7px;margin-bottom:5px}
+.ex-tag{font-size:10px;font-weight:500;padding:2px 8px;border-radius:20px;flex-shrink:0}
+.ex-title{font-size:12px;font-weight:500;color:var(--color-text-primary)}
+.ex-body{font-size:12px;color:var(--color-text-secondary);line-height:1.55}
+.ex-lien{font-size:10px;color:var(--color-text-tertiary);margin-top:4px;font-style:italic}
+/* Sous-onglet « Accroches » : amorces rédigées prêtes à recopier. Plus
+   explicites/lisibles que les exemples (corps plus grand, liséré accentué),
+   façon « fiche concept » mais centrée sur la phrase d'ouverture. */
+.accroche-card{background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-left:3px solid var(--color-accent);border-radius:var(--border-radius-md);padding:12px 15px;margin-bottom:10px}
+.accroche-head{display:flex;align-items:center;gap:7px;margin-bottom:7px}
+.accroche-type{font-size:10px;font-weight:600;letter-spacing:.03em;text-transform:uppercase;color:var(--color-accent);background:var(--color-accent-soft,rgba(120,120,255,.10));padding:2px 9px;border-radius:20px;flex-shrink:0}
+.accroche-body{font-size:13.5px;color:var(--color-text-primary);line-height:1.6}
+.accroche-src{font-size:11px;color:var(--color-text-tertiary);margin-top:6px;font-style:italic;text-align:right}
+.accroche-card.is-new{border-color:var(--color-new-border);border-left-color:var(--color-new);background:var(--color-new-bg)}
+.accroche-card.is-modified{border-color:var(--color-mod-border);border-left-color:var(--color-mod);background:var(--color-mod-bg)}
+
+/* ── 6e. Contenu notion — onglets Liens & Dissertations ──────────── */
+.liens-row{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:14px}
+.lpill{font-size:11px;padding:4px 10px;border-radius:20px;cursor:pointer;border:0.5px solid;color:inherit;background:transparent;transition:opacity .15s}
+.lpill:hover{opacity:.7}
+.diss-list{margin-bottom:4px}
+.dq{font-size:12px;color:var(--color-text-secondary);padding:5px 0 5px 12px;position:relative;line-height:1.4;border-bottom:0.5px solid var(--color-border-tertiary)}
+.dq:last-child{border-bottom:none}
+.dq::before{content:"?";position:absolute;left:0;color:var(--color-text-tertiary);font-size:11px;top:6px}
+
+/* ── Éléments nouveaux ────────────────────────────────────────── */
+:root{
+  --color-new:#C8923A;
+  --color-new-bg:#2a2210;
+  --color-new-border:#5a3e1a;
+}
+.new-badge{
+  display:inline-flex;align-items:center;gap:3px;
+  font-size:9px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
+  background:var(--color-new-bg);color:var(--color-new);
+  border:0.5px solid var(--color-new-border);
+  border-radius:4px;padding:1px 6px;flex-shrink:0;
+}
+.ac.is-new{border-color:var(--color-new-border);background:var(--color-new-bg)}
+.ac.is-new .an{position:relative}
+.ti2.is-new{background:var(--color-new-bg);border-radius:4px;padding:5px 7px;margin-bottom:2px;border-bottom:none!important}
+.ti2.is-new .tinum{color:var(--color-new)}
+.axe-card.is-new{border-color:var(--color-new-border);background:var(--color-new-bg)}
+.axe-card.is-new .axe-num{color:var(--color-new)}
+.ex-card.is-new{border-color:var(--color-new-border);background:var(--color-new-bg)}
+.dq.is-new{color:var(--color-new);border-bottom-color:var(--color-new-border)}
+.dq.is-new::before{color:var(--color-new)}
+
+/* ── Éléments modifiés ────────────────────────────────────────── */
+:root{
+  --color-mod:#4A9CC8;
+  --color-mod-bg:#0d1e2a;
+  --color-mod-border:#1d4c6e;
+}
+.modified-badge{
+  display:inline-flex;align-items:center;gap:3px;
+  font-size:9px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
+  background:var(--color-mod-bg);color:var(--color-mod);
+  border:0.5px solid var(--color-mod-border);
+  border-radius:4px;padding:1px 6px;flex-shrink:0;
+}
+.ac.is-modified{border-color:var(--color-mod-border);background:var(--color-mod-bg)}
+.ac.is-modified .an{color:var(--color-mod)!important}
+.ti2.is-modified{background:var(--color-mod-bg);border-radius:4px;padding:5px 7px;margin-bottom:2px;border-bottom:none!important}
+.ti2.is-modified .tinum{color:var(--color-mod)}
+.axe-card.is-modified{border-color:var(--color-mod-border);background:var(--color-mod-bg)}
+.axe-card.is-modified .axe-num{color:var(--color-mod)}
+.ex-card.is-modified{border-color:var(--color-mod-border);background:var(--color-mod-bg)}
+.dq.is-modified{color:var(--color-mod);border-bottom-color:var(--color-mod-border)}
+.dq.is-modified::before{color:var(--color-mod)}
+.idea-card.is-modified{border-color:var(--color-mod-border);background:var(--color-mod-bg)}
+
+/* ── Bouton retour ───────────────────────────────────────────── */
+.back-btn{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:5px 10px;font-size:11px;font-weight:500;
+  color:var(--color-text-tertiary);background:transparent;
+  border:0.5px solid var(--color-border-tertiary);
+  border-radius:var(--border-radius-md);cursor:pointer;
+  font-family:inherit;transition:all .15s;flex-shrink:0;
+  margin-right:6px;line-height:1;
+}
+.back-btn:hover{color:var(--color-text-primary);border-color:var(--color-border-secondary);background:var(--color-background-primary)}
+.back-btn:disabled{opacity:.3;cursor:default;pointer-events:none}
+
+/* ── Définition enrichie ─────────────────────────────────────── */
+.def-box details{margin-top:10px;border-top:0.5px solid var(--color-border-tertiary);padding-top:8px}
+.def-box summary{cursor:pointer;font-size:11px;font-weight:600;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:.07em;list-style:none;display:flex;align-items:center;gap:5px;user-select:none}
+.def-box summary::-webkit-details-marker{display:none}
+.def-box summary::before{content:'▶';font-size:8px;transition:transform .2s}
+.def-box details[open] summary::before{content:'▼'}
+.def-box details[open] summary{color:var(--color-text-secondary)}
+.def-sec{margin-top:9px}
+.def-sec-title{font-size:10px;font-weight:600;color:var(--color-text-primary);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
+.def-sec-body{font-size:12px;color:var(--color-text-secondary);line-height:1.65;padding-left:9px;border-left:2px solid var(--color-border-secondary);margin-bottom:7px}
+.def-sec-body strong{color:var(--color-text-primary);font-weight:500}
+/* css/02-barre-laterale.css — morceau de la feuille de style du site. Le build
+   (outils/construire.mjs) recolle css/*.css dans l'ORDRE des noms pour
+   produire app.css : l'ordre compte (cascade CSS). */
+/* ── Onglets de mode de la sidebar (Notions / Auteurs / Concepts / Méthodo) ──
+   flex-wrap + base ~50% : les 4 onglets se répartissent en GRILLE 2×2 plutôt
+   que de tenir sur une seule rangée. Sur la sidebar étroite (155px desktop), 4
+   onglets en une ligne débordaient et le dernier (« Méthodo ») était rogné par
+   l'overflow:hidden de .sidebar — retour utilisateur BOX 20 : « l'onglet repère
+   est complètement caché, voir tous les onglets sans scroll, y compris sur
+   téléphone ». La grille 2×2 garantit que les quatre restent visibles. */
+.sb-tabs{display:flex;flex-wrap:wrap;gap:2px;margin-bottom:8px;padding:0 2px}
+.sb-tab{flex:1 1 calc(50% - 2px);min-width:0;padding:5px 4px;font-size:10px;font-weight:500;text-align:center;cursor:pointer;border-radius:var(--border-radius-md);color:var(--color-text-tertiary);border:0.5px solid transparent;transition:all .15s;line-height:1.2;white-space:nowrap}
+.sb-tab:hover{color:var(--color-text-primary)}
+.sb-tab.active{background:var(--color-background-primary);color:var(--color-text-primary);border-color:var(--color-border-tertiary)}
+
+/* ── Author search & filter ──────────────────────────────────── */
+.sb-search-row{display:flex;gap:4px;padding:0 2px;margin-bottom:6px}
+.sb-search{flex:1;background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:5px 8px;font-size:11px;color:var(--color-text-primary);outline:none;font-family:inherit;min-width:0}
+.sb-search::placeholder{color:var(--color-text-tertiary)}
+.sb-search:focus{border-color:var(--color-border-secondary)}
+/* Croix d'effacement dans les barres de recherche de la sidebar : posée à
+   droite du champ (qui réserve un padding-right), visible seulement quand il y
+   a du texte (display piloté en JS). Le clic droit sur le champ vide aussi
+   (searchCtxClear). */
+.sb-search-field{position:relative;flex:1;display:flex;min-width:0}
+.sb-search-field .sb-search{flex:1;padding-right:21px}
+.sb-search-clear{position:absolute;right:3px;top:50%;transform:translateY(-50%);
+  width:16px;height:16px;align-items:center;justify-content:center;border:none;
+  background:transparent;color:var(--color-text-tertiary);font-size:11px;line-height:1;
+  cursor:pointer;border-radius:50%;padding:0}
+.sb-search-clear:hover{color:var(--color-text-primary);background:var(--color-background-secondary)}
+/* Croix d'effacement de la palette globale (Ctrl+K) : masquée tant que le
+   champ est vide (display piloté en JS, cf. renderPalette/openPalette). */
+.cmdp-clear{flex-shrink:0;width:24px;height:24px;display:none;align-items:center;
+  justify-content:center;border:none;background:transparent;color:var(--color-text-tertiary);
+  font-size:14px;line-height:1;cursor:pointer;border-radius:50%;padding:0}
+.cmdp-clear:hover{color:var(--color-text-primary);background:var(--color-background-tertiary)}
+.sb-filter-btn{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:5px 7px;cursor:pointer;font-size:11px;color:var(--color-text-tertiary);transition:all .15s;flex-shrink:0;line-height:1}
+.sb-filter-btn:hover{color:var(--color-text-primary);border-color:var(--color-border-secondary)}
+.sb-filter-btn.active{color:var(--color-new);border-color:var(--color-new-border);background:var(--color-new-bg)}
+.filter-panel{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:8px 7px;margin:0 2px 6px;display:none}
+.filter-panel.open{display:block}
+.filter-panel-title{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--color-text-tertiary);margin-bottom:6px}
+.filter-notions{display:flex;flex-direction:column;gap:3px;margin-bottom:7px}
+.filter-notion-item{display:flex;align-items:center;gap:6px;cursor:pointer;padding:3px 4px;border-radius:5px;transition:background .12s}
+.filter-notion-item:hover{background:var(--color-background-secondary)}
+.filter-notion-check{width:12px;height:12px;border-radius:3px;border:1.5px solid var(--color-border-secondary);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:8px;transition:all .12s}
+.filter-notion-check.checked{border-color:transparent}
+.filter-notion-label{font-size:11px;color:var(--color-text-secondary);line-height:1.2}
+.filter-actions{display:flex;gap:4px}
+.filter-action-btn{flex:1;padding:4px 0;font-size:10px;border-radius:5px;cursor:pointer;border:0.5px solid var(--color-border-tertiary);background:transparent;color:var(--color-text-tertiary);font-family:inherit;transition:all .12s}
+.filter-action-btn:hover{color:var(--color-text-primary);border-color:var(--color-border-secondary)}
+.sb-results-count{font-size:9px;color:var(--color-text-tertiary);padding:0 4px 4px;text-transform:uppercase;letter-spacing:.05em}
+
+/* ── Author list items ──────────────────────────────────────── */
+.ab{padding:7px 9px;border-radius:var(--border-radius-md);cursor:pointer;font-size:12px;color:var(--color-text-secondary);border:0.5px solid transparent;transition:all .15s}
+.ab:hover{background:var(--color-background-primary);color:var(--color-text-primary)}
+.ab.active{background:var(--color-background-primary);color:var(--color-text-primary);border-color:var(--color-border-secondary);font-weight:500}
+.ab-name{line-height:1.3;margin-bottom:3px}
+.ab-badges{display:flex;flex-wrap:wrap;gap:2px}
+.ab-bdg{width:6px;height:6px;border-radius:50%;flex-shrink:0;display:inline-block}
+
+/* ── Author fiche header ─────────────────────────────────────── */
+.author-title{font-size:17px;font-weight:500;color:var(--color-text-primary)}
+.author-courant{display:inline-flex;align-items:center;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;padding:2px 8px;border-radius:20px;margin-top:2px}
+.author-def-box{background:var(--color-background-secondary);border-left:2.5px solid var(--color-border-secondary);padding:11px 13px;border-radius:0 var(--border-radius-md) var(--border-radius-md) 0;margin-bottom:16px;font-size:13px;color:var(--color-text-secondary);line-height:1.65}
+.author-def-box details{margin-top:10px;border-top:0.5px solid var(--color-border-tertiary);padding-top:8px}
+.author-def-box summary{cursor:pointer;font-size:11px;font-weight:600;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:.07em;list-style:none;display:flex;align-items:center;gap:5px;user-select:none}
+.author-def-box summary::-webkit-details-marker{display:none}
+.author-def-box summary::before{content:'▶';font-size:8px}
+.author-def-box details[open] summary::before{content:'▼'}
+
+/* ── Idea cards ─────────────────────────────────────────────── */
+.idea-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:12px 14px;margin-bottom:10px}
+.idea-card.is-new{border-color:var(--color-new-border);background:var(--color-new-bg)}
+.idea-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:5px}
+.idea-card-work{font-size:11px;color:var(--color-text-tertiary);font-style:italic;flex:1}
+.idea-card-body{font-size:12px;color:var(--color-text-secondary);line-height:1.55}
+.notion-pill{font-size:10px;font-weight:600;padding:2px 9px;border-radius:20px;cursor:pointer;border:0.5px solid;transition:opacity .15s;white-space:nowrap;flex-shrink:0}
+.notion-pill:hover{opacity:.7}
+
+/* ── Citation cards ─────────────────────────────────────────── */
+.cit-card{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:12px 14px;margin-bottom:10px;border-left:3px solid var(--color-border-secondary)}
+.cit-card-text{font-size:13px;color:var(--color-text-primary);line-height:1.6;font-style:italic;margin-bottom:8px}
+.cit-card-footer{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.cit-card-src{font-size:10px;color:var(--color-text-tertiary);flex:1}
+
+/* ── Oeuvre cards ───────────────────────────────────────────── */
+.oeuvre-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:10px 13px;margin-bottom:7px}
+.oeuvre-title{font-size:12px;font-weight:500;color:var(--color-text-primary);margin-bottom:5px}
+.oeuvre-badges{display:flex;flex-wrap:wrap;gap:4px}
+
+/* ── Dialogue cards ─────────────────────────────────────────── */
+.dial-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:11px 13px;margin-bottom:8px;display:flex;gap:10px;align-items:flex-start}
+.dial-dir{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:3px 7px;border-radius:20px;flex-shrink:0;margin-top:1px;white-space:nowrap}
+.dial-oppose{background:#3a1a1a;color:#e05a5a;border:0.5px solid #6a2a2a}
+.dial-prolonge{background:#1a3a1a;color:#5aaa5a;border:0.5px solid #2a5a2a}
+.dial-repond{background:#1a2a3a;color:#5a8ae0;border:0.5px solid #2a4a6a}
+.dial-body{flex:1}
+.dial-auteur{font-size:12px;font-weight:500;color:var(--color-text-primary);cursor:pointer;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:2px}
+.dial-auteur:hover{color:var(--color-text-secondary)}
+.dial-sujet{font-size:10px;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:.05em;margin:2px 0}
+.dial-desc{font-size:12px;color:var(--color-text-secondary);line-height:1.5}
+
+/* ── Concept cards (sidebar list) ───────────────────────────── */
+.cb{padding:7px 9px;border-radius:var(--border-radius-md);cursor:pointer;font-size:12px;color:var(--color-text-secondary);border:0.5px solid transparent;transition:all .15s}
+.cb:hover{background:var(--color-background-primary);color:var(--color-text-primary)}
+.cb.active{background:var(--color-background-primary);color:var(--color-text-primary);border-color:var(--color-border-secondary);font-weight:500}
+.cb-term{line-height:1.3;margin-bottom:2px}
+.cb-cat{font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:var(--color-text-tertiary)}
+
+/* ── Concept fiche ──────────────────────────────────────────── */
+.concept-title{font-size:17px;font-weight:500;color:var(--color-text-primary)}
+.concept-cat-badge{display:inline-flex;align-items:center;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;padding:2px 8px;border-radius:20px;background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);color:var(--color-text-tertiary);margin-top:3px}
+.concept-def-box{background:var(--color-background-secondary);border-left:2.5px solid var(--color-border-secondary);padding:11px 13px;border-radius:0 var(--border-radius-md) var(--border-radius-md) 0;margin:12px 0;font-size:13px;color:var(--color-text-secondary);line-height:1.65}
+.concept-section{margin-bottom:14px}
+.concept-section-title{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--color-text-tertiary);margin-bottom:7px}
+.tension-item{display:flex;align-items:flex-start;gap:7px;font-size:12px;color:var(--color-text-secondary);margin-bottom:5px;line-height:1.5}
+.tension-sep{color:var(--color-text-tertiary);font-size:10px;font-weight:700;flex-shrink:0;margin-top:2px}
+/* Onglet Concepts d'une notion : carte concept (cc-*) + carte de relation (crel-*). */
+.concept-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:10px 12px;margin-bottom:9px}
+.cc-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:5px}
+.cc-term{font-size:12.5px;font-weight:600;color:var(--color-text-info);cursor:pointer}
+.cc-term:hover{text-decoration:underline}
+.cc-cat{font-size:9.5px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--color-text-tertiary);border:0.5px solid var(--color-border-tertiary);border-radius:20px;padding:1px 8px}
+.cc-def{font-size:12px;color:var(--color-text-secondary);line-height:1.5}
+.cc-lien{font-size:11.5px;color:var(--color-text-secondary);line-height:1.5;margin-top:7px;padding:7px 9px;background:var(--color-background-secondary);border-left:2px solid var(--color-border-secondary);border-radius:0 var(--border-radius-md) var(--border-radius-md) 0}
+.cc-lien-label{font-weight:600;color:var(--color-text-primary)}
+.crel-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:9px 12px;margin-bottom:8px}
+.crel-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px}
+.crel-dir{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;padding:1px 8px;border-radius:20px;background:var(--color-background-secondary)}
+.crel-oppose{color:#D85A30}
+.crel-prolonge{color:#1D9E75}
+.crel-complete{color:#534AB7}
+.crel-repond{color:#2E86AB}
+.crel-distinction{color:#9A7B4F}
+.crel-implique{color:#A03E7E}
+/* Sous-onglets (ex. onglet Concepts d'une notion : concepts liés / liens). */
+.subtabs{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+.subtab{font-size:11px;padding:5px 12px;border-radius:20px;cursor:pointer;
+  background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);
+  color:var(--color-text-tertiary);transition:color .15s}
+.subtab.active{background:var(--color-background-info);border-color:var(--color-border-info);color:var(--color-text-info)}
+.subtab:hover{color:var(--color-text-primary)}
+.crel-desc{font-size:11.5px;color:var(--color-text-secondary);line-height:1.5}
+
+/* ── Liens dynamiques inline (dans le texte) ──────────────────
+   3 types, distingués au coup d'œil par le style de soulignement :
+     .cterm  concept → soulignement POINTILLÉ gris
+     .aterm  auteur  → soulignement PLEIN fin
+     .nterm  notion  → couleur de la notion + soulignement PLEIN coloré
+                       (couleur posée en style inline par linkTerms)
+   .an-link : ancien lien auteur, conservé pour les zones structurées
+   (fiches concept, onglet Dialogues, cartes auteur de la vue notion). */
+.cterm{cursor:pointer;border-bottom:1px dotted var(--color-text-tertiary);transition:border-color .15s;color:inherit}
+.cterm:hover{border-bottom-color:var(--color-text-primary)}
+.aterm{cursor:pointer;border-bottom:1px solid var(--color-text-tertiary);transition:border-color .15s;color:inherit}
+.aterm:hover{border-bottom-color:var(--color-text-primary)}
+.nterm{cursor:pointer;border-bottom:1.5px solid;font-weight:500;transition:opacity .15s}
+.nterm:hover{opacity:.65}
+
+/* Surbrillance d'ARRIVÉE d'un lien dynamique (retour contributeur) : quand on
+   clique un terme lié, on fait briller brièvement l'endroit où l'on atterrit
+   (titre de la fiche, ou 1re mention du terme dans la notion). Couleur ambre
+   indépendante du thème pour bien « briller ». */
+@keyframes flashTarget{
+  0%  {box-shadow:0 0 0 2px rgba(255,209,102,0),   0 0 14px 2px rgba(255,209,102,0);   background-color:rgba(255,209,102,0)}
+  20% {box-shadow:0 0 0 2px rgba(255,209,102,.75), 0 0 18px 5px rgba(255,209,102,.55); background-color:rgba(255,209,102,.18)}
+  100%{box-shadow:0 0 0 2px rgba(255,209,102,0),   0 0 14px 2px rgba(255,209,102,0);   background-color:rgba(255,209,102,0)}
+}
+.flash-target{animation:flashTarget 1.6s ease-out 1;border-radius:6px}
+@media (prefers-reduced-motion:reduce){
+  .flash-target{animation:none;outline:2px solid #ffd166;outline-offset:2px}
+}
+
+.an-link{cursor:pointer;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:2px}
+.an-link:hover{opacity:.75}
+/* css/03-contribution.css — morceau de la feuille de style du site. Le build
+   (outils/construire.mjs) recolle css/*.css dans l'ORDRE des noms pour
+   produire app.css : l'ordre compte (cascade CSS). */
+/* ── Interface de contribution (bouton sidebar + modale) ──────
+   .sb-propose    : bouton intégré à la sidebar, entre les onglets de
+                    mode et la liste — ouvre la modale de proposition
+   .modal-overlay : fond assombri plein écran (classe .open = visible)
+   .modal-panel   : panneau centré ; en-tête (.modal-head) + corps (.modal-body) */
+.sb-propose{flex-shrink:0;margin:7px 8px 9px;padding:9px 8px;
+  display:flex;align-items:center;justify-content:center;gap:5px;
+  background:var(--color-background-info);border:0.5px solid var(--color-border-info);
+  border-radius:var(--border-radius-md);color:var(--color-text-info);
+  font-family:inherit;font-size:11.5px;font-weight:500;line-height:1.3;
+  text-align:center;cursor:pointer;outline:none;transition:filter .15s}
+.sb-propose:hover{filter:brightness(1.3)}
+/* Toggle Révision / Édition — petit bouton en bas de sidebar, persistant. */
+.sb-mode,.sb-settings{flex-shrink:0;margin:6px 8px 10px;padding:7px 8px;
+  background:transparent;border:0.5px solid var(--color-border-tertiary);
+  border-radius:var(--border-radius-md);color:var(--color-text-tertiary);
+  font-family:inherit;font-size:11px;font-weight:500;letter-spacing:.02em;
+  cursor:pointer;outline:none;text-align:center;transition:all .15s}
+.sb-mode:hover,.sb-settings:hover{color:var(--color-text-info);border-color:var(--color-border-info)}
+/* En mode édition, le bouton Réglages porte un liseré accent (rappel discret). */
+body.mode-edition .sb-settings{color:var(--color-text-info);border-color:var(--color-border-info)}
+/* Lignes du menu Réglages. */
+.set-row{display:flex;flex-direction:column;gap:8px}
+.set-row-cur{font-size:13px;color:var(--color-text-secondary)}
+.set-row-cur strong{color:var(--color-text-primary)}
+.set-row-desc{font-size:12px;line-height:1.5;color:var(--color-text-tertiary)}
+.set-mode-btn{align-self:flex-start}
+/* En mode RÉVISION (défaut), on cache les OUTILS de contribution (boutons +,
+   « Proposer du contenu ») pour un rendu épuré. Les badges « ✦ Nouveau » et
+   « ✎ Modifié » restent visibles : ils signalent à l'élève le contenu récent
+   ou corrigé (informatif, pas un outil d'édition). */
+body:not(.mode-edition) .pplus,
+body:not(.mode-edition) .pplus-catwrap,
+body:not(.mode-edition) .sb-propose{display:none!important}
+/* css/04-quiz.css — morceau de la feuille de style du site. Le build
+   (outils/construire.mjs) recolle css/*.css dans l'ORDRE des noms pour
+   produire app.css : l'ordre compte (cascade CSS). */
+/* ── Mode quiz (révision active) ─────────────────────────────────
+   .sb-quiz       : bouton bleu de la sidebar, AU-DESSUS de .sb-propose,
+                    toujours visible (révision ET édition).
+   #quiz-overlay  : overlay plein écran (z-index 850, sous la modale=1000).
+   Le contenu (dashboard / session / fin) est injecté en JS dans #quiz-body. */
+.sb-quiz{flex-shrink:0;margin:9px 8px 4px;padding:10px 8px;
+  display:flex;align-items:center;justify-content:center;gap:5px;
+  background:var(--color-background-quiz);border:0.5px solid var(--color-border-quiz);
+  border-radius:var(--border-radius-md);color:var(--color-text-quiz);
+  font-family:inherit;font-size:12px;font-weight:600;line-height:1.3;
+  text-align:center;cursor:pointer;outline:none;transition:filter .15s}
+.sb-quiz:hover{filter:brightness(1.3)}
+
+/* new (comptes) : bouton compte (bas de sidebar) + éléments de la modale
+   de connexion. Discret par défaut ; teinte verte quand on est connecté. */
+.sb-account-wrap{flex-shrink:0;margin:0 8px 10px;display:flex;flex-direction:column;gap:6px}
+.sb-account{width:100%;padding:7px 8px;
+  display:flex;align-items:center;justify-content:center;gap:5px;
+  background:transparent;border:0.5px solid var(--color-border-tertiary);
+  border-radius:var(--border-radius-md);color:var(--color-text-tertiary);
+  font-family:inherit;font-size:10.5px;font-weight:500;line-height:1.3;
+  text-align:center;cursor:pointer;outline:none;transition:all .15s}
+.sb-account:hover{color:var(--color-text-info);border-color:var(--color-border-info)}
+body.is-signed-in .sb-account{color:#7bd88f;border-color:rgba(123,216,143,.45)}
+.auth-tabs{display:flex;gap:6px;margin-bottom:14px}
+.auth-tab{flex:1;padding:8px;text-align:center;cursor:pointer;font-size:12px;
+  border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);
+  background:transparent;color:var(--color-text-tertiary);font-family:inherit;transition:all .15s}
+.auth-tab.active{background:var(--color-background-info);border-color:var(--color-border-info);
+  color:var(--color-text-info);font-weight:600}
+.auth-form{display:flex;flex-direction:column;gap:9px}
+.auth-input{width:100%;padding:9px 10px;font-family:inherit;font-size:13px;
+  background:var(--color-background-secondary);color:var(--color-text-primary);
+  border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);outline:none}
+.auth-input:focus{border-color:var(--color-border-info)}
+/* Champ mot de passe avec œil « afficher/masquer » : l'input réserve un
+   padding-right pour le bouton, posé en absolu dans le coin droit. */
+.auth-pw-wrap{position:relative;display:flex}
+.auth-pw-wrap .auth-input{flex:1;width:auto;padding-right:36px}
+.auth-pw-eye{position:absolute;right:5px;top:50%;transform:translateY(-50%);
+  border:none;background:transparent;cursor:pointer;font-size:15px;line-height:1;
+  padding:3px;opacity:.65;border-radius:6px}
+.auth-pw-eye:hover{opacity:1}
+.auth-btn{width:100%;padding:10px;font-family:inherit;font-size:13px;font-weight:600;
+  border-radius:var(--border-radius-md);cursor:pointer;outline:none;
+  border:0.5px solid transparent;transition:filter .15s}
+.auth-btn:hover{filter:brightness(1.1)}
+.auth-btn[disabled]{opacity:.55;cursor:default;filter:none}
+.auth-btn-primary{background:var(--color-background-info);
+  border-color:var(--color-border-info);color:var(--color-text-info)}
+.auth-btn-google{background:#fff;color:#3c4043;display:flex;
+  align-items:center;justify-content:center;gap:8px}
+.auth-sep{display:flex;align-items:center;gap:10px;margin:14px 0;
+  color:var(--color-text-tertiary);font-size:11px}
+.auth-sep::before,.auth-sep::after{content:"";flex:1;height:0.5px;background:var(--color-border-tertiary)}
+.auth-status{margin-top:10px;font-size:12px;line-height:1.5;min-height:1em}
+.auth-status.err{color:#f0a3a3}
+.auth-status.ok{color:#7bd88f}
+.auth-meta{font-size:12px;color:var(--color-text-secondary);line-height:1.6}
+.auth-meta b{color:var(--color-text-primary)}
+.auth-intro{font-size:11.5px;color:var(--color-text-tertiary);line-height:1.5;margin-bottom:12px;text-align:center}
+.auth-note{font-size:11px;color:var(--color-text-tertiary);line-height:1.5;margin-top:10px;display:block}
+.auth-note b{color:var(--color-text-secondary)}
+/* Lien discret sous le formulaire (« Mot de passe oublié ? », « ← Retour »). */
+.auth-link-btn{display:block;width:100%;margin-top:10px;background:none;border:0;
+  font-family:inherit;font-size:12px;color:var(--color-text-tertiary);
+  text-align:center;cursor:pointer;transition:color .15s}
+.auth-link-btn:hover{color:var(--color-text-info)}
+/* Variante « danger » du lien discret : suppression de compte (irréversible). */
+.auth-link-btn.auth-danger{color:#d98a8a;margin-top:16px}
+.auth-link-btn.auth-danger:hover{color:#f0a3a3}
+
+#quiz-overlay{position:fixed;inset:0;background:rgba(10,14,20,.92);z-index:850;
+  display:none;flex-direction:column;padding:16px;
+  padding-bottom:calc(16px + env(safe-area-inset-bottom,0px));overflow-y:auto}
+#quiz-overlay.open{display:flex}
+.quiz-shell{width:100%;max-width:640px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+.quiz-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.quiz-title{font-size:17px;font-weight:600;color:var(--color-text-primary);display:flex;align-items:center;gap:7px}
+.quiz-close{min-width:40px;min-height:40px;padding:0 12px;background:transparent;
+  border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);
+  color:var(--color-text-tertiary);font-size:20px;line-height:1;cursor:pointer;transition:all .15s}
+.quiz-close:hover{color:var(--color-text-primary);border-color:var(--color-text-primary)}
+
+/* Dashboard */
+.quiz-mastery{background:var(--color-background-secondary);border-radius:var(--border-radius-md);
+  padding:14px 16px;text-align:center}
+.quiz-mastery-pct{font-size:30px;font-weight:700;color:var(--color-text-quiz)}
+.quiz-mastery-lbl{font-size:12px;color:var(--color-text-tertiary);margin-top:2px}
+.quiz-bar{height:8px;border-radius:6px;background:var(--color-background-primary);overflow:hidden;margin-top:10px}
+.quiz-bar-fill{height:100%;background:var(--color-accent-quiz);transition:width .3s}
+.quiz-section-lbl{font-size:10px;font-weight:600;color:var(--color-text-tertiary);
+  text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+.quiz-horizon{display:flex;gap:6px}
+.quiz-horizon button,.quiz-filters button,.quiz-mode-toggle button{flex:1;min-height:40px;padding:8px;
+  background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);
+  border-radius:var(--border-radius-md);color:var(--color-text-secondary);
+  font-family:inherit;font-size:12px;cursor:pointer;transition:all .15s}
+.quiz-horizon button.active,.quiz-filters button.active{background:var(--color-background-quiz);
+  border-color:var(--color-border-quiz);color:var(--color-text-quiz);font-weight:600}
+.quiz-filters{display:flex;flex-wrap:wrap;gap:6px}
+.quiz-filters button{flex:0 1 auto;padding:7px 11px}
+.quiz-mode-toggle button[disabled]{opacity:.4;cursor:not-allowed}
+.quiz-start{min-height:52px;padding:13px;background:var(--color-accent-quiz);border:none;
+  border-radius:var(--border-radius-md);color:#fff;font-family:inherit;font-size:14px;
+  font-weight:600;cursor:pointer;transition:filter .15s}
+.quiz-start:hover{filter:brightness(1.12)}
+.quiz-start:disabled{opacity:.5;cursor:not-allowed}
+.quiz-meta-row{display:flex;gap:10px}
+.quiz-meta-row>div{flex:1;background:var(--color-background-secondary);border-radius:var(--border-radius-md);
+  padding:10px;text-align:center}
+.quiz-meta-num{font-size:18px;font-weight:700;color:var(--color-text-primary)}
+.quiz-meta-lbl{font-size:10px;color:var(--color-text-tertiary);margin-top:2px}
+.quiz-reset{background:transparent;border:none;color:var(--color-text-tertiary);
+  font-size:11px;cursor:pointer;text-decoration:underline;align-self:center;min-height:40px}
+.quiz-reset:hover{color:var(--color-text-primary)}
+
+/* Carte de session */
+.quiz-progress{font-size:12px;color:var(--color-text-tertiary);text-align:center}
+.quiz-card{background:var(--color-background-secondary);border:0.5px solid var(--color-border-quiz);
+  border-radius:var(--border-radius-lg);padding:24px 20px;min-height:200px;
+  display:flex;flex-direction:column;justify-content:center;gap:14px}
+.quiz-card-qlabel{font-size:10px;font-weight:600;color:var(--color-text-quiz);
+  text-transform:uppercase;letter-spacing:.05em;text-align:center}
+.quiz-card-recto{font-size:18px;font-weight:500;color:var(--color-text-primary);
+  text-align:center;line-height:1.5}
+.quiz-card-verso{font-size:14px;color:var(--color-text-secondary);line-height:1.6;
+  border-top:0.5px solid var(--color-border-tertiary);padding-top:14px}
+.quiz-card-notion{font-size:11px;color:var(--color-text-tertiary);text-align:center}
+.quiz-actions{display:flex;gap:10px}
+.quiz-reveal{min-height:52px;flex:1;background:var(--color-accent-quiz);border:none;
+  border-radius:var(--border-radius-md);color:#fff;font-family:inherit;font-size:15px;
+  font-weight:600;cursor:pointer;transition:filter .15s}
+.quiz-reveal:hover{filter:brightness(1.12)}
+.quiz-no,.quiz-yes{min-height:52px;flex:1;border-radius:var(--border-radius-md);
+  font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;transition:filter .15s;border:0.5px solid}
+.quiz-no{background:#3a1e1e;border-color:#5a2d2d;color:#e08a8a}
+.quiz-yes{background:var(--color-background-info);border-color:var(--color-border-info);color:var(--color-text-info)}
+.quiz-no:hover,.quiz-yes:hover{filter:brightness(1.25)}
+.quiz-quit{background:transparent;border:none;color:var(--color-text-tertiary);
+  font-size:11px;cursor:pointer;text-decoration:underline;align-self:center;min-height:40px}
+.quiz-quit:hover{color:var(--color-text-primary)}
+/* « Je savais / ne savais pas » placés SOUS la carte (visibles une fois la
+   réponse révélée). On peut retourner la carte autant qu'on veut pour relire. */
+.quiz-answer-row{margin-top:2px}
+.quiz-answer-row.hidden{display:none}
+.quiz-reflip{background:transparent;border:0.5px solid var(--color-border-quiz);color:var(--color-text-quiz)}
+.quiz-reflip:hover{background:var(--color-background-quiz);filter:none}
+
+/* Encadrés d'aide repliables (fonctionnement de la révision, sauvegarde). */
+.quiz-help{background:var(--color-background-secondary);border-radius:var(--border-radius-md);
+  border:0.5px solid var(--color-border-tertiary);padding:0 12px}
+.quiz-help>summary{font-size:11.5px;font-weight:600;color:var(--color-text-secondary);
+  cursor:pointer;padding:11px 0;list-style:none}
+.quiz-help>summary::-webkit-details-marker{display:none}
+.quiz-help[open]>summary{color:var(--color-text-quiz)}
+.quiz-help-body{font-size:12px;line-height:1.55;color:var(--color-text-tertiary);
+  padding-bottom:12px;display:flex;flex-direction:column;gap:8px}
+.quiz-help-body b{color:var(--color-text-secondary);font-weight:600}
+.quiz-help-body p{margin:0}
+
+/* Fin de session */
+.quiz-end{text-align:center;background:var(--color-background-secondary);
+  border-radius:var(--border-radius-lg);padding:26px 20px;display:flex;flex-direction:column;gap:14px}
+.quiz-end-score{font-size:32px;font-weight:700;color:var(--color-text-quiz)}
+.quiz-end-lbl{font-size:13px;color:var(--color-text-secondary)}
+
+/* ── v2 : retournement de carte 3D (CSS rotateY) ──────────────────
+   .quiz-flip = conteneur en perspective ; .quiz-flip-inner pivote sur Y.
+   Les 2 faces sont empilées dans la MÊME cellule de grille → la carte
+   prend la hauteur de la face la plus grande (pas de rognage du verso). */
+.quiz-flip{perspective:1400px}
+.quiz-flip-inner{display:grid;transition:transform .5s cubic-bezier(.4,.2,.2,1);transform-style:preserve-3d}
+.quiz-flip-inner>*{grid-area:1/1;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.quiz-face-back{transform:rotateY(180deg)}
+.quiz-flip-inner.flipped{transform:rotateY(180deg)}
+
+/* ── v2 : mode QCM (4 choix) ──────────────────────────────────────── */
+.quiz-choices{display:flex;flex-direction:column;gap:9px;margin-top:4px}
+.quiz-choice{min-height:48px;padding:12px 14px;text-align:left;
+  background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);
+  border-radius:var(--border-radius-md);color:var(--color-text-secondary);
+  font-family:inherit;font-size:13px;line-height:1.45;cursor:pointer;transition:all .15s}
+.quiz-choice:hover{border-color:var(--color-border-quiz);color:var(--color-text-primary)}
+.quiz-choice.good{background:var(--color-background-info);border-color:var(--color-border-info);color:var(--color-text-info)}
+.quiz-choice.bad{background:#3a1e1e;border-color:#5a2d2d;color:#e08a8a}
+.quiz-choice[disabled]{cursor:default}
+.quiz-next{min-height:48px;background:var(--color-accent-quiz);border:none;border-radius:var(--border-radius-md);
+  color:#fff;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;transition:filter .15s}
+.quiz-next:hover{filter:brightness(1.12)}
+
+/* ── v4 : blanc à la place du terme masqué (« Quel concept ? ») ─────
+   La définition contenait souvent le mot à trouver : buildQuizCards le
+   remplace par ce blanc (span vide souligné, largeur fixe). */
+.quiz-mask{display:inline-block;width:3.4em;height:1em;vertical-align:-.1em;
+  border-bottom:2px solid var(--color-border-quiz)}
+
+/* ── v3 : sélecteur d'objectif + barre de progression du jour ─────── */
+.quiz-goal-row{display:flex;gap:6px;align-items:center}
+.quiz-goal-row .quiz-section-lbl{margin-bottom:0;flex:1}
+.quiz-goal-pick{display:flex;gap:5px}
+.quiz-goal-pick button{min-width:42px;min-height:36px;padding:5px 9px;
+  background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);
+  border-radius:var(--border-radius-md);color:var(--color-text-secondary);
+  font-family:inherit;font-size:12px;cursor:pointer;transition:all .15s}
+.quiz-goal-pick button.active{background:var(--color-background-quiz);border-color:var(--color-border-quiz);color:var(--color-text-quiz);font-weight:600}
+.quiz-day-bar{height:7px;border-radius:6px;background:var(--color-background-primary);overflow:hidden;margin-top:7px}
+.quiz-day-fill{height:100%;background:var(--color-text-info);transition:width .3s}
+
+/* ── v2 : barres de maîtrise par notion ───────────────────────────── */
+.quiz-notion-stats{display:flex;flex-direction:column;gap:7px}
+.quiz-ns-row{display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--color-text-secondary)}
+.quiz-ns-name{flex:0 0 92px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.quiz-ns-bar{flex:1;height:7px;border-radius:6px;background:var(--color-background-primary);overflow:hidden}
+.quiz-ns-fill{height:100%;transition:width .3s}
+.quiz-ns-pct{flex:0 0 30px;text-align:right;color:var(--color-text-tertiary);font-variant-numeric:tabular-nums}
+
+/* ── v3 : badges ──────────────────────────────────────────────────── */
+.quiz-badges{display:flex;flex-wrap:wrap;gap:7px}
+.quiz-badge{display:flex;align-items:center;gap:5px;padding:6px 10px;border-radius:20px;
+  font-size:11px;font-weight:600;background:var(--color-background-secondary);
+  border:0.5px solid var(--color-border-tertiary);color:var(--color-text-tertiary)}
+.quiz-badge.earned{background:var(--color-background-quiz);border-color:var(--color-border-quiz);color:var(--color-text-quiz)}
+
+/* ── v3 : gamification (niveau + XP) sur le dashboard ─────────────── */
+.quiz-level{background:var(--color-background-secondary);border-radius:var(--border-radius-md);
+  padding:12px 14px;display:flex;flex-direction:column;gap:7px}
+.quiz-level-top{display:flex;align-items:baseline;justify-content:space-between}
+.quiz-level-badge{font-size:15px;font-weight:700;color:var(--color-text-quiz)}
+.quiz-level-xp{font-size:11.5px;color:var(--color-text-tertiary);font-variant-numeric:tabular-nums}
+.quiz-level-bar{height:7px;border-radius:6px;background:var(--color-background-primary);overflow:hidden}
+.quiz-level-fill{height:100%;background:var(--color-accent-quiz);transition:width .3s}
+
+/* ── Reprise de session : second bouton « moins fort » ────────────── */
+.quiz-start-alt{background:transparent;border:0.5px solid var(--color-border-quiz);
+  color:var(--color-text-quiz);min-height:46px}
+.quiz-start-alt:hover{background:var(--color-background-quiz);filter:none}
+
+/* ── Avertissement « nouvelle session » (abandon de la session en cours) */
+.quiz-warn{background:var(--color-background-secondary);border:0.5px solid var(--color-border-quiz);
+  border-radius:var(--border-radius-md);padding:14px;display:flex;flex-direction:column;gap:11px}
+.quiz-warn-txt{font-size:12.5px;line-height:1.5;color:var(--color-text-secondary)}
+.quiz-warn-check{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--color-text-tertiary);cursor:pointer}
+.quiz-warn-check input{width:15px;height:15px;cursor:pointer}
+.quiz-warn-btns{display:flex;gap:8px}
+.quiz-warn-btns button{flex:1;min-height:42px;border:none;border-radius:var(--border-radius-md);
+  font-family:inherit;font-size:13px;font-weight:600;cursor:pointer}
+
+/* ── Récap de fin enrichi (XP, progression, montée de niveau) ─────── */
+.quiz-levelup{font-size:15px;font-weight:700;color:var(--color-text-quiz);
+  background:var(--color-background-quiz);border-radius:var(--border-radius-md);padding:10px}
+.quiz-end-stats{display:flex;gap:8px}
+.quiz-end-stat{flex:1;background:var(--color-background-primary);border-radius:var(--border-radius-md);padding:11px 6px}
+.quiz-end-num{font-size:20px;font-weight:700;color:var(--color-text-quiz)}
+.quiz-end-level{display:flex;flex-direction:column;gap:0}
+/* css/05-visite-guidee.css — morceau de la feuille de style du site. Le build
+   (outils/construire.mjs) recolle css/*.css dans l'ORDRE des noms pour
+   produire app.css : l'ordre compte (cascade CSS). */
+/* ── Visite guidée (onboarding) + bouton d'aide ─────────────────────
+   Remplace l'ancien overlay « 4 conseils » par une vraie visite pas-à-pas
+   à projecteur (spotlight), pilotée par le module TOUR du <script>.
+   - .tour-blocker : voile plein écran qui CAPTURE tous les clics — la page
+     n'est pas interactive pendant la visite (on avance avec les boutons).
+     Transparent par défaut ; .dim l'assombrit uniformément (étapes
+     « carte centrée » : bienvenue / récap / fin, sans cible).
+   - .tour-spot : rectangle posé sur l'élément ciblé. Sa GRANDE ombre
+     portée assombrit tout SAUF ce rectangle → effet projecteur. Il ne capte
+     pas les clics (pointer-events:none) ; c'est .tour-blocker, dessous, qui
+     bloque (z-index : blocker < spot < bulle).
+   - .tour-bubble : la bulle d'explication + les contrôles (cliquables). */
+.tour-blocker{position:fixed;inset:0;z-index:1300;display:none;background:transparent}
+.tour-blocker.open{display:block}
+.tour-blocker.dim{background:rgba(0,0,0,.72)}
+.tour-spot{position:fixed;z-index:1301;border-radius:var(--border-radius-md);
+  pointer-events:none;display:none;
+  box-shadow:0 0 0 9999px rgba(0,0,0,.72),0 0 0 2px var(--color-border-info);
+  transition:top .22s ease,left .22s ease,width .22s ease,height .22s ease}
+.tour-bubble{position:fixed;z-index:1302;width:min(330px,90vw);display:none;
+  background:var(--color-background-primary);border:0.5px solid var(--color-border-info);
+  border-radius:var(--border-radius-lg);padding:16px 16px 12px;
+  box-shadow:0 8px 30px rgba(0,0,0,.5);color:var(--color-text-primary);
+  transition:top .2s ease,left .2s ease}
+.tour-part{font-size:10px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;
+  color:var(--color-text-info);margin-bottom:5px}
+.tour-title{font-size:15px;font-weight:600;margin-bottom:6px}
+.tour-text{font-size:12.5px;color:var(--color-text-secondary);line-height:1.55}
+.tour-text b{color:var(--color-text-primary);font-weight:600}
+/* Liste à puces dans une bulle de visite (étape « Réglages & aide ») : compacte,
+   puces discrètes — pour présenter plusieurs options sans pavé de texte. */
+.tour-text ul.tour-list{margin:8px 0 6px;padding-left:17px;display:flex;flex-direction:column;gap:5px}
+.tour-text ul.tour-list li{line-height:1.45}
+.tour-progress{display:flex;gap:5px;flex-wrap:wrap;margin:13px 0 11px}
+/* Progression ENCADRÉE par thème : chaque partie de la visite (cf.
+   TOUR_PART_COLORS) forme un petit cadre arrondi à sa couleur — fond très
+   transparent + contour léger ; la partie en cours reçoit la classe .cur
+   (contour plus net), posée en JS. La couleur de la partie est passée en
+   variable inline --pc, réutilisée par les pastilles à l'intérieur. */
+/* Chaque cadre de partie est CLIQUABLE (saute à cette partie de la visite) et
+   affiche le NOM de la partie au survol/focus via ::after (étiquette instantanée
+   lue dans data-label). position:relative pour ancrer l'étiquette. */
+.tour-pgroup{position:relative;display:inline-flex;align-items:center;gap:4px;padding:3px 6px;
+  border-radius:999px;cursor:pointer;transition:border-color .2s,background .2s,filter .2s}
+.tour-pgroup:hover{filter:brightness(1.4)}
+.tour-pgroup:focus-visible{outline:2px solid var(--pc,var(--color-border-info));outline-offset:2px}
+.tour-pgroup[data-label]:hover::after,.tour-pgroup[data-label]:focus-visible::after{
+  content:attr(data-label);position:absolute;bottom:calc(100% + 6px);left:50%;
+  transform:translateX(-50%);white-space:nowrap;z-index:5;pointer-events:none;
+  background:var(--color-background-secondary);color:var(--color-text-primary);
+  border:0.5px solid var(--pc,var(--color-border-info));border-radius:6px;
+  padding:3px 7px;font-size:11px;font-weight:600;box-shadow:0 4px 14px rgba(0,0,0,.45)}
+.tour-dot{width:7px;height:7px;border-radius:50%;
+  background:var(--pc,var(--color-border-tertiary));opacity:.3;transition:opacity .2s,transform .2s}
+.tour-dot.done{opacity:.6}
+.tour-dot.cur{opacity:1;transform:scale(1.25)}
+.tour-ctrl{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.tour-btn{font-family:inherit;font-size:12px;font-weight:500;cursor:pointer;
+  border-radius:var(--border-radius-md);padding:7px 12px;outline:none;
+  transition:filter .15s,background .15s,color .15s}
+.tour-btn-next{background:var(--color-background-info);border:0.5px solid var(--color-border-info);
+  color:var(--color-text-info)}
+.tour-btn-next:hover{filter:brightness(1.3)}
+.tour-btn-prev{background:transparent;border:0.5px solid var(--color-border-tertiary);
+  color:var(--color-text-secondary)}
+.tour-btn-prev:hover{color:var(--color-text-primary);border-color:var(--color-border-secondary)}
+.tour-skip{margin-left:auto;display:flex;gap:10px}
+.tour-link{background:none;border:0;font-family:inherit;font-size:11px;cursor:pointer;
+  color:var(--color-text-tertiary);padding:4px 2px;text-decoration:underline;text-underline-offset:2px}
+.tour-link:hover{color:var(--color-text-secondary)}
+/* Écran de décision (fin du noyau) : choix empilé — bouton principal pleine
+   largeur, refus discret en dessous (et non rejeté à droite comme un « passer »). */
+.tour-ctrl-decision{flex-direction:column;align-items:stretch;gap:8px}
+.tour-ctrl-decision .tour-btn-next{text-align:center;padding:9px 12px}
+.tour-ctrl-decision .tour-link{text-align:center;margin:0}
+/* Croix de fermeture de la bulle — n'apparaît qu'en accès direct à une
+   partie (cf. tourBubbleHTML : seulement si tourState.jumped). */
+.tour-close{position:absolute;top:9px;right:9px;width:22px;height:22px;
+  border-radius:var(--border-radius-md);background:transparent;
+  border:0.5px solid var(--color-border-tertiary);color:var(--color-text-tertiary);
+  font-size:14px;line-height:1;cursor:pointer;font-family:inherit;outline:none;
+  display:flex;align-items:center;justify-content:center;transition:all .15s}
+.tour-close:hover{background:var(--color-background-secondary);color:var(--color-text-primary)}
+
+/* Bouton d'aide « ? » (rouvre la visite). Il vit dans .topbar-actions comme
+   simple élément flex (plus de position:fixed → aucun chevauchement avec la
+   recherche, y compris sur mobile). Le menu, lui, reste fixé (cf. .help-menu). */
+.help-btn{flex-shrink:0;width:30px;height:30px;
+  border-radius:50%;background:var(--color-background-secondary);
+  border:0.5px solid var(--color-border-secondary);color:var(--color-text-secondary);
+  font-size:15px;font-weight:600;cursor:pointer;line-height:1;font-family:inherit;
+  display:flex;align-items:center;justify-content:center;transition:all .15s}
+.help-btn:hover{color:var(--color-text-info);border-color:var(--color-border-info)}
+/* Menu déroulant du bouton d'aide. */
+.help-menu{position:fixed;top:58px;right:28px;z-index:210;width:235px;display:none;
+  background:var(--color-background-primary);border:0.5px solid var(--color-border-secondary);
+  border-radius:var(--border-radius-lg);padding:6px;box-shadow:0 8px 30px rgba(0,0,0,.5)}
+.help-menu.open{display:block}
+.help-menu-title{font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--color-text-tertiary);padding:7px 8px 4px}
+.help-item{display:block;width:100%;text-align:left;font-family:inherit;font-size:12.5px;
+  background:none;border:0;border-radius:var(--border-radius-md);color:var(--color-text-secondary);
+  padding:8px 10px;cursor:pointer;transition:background .15s,color .15s}
+.help-item:hover{background:var(--color-background-secondary);color:var(--color-text-primary)}
+.help-item.primary{color:var(--color-text-info);font-weight:500}
+.help-sep{height:0.5px;background:var(--color-border-tertiary);margin:5px 4px}
+/* Sur mobile, le bouton « ? » reste dans le groupe d'actions à droite de la
+   barre d'en-tête ; on ne resserre que le menu déroulant (toujours fixé). */
+@media (max-width:700px){
+  .help-menu{top:48px;right:12px}
+}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.62);z-index:1000;
+  display:none;align-items:center;justify-content:center;padding:20px;
+  padding-bottom:calc(20px + env(safe-area-inset-bottom,0px))}
+.modal-overlay.open{display:flex}
+.modal-panel{background:var(--color-background-primary);
+  border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);
+  width:min(680px,94vw);max-height:88vh;max-height:88dvh;display:flex;flex-direction:column;overflow:hidden}
+.modal-head{display:flex;align-items:center;justify-content:space-between;
+  padding:14px 18px;border-bottom:0.5px solid var(--color-border-tertiary);flex-shrink:0}
+.modal-title{font-size:14px;font-weight:600;color:var(--color-text-primary)}
+.modal-close{width:26px;height:26px;border-radius:var(--border-radius-md);
+  background:transparent;border:0.5px solid var(--color-border-tertiary);
+  color:var(--color-text-tertiary);font-size:16px;cursor:pointer;line-height:1;outline:none;
+  display:flex;align-items:center;justify-content:center;transition:all .15s}
+.modal-close:hover{background:var(--color-background-secondary);color:var(--color-text-primary)}
+.modal-body{padding:18px;overflow-y:auto;font-size:13px;color:var(--color-text-secondary);line-height:1.6}
+/* css/06-facette-recherche-partage.css — morceau de la feuille de style du site. Le build
+   (outils/construire.mjs) recolle css/*.css dans l'ORDRE des noms pour
+   produire app.css : l'ordre compte (cascade CSS). */
+/* ── Facette (courant d'auteur / catégorie de concept) ──────────────────
+   Étiquettes rendues CLIQUABLES (.facet-clickable) + petite liste en overlay
+   (réutilise .modal-overlay/.modal-panel). */
+.facet-clickable{cursor:pointer}
+.facet-clickable:hover{filter:brightness(1.18);text-decoration:underline;text-underline-offset:2px}
+.facet-title strong,.modal-title strong{color:var(--color-text-primary)}
+.facet-count{display:inline-block;min-width:18px;text-align:center;font-size:11px;font-weight:700;
+  color:var(--color-text-tertiary);background:var(--color-background-secondary);
+  border:0.5px solid var(--color-border-tertiary);border-radius:20px;padding:0 6px;margin-left:4px}
+.facet-body{padding:10px;overflow-y:auto;display:flex;flex-direction:column;gap:4px}
+.facet-item{display:flex;align-items:center;gap:9px;width:100%;text-align:left;cursor:pointer;
+  padding:9px 11px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);
+  background:var(--color-background-secondary);color:var(--color-text-primary);font-size:13px;
+  font-family:inherit;transition:all .12s}
+.facet-item:hover{background:var(--color-background-primary);border-color:var(--color-border-secondary)}
+.facet-dot{flex:0 0 auto;width:8px;height:8px;border-radius:50%;margin-top:4px}
+.facet-name{flex:1;display:flex;flex-direction:column;gap:1px}
+.facet-sub{font-size:11px;color:var(--color-text-tertiary);font-weight:400}
+.facet-empty{padding:14px;text-align:center;color:var(--color-text-tertiary);font-size:12.5px}
+
+/* ── Palette de recherche globale (Ctrl/⌘+K) ──────────────────────
+   Recherche transversale (notions + auteurs + concepts) en superposition,
+   façon « command palette ». Elle COMPLÈTE — sans la remplacer — la
+   recherche par mode de la sidebar (qui garde ses filtres et modes de
+   circulation). Voile aligné en haut, z-index 1100 (au-dessus des
+   modales=1000), contenu rendu en JS par renderPalette(). */
+.cmdp-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:1100;
+  display:none;align-items:flex-start;justify-content:center;padding:12vh 16px 16px}
+.cmdp-overlay.open{display:flex}
+.cmdp-panel{background:var(--color-background-primary);
+  border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-lg);
+  width:min(560px,96vw);max-height:72vh;display:flex;flex-direction:column;overflow:hidden;
+  box-shadow:0 18px 60px rgba(0,0,0,.5)}
+.cmdp-search{display:flex;align-items:center;gap:8px;padding:12px 14px;
+  border-bottom:0.5px solid var(--color-border-tertiary);flex-shrink:0}
+.cmdp-ico{font-size:15px;color:var(--color-text-tertiary);flex-shrink:0}
+.cmdp-input{flex:1;min-width:0;background:transparent;border:none;outline:none;
+  color:var(--color-text-primary);font-size:15px;font-family:inherit}
+.cmdp-input::placeholder{color:var(--color-text-tertiary)}
+.cmdp-results{overflow-y:auto;padding:6px}
+.cmdp-group{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;
+  color:var(--color-text-tertiary);padding:9px 10px 4px}
+.cmdp-item{display:flex;align-items:center;gap:10px;padding:8px 10px;cursor:pointer;
+  border-radius:var(--border-radius-md);color:var(--color-text-secondary)}
+.cmdp-item.sel,.cmdp-item:hover{background:var(--color-background-secondary);color:var(--color-text-primary)}
+.cmdp-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;border:1px solid rgba(255,255,255,.12)}
+.cmdp-label{flex:1;min-width:0;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cmdp-sub{font-size:11px;color:var(--color-text-tertiary);flex-shrink:0;max-width:42%;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cmdp-tag{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;
+  padding:2px 6px;border-radius:6px;background:var(--color-background-secondary);
+  color:var(--color-text-tertiary);flex-shrink:0}
+.cmdp-empty{padding:22px 14px;text-align:center;color:var(--color-text-tertiary);font-size:13px}
+.cmdp-foot{display:flex;gap:14px;padding:8px 14px;flex-shrink:0;flex-wrap:wrap;
+  border-top:0.5px solid var(--color-border-tertiary);font-size:11px;color:var(--color-text-tertiary)}
+.cmdp-foot kbd,.topbar-search kbd{background:var(--color-background-secondary);
+  border:0.5px solid var(--color-border-tertiary);border-radius:4px;padding:1px 5px;
+  font-family:inherit;font-size:10px}
+/* Groupe d'actions à droite de la barre d'en-tête : « Mes propositions »,
+   recherche globale et bouton d'aide. margin-left:auto le pousse à droite ;
+   tous ses enfants sont des éléments flex → pas de chevauchement. */
+.topbar-actions{margin:6px 12px 0 auto;display:flex;align-items:center;gap:8px;flex-shrink:0}
+/* Déclencheurs « Mes propositions », palette de recherche, partage (même allure). */
+.topbar-search,.topbar-mine,.topbar-share{display:flex;align-items:center;gap:7px;flex-shrink:0;
+  background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);
+  border-radius:var(--border-radius-md);color:var(--color-text-tertiary);
+  font-family:inherit;font-size:12px;padding:6px 10px;cursor:pointer;transition:all .15s}
+.topbar-search:hover,.topbar-mine:hover,.topbar-share:hover{border-color:var(--color-border-secondary);color:var(--color-text-secondary)}
+.topbar-search kbd{background:var(--color-background-primary)}
+/* « Mes propositions » réservé aux comptes connectés (classe posée sur body). */
+body:not(.is-signed-in) .topbar-mine{display:none}
+/* Sur mobile : icônes seules (libellés + raccourci masqués) pour rester compact. */
+@media(max-width:700px){.topbar-search .ts-label,.topbar-search kbd,.topbar-mine .ts-label,.topbar-share .ts-label{display:none}
+  .topbar-search,.topbar-mine,.topbar-share{padding:7px 9px}
+  .topbar-actions{gap:6px;margin:6px 8px 0 auto}}
+
+/* ── Modale de partage (#share-overlay) ───────────────────────────
+   Réutilise l'ossature .modal-overlay/.modal-panel. Contenu propre :
+   .share-* (intro, QR, lien copiable, boutons). Pensée mobile : le
+   partage natif (navigator.share) apparaît en tête quand l'appareil
+   le supporte ; sinon, QR + copie restent toujours disponibles. */
+.share-intro{font-size:12px;color:var(--color-text-tertiary);line-height:1.5;margin-bottom:14px;text-align:center}
+.share-qr-wrap{display:flex;flex-direction:column;align-items:center;gap:8px;margin-bottom:16px}
+.share-qr{width:200px;height:200px;border-radius:var(--border-radius-md);
+  background:#fff;padding:10px;box-sizing:border-box;display:block}
+.share-qr-cap{font-size:11px;color:var(--color-text-tertiary);text-align:center}
+/* Lien copiable : champ en lecture seule + bouton « Copier ». */
+.share-linkrow{display:flex;gap:8px;margin-bottom:12px}
+.share-link{flex:1;min-width:0;padding:9px 10px;font-family:inherit;font-size:12.5px;
+  background:var(--color-background-secondary);color:var(--color-text-primary);
+  border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);
+  outline:none;text-overflow:ellipsis}
+.share-link:focus{border-color:var(--color-border-info)}
+.share-btn{width:100%;padding:11px;font-family:inherit;font-size:13px;font-weight:600;
+  border-radius:var(--border-radius-md);cursor:pointer;outline:none;
+  border:0.5px solid transparent;transition:filter .15s;
+  display:flex;align-items:center;justify-content:center;gap:8px}
+.share-btn:hover{filter:brightness(1.1)}
+.share-btn-primary{background:var(--color-background-info);
+  border-color:var(--color-border-info);color:var(--color-text-info)}
+.share-btn-copy{flex-shrink:0;width:auto;padding:9px 14px;font-size:12.5px;
+  background:var(--color-background-secondary);color:var(--color-text-secondary);
+  border-color:var(--color-border-tertiary)}
+.share-btn-copy.ok{background:rgba(123,216,143,.15);border-color:rgba(123,216,143,.45);color:#7bd88f}
+.share-native{margin-bottom:16px}
+.share-status{margin-top:10px;font-size:12px;line-height:1.5;min-height:1em;text-align:center;color:#7bd88f}
+
+/* Système de « boîtes » de la modale (une boîte = une proposition).
+   .pbox = carte ; menus Type/Cible ; .pbox-fields recevra les champs (étape 1c). */
+.pbox{background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);
+  border-radius:var(--border-radius-md);padding:12px;margin-bottom:10px}
+/* Surbrillance brève de la boîte ciblée à l'ouverture (scrollToProposalBox). */
+.pbox-flash{animation:pboxFlash 1.2s ease-out}
+@keyframes pboxFlash{0%{border-color:var(--color-text-info);box-shadow:0 0 0 2px var(--color-background-info)}100%{}}
+.pbox-head{display:flex;align-items:center;gap:8px;margin-bottom:9px}
+.pbox-num{font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--color-text-tertiary)}
+.pbox-del{margin-left:auto;width:22px;height:22px;border-radius:var(--border-radius-md);
+  background:transparent;border:0.5px solid var(--color-border-tertiary);
+  color:var(--color-text-tertiary);font-size:11px;cursor:pointer;outline:none;
+  display:flex;align-items:center;justify-content:center;transition:all .15s}
+.pbox-del:hover:not(:disabled){border-color:#9d5151;color:#d98c8c}
+.pbox-del:disabled{opacity:.3;cursor:not-allowed}
+.pfield{margin-bottom:9px}
+.plabel{display:block;font-size:10px;font-weight:500;letter-spacing:.05em;
+  text-transform:uppercase;color:var(--color-text-tertiary);margin-bottom:4px}
+.psel,.pinput,.ptext{width:100%;box-sizing:border-box;font-family:inherit;font-size:12px;
+  background:var(--color-background-primary);color:var(--color-text-primary);
+  border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);
+  padding:6px 8px;outline:none}
+.psel:focus,.pinput:focus,.ptext:focus{border-color:var(--color-text-tertiary)}
+.pbox-fields{margin-top:4px;padding-top:9px;border-top:0.5px solid var(--color-border-tertiary)}
+.pbox-add{width:100%;padding:9px;font-family:inherit;font-size:12px;font-weight:500;
+  background:transparent;border:1px dashed var(--color-border-secondary);
+  border-radius:var(--border-radius-md);color:var(--color-text-secondary);
+  cursor:pointer;outline:none;transition:all .15s}
+.pbox-add:hover{border-color:var(--color-text-tertiary);color:var(--color-text-primary)}
+.phint{font-size:11px;color:var(--color-text-tertiary);font-style:italic;line-height:1.5}
+/* Champs des boîtes (étape 1c) : marqueurs requis, sous-formulaire auteur, cases à cocher */
+.preq{text-transform:none;letter-spacing:0;font-weight:600;font-size:9px;color:#d98c8c}
+.popt{text-transform:none;letter-spacing:0;font-weight:400;font-style:italic;font-size:9px;color:var(--color-text-tertiary)}
+.pauth-ok{font-size:11px;color:var(--color-text-info);margin-top:4px}
+.pauth-newmsg{font-size:11px;color:#d3a86a;margin-top:4px}
+.pauth-new{margin:0 0 9px;padding:10px;background:var(--color-background-primary);
+  border:0.5px dashed var(--color-border-secondary);border-radius:var(--border-radius-md)}
+/* Bloc « idée » d'une boîte cible auteur (la boîte peut en contenir N).
+   .pidea-head sert d'en-tête quand il y a plusieurs idées (étiquette + ×). */
+.pidea{margin:0 0 9px;padding:10px;background:var(--color-background-primary);
+  border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md)}
+.pidea-head{display:flex;align-items:center;justify-content:space-between;
+  font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.5px;
+  color:var(--color-text-tertiary);margin-bottom:8px}
+.pidea-del{background:none;border:0;color:var(--color-text-tertiary);
+  font-size:16px;line-height:1;cursor:pointer;padding:0 4px}
+.pidea-del:hover{color:var(--color-text-primary)}
+.pidea-add{margin:0 0 9px}
+.pidea-addbtn{font-size:11px;background:var(--color-background-info);
+  border:0.5px dashed var(--color-border-info);color:var(--color-text-info);
+  padding:6px 12px;border-radius:var(--border-radius-md);cursor:pointer}
+.pidea-addbtn:hover{opacity:.85}
+/* Liste de citations d'une idée (formulaire de contribution). */
+.pcites{margin:4px 0 2px}
+.pcite-row{display:flex;gap:6px;align-items:flex-start;margin-bottom:5px}
+.pcite-row textarea{flex:1}
+.pchk-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px 10px;margin-top:2px}
+.pchk{display:flex;align-items:center;gap:5px;font-size:11px;font-weight:400;
+  text-transform:none;letter-spacing:0;color:var(--color-text-secondary);cursor:pointer}
+.pchk input{cursor:pointer;accent-color:var(--color-text-info);margin:0}
+
+/* Boutons « + » de proposition injectés dans les vues (étape 1d).
+   .pplus     : bouton d'angle sur une carte (apparaît au survol)
+   .pplus-cat : bouton d'ajout en bas de chaque catégorie */
+.ac,.ti2,.axe-card,.ex-card,.accroche-card,.dq,.def-box,.concept-def-box,
+.idea-card,.cit-card,.oeuvre-card,.dial-card,.concept-card,.plan-card,.crel-card{position:relative}
+.pplus{position:absolute;bottom:5px;right:5px;width:19px;height:19px;padding:0;
+  border-radius:50%;background:var(--color-background-info);
+  border:0.5px solid var(--color-border-info);color:var(--color-text-info);
+  font-size:13px;line-height:1;cursor:pointer;opacity:.55;outline:none;
+  display:flex;align-items:center;justify-content:center;transition:opacity .15s}
+.pplus:hover{opacity:1}
+/* Appareil avec souris : le + n'apparaît qu'au survol de la carte (discret).
+   Appareil tactile (hover:none) : le + reste visible — sinon inaccessible. */
+@media (hover:hover){
+  .pplus{opacity:0}
+  .ac:hover .pplus,.ti2:hover .pplus,.axe-card:hover .pplus,.ex-card:hover .pplus,
+  .accroche-card:hover .pplus,
+  .dq:hover .pplus,.def-box:hover .pplus,.idea-card:hover .pplus,.cit-card:hover .pplus,
+  .oeuvre-card:hover .pplus,.dial-card:hover .pplus,.concept-def-box:hover .pplus,
+  .concept-card:hover .pplus,.plan-card:hover .pplus,.crel-card:hover .pplus{opacity:.5}
+}
+@media (hover:none){
+  .pplus{width:24px;height:24px;font-size:15px}
+}
+/* css/07-mobile.css — morceau de la feuille de style du site. Le build
+   (outils/construire.mjs) recolle css/*.css dans l'ORDRE des noms pour
+   produire app.css : l'ordre compte (cascade CSS). */
+/* ── Responsive — tiroir « burger » sur mobile (≤700px) ──────────────
+   La sidebar fixe à 155px était inadaptée au téléphone : elle devient un
+   tiroir off-screen révélé par un bouton burger (top-left, position
+   fixed) ; un voile assombri ferme le tiroir au clic.                  */
+/* Bande d'en-tête : burger (mobile) + crumbs sur la même ligne, alignés. */
+.topbar{display:flex;align-items:flex-start;gap:6px}
+/* Bandeau d'avertissement « contenu en construction » (en haut de la zone
+   principale, au-dessus du fil d'Ariane). Ton ambré discret ; .hide anime la
+   sortie (fermeture manuelle ou auto au bout d'1 min). */
+.notice-banner{flex-shrink:0;display:flex;align-items:center;gap:10px;
+  margin:6px 8px 4px;padding:8px 12px;
+  background:rgba(239,159,39,.12);border:0.5px solid rgba(239,159,39,.35);
+  border-radius:var(--border-radius-md);
+  color:var(--color-text-secondary);font-size:12px;line-height:1.45;
+  transition:opacity .3s ease,transform .3s ease}
+.notice-banner.hide{opacity:0;transform:translateY(-6px);pointer-events:none}
+.notice-banner-text{flex:1}
+.notice-banner-text strong{color:var(--color-text-primary);font-weight:600}
+.notice-banner-link{color:#EF9F27;text-decoration:underline;text-underline-offset:2px;
+  cursor:pointer;font-weight:500}
+.notice-banner-link:hover{opacity:.82}
+.notice-banner-close{flex-shrink:0;background:transparent;border:0;
+  color:var(--color-text-tertiary);font-size:18px;line-height:1;cursor:pointer;
+  padding:0 4px;border-radius:6px;font-family:inherit}
+.notice-banner-close:hover{color:var(--color-text-primary)}
+.sb-burger{display:none;width:32px;height:32px;flex-shrink:0;margin:6px 0 0 12px;
+  align-items:center;justify-content:center;
+  background:var(--color-background-secondary);color:var(--color-text-primary);
+  border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);
+  font-size:15px;line-height:1;cursor:pointer;padding:0;font-family:inherit}
+.sb-burger:hover{background:var(--color-background-primary)}
+.sb-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);
+  z-index:150;opacity:0;transition:opacity .2s}
+body.sb-open .sb-backdrop{display:block;opacity:1}
+
+@media (max-width:700px){
+  /* IMPORTANT — ordre du repli : la VALEUR DE SECOURS (100vh) d'abord, la
+     valeur MODERNE (100dvh) ENSUITE. La dernière déclaration COMPRISE par le
+     navigateur gagne : sur mobile, vh = « grand » viewport (barre du navigateur
+     déployée incluse), donc le bas du contenu passait SOUS la barre de
+     navigation du téléphone (dernier bouton caché). 100dvh = viewport
+     VISIBLE (dynamique) → le contenu s'arrête au-dessus de la barre. (Avant,
+     l'ordre inverse faisait gagner 100vh et annulait le correctif.) */
+  body{padding:0;height:100vh;height:100dvh}
+  .wrap{height:100vh;height:100dvh;border:0;border-radius:0}
+  .sidebar{position:fixed;top:0;left:0;height:100%;width:80%;max-width:300px;
+    transform:translateX(-100%);transition:transform .25s ease;z-index:160;
+    box-shadow:2px 0 12px rgba(0,0,0,.4)}
+  body.sb-open .sidebar{transform:translateX(0)}
+  .main{padding-top:0}
+  .main-content{padding:12px 14px 28px}
+  /* Burger inline dans .topbar : plus besoin de padding-left pour le contourner. */
+  .crumbs{padding:9px 14px 0 4px;flex-wrap:wrap}
+  /* Onglets : on les AFFICHE TOUS en passant à la ligne (wrap) plutôt qu'avec
+     un scroll horizontal — retour contributeur : le scroll latéral cachait des
+     onglets. Tout reste visible d'un coup d'œil, y compris sur téléphone. */
+  .tabs{padding:6px 14px 0;flex-wrap:wrap;row-gap:2px}
+  /* Cibles tactiles élargies sur mobile : onglets/fil d'Ariane/Retour ≥ ~40 px
+     de haut (mesurés à 31/20/30 px auparavant → trop petits au doigt). */
+  .tab{padding:11px 12px;font-size:12px;white-space:nowrap}
+  .crumb{padding:7px 8px}
+  .back-btn{min-height:38px;display:inline-flex;align-items:center}
+  .sb-burger{display:flex}
+  /* Cibles tactiles élargies : tap targets ≥40 px */
+  .pplus{width:28px;height:28px;font-size:15px}
+  .pplus-cat{padding:8px 14px;font-size:12px}
+  /* Onglets et fiches : un peu plus d'air vertical */
+  .notion-head{margin-top:8px}
+  .ag{grid-template-columns:1fr;gap:11px}   /* cartes auteur en colonne unique */
+  .ac-multi{grid-column:auto}              /* pas d'élargissement en 1 colonne */
+  /* Modale de contribution : plein écran sur mobile */
+  .modal-panel{width:100%;max-width:100%;height:100%;max-height:100%;
+    border-radius:0;margin:0}
+  .modal-body{padding:14px}
+}
+.pplus-catwrap{display:flex;justify-content:flex-end;margin:3px 0 14px}
+.pplus-cat{padding:5px 11px;font-family:inherit;font-size:11px;font-weight:500;
+  background:transparent;border:1px dashed var(--color-border-secondary);
+  border-radius:var(--border-radius-md);color:var(--color-text-tertiary);
+  cursor:pointer;outline:none;transition:all .15s}
+.pplus-cat:hover{border-color:var(--color-text-info);color:var(--color-text-info)}
+
+/* Pied de la modale : boutons d'action + zone d'aperçu (étape 2) */
+.pactions{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}
+.pbtn{padding:7px 14px;font-family:inherit;font-size:12px;font-weight:500;cursor:pointer;
+  border-radius:var(--border-radius-md);outline:none;transition:all .15s;
+  background:transparent;border:0.5px solid var(--color-border-secondary);color:var(--color-text-secondary)}
+.pbtn:hover{border-color:var(--color-text-tertiary);color:var(--color-text-primary)}
+.pbtn-primary{background:var(--color-background-info);border-color:var(--color-border-info);color:var(--color-text-info)}
+.pbtn-primary:hover{filter:brightness(1.3);color:var(--color-text-info)}
+/* Bouton discret (repli) : « Envoyer par email » n'est plus une voie
+   principale — mailto sert de repli automatique. On le rend léger (sans
+   bordure, texte tertiaire) pour ne pas concurrencer « Envoyer en ligne ». */
+.pbtn-ghost{border-color:transparent;color:var(--color-text-tertiary);font-size:11px;padding:7px 8px}
+.pbtn-ghost:hover{border-color:transparent;color:var(--color-text-secondary)}
+.ppreview-head{font-size:11px;color:var(--color-text-tertiary);margin-bottom:8px}
+.ppreview{width:100%;box-sizing:border-box;min-height:300px;resize:vertical;
+  font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11px;line-height:1.55;
+  background:var(--color-background-secondary);color:var(--color-text-secondary);
+  border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);
+  padding:10px;outline:none;white-space:pre-wrap}
+
+/* new (Phase 3 — « Mes propositions ») : liste des contributions du compte
+   avec leur statut (en attente / validée / refusée) et l'explication. */
+.pmine-list{display:flex;flex-direction:column;gap:10px;margin-top:6px}
+.pmine-item{border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);
+  padding:10px 12px;background:var(--color-background-secondary)}
+.pmine-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:space-between}
+.pmine-sum{font-size:12px;font-weight:600;color:var(--color-text-primary)}
+.pmine-date{font-size:10.5px;color:var(--color-text-tertiary);margin-top:3px}
+.pmine-expl{font-size:11.5px;color:var(--color-text-secondary);line-height:1.5;margin-top:7px;
+  padding-top:7px;border-top:0.5px solid var(--color-border-tertiary);white-space:pre-wrap}
+/* new : avis AUTOMATIQUE (IA) renvoyé au contributeur — distinct du mot du
+   relecteur (.pmine-expl). Liseré bleu + en-tête « 🤖 » pour signaler que
+   c'est indicatif et généré automatiquement, pas la parole d'un humain. */
+.pmine-avia{font-size:11.5px;color:var(--color-text-secondary);line-height:1.5;margin-top:7px;
+  padding:7px 9px;border-left:3px solid var(--color-accent-quiz);
+  background:var(--color-background-primary);border-radius:var(--border-radius-md);white-space:pre-wrap}
+.pmine-avia-h{display:block;font-size:10px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.03em;color:var(--color-text-tertiary);margin-bottom:3px}
+/* Détail repliable du contenu proposé (« Mes propositions »). */
+.pmine-det{margin-top:7px;font-size:11.5px}
+.pmine-det>summary{cursor:pointer;color:var(--color-text-tertiary);font-weight:600;list-style:none}
+.pmine-det>summary::-webkit-details-marker{display:none}
+.pmine-det>summary::before{content:"▸ ";color:var(--color-text-tertiary)}
+.pmine-det[open]>summary::before{content:"▾ "}
+.pmine-box{margin-top:8px;padding-top:8px;border-top:0.5px solid var(--color-border-tertiary)}
+.pmine-box:first-of-type{border-top:0;padding-top:0}
+.pmine-box-h{font-size:10.5px;font-weight:700;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.03em;margin-bottom:4px}
+.pmine-f{margin:3px 0;color:var(--color-text-secondary);line-height:1.5}
+.pmine-f b{color:var(--color-text-primary);font-weight:600}
+/* new : actions sous une proposition (bouton « Modifier » d'un envoi « en attente »). */
+.pmine-actions{margin-top:8px;display:flex;gap:6px;flex-wrap:wrap}
+.pbtn-sm{padding:4px 10px;font-size:11.5px}
+/* new : bannière en tête de la vue d'édition quand on CORRIGE un envoi. Ton
+   ambré discret pour signaler « tu modifies quelque chose de déjà transmis ». */
+.pedit-banner{font-size:12px;line-height:1.55;color:var(--color-text-secondary);
+  background:rgba(224,164,88,.12);border:0.5px solid rgba(224,164,88,.45);
+  border-radius:var(--border-radius-md);padding:9px 11px;margin-bottom:12px;
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.pedit-banner b{color:var(--color-text-primary)}
+.pedit-banner .pbtn-sm{margin-left:auto}
+/* Pastille de statut (couleur = état). */
+.pst{font-size:10.5px;font-weight:600;padding:2px 8px;border-radius:999px;white-space:nowrap}
+.pst-wait{background:rgba(255,193,7,.14);color:#e0a800}
+.pst-prog{background:var(--color-background-info);color:var(--color-text-info)}
+.pst-ok{background:rgba(46,204,113,.15);color:#2ecc71}
+.pst-no{background:rgba(231,76,60,.14);color:#e74c3c}
+/* css/08-methodo-defilement.css — morceau de la feuille de style du site. Le build
+   (outils/construire.mjs) recolle css/*.css dans l'ORDRE des noms pour
+   produire app.css : l'ordre compte (cascade CSS). */
+/* ── Onglet Méthodo (guide) — interface dédiée (renderMethodoContent) ──
+   Volontairement DIFFÉRENTE des fiches concept/notion : un squelette
+   VISUEL de la copie en haut (la structure « vue de loin »), puis le
+   détail pas à pas dans des blocs dépliables (<details>) en dessous.
+   Thème accent bleu (réutilise les variables du quiz) pour le démarquer. */
+.methodo-wrap{max-width:780px}
+/* En-tête épuré : un libellé discret + une bascule « segmentée » (segmented
+   control), bien plus légère que deux gros boutons. Le titre redondant (déjà
+   donné par l'onglet sélectionné + le fil d'Ariane) a été retiré. */
+.methodo-eyebrow{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;
+  color:var(--color-text-tertiary);margin-bottom:8px}
+.methodo-switch{display:flex;gap:4px;margin-bottom:18px;padding:4px;max-width:460px;
+  background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);
+  border-radius:11px}
+.methodo-switch button{flex:1;min-height:36px;padding:7px 12px;border:0;border-radius:8px;background:transparent;
+  color:var(--color-text-secondary);font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;
+  font-family:inherit;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.methodo-switch button:hover{color:var(--color-text-primary)}
+.methodo-switch button.active{background:var(--color-accent-quiz);color:#fff;box-shadow:0 1px 4px rgba(0,0,0,.25)}
+.methodo-intro{font-size:14px;line-height:1.62;color:var(--color-text-secondary);margin-bottom:6px}
+.methodo-intro b,.methodo-intro strong{color:var(--color-text-primary)}
+.methodo-sectitle{font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;
+  color:var(--color-text-tertiary);margin:22px 0 10px}
+/* Squelette : pile verticale de « blocs de copie ». */
+.methodo-skel{display:flex;flex-direction:column;gap:7px;margin:4px 0 8px}
+.methodo-skel-row{display:flex;gap:0;align-items:stretch;border:0.5px solid var(--color-border-tertiary);
+  border-left:3px solid var(--color-accent-quiz);border-radius:var(--border-radius-md);overflow:hidden;
+  background:var(--color-background-secondary)}
+.methodo-skel-bloc{flex:0 0 140px;padding:10px 12px;font-weight:700;font-size:13px;color:var(--color-text-primary);
+  background:var(--color-background-quiz);display:flex;align-items:center}
+.methodo-skel-detail{padding:10px 12px;font-size:12.5px;line-height:1.5;color:var(--color-text-secondary);flex:1}
+/* Étapes détaillées dépliables. */
+.methodo-step{border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);
+  margin-bottom:8px;background:var(--color-background-secondary);overflow:hidden}
+.methodo-step>summary{list-style:none;cursor:pointer;padding:12px 14px;font-weight:600;font-size:13.5px;
+  color:var(--color-text-primary);display:flex;align-items:center;gap:8px}
+.methodo-step>summary::-webkit-details-marker{display:none}
+.methodo-step>summary::after{content:'▸';margin-left:auto;color:var(--color-text-tertiary);transition:transform .15s}
+.methodo-step[open]>summary::after{transform:rotate(90deg)}
+.methodo-step>summary:hover{background:var(--color-background-tertiary)}
+.methodo-step-num{flex:0 0 auto;width:22px;height:22px;border-radius:50%;background:var(--color-accent-quiz);
+  color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.methodo-step-body{padding:2px 14px 14px;font-size:13px;line-height:1.62;color:var(--color-text-secondary)}
+.methodo-step-body p{margin:0 0 9px}
+.methodo-block-title{font-size:11.5px;font-weight:700;color:var(--color-text-tertiary);
+  text-transform:uppercase;letter-spacing:.03em;margin:12px 0 6px}
+.methodo-phrases{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:5px}
+.methodo-phrases li{padding:7px 11px;background:var(--color-background-quiz);border-radius:var(--border-radius-md);
+  border-left:2px solid var(--color-border-quiz,var(--color-accent-quiz));font-size:12.5px;
+  font-style:italic;color:var(--color-text-secondary)}
+.methodo-tip{margin-top:10px;padding:9px 12px;border-radius:var(--border-radius-md);
+  background:var(--color-background-info,rgba(59,130,214,.12));font-size:12.5px;line-height:1.5;
+  color:var(--color-text-secondary)}
+.methodo-tip b{color:var(--color-text-primary)}
+@media(max-width:700px){
+  .methodo-skel-row{flex-direction:column}
+  .methodo-skel-bloc{flex:none;border-bottom:0.5px solid var(--color-border-tertiary)}
+}
+
+/* ── Barres de défilement assorties au thème sombre ───────────
+   Corrige les scrollbars blanches par défaut (Windows). Purement additif. */
+*{scrollbar-width:thin;scrollbar-color:var(--color-border-secondary) transparent}
+::-webkit-scrollbar{width:9px;height:9px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--color-border-tertiary);border-radius:5px}
+::-webkit-scrollbar-thumb:hover{background:var(--color-border-secondary)}

@@ -1,0 +1,37 @@
+/* css/03-contribution.css — morceau de la feuille de style du site. Le build
+   (outils/construire.mjs) recolle css/*.css dans l'ORDRE des noms pour
+   produire app.css : l'ordre compte (cascade CSS). */
+/* ── Interface de contribution (bouton sidebar + modale) ──────
+   .sb-propose    : bouton intégré à la sidebar, entre les onglets de
+                    mode et la liste — ouvre la modale de proposition
+   .modal-overlay : fond assombri plein écran (classe .open = visible)
+   .modal-panel   : panneau centré ; en-tête (.modal-head) + corps (.modal-body) */
+.sb-propose{flex-shrink:0;margin:7px 8px 9px;padding:9px 8px;
+  display:flex;align-items:center;justify-content:center;gap:5px;
+  background:var(--color-background-info);border:0.5px solid var(--color-border-info);
+  border-radius:var(--border-radius-md);color:var(--color-text-info);
+  font-family:inherit;font-size:11.5px;font-weight:500;line-height:1.3;
+  text-align:center;cursor:pointer;outline:none;transition:filter .15s}
+.sb-propose:hover{filter:brightness(1.3)}
+/* Toggle Révision / Édition — petit bouton en bas de sidebar, persistant. */
+.sb-mode,.sb-settings{flex-shrink:0;margin:6px 8px 10px;padding:7px 8px;
+  background:transparent;border:0.5px solid var(--color-border-tertiary);
+  border-radius:var(--border-radius-md);color:var(--color-text-tertiary);
+  font-family:inherit;font-size:11px;font-weight:500;letter-spacing:.02em;
+  cursor:pointer;outline:none;text-align:center;transition:all .15s}
+.sb-mode:hover,.sb-settings:hover{color:var(--color-text-info);border-color:var(--color-border-info)}
+/* En mode édition, le bouton Réglages porte un liseré accent (rappel discret). */
+body.mode-edition .sb-settings{color:var(--color-text-info);border-color:var(--color-border-info)}
+/* Lignes du menu Réglages. */
+.set-row{display:flex;flex-direction:column;gap:8px}
+.set-row-cur{font-size:13px;color:var(--color-text-secondary)}
+.set-row-cur strong{color:var(--color-text-primary)}
+.set-row-desc{font-size:12px;line-height:1.5;color:var(--color-text-tertiary)}
+.set-mode-btn{align-self:flex-start}
+/* En mode RÉVISION (défaut), on cache les OUTILS de contribution (boutons +,
+   « Proposer du contenu ») pour un rendu épuré. Les badges « ✦ Nouveau » et
+   « ✎ Modifié » restent visibles : ils signalent à l'élève le contenu récent
+   ou corrigé (informatif, pas un outil d'édition). */
+body:not(.mode-edition) .pplus,
+body:not(.mode-edition) .pplus-catwrap,
+body:not(.mode-edition) .sb-propose{display:none!important}

@@ -525,9 +525,40 @@ conversion des anciens formats de la source (auteurs à plat, `tensions`,
 `axes`), l'allègement de `CLAUDE.md`, et une carte du projet extraite du
 code (le vérificateur actuel compte plus de 200 références « déplacées »).
 
-**À décider par l'auteur** : `icon.ico` et `icon_gear.ico` (référencés
-nulle part dans le dépôt : servent-ils à un raccourci Windows ?) ; le tri
-des branches `claude/*` et des worktrees anciennes.
+**Décidé ensuite par l'auteur** : `icon.ico` et `icon_gear.ico` servent au
+raccourci Windows du tableau de bord local (gardés, rôle noté dans le
+README) ; branches `claude/*` fusionnées et worktrees anciennes supprimées
+le 5 octobre. La photographie de la base réelle a confirmé le défaut de
+lecture de `aggregator_state`, et montré qu'aucun compte ne pouvait
+modifier ses propositions (droit UPDATE absent) : `2026_contributions_colonnes.sql`
+corrige les deux, **à lancer**.
+
+### Étape 3, « Build léger et adresses » (5 octobre 2026)
+
+- **Le contenu dans `contenu/`** : un fichier par notion, une fiche par
+  auteur, concepts, repères, ordre. `outils/construire.mjs` produit
+  `data.js` (identique aux données que le site obtenait avant, vérifié avec
+  témoin), convertit une fois les anciens formats (le site ne convertit plus
+  rien au chargement) et calcule la version du cache (fini `philo-vN`).
+- **`index.html` découpé** : 275 lignes de HTML ; le code dans `js/` (14
+  morceaux) et `css/` (8), recollés en `app.js` et `app.css`, identiques à
+  l'ancien code hors lignes vides (vérifié avec témoin). Le build vérifie la
+  syntaxe et nomme le fichier et la ligne d'une faute.
+- **Carte du projet** : refs « fichier:ligne » tenues par le build ; le
+  contrôle exige une DÉFINITION (une fonction seulement citée en commentaire
+  ne passe plus pour présente).
+- **Une adresse par page** (`#/notion/…`, `#/auteur/…`, `#/concept/…`) :
+  liens partageables, bouton « précédent », titre d'onglet, « Partager »
+  donne la page ouverte.
+- **Recherche plein texte** : citations, œuvres, sujets, textes, exemples,
+  définitions ; un résultat ouvre le bon onglet et fait briller l'élément.
+- **Documentation** : `CLAUDE.md` réduit aux règles (150 lignes au lieu de
+  770), le détail dans `docs/architecture.md`.
+
+**Pas fait** (à garder pour plus tard, selon le besoin) : des pages statiques
+par notion pour le référencement (les moteurs ignorent la partie après #),
+et le découpage de `data.js` en « index + détail chargé à la demande » (pas
+nécessaire tant qu'il fait moins d'un mégaoctet : 695 Ko aujourd'hui).
 
 ## Sources
 

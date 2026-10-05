@@ -1,8 +1,8 @@
 #!/bin/sh
 # ════════════════════════════════════════════════════════════════════
-# pre-commit — deux tâches avant chaque commit.
+# pre-commit — trois tâches avant chaque commit (0, 1, 2 ci-dessous).
 #
-# 1. CONTRÔLE DU CONTENU (bloquant, oct. 2026) : si data.js ou le
+# 1. CONTRÔLE DU CONTENU (bloquant, oct. 2026) : si contenu/, data.js ou le
 #    vérificateur font partie du commit, outils/verifier_contenu.mjs doit
 #    répondre « cohérent ». Sinon le commit est refusé et la liste des
 #    erreurs s'affiche : on corrige, puis on recommence.
@@ -18,7 +18,17 @@
 command -v node >/dev/null 2>&1 || exit 0
 ROOT="$(git rev-parse --show-toplevel)" || exit 0
 
-if git diff --cached --name-only | grep -qE '^(data\.js|outils/verifier_contenu\.mjs)$'; then
+# 0. BUILD À JOUR (bloquant) : data.js, app.js, app.css, sw.js et les refs
+#    de la carte sont produits par outils/construire.mjs. Si le contenu, le
+#    code ou le build changent, ils doivent avoir été reconstruits avant le commit.
+if git diff --cached --name-only | grep -qE '^(contenu/|js/|css/|outils/|docs/carte/|data\.js|app\.js|app\.css|sw\.js|index\.html|manifest\.json|icon\.svg)'; then
+  if ! node "$ROOT/outils/construire.mjs" --controle >&2; then
+    echo "pre-commit : lancer « node outils/construire.mjs », puis ajouter les fichiers produits au commit." >&2
+    exit 1
+  fi
+fi
+
+if git diff --cached --name-only | grep -qE '^(contenu/|data\.js|outils/verifier_contenu\.mjs)'; then
   if ! node "$ROOT/outils/verifier_contenu.mjs" > /tmp/philo-verif.txt 2>&1; then
     echo "pre-commit : le contenu n'est pas cohérent, commit refusé." >&2
     grep -A200 "À CORRIGER" /tmp/philo-verif.txt >&2

@@ -1,0 +1,151 @@
+/* css/07-mobile.css — morceau de la feuille de style du site. Le build
+   (outils/construire.mjs) recolle css/*.css dans l'ORDRE des noms pour
+   produire app.css : l'ordre compte (cascade CSS). */
+/* ── Responsive — tiroir « burger » sur mobile (≤700px) ──────────────
+   La sidebar fixe à 155px était inadaptée au téléphone : elle devient un
+   tiroir off-screen révélé par un bouton burger (top-left, position
+   fixed) ; un voile assombri ferme le tiroir au clic.                  */
+/* Bande d'en-tête : burger (mobile) + crumbs sur la même ligne, alignés. */
+.topbar{display:flex;align-items:flex-start;gap:6px}
+/* Bandeau d'avertissement « contenu en construction » (en haut de la zone
+   principale, au-dessus du fil d'Ariane). Ton ambré discret ; .hide anime la
+   sortie (fermeture manuelle ou auto au bout d'1 min). */
+.notice-banner{flex-shrink:0;display:flex;align-items:center;gap:10px;
+  margin:6px 8px 4px;padding:8px 12px;
+  background:rgba(239,159,39,.12);border:0.5px solid rgba(239,159,39,.35);
+  border-radius:var(--border-radius-md);
+  color:var(--color-text-secondary);font-size:12px;line-height:1.45;
+  transition:opacity .3s ease,transform .3s ease}
+.notice-banner.hide{opacity:0;transform:translateY(-6px);pointer-events:none}
+.notice-banner-text{flex:1}
+.notice-banner-text strong{color:var(--color-text-primary);font-weight:600}
+.notice-banner-link{color:#EF9F27;text-decoration:underline;text-underline-offset:2px;
+  cursor:pointer;font-weight:500}
+.notice-banner-link:hover{opacity:.82}
+.notice-banner-close{flex-shrink:0;background:transparent;border:0;
+  color:var(--color-text-tertiary);font-size:18px;line-height:1;cursor:pointer;
+  padding:0 4px;border-radius:6px;font-family:inherit}
+.notice-banner-close:hover{color:var(--color-text-primary)}
+.sb-burger{display:none;width:32px;height:32px;flex-shrink:0;margin:6px 0 0 12px;
+  align-items:center;justify-content:center;
+  background:var(--color-background-secondary);color:var(--color-text-primary);
+  border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);
+  font-size:15px;line-height:1;cursor:pointer;padding:0;font-family:inherit}
+.sb-burger:hover{background:var(--color-background-primary)}
+.sb-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);
+  z-index:150;opacity:0;transition:opacity .2s}
+body.sb-open .sb-backdrop{display:block;opacity:1}
+
+@media (max-width:700px){
+  /* IMPORTANT — ordre du repli : la VALEUR DE SECOURS (100vh) d'abord, la
+     valeur MODERNE (100dvh) ENSUITE. La dernière déclaration COMPRISE par le
+     navigateur gagne : sur mobile, vh = « grand » viewport (barre du navigateur
+     déployée incluse), donc le bas du contenu passait SOUS la barre de
+     navigation du téléphone (dernier bouton caché). 100dvh = viewport
+     VISIBLE (dynamique) → le contenu s'arrête au-dessus de la barre. (Avant,
+     l'ordre inverse faisait gagner 100vh et annulait le correctif.) */
+  body{padding:0;height:100vh;height:100dvh}
+  .wrap{height:100vh;height:100dvh;border:0;border-radius:0}
+  .sidebar{position:fixed;top:0;left:0;height:100%;width:80%;max-width:300px;
+    transform:translateX(-100%);transition:transform .25s ease;z-index:160;
+    box-shadow:2px 0 12px rgba(0,0,0,.4)}
+  body.sb-open .sidebar{transform:translateX(0)}
+  .main{padding-top:0}
+  .main-content{padding:12px 14px 28px}
+  /* Burger inline dans .topbar : plus besoin de padding-left pour le contourner. */
+  .crumbs{padding:9px 14px 0 4px;flex-wrap:wrap}
+  /* Onglets : on les AFFICHE TOUS en passant à la ligne (wrap) plutôt qu'avec
+     un scroll horizontal — retour contributeur : le scroll latéral cachait des
+     onglets. Tout reste visible d'un coup d'œil, y compris sur téléphone. */
+  .tabs{padding:6px 14px 0;flex-wrap:wrap;row-gap:2px}
+  /* Cibles tactiles élargies sur mobile : onglets/fil d'Ariane/Retour ≥ ~40 px
+     de haut (mesurés à 31/20/30 px auparavant → trop petits au doigt). */
+  .tab{padding:11px 12px;font-size:12px;white-space:nowrap}
+  .crumb{padding:7px 8px}
+  .back-btn{min-height:38px;display:inline-flex;align-items:center}
+  .sb-burger{display:flex}
+  /* Cibles tactiles élargies : tap targets ≥40 px */
+  .pplus{width:28px;height:28px;font-size:15px}
+  .pplus-cat{padding:8px 14px;font-size:12px}
+  /* Onglets et fiches : un peu plus d'air vertical */
+  .notion-head{margin-top:8px}
+  .ag{grid-template-columns:1fr;gap:11px}   /* cartes auteur en colonne unique */
+  .ac-multi{grid-column:auto}              /* pas d'élargissement en 1 colonne */
+  /* Modale de contribution : plein écran sur mobile */
+  .modal-panel{width:100%;max-width:100%;height:100%;max-height:100%;
+    border-radius:0;margin:0}
+  .modal-body{padding:14px}
+}
+.pplus-catwrap{display:flex;justify-content:flex-end;margin:3px 0 14px}
+.pplus-cat{padding:5px 11px;font-family:inherit;font-size:11px;font-weight:500;
+  background:transparent;border:1px dashed var(--color-border-secondary);
+  border-radius:var(--border-radius-md);color:var(--color-text-tertiary);
+  cursor:pointer;outline:none;transition:all .15s}
+.pplus-cat:hover{border-color:var(--color-text-info);color:var(--color-text-info)}
+
+/* Pied de la modale : boutons d'action + zone d'aperçu (étape 2) */
+.pactions{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}
+.pbtn{padding:7px 14px;font-family:inherit;font-size:12px;font-weight:500;cursor:pointer;
+  border-radius:var(--border-radius-md);outline:none;transition:all .15s;
+  background:transparent;border:0.5px solid var(--color-border-secondary);color:var(--color-text-secondary)}
+.pbtn:hover{border-color:var(--color-text-tertiary);color:var(--color-text-primary)}
+.pbtn-primary{background:var(--color-background-info);border-color:var(--color-border-info);color:var(--color-text-info)}
+.pbtn-primary:hover{filter:brightness(1.3);color:var(--color-text-info)}
+/* Bouton discret (repli) : « Envoyer par email » n'est plus une voie
+   principale — mailto sert de repli automatique. On le rend léger (sans
+   bordure, texte tertiaire) pour ne pas concurrencer « Envoyer en ligne ». */
+.pbtn-ghost{border-color:transparent;color:var(--color-text-tertiary);font-size:11px;padding:7px 8px}
+.pbtn-ghost:hover{border-color:transparent;color:var(--color-text-secondary)}
+.ppreview-head{font-size:11px;color:var(--color-text-tertiary);margin-bottom:8px}
+.ppreview{width:100%;box-sizing:border-box;min-height:300px;resize:vertical;
+  font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11px;line-height:1.55;
+  background:var(--color-background-secondary);color:var(--color-text-secondary);
+  border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);
+  padding:10px;outline:none;white-space:pre-wrap}
+
+/* new (Phase 3 — « Mes propositions ») : liste des contributions du compte
+   avec leur statut (en attente / validée / refusée) et l'explication. */
+.pmine-list{display:flex;flex-direction:column;gap:10px;margin-top:6px}
+.pmine-item{border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);
+  padding:10px 12px;background:var(--color-background-secondary)}
+.pmine-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:space-between}
+.pmine-sum{font-size:12px;font-weight:600;color:var(--color-text-primary)}
+.pmine-date{font-size:10.5px;color:var(--color-text-tertiary);margin-top:3px}
+.pmine-expl{font-size:11.5px;color:var(--color-text-secondary);line-height:1.5;margin-top:7px;
+  padding-top:7px;border-top:0.5px solid var(--color-border-tertiary);white-space:pre-wrap}
+/* new : avis AUTOMATIQUE (IA) renvoyé au contributeur — distinct du mot du
+   relecteur (.pmine-expl). Liseré bleu + en-tête « 🤖 » pour signaler que
+   c'est indicatif et généré automatiquement, pas la parole d'un humain. */
+.pmine-avia{font-size:11.5px;color:var(--color-text-secondary);line-height:1.5;margin-top:7px;
+  padding:7px 9px;border-left:3px solid var(--color-accent-quiz);
+  background:var(--color-background-primary);border-radius:var(--border-radius-md);white-space:pre-wrap}
+.pmine-avia-h{display:block;font-size:10px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.03em;color:var(--color-text-tertiary);margin-bottom:3px}
+/* Détail repliable du contenu proposé (« Mes propositions »). */
+.pmine-det{margin-top:7px;font-size:11.5px}
+.pmine-det>summary{cursor:pointer;color:var(--color-text-tertiary);font-weight:600;list-style:none}
+.pmine-det>summary::-webkit-details-marker{display:none}
+.pmine-det>summary::before{content:"▸ ";color:var(--color-text-tertiary)}
+.pmine-det[open]>summary::before{content:"▾ "}
+.pmine-box{margin-top:8px;padding-top:8px;border-top:0.5px solid var(--color-border-tertiary)}
+.pmine-box:first-of-type{border-top:0;padding-top:0}
+.pmine-box-h{font-size:10.5px;font-weight:700;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.03em;margin-bottom:4px}
+.pmine-f{margin:3px 0;color:var(--color-text-secondary);line-height:1.5}
+.pmine-f b{color:var(--color-text-primary);font-weight:600}
+/* new : actions sous une proposition (bouton « Modifier » d'un envoi « en attente »). */
+.pmine-actions{margin-top:8px;display:flex;gap:6px;flex-wrap:wrap}
+.pbtn-sm{padding:4px 10px;font-size:11.5px}
+/* new : bannière en tête de la vue d'édition quand on CORRIGE un envoi. Ton
+   ambré discret pour signaler « tu modifies quelque chose de déjà transmis ». */
+.pedit-banner{font-size:12px;line-height:1.55;color:var(--color-text-secondary);
+  background:rgba(224,164,88,.12);border:0.5px solid rgba(224,164,88,.45);
+  border-radius:var(--border-radius-md);padding:9px 11px;margin-bottom:12px;
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.pedit-banner b{color:var(--color-text-primary)}
+.pedit-banner .pbtn-sm{margin-left:auto}
+/* Pastille de statut (couleur = état). */
+.pst{font-size:10.5px;font-weight:600;padding:2px 8px;border-radius:999px;white-space:nowrap}
+.pst-wait{background:rgba(255,193,7,.14);color:#e0a800}
+.pst-prog{background:var(--color-background-info);color:var(--color-text-info)}
+.pst-ok{background:rgba(46,204,113,.15);color:#2ecc71}
+.pst-no{background:rgba(231,76,60,.14);color:#e74c3c}
