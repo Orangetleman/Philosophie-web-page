@@ -1,8 +1,17 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
-  "genere_le": "2026-10-05T19:48:11.755Z",
+  "genere_le": "2026-10-05T19:48:19.645Z",
   "commits": [
+    {
+      "hash": "4f15c9f3ca1d82076edef740cc3813b538cbbb36",
+      "short": "4f15c9f",
+      "auteur": "Orangentleman",
+      "date": "2026-10-05T21:48:11+02:00",
+      "sujet": "Build léger : le contenu passe dans contenu/, data.js devient généré",
+      "corps": "Étape 3 de la feuille de route (docs/diagnostic-2026-10.md, § 7, option B).\n\n- contenu/ : un fichier par notion (17), par auteur (93), concepts.js,\n  reperes.js, ordre.js. Des appels NOTION(…), AUTEUR(…), CONCEPT(…),\n  REPERE(…), ORDRE(…) au format canonique, lisibles et commentables.\n  Produits une fois depuis l'ancien data.js (script de migration).\n- outils/construire.mjs (Node seul) : charge contenu/, convertit les\n  anciens formats (outils/lib/formats.mjs, reprise exacte des fonctions\n  que index.html appliquait à chaque chargement), écrit data.js, recalcule\n  CACHE et PRECACHE de sw.js (empreinte du contenu : plus de philo-vN à\n  incrémenter), lance le vérificateur. --controle vérifie sans écrire.\n- index.html ne convertit plus rien au chargement (normalizeD,\n  normalizeAuthor, migrateAxeToPlan, normalizeConcepts retirés).\n- Non-régression : les données du nouveau data.js sont identiques à celles\n  que le site obtenait avant, après ses conversions (17 notions, 93\n  auteurs, 203 concepts ; seul l'ordre change : les repères passent après\n  les concepts). Témoin : une lettre changée est vue. Rendu vérifié dans\n  le navigateur (plans « à enrichir », repères, fiches, quiz).\n- Vérificateur : question 10, data.js au format canonique (témoin vu).\n- Hook de commit : refuse un commit si data.js ou sw.js ne sont pas à\n  jour du contenu (construire.mjs --controle).\n- Carte du projet : nœud « Build : sources → data.js ».\n\nLa documentation (CLAUDE.md, README) suivra en fin d'étape.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": "Build léger"
+    },
     {
       "hash": "39b320120bc3eee4b42f2dbba73a1f2a5a564387",
       "short": "39b3201",
