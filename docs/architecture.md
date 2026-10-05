@@ -1,0 +1,681 @@
+# Architecture détaillée du site
+
+Ce document décrit le fonctionnement du site, partie par partie : formats de
+données, onglets, liens dynamiques, contribution, interface, quiz. Il était
+dans `CLAUDE.md` jusqu'en octobre 2026 ; `CLAUDE.md` garde les règles et
+renvoie ici.
+
+**Où est le code.** Depuis l'étape 3, le script du site est découpé dans
+`js/` (14 morceaux numérotés) et le style dans `css/` ; le build les recolle
+en `app.js` et `app.css`. Les noms de fonctions cités ici se retrouvent avec
+la carte du projet (`docs/carte/carte.html`, références `fichier:ligne`
+tenues à jour par le build) ou par une recherche dans `js/`.
+
+| Morceau | Contenu |
+|---|---|
+| `js/01-donnees-etat.js` | état de l'affichage (`cur`, `sbMode`…), index des auteurs (`buildAI`), tri des auteurs, couleurs par courant (`CC`) |
+| `js/02-navigation.js` | historique « ← Retour », position mémorisée, adresses de page `#/…` |
+| `js/03-barre-laterale.js` | barre latérale (`renderSB`) et ses listes |
+| `js/04-fiches.js` | surbrillance d'arrivée, fiches notion / auteur / concept, Méthodo, fil d'Ariane |
+| `js/05-liens-dynamiques.js` | `linkTerms`, `LINK_MAP`, `AUTHOR_ALIASES` |
+| `js/06-contribution.js` | modale « Proposer du contenu » |
+| `js/07-affichage-reglages.js` | tiroir mobile, mode révision / édition, Réglages |
+| `js/08-visite-guidee.js` | visite guidée, bandeau, aide, gestes mobile |
+| `js/09-compte.js` | authentification Supabase |
+| `js/10-partage.js` | modale de partage |
+| `js/11-synchro.js` | synchronisation du compte (quiz, préférences) |
+| `js/12-demarrage.js` | démarrage et service worker |
+| `js/13-quiz.js` | mode quiz |
+| `js/14-recherche.js` | recherche globale Ctrl/⌘+K |
+
+## Structures de données
+
+### Notion (objet dans `D`)
+```js
+{
+  c:"#couleur", l:"Label", s:"Question/sous-titre",
+  def:"HTML de la définition (peut contenir <details>)",
+  auteurs:[ {n, ideas:[ {w,i, citations:[…], new?, modified?}, … ]}, … ],
+  textes:[ {n,t, new?, modified?}, … ],
+  axes:[ {n,t,pb,sps:[{l,c,r}], new?, modified?}, … ],   // ANCIEN — converti en plans par le build
+  plans:[ {q, intro, pb, axes:[ {t, sps:[{t,args,auteurs,ref,limite}], limite}, … ], new?, modified?}, … ],
+  exemples:[ {tag,tit,body,lien, new?, modified?}, … ],
+  accroches:[ {type,t,src?, new?, modified?}, … ],   // amorces de dissertation (sous-onglet d'Exemples)
+  liens:["AutreNotion", …],
+  diss:["Question ?", {q, new?, modified?}, … ]
+}
+```
+
+**Onglets d'une notion** : `auteurs`, `textes`, `concepts`, `diss`
+(« Dissertations »), `exemples`. L'ancien onglet `axes` a été supprimé,
+remplacé par les **plans** dans l'onglet Dissertations.
+
+**Onglet « Exemples » — deux sous-onglets (`curExempleSubTab`, état
+déclaré dans `js/01-donnees-etat.js`).** « Exemples » (`exemples:[]`, cartes `.ex-card` — vue historique
+inchangée) et « Accroches » (`accroches:[]`, cartes `.accroche-card`). Une
+**accroche** = une **phrase d'ouverture rédigée, prête à recopier** pour
+amorcer une dissertation : `{type, t, src?, new?, modified?}` où `type` est un
+tag court (Citation, Paradoxe, Mythe, Actualité…), `t` le texte de l'amorce
+(passé par `linkTerms` → notions/concepts/auteurs cliquables), `src` la source
+facultative. Les accroches sont **indexées dans la recherche globale**
+(Ctrl/⌘+K) comme un nouveau type `accroche` (`PALETTE_INDEX` → `id` =
+`"cléNotion#index"`, `PALETTE_GROUPS.accroche='Accroches'`,
+`PALETTE_ORDER.accroche=3`) ; activer un résultat appelle
+`openNotionAccroche(clé, index)` qui ouvre la notion sur Exemples > Accroches,
+pose `pendingAccroche` et fait **briller** la carte ciblée
+(`.accroche-card[data-acc="i"]`) via `focusAfterRender()` / `scrollAndFlash()`.
+Toute **nouvelle** accroche porte `new:true`.
+
+**Format dissertation — plans (`plans:[]`).** Un plan = **1 sujet + 1
+problématique + 3 axes I/II/III**. Chaque axe a un titre, des
+**sous-parties déroulables** (`sps:[{t, args, auteurs, ref, limite}]`, rendues
+en `<details>`) et une **limite de fin d'axe** (transition). L'onglet
+Dissertations rend : liens entre notions + `plans` (déroulables) + `diss`
+(questions simples).
+
+Migration : le build (`normaliserNotion`, `outils/lib/formats.mjs`) convertit chaque ancien
+`axes:[{t,pb,sps:[A,B,C]}]` en un plan dont A/B/C deviennent les 3 axes
+(contenu `c`→`args`, `r`→`ref`), avec `migrated:true` (badge « ↻ à
+enrichir »). `D[k].plans` = plans rédigés à la main **puis** axes migrés.
+Depuis l'étape 3, les sources de `contenu/` sont déjà converties ; toute **nouvelle** dissertation détaillée
+s'écrit directement dans `plans:[…]`.
+
+**Format auteur — multi-idées + multi-citations.** Un même auteur peut
+avoir plusieurs idées (plusieurs œuvres / angles) sur une même notion ;
+chaque idée est un objet `{w, i, citations:[…], new?, modified?}` du tableau
+`ideas`. Le nom `n` reste au niveau auteur. Chaque idée porte **plusieurs
+citations** dans `citations:[]` (la 1re est affichée, les suivantes dans un
+déroulant ; toutes apparaissent dans l'onglet *Citations* de l'auteur). Une
+idée sans `i` (texte) mais avec une `citations` = une **citation simple**.
+
+L'ancien format à plat `{n, w, i, q}` et le `q` unique d'une idée restent
+acceptés dans `contenu/` (un extrait collé depuis l'agrégateur, par exemple) : le build (`normaliserAuteur`) les convertit en
+`{n, ideas:[{w, i, citations:[q]}]}`. Toute **nouvelle entrée** s'écrit
+directement avec `citations:[…]`.
+
+**Citation exacte ou reformulation.** Une citation **exacte** s'écrit entre
+guillemets français : `"« L'homme est condamné à être libre »"` (jamais
+entre apostrophes droites `'…'`, toutes converties en oct. 2026). Un texte
+sans guillemets est une **reformulation** : il s'affiche pareil, mais le quiz
+ne le pose pas en « Qui a dit cela ? » (seules les parties « … » font une
+carte, cf. `quizQuoted`). Ne jamais mettre entre guillemets une phrase dont on
+n'a pas vérifié qu'elle est de l'auteur.
+
+**Synthèse « mode fiche » (`fiche`).** Une entrée d'auteur (ou une idée) peut
+porter `fiche:"…"` : une version condensée de l'idée, lue par le **mode
+fiche** (lecture compressée des cartes, bascule dans ⚙ Réglages, clé
+localStorage `philo-fiche`, classe `body.mode-fiche`, `applyFicheMode` /
+`toggleFicheMode`). Le build (`normaliserAuteur`) propage le `fiche` d'une entrée à ses
+idées ; à défaut, `ideaSynthese()` prend la 1re phrase de l'idée. Le quiz s'en
+sert aussi (`quizThesis`) pour la carte « notion → auteurs ». `buildAI` fusionne les idées si un auteur
+apparaît plusieurs fois dans la même `D[k].auteurs[]` — en stockant une
+**copie** (`{n, ideas:a.ideas.slice()}`), jamais une référence à l'objet de
+`D` : sinon le `push` de fusion **muterait `D`** (idées dupliquées + carte
+« is-modified » fantôme dans la notion).
+
+**Rendu de la carte auteur dans la notion (onglet « Auteurs »).** Les entrées
+d'un même auteur sont **regroupées en UNE carte** (`renderContent` regroupe
+`n.auteurs` par nom, ordre de 1re apparition). Dans la carte, **chaque idée est
+une ZONE autonome** (`.a-idea`, conteneur `.a-ideas`) disposée
+**horizontalement** (flex-wrap), avec **sa propre couleur** (`.a-idea.is-new` /
+`.a-idea.is-modified`) et **ses propres badges** — l'état n'est PLUS au niveau
+de la carte. Une carte d'auteur à **plusieurs idées** s'élargit sur **2 colonnes**
+de la grille (`.ac-multi{grid-column:span 2}`, repli `auto` ≤700px) pour que les
+zones tiennent côte à côte **sans** créer de grands vides — un span pleine-rangée
+(`1/-1`) cassait le flux et laissait les colonnes restantes vides. À une seule
+idée, la carte reste dans la grille compacte. Le nom garde la couleur de la
+notion (`inkOnDark`).
+
+**Ordre des cartes auteur — tri par « popularité » (`compareAuthors`).** Les
+cartes sont triées (et non plus dans l'ordre de la source) selon trois critères
+en cascade : **(1)** nombre de notions couvertes (`authorPopularity` =
+`AI[nom].notions.length`) — un auteur transversal passe devant ; **(2)** score
+« importance bac » (`authorBacScore`) = mesure AUTO du corpus (idées×2 +
+dialogues×2 + citations) **+** un coup de pouce manuel `BAC_BONUS` (barème à 4
+paliers 12/9/6/3 pour les incontournables, modifiable) ; **(3)** alphabétique.
+`BAC_BONUS` inclut les **variantes de nom** quand un auteur apparaît sous
+plusieurs clés. Pour ajuster l'ordre d'un auteur, modifier son poids dans
+`BAC_BONUS` (le critère 1 reste prioritaire : le bonus ne départage qu'à
+nombre de notions égal).
+
+### Auteur (objet dans `AM`)
+```js
+{ bio, courant, periode, themes:[…],
+  dialogues:[ {dir:"oppose"|"prolonge"|"repond", auteur, sujet, desc}, … ] }
+```
+Un auteur peut aussi avoir un alias court : `"Tzara":{bio:"Voir 'Tristan Tzara'.",…}`.
+
+**Nom canonique unique par auteur (pas de doublons dans `D`).** Un même auteur
+doit apparaître sous **UN SEUL** `n` dans tout `D` (sinon ses notions/idées se
+scindent : rang « popularité » faussé, deux fiches, deux cartes). Doublons
+historiques fusionnés vers le canonique : `Arendt`→**Hannah Arendt**,
+`Henry David Thoreau`→**Thoreau**, `Étienne de La Boétie`→**La Boétie**,
+`J.-S. Mill`→**Mill**, `Jonas`→**Hans Jonas** (le canonique retenu porte la bio
+`AM` et/ou couvre le plus de notions). Pour que les **mentions en prose** des
+anciennes formes restent cliquables, le code (`js/05-liens-dynamiques.js`) tient une table
+`AUTHOR_ALIASES` (alias→canonique) injectée dans `LINK_MAP` après les clés `AI`
+(`openAuthor` résout aussi l'alias par sécurité). En ajoutant un auteur,
+**réutiliser le `n` exact déjà employé ailleurs** ; au besoin, ajouter une
+entrée à `AUTHOR_ALIASES`. **La clé d'`AM` doit être ce même nom canonique** :
+en oct. 2026, les bios de Simone Weil, Robert Nozick et Gunther Anders étaient
+rangées sous « Weil », « Nozick », « Anders » et leurs fiches s'affichaient
+sans bio (clés renommées, formes courtes passées dans `AUTHOR_ALIASES`). Tout
+auteur présent dans `D` doit avoir son entrée `AM`.
+
+### Concept (objet dans `CONCEPTS`)
+```js
+{ id, term, cat, def, auteur, notions:[…], new?,
+  liens:{ notionKey:"explication du lien avec CETTE notion", … },      // optionnel
+  relations:[ {to:"id-concept", type, desc},          // cible = concept (lien dynamique)
+              {term:"terme libre", type, desc},        // cible non fichée (rendue via linkTerms)
+              {type:"distinction", desc:"A ≠ B"}, … ] }  // ex-« tension »
+}
+```
+`type` ∈ `oppose | prolonge | complete | repond | distinction | implique`.
+
+**Relations unifiées.** L'ancien champ `tensions:[…]` (chaînes « A ≠ B »,
+sans lien dynamique) a été **fusionné dans `relations`** :
+le build (`normaliserConcept`) convertit chaque tension en
+`{type:'distinction', desc}`. Tout passe par `linkTerms` → les termes qui
+sont des concepts/notions/auteurs deviennent cliquables. Une relation cible
+soit un concept (`to`, lien direct), soit un terme libre (`term`, se liera
+si une fiche est créée plus tard). **Ne plus écrire `tensions` dans la
+source** : utiliser `relations`.
+
+**Onglet « Concepts » d'une notion** : **deux sous-onglets**
+(`curConceptSubTab`) — « Concepts liés à la notion » (avec `liens[notionKey]`
+si présent) et « Liens entre les concepts » (les `relations` dont les deux
+extrémités appartiennent à la notion). La **fiche concept** affiche une
+section unique « Relations & distinctions » : relations **sortantes**
+(`relations`) ET **entrantes** (calculées). `relations[].to` doit être un
+`id` de concept existant (⚠ certains ids portent des accents, ex.
+`aliénation-religieuse`).
+
+### Repères du programme (`cat:'Repère'`)
+
+Les **repères conceptuels** officiels (paires/triades à distinguer :
+*absolu / relatif*, *en acte / en puissance*, *légal / légitime*…) sont
+des entrées de `CONCEPTS` **comme les autres**, distinguées par leur
+catégorie `cat:'Repère'` et un `id` préfixé `rep-…`. Conséquences :
+- ils sont **liés dynamiquement** par `linkTerms` (aucune modif nécessaire) ;
+- ils n'ont **pas** de champ `auteur` (ce sont des distinctions du programme,
+  pas des concepts d'un auteur précis) ;
+- leur `term` est la paire/triade littérale (`'Absolu / Relatif'`), leur `def`
+  décrit chaque pôle (`<strong>…</strong> : …`) et finit par un `<em>Ex.</em>` ;
+- ils portent au moins une `relations:[{type:'distinction', desc:'A ≠ B'}]`,
+  plus d'éventuels liens vers des concepts fichés (`{to:'sophisme', …}`).
+
+**Séparation des listes.** Helpers dans `js/01-donnees-etat.js` :
+`isRepere(c)` (`c.cat==='Repère'`), `REPERES()` et `realConcepts()`. Les
+repères sont **exclus** du glossaire Concepts (sidebar `renderSBConceptsList`
++ comptage) **et** de l'onglet « Concepts » de chaque notion ; ils peuplent à
+la place l'onglet **Repères** (voir ci-dessous). La **fiche** est la même
+(`renderConceptContent` + `curConcept`) : un repère *est* un concept, donc
+aucun renderer dédié.
+
+## Onglet « Repères » (sidebar, `sbMode='reperes'`)
+
+⚠ **Ne pas confondre** « Repères » (`sbMode='reperes'`, les distinctions du
+programme) et « Méthodo » (`sbMode='methodo'`, le **guide de méthode** — section
+suivante). Ce sont **deux onglets distincts**.
+
+Le mode `reperes` liste les **repères** (`REPERES()`, triés `localeCompare('fr')`),
+avec une **barre de recherche seule** (`repereSearch`, `renderSBReperesList()`,
+liste `#sb-reperes-list`) — pas de filtres par notion. Il **réutilise**
+`curConcept` et la fiche concept (un repère est un concept). Tout le câblage de
+navigation reflète le mode `concepts` : `renderSB` (onglets + branche dédiée),
+`goBack`, `goMode('reperes')`, `renderCrumbs` (segment « Repères »),
+`openConcept` (qui choisit `sbMode = isRepere(c) ? 'reperes' : 'concepts'`). À
+l'entrée d'un mode, un garde recalcule `curConcept` pour qu'il appartienne à la
+liste active.
+
+## Onglet « Méthodo » — guide de méthode (sidebar, `sbMode='methodo'`)
+
+La sidebar a **cinq modes** : `sbMode` ∈
+`'notions' | 'auteurs' | 'concepts' | 'reperes' | 'methodo'`. Le mode `methodo`
+est un **guide de méthodologie** (PAS une fiche), au rendu et à l'interface
+volontairement **distincts** des fiches. Deux parcours (`METHODO_TOPICS` :
+`dissertation` / `explication`), état courant `methodoTopic` (persisté dans la
+pile `navHistory`). Données dans `METHODO_GUIDE[topic]` = `{titre, intro,
+squelette:[{bloc,detail}], etapes:[{t, body, phrases:[…], tip}]}` — **pas de
+data.js** (méthodologie pure). `renderMethodoContent()` peuple `#main` (même
+ossature `.tabs`+`.main-content` que `renderConceptContent`) avec : une bascule
+de parcours (`.methodo-switch`), un **squelette visuel** de la copie
+(`.methodo-skel`, une ligne par bloc), puis les **étapes dépliables**
+(`.methodo-step` = `<details>`, 1re ouverte) avec « phrases toutes prêtes » et
+une astuce. Tout le texte passe par `linkTerms()`. Câblage : `renderSB` (branche
+liste = `METHODO_TOPICS`), `goBack`/`goMode('methodo')` →
+`renderMethodoContent()`, `renderCrumbs` (segment « Méthodo » + parcours),
+`tourShowSidebarMode('methodo')`. CSS dédié `.methodo-*` (thème accent bleu du
+quiz). Si tu ajoutes un parcours/une étape : enrichir `METHODO_GUIDE`,
+éventuellement `METHODO_TOPICS`.
+
+L'onboarding (`TOUR_STEPS`) présente les **cinq** portes d'entrée (Notions,
+Auteurs, Concepts, Repères, Méthodo) : chacune **bascule réellement la sidebar
+dans son mode** via `tourShowSidebarMode(mode)` (recale `curAuthor`/`curConcept`
+ou rend le guide, rend sidebar + contenu) et met en valeur la **liste**
+(`#sb .sidebar-list`), pas le seul bouton d'onglet.
+
+**Visite « noyau + détail optionnel ».** Le 1er passage ne joue que le **noyau**
+(l'essentiel pour naviguer) puis propose la **visite détaillée**. Chaque étape
+porte (ou non) `core:true`, posé en bloc par l'IIFE `markTourCore()` :
+parties `welcome`/`liens`/`nav` entières, les étapes `fiches` **côté sidebar**
+(les 5 portes), et la **1re** étape de `reviser`. `tourState.mode` ∈
+`'core' | 'detail' | 'full'` et `tourState.decision` (vrai pendant l'écran de
+choix). `tourSeq()` renvoie les **indices actifs** selon le mode (core→`core`,
+detail→`!core`, full→tout) ; **toute la navigation opère sur cette séquence**
+(`tourNext`/`tourPrev`/`tourSkipPart`/`tourJumpPart`, et les pastilles de
+`tourProgressHTML` ne montrent que les parties de la séquence). En fin de
+séquence : si `mode==='core'`, `tourShowDecision()` affiche l'écran « Tu connais
+l'essentiel — voir le détail ? » (`tourDecisionHTML`, voile uniforme, bulle
+centrée, CSS `.tour-ctrl-decision`) → `tourContinueDetailed()` enchaîne en
+`mode='detail'` ; sinon `endTour()`. Démarrages : `tourStartIfFirst()` lance
+`startTour(0, false, 'core')` (1re venue) ; le bouton **?** → « Recommencer la
+visite » relance **aussi** en `'core'` (même expérience que la 1re fois : noyau
+puis proposition du détail — par cohérence) ; « Aller à une partie »
+(`tourGoPart`) part en `'full'` (jumped, pour circuler librement entre toutes les
+parties). Le mode `'full'` (42 étapes d'affilée) ne sert donc plus qu'aux sauts
+ciblés. Le **noyau mentionne déjà** où relancer
+la visite (le bouton **?**) et le menu **⚙ Réglages** (étape « Réglages & aide »,
+partie `nav`).
+
+Les **onglets de mode** (`.sb-tabs`) s'**enroulent** sur plusieurs rangées
+(`flex-wrap` + `flex-basis:calc(50% - 2px)`, 2 par rangée) : sur la sidebar
+étroite (155px), tous les onglets sur une rangée débordaient et le dernier était
+**rogné** par l'`overflow:hidden` de `.sidebar`. Avec 5 onglets → 3 rangées
+(2+2+1), tous visibles desktop comme mobile.
+
+## Liens dynamiques
+
+`linkTerms(html)` détecte automatiquement, dans tout texte libre, trois
+types de termes et les rend cliquables — sans balisage manuel :
+- **notions** (libellés de `D`) → `.nterm`, coloré avec la couleur de la notion
+- **concepts** (termes de `CONCEPTS`) → `.cterm`, soulignement pointillé
+- **auteurs** (clés de `AI`) → `.aterm`, soulignement plein
+
+### Couverture des liens — RÈGLE IMPORTANTE
+
+Un terme n'est lié **que s'il existe une entrée correspondante** (notion `D`,
+concept `CONCEPTS`, ou auteur `AI`). Conséquence : à chaque ajout/modification
+de contenu, **vérifier que les notions, concepts et auteurs cités dans le
+texte disposent bien de leur entrée** — sinon ils restent du texte mort,
+non cliquable.
+
+Quand un texte mentionne une notion philosophique importante (ex.
+*rationalisme*, *empirisme*, *scepticisme*…) qui n'a pas encore de fiche
+concept, **créer le concept manquant** plutôt que de laisser le terme
+orphelin. Faire une recherche dans tout le fichier (`grep`) pour mesurer la
+fréquence du terme avant de décider. L'objectif : tout terme conceptuel
+récurrent doit avoir sa fiche et donc son lien dynamique.
+
+Ne **pas** ajouter pour autant un auteur au champ `auteur` d'un concept ni
+aux `auteurs:[]` d'une notion s'il n'a pas *explicitement traité* ce
+concept/cette notion : ces champs sont réservés aux auteurs de référence.
+Les simples mentions dans le texte sont, elles, liées automatiquement.
+
+### Surbrillance d'arrivée (suivre un lien)
+
+Suivre un lien dynamique fait **briller la cible** ~1,6 s (CSS
+`@keyframes flashTarget` → classe `.flash-target`, repli `outline` si
+`prefers-reduced-motion`). `focusAfterRender()` (appelé en fin de
+`openNotion`/`openConcept`/`openAuthor`, via `requestAnimationFrame`) fait
+briller l'**en-tête `.notion-head`** de la fiche ouverte (repère « tu es
+ici » — présent dans les **trois** vues). Cas spécial : une notion ouverte
+**depuis une fiche concept** (pastilles « Notions concernées » →
+`openNotionFromConcept(key, conceptId)`) pose `pendingConceptMention` ;
+`focusAfterRender()` cherche alors **où viser ce concept**, dans cet ordre :
+**(a)** une mention **visible** dans la prose courante
+(`.cterm[onclick*="openConcept('id')"]` avec `offsetParent` non nul — on
+**évite** une mention cachée dans un `<details>` replié) ; **(b)** à défaut,
+on **bascule sur l'onglet « Concepts » de la notion** (où le concept figure
+forcément, puisqu'on vient de sa pastille « Notions concernées ») et on fait
+briller **sa carte** `.concept-card` — *jamais* le simple titre de la notion,
+qui n'apprend rien ; **(c)** en dernier recours, la mention cachée (que
+`scrollAndFlash` dépliera) puis l'en-tête.
+
+**Symétrique côté auteurs** : une notion ouverte **depuis une fiche auteur**
+(pastilles de notion « Bonheur → » des onglets Idées / Citations / Œuvres →
+`openNotionFromAuthor(key, authorName)`) pose `pendingAuthorMention` ;
+`focusAfterRender()` bascule sur l'onglet « Auteurs » de la notion (si besoin)
+et fait briller **la carte `.ac` de cet auteur** — repérée en comparant le
+**texte** du lien `.an-link` au nom (robuste aux apostrophes, contrairement à un
+sélecteur d'attribut). À défaut, repli sur l'en-tête.
+
+`scrollAndFlash(el)` fiabilise le repère : il **ouvre les `<details>`
+ancêtres** de la cible (sinon on défile vers un élément masqué), **attend une
+mise en page stable (double `requestAnimationFrame`)** avant de centrer — sans
+quoi le défilement, lancé trop tôt après une réécriture de `.main-content`,
+atterrit à côté de façon intermittente — puis relance l'animation
+(retrait/reflow/ajout de classe).
+
+## Fonctionnalité de contribution (section JS « J. »)
+
+Une modale permet aux visiteurs de **proposer du contenu**. Bouton
+d'ouverture `.sb-propose` (« 💡 Proposer du contenu ») intégré à la sidebar.
+
+- **Modèle « boîte »** : une soumission = une ou plusieurs boîtes empilées.
+  Chaque boîte a un **menu à 2 niveaux** + une action :
+  - `categorie` (niveau 1) : `notion` / `auteur` / `concept` / `site` ;
+  - `cible` (niveau 2 = sous-cible, clé de dispatch) :
+    - notion → `notion` (définition) / `texte` / `plan` / `dissertation` (sujet) / `exemple` / `accroche` (amorce : `acctype`/`acctexte`/`accsrc` → `D[notion].accroches[]`) ;
+    - auteur → `auteur` (idée/œuvre) / `auteur-citation` / `auteur-dialogue` / `auteur-bio` ;
+    - concept → `concept` (définition) / `concept-relation` ;
+    - site → `site-bug` (signaler une erreur) / `site-fonction` (proposer une fonctionnalité) ;
+  - `type` (action) : `ajout` / `correction` / `remarque`.
+
+  **Catégorie `site` (retours sur l'outil, pas sur le contenu)** : le menu
+  « Type d'action » est **masqué** et le `type` figé sur `remarque` (valeur
+  déjà connue de la pipeline → rien de neuf à propager côté base). La cible
+  (`site-bug` / `site-fonction`) suffit à distinguer les deux. Ces boîtes
+  ne visent **pas** `data.js` : elles ont leur propre section « RETOURS SITE »
+  dans le dashboard de l'agrégateur et sont **exclues de la relecture Gemini**.
+
+  État dans `proposalBoxes` (`{id, categorie, cible, type, f}`) ; valeurs de
+  champ dans `box.f`. `PROPOSAL_SOUSCIBLES` mappe catégorie→sous-cibles ;
+  `CIBLE_CAT`/`cibleCat()` font l'inverse (et la rétro-compat des anciennes
+  cibles à plat). Les selects en cascade sont dans `renderProposal` ;
+  `renderBoxFields` dispatche par `(categorie × cible × type)`.
+  - **Cible `auteur` (idée)** : `f.ideas[]`, chaque idée
+    `{notion, oeuvre, date, idee, citations:[…], concepts, remove?, justif?}`
+    → **multi-notions** (une notion par bloc) + **multi-citations**. En
+    correction, `remove:true` + `justif` retire une idée/notion.
+  - **Remarque** : ciblage adapté à la catégorie (notion / nom d'auteur /
+    concept) + `remtexte`, sans champs de contenu.
+- **Boutons « + »** injectés dans les vues (`pPlus` carte → correction,
+  `pPlusCat` bas de catégorie → ajout) ; un écouteur délégué lit les
+  `data-*` et appelle `openProposalFromPlus`.
+- **Génération** (`generateProposalText`) : une partie lisible **+** un
+  bloc JSON délimité par `[PHILO-PROPOSAL-JSON-START]` /
+  `[PHILO-PROPOSAL-JSON-END]`, destiné à un programme d'agrégation externe.
+- **Envoi** — `submitProposalOnline()` aiguille la **voie principale** : si
+  connecté → table Supabase `contributions` (`sendProposalToSupabase`, suivi
+  du statut dans « Mes propositions ») ; sinon (anonyme) → **aussi Supabase**
+  avec `user_id NULL` (`sendProposalAnonSupabase`, autorisé par la policy RLS
+  `anon_insert_contributions`, cf. `philo-aggregator/migrations/2026_anon_contributions.sql`).
+  Si le client Supabase `SB` est indisponible (hors-ligne / CDN non chargé),
+  on passe directement au repli mail. (L'ancienne **boîte anonyme
+  PythonAnywhere**, `sendProposalOnline` et le dossier `philo-mailbox/`, a
+  été **supprimée** en oct. 2026 : le service était éteint ; la commande
+  `pull` et la route `/pull` de l'agrégateur aussi.) Le **`mailto:`** (constante `PROPOSAL_EMAIL`,
+  `sendProposal`) n'est **plus une voie à choisir** mais un **repli
+  automatique** : en cas d'échec en ligne, `proposalMailtoFallback(reason)`
+  ouvre l'appli mail du contributeur (sans quitter la page) et l'annonce
+  d'une ligne. Le bouton « Envoyer par email » subsiste, discret
+  (`.pbtn-ghost`), pour relancer le mail à la main.
+- **Éditer un envoi « en attente »** (compte connecté) — depuis « Mes
+  propositions », chaque ligne au statut `en_attente` porte un bouton ✎
+  *Modifier* (`editMyContribution(id)`). Mécanique : `boxesFromPayload(payload)`
+  reconstruit `proposalBoxes` depuis le JSON stocké (copie profonde ; déduit la
+  catégorie en v1/v2 ; garantit `f.ideas` pour `auteur`) ; le **brouillon local
+  en cours est mis de côté** dans `editDraftBackup` et restauré par
+  `exitEditContrib()` (annulation ou enregistrement). `editingContribId` (id de
+  la ligne) marque le mode édition : tant qu'il est posé, **`draftChanged()`
+  ne touche plus au brouillon** (ni `localStorage`, ni sync) pour ne pas
+  l'écraser. L'aperçu remplace « Envoyer en ligne » par « Enregistrer les
+  modifications » et masque copie/mailto (un email n'updaterait rien) ;
+  `submitProposalOnline()` aiguille vers `updateProposalInSupabase()` →
+  `UPDATE … .eq('id',…).eq('user_id',…).select('id')`. Le `.select('id')`
+  permet de détecter un **refus RLS silencieux** (0 ligne touchée si le statut
+  n'est plus `en_attente`). Côté base : la **policy RLS UPDATE** n'autorise que
+  `user_id = auth.uid()` **et** `statut = 'en_attente'` (USING + WITH CHECK) —
+  une fois triée, la proposition n'est plus modifiable. `myContribCache` garde
+  les lignes chargées pour retrouver un payload par id.
+
+### Schéma JSON « philo-proposal/v3 »
+
+```json
+{ "schema":"philo-proposal/v3", "date":"<ISO>", "contributor":"<nom|anonyme>",
+  "boxes":[ { "categorie":"...", "cible":"...", "type":"...", "fields":{ ... } } ] }
+```
+
+`fields` = `box.f` nettoyé (champs vides exclus).
+
+- **Cible `concept`** (définition) : notions liées dans `fields.cnotions`
+  (**tableau**) — pas dans `fields.notion`.
+- **Cible `auteur`** (idée/œuvre) : `fields.ideas[]`, chaque idée
+  `{notion, oeuvre, date, idee, citations:[…], concepts}`. Le **nom** est
+  dans `fields.nom`. La **notion est PAR IDÉE** (`ideas[].notion`), pas dans
+  `fields.notion`.
+- **`auteur-citation`** : `fields.notion` + `oeuvre` + `citation` (+`rattach`).
+- **`auteur-dialogue` / `auteur-bio` / `concept-relation`** : pas de notion.
+- **Autres cibles** : la notion est dans `fields.notion` (clé de `D`).
+
+**Rétro-compat** : l'agrégateur (`philo-aggregator/`) lit v1/v2/v3. En v1/v2,
+la boîte n'a pas de `categorie` (déduite via `cibleCat`) et la cible `auteur`
+a ses champs d'idée à plat (v1) ou dans `ideas[]` sans `notion`/`citations`
+(v2). Tenir compte de ces différences dans tout code qui lit une proposition.
+
+### Page de triage mobile (`triage/`)
+
+Mini-PWA autonome (`triage/index.html` + `manifest.webmanifest` + `sw.js`,
+servie à la racine du site) pour **trier les contributions depuis le téléphone**
+(valider / intégrer / rejeter + note). Connexion par **compte perso** (Google ou
+e-mail) avec la **clé anon uniquement** — la clé `service_role` ne doit
+**JAMAIS** y figurer. L'autorisation est vérifiée côté base par deux fonctions
+`SECURITY DEFINER` (`admin_list_contributions`, `admin_triage`) gardées par la
+table `app_admins` (cf. `philo-aggregator/migrations/2026_admin_mobile.sql`). Le
+triage écrit `aggregator_state`/`aggregator_updated_at` au format de la synchro
+PC (« dernière écriture gagne »), à la **granularité contribution**. Voir le
+README de `philo-aggregator/` (section « Accès mobile »).
+
+## Interface & ergonomie (déjà en place)
+
+- **Responsive ≤ 700 px** : la sidebar devient un **tiroir** ouvert par un
+  bouton burger inline dans `.topbar` (voile `.sb-backdrop`, fermeture au clic
+  / Échap / sélection d'un item) ; onglets de notion **scrollables
+  horizontalement**. **Geste tactile** (`initSidebarSwipe()` IIFE, près de
+  `initSidebarDrawer`) : balayage horizontal franc pour ouvrir/fermer le
+  tiroir — départ au bord gauche (≤ 28 px) + glissé vers la droite l'ouvre ;
+  glissé vers la gauche le ferme. Inactif sur grand écran ou si une surcouche
+  (quiz, modale de proposition, onboarding) est ouverte.
+- **Fil d'Ariane** cliquable (`renderCrumbs()`, bloc `#crumbs` dans `.topbar`)
+  façon explorateur : chaque segment ramène à son niveau ; `goMode(mode)`
+  bascule entre les 3 modes de sidebar.
+- **Persistance de la position** (résiste à l'actualisation + cross-plateforme).
+  La position courante (`{sbMode, cur, curTab, curConceptSubTab,
+  curExempleSubTab, curAuthor, curAuthorTab, curConcept, methodoTopic}`) est
+  écrite dans `localStorage` (`philo-nav`) à chaque rendu via `persistNav()`
+  (appelé en tête de `renderCrumbs`, commun aux 4 vues). Au démarrage,
+  `restoreNavFromStorage()` (avant le 1er rendu) ré-applique la position, et
+  `renderCurrentView()` rend la bonne vue selon `sbMode` (même aiguillage que
+  `goBack`). `applyNavState(s)` **valide** la cible (la notion/fiche doit encore
+  exister) avant de l'appliquer — sinon repli sur les valeurs par défaut.
+  **Cross-plateforme** : `philo-nav` est inclus dans `prefsBlobForSync().nav`
+  (table Supabase `preferences`) ; `applyPrefsBlob` **adopte** la position
+  distante **uniquement si l'utilisateur n'a pas encore navigué** sur cet
+  appareil (`navTouched`, mis à `true` dans `pushHistory`) — pour ne jamais le
+  « téléporter » en pleine lecture ni écraser sa position locale. La poussée
+  vers le cloud ne se fait elle aussi qu'après une vraie navigation
+  (`navTouched`), via `syncOnPrefsChange()` (debouncé).
+- **Historique « ← Retour » persistant** (local, par appareil). La pile
+  `navHistory` est sauvegardée dans `localStorage` (`philo-navhist`) à chaque
+  changement (dans `updateBackBtn`, appelée par `pushHistory`/`goBack`) et
+  rechargée au démarrage par `restoreNavHistory()` (entrées invalides filtrées
+  via `navEntryValid`). Le bouton **Retour fonctionne donc même après une
+  actualisation**. L'historique reste **local** (non synchronisé) : c'est un
+  fil de session propre à l'appareil, contrairement à la position. **Mais**
+  quand un appareil ADOPTE la position d'un autre (cross-plateforme), sa page
+  locale courante est **empilée dans l'historique** (`applyPrefsBlob`, sans
+  toucher `navTouched`) : « ← Retour » ramène alors à là où CET appareil en
+  était — la page distante ne fait pas disparaître la locale. `sameNav(a,b)`
+  compare deux états (champs « cœur ») pour la déduplication.
+- **Mode révision / édition** (localStorage `philo-mode`) : par défaut
+  *révision* (rendu épuré — **outils** de contribution cachés : boutons `+`
+  `.pplus`/`.pplus-catwrap` et `.sb-propose`, via `body:not(.mode-edition)`).
+  Les **badges `✦ Nouveau` / `✎ Modifié` restent visibles en révision** (ils
+  informent l'élève du contenu récent/corrigé, ce n'est pas un outil d'édition) ;
+  *édition* révèle en plus les outils de contribution.
+  La bascule vit dans le **menu « ⚙ Réglages »** (bouton `.sb-settings` en bas
+  de sidebar → overlay `#settings-overlay`, `openSettings`/`renderSettingsBody`),
+  qui regroupe les fonctions non nécessaires à la révision. Le toggle y est
+  **explicite** : le bouton nomme le **mode-cible** (l'action) et le **mode
+  actuel** est rappelé au-dessus (avant, un bouton `.sb-mode` affichait l'état
+  courant, ambigu). `applyPhiloMode()` pose la classe `body.mode-edition` et
+  rafraîchit le menu s'il est ouvert ; `togglePhiloMode()` bascule + synchronise.
+- **PWA** : `manifest.json` + `sw.js` + `icon.svg`, enregistrés depuis
+  `js/12-demarrage.js`. Installable et hors-ligne. **Stratégie de cache mixte** :
+  HTML/JS de même origine (le « code », qui change à chaque déploiement) en
+  **réseau d'abord** (cache en repli hors-ligne) → une **simple
+  actualisation** récupère la dernière version, sans vidage manuel ; le reste
+  (icône, manifeste, polices) reste **cache d'abord**. **Mise à jour
+  transparente** : le site écoute `controllerchange` et **recharge une
+  fois** quand un nouveau SW prend le contrôle (garde anti-boucle
+  `swReloading` ; rechargement auto activé **seulement** si un
+  `serviceWorker.controller` existait déjà au chargement, pour ne pas
+  recharger à la 1ʳᵉ visite) ; `reg.update()` est appelé après l'enregistrement.
+  La version du cache (`CACHE`) est une empreinte du contenu des fichiers
+  précachés, recalculée par le build ; la liste vit dans `PRECACHE` de
+  `outils/construire.mjs`.
+- **Onboarding** 1ʳᵉ visite (overlay `.onb-overlay`, drapeau localStorage
+  `philo-onboarded`).
+
+## Mode quiz (révision active — section JS « K. »)
+
+Overlay plein écran de révision par cartes à **répétition espacée** (Leitner),
+ouvert par le bouton **`.sb-quiz` (« 🎯 Réviser », thème bleu)** placé au-dessus
+de `.sb-propose` dans `renderSB` (toujours visible, révision ET édition).
+Overlay `#quiz-overlay` (z-index **850**, sous la modale=1000) ; contenu injecté
+dans `#quiz-body` par `renderQuiz()`. Aucune donnée n'est redite : tout est
+**dérivé** de `CONCEPTS` / `D` / `AI`.
+
+**Variables CSS bleues** dédiées : `--color-background-quiz`,
+`--color-border-quiz`, `--color-text-quiz`, `--color-accent-quiz`.
+
+### Cartes — `buildQuizCards()` → `QUIZ_CARDS` (index `QUIZ_BY_ID`)
+Chaque carte = `{id stable, type, notion, notions, recto, verso, qLabel, meta, pair}`
+(`notion` = la 1re, `notions` = toutes ; les filtres et la maîtrise par notion
+lisent `notions`). 5 types :
+- `concept-def` (C1) terme→déf · `def-concept` (C2) déf→terme (bon support QCM).
+  En C2, **le terme est masqué** dans la définition par `quizMaskTerm()` (blanc
+  `.quiz-mask`), avec sa famille de mots (légitime → légitimité, illégitime) ;
+  si le terme reste lisible malgré tout, la carte C2 n'est pas créée (C1 reste) ;
+- `cite-author` / `author-cite` (C3) citation↔auteur, **les deux sens**, depuis
+  `AI[name].entries[k].ideas[].citations[]`. Seules les citations **exactes**
+  (parties entre « … », `quizQuoted()`) font une carte ; une même citation
+  rangée sous plusieurs notions ne fait qu'**une** carte ;
+- `notion-authors` (C4) notion→4 auteurs majeurs (ordre `compareAuthors`) +
+  thèse courte (`quizThesis`) (auto-évaluation).
+`stripHtml()` nettoie les `def`/`i` (retire balises et `<details>`). **L'`id`
+doit rester stable** entre visites (sert de clé de progression) : C1/C2 =
+`c1:`/`c2:` + id du concept ; C3 = `c3:<auteur>:<quizHash(quizFold(citation))>:a|b`
+(empreinte du TEXTE, insensible à la typographie ; avant oct. 2026 c'était la
+POSITION, qui glissait quand on éditait). `QUIZ_LEGACY` (ancien id → nouveau)
+sert à `migrateQuizState()`, appelée par `loadQuizState()` (marqueur `idv:2`).
+**Ne jamais renommer un `id` de concept à la légère** : sa progression est perdue.
+
+### Moteur Leitner — double horizon
+`QUIZ_INTERVALS = {sprint:[0,1,2,4,7], long:[0,2,5,14,30]}` (jours, boîtes 1→5).
+Les 2 horizons gardent leur progression séparée (basculer ne perd rien).
+« Maîtrisé » = boîte ≥ 4. **Vocabulaire UI** : côté interface on dit « **palier
+de mémorisation** » (1→5) et « cartes **mémorisées** » — *jamais* « boîte »
+(jargon Leitner) ni « niveau » (réservé à la gamification ⭐ XP, pour éviter la
+confusion). En interne, le code garde `box`/« boîte ». Fonctions : `isDue(card,horizon,st)`, `onAnswer(id,ok)`
+(ok→box+1 max 5 ; échec→box=1 ; maj lastSeen/seen/correct + compteur quotidien +
+**XP/niveau** ; **renvoie** `{gain, promoted, newlyMastered, box, leveledUp}`
+pour alimenter le récap de fin), `pickSession(n=15,st)` (dues triées par boîte
+ascendante, au hasard à boîte égale, puis nouvelles **tirées au hasard** dans
+tout le filtre ; une seule carte par paire ; léger mélange), `cardsForFilter(st)`,
+`quizStats(st)`. **Performance** : ces fonctions reçoivent l'état `st` lu UNE
+fois par affichage (avant oct. 2026, `isDue` relisait le stockage pour chaque
+carte : 864 lectures, ~300 ms par clic). `todayStr()` = date **locale**.
+
+### localStorage `philo-quiz`
+```js
+{ horizon:'sprint',
+  byHorizon:{ sprint:{cardId:{box,lastSeen,seen,correct}}, long:{…} },
+  daily:{date,count,goal,streak,lastDate},
+  gamif:{xp,level},                        // gamification (transversal aux horizons)
+  prefs:{dontWarnNewSession},              // « ne plus afficher » l'avertissement
+  active:{ids:[…],idx,mode,horizon,results}|null,  // session reprenable (sérialisée)
+  activeAt, resetAt:{sprint,long}, epoch,  // dates pour la fusion entre appareils
+  idv:2 }                                  // ids de cartes déjà migrés
+```
+Lu/garanti par `loadQuizState()` ; écrit par `saveQuizState()`. **Persistance** :
+tout est dans `localStorage`, donc la progression survit à un refresh, à la
+fermeture de l'onglet et à un redémarrage de l'appareil (rien n'est en
+`sessionStorage`). Seul un effacement manuel du stockage du site la supprime.
+
+**Synchro du quiz (compte connecté, table `quiz_progress`).** `mergeQuiz(a,b)`
+fusionne carte par carte (la révision la plus récente gagne) ; toute révision
+antérieure à une **remise à zéro datée** est oubliée (`epoch` = remise à zéro
+totale par `resetAllQuiz`, `resetAt[h]` = d'un rythme par `resetQuizHorizon`) ;
+la session gardée est celle écrite en dernier (`activeAt`, posé par
+`persistActive`). `syncOnLogin` et `syncOnFocus` FUSIONNENT (même compte) au
+lieu d'adopter le distant ; seul un **changement de compte** adopte le distant
+tel quel. Après fusion, on renvoie en ligne si `quizDiffers()`. `syncDirty`
+compte ce qui reste à envoyer ; `syncFlush()` l'envoie quand la page se cache
+(`visibilitychange`, `pagehide`) ; l'évènement `online` relance `syncOnFocus`.
+
+### Reprise de session (`active`)
+`persistActive()` sérialise/efface la session en cours dans `philo-quiz.active`
+(ids + position + mode + horizon + récap) à chaque `advanceQuiz()` et au
+démarrage (`beginSession`). `quizSessionActive()` = il reste des cartes.
+`openQuiz()` **reconstruit** la session depuis `active` → la reprise survit même
+à un refresh. Fin de session ⇒ `active=null`. Contrôles : `resumeQuizSession()`,
+`requestNewSession()` (affiche l'avertissement si une session est active **et**
+`prefs.dontWarnNewSession` faux), `renderNewSessionWarning()` (panneau +
+case `#quiz-dontwarn`), `confirmNewSession()` / `cancelNewSession()`,
+`beginSession()` (cœur du démarrage), `quitSession()` (retour dashboard sans
+perdre la session).
+
+### Vues (état runtime `quizState`)
+`dashboard` (**niveau ⭐ + barre XP**, maîtrise %, sélecteur horizon, format
+**Cartes/QCM**, **filtres MULTI-SÉLECTION** Mes ratés/notions/types + « tout
+effacer », **Reprendre** / **Nouvelle session** (avec avertissement),
+**objectif 10/20/50 + barre du jour**, streak, **maîtrise par notion** +
+**badges** en `<details>`, **encadrés d'aide repliables** `.quiz-help` (« Comment
+fonctionne la révision ? » = paliers de mémorisation + répétition espacée ;
+« Ma progression est-elle sauvegardée ? » = persistance/limites), **deux
+réinitialisations** : `resetQuizHorizon()` (cartes du rythme courant seulement,
+niveau/XP conservés) et `resetAllQuiz()` (TOUT : 2 rythmes + niveau + XP +
+série + objectif, efface la clé localStorage)) → `session` → `end` (**récap gamifié** :
+score, XP gagnés, cartes en progrès, nouvelles maîtrisées, montée de niveau,
+barres niveau + jour, « Refaire les ratés » `redoWrong()` + Retour).
+`openQuiz()` / `closeQuiz()` (Échap ferme). Défauts : `QUIZ_SESSION_N=15`,
+`QUIZ_DEFAULT_GOAL=20`. **Filtres** (runtime) : `quizState.notionFilters` /
+`typeFilters` (deux `Set` ; OU dans une catégorie, ET entre catégories) +
+`quizState.wrongOnly` (drapeau) ; helpers `toggleNotionFilter`/`toggleTypeFilter`/
+`toggleQuizWrong`/`clearQuizFilters`/`quizFiltersEmpty`. `quizState.mode` ∈
+`cards|qcm` ; `quizState.qcmData`/`qcmAnswered`/`qcmChosen` pour la carte QCM ;
+`quizState.confirmNew` (panneau d'avertissement). `quizState.results` cumule
+`{ok,ko,wrongIds,xp,promoted,mastered,leveledUp}`.
+
+### v2 — fait
+- **Flip 3D** (CSS `rotateY`) : `renderFlipBody()` empile 2 faces dans une même
+  cellule de grille (hauteur = face la plus grande) ; `revealQuiz()` ajoute
+  `.flipped` sur l'élément **existant** (pas de re-rendu) pour animer.
+  `flipToQuestion()` **retire** `.flipped` pour **revenir lire la question**
+  après avoir vu la réponse (autant de fois qu'on veut). Les boutons ❌/✅
+  sont placés **sous** la carte (`.quiz-answer-row`, masquée tant que la réponse
+  n'est pas révélée) et **restent visibles** quand on retourne la carte.
+- **QCM** (toggle Cartes/QCM, `setQuizMode`) : appliqué aux types `def-concept`
+  et `cite-author` ; les autres restent en flip. `prepareCard()` génère 4 choix
+  une fois via `buildQCMChoices(card)` (3 distracteurs même `cat`/notion, dédoublonnés,
+  mélangés). Pour `cite-author`, les choix sont des **noms d'auteurs seuls** et un
+  leurre n'est **jamais le même auteur** (avant : « Freud, œuvre A » et « Freud,
+  œuvre B » pouvaient coexister) ; l'œuvre s'affiche après la réponse.
+  `qcmAnswer(ix)` → feedback vert/rouge → `advanceQuiz()`. `recordResult`
+  factorise l'enregistrement Leitner pour les 2 modes.
+- **« Relire la fiche »** (`quizReread`, v4) : depuis la face réponse ou après un
+  QCM, ferme le quiz en gardant la session et ouvre le concept, les citations de
+  l'auteur ou la notion d'où vient la carte.
+- **Barres de maîtrise par notion** : `notionMastery()` (% boîte≥4 par notion).
+- (Option non faite) mode **Match**.
+
+### v3 — fait
+- **Objectif quotidien réglable** 10/20/50 (`setQuizGoal`, persisté dans
+  `daily.goal`) + **barre de progression du jour**. **Streak** déjà géré par
+  `onAnswer` (`daily.streak`).
+- **Badges** : `quizBadges(st)` — 1 par notion, acquis quand `QUIZ_BADGE_PCT`
+  (80 %) de ses cartes sont mémorisées, palier ≥ 4 (horizon courant). Avant
+  oct. 2026 : toutes au palier 5, hors d'atteinte.
+- **Gamification XP/niveau** (`gamif:{xp,level}`, transversal aux horizons) :
+  `onAnswer` attribue 10 XP/bonne réponse (1 sinon) + bonus (+5 promotion de
+  boîte, +25 première maîtrise boîte≥4, +25 boîte 5). `quizLevel(xp)` =
+  `floor(xp/100)+1`, `quizXpInLevel(xp)` = `xp%100`. Affichés sur le dashboard
+  (badge ⭐ + barre) et dans le récap de fin (XP gagnés, cartes en progrès,
+  nouvelles maîtrisées, « Niveau N atteint ! » si montée).
+- **Filtres multi-sélection** : `notionFilters`/`typeFilters` (Sets) + `wrongOnly`,
+  OU intra-catégorie / ET inter-catégories (`cardsForFilter`).
+- **Reprise de session** : `active` persisté + avertissement « nouvelle session »
+  avec case « ne plus afficher » (cf. § Reprise de session).

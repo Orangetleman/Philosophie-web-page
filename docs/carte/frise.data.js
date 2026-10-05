@@ -1,8 +1,17 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
-  "genere_le": "2026-10-05T19:59:04.063Z",
+  "genere_le": "2026-10-05T20:01:29.332Z",
   "commits": [
+    {
+      "hash": "465bc7700c2885fa66277b942ff83e93842372d8",
+      "short": "465bc77",
+      "auteur": "Orangentleman",
+      "date": "2026-10-05T21:59:03+02:00",
+      "sujet": "Recherche plein texte : citations, œuvres, sujets, textes, exemples, définitions",
+      "corps": "Ctrl+K ne trouvait que les titres : ni « roseau pensant », ni « Léviathan »,\nni un exemple, ni un sujet (diagnostic § 3).\n\n- L'index gagne cinq types (citation, œuvre, sujet de dissertation ou de\n  plan, texte, exemple) et un champ texte (définitions des notions et des\n  concepts, corps des textes et des exemples) : ≈1 200 entrées, une\n  recherche prend environ 1 ms.\n- Classement : libellé qui commence par la saisie, puis chaîne, puis\n  inclusion, puis texte seul ; 8 résultats par type au plus, pour que les\n  citations ne cachent pas le reste. Saisie vide : comme avant.\n- Un résultat ouvre la fiche sur le bon onglet et fait briller l'élément\n  trouvé (pendingCible, lu par focusAfterRender), à la place de l'en-tête.\n\nVérifié dans le navigateur : « roseau pensant » → la citation de Pascal,\n« Léviathan » → l'œuvre de Hobbes, « volonte generale » (sans accents) →\nle texte de Rousseau, « Prométhée » → l'exemple du mythe ; à chaque fois un\nseul élément brille, le bon.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": "Recherche plein texte"
+    },
     {
       "hash": "b845b58546aca1690233b6b481346930445d1f2f",
       "short": "b845b58",
