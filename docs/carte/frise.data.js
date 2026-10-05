@@ -1,8 +1,26 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
-  "genere_le": "2026-09-21T11:32:33.471Z",
+  "genere_le": "2026-10-05T17:59:28.852Z",
   "commits": [
+    {
+      "hash": "c6bbcd93c57c2cff74f1f920cde41917ba5fd159",
+      "short": "c6bbcd9",
+      "auteur": "Orangentleman",
+      "date": "2026-09-21T13:34:22+02:00",
+      "sujet": "Merge pull request #7 from Orangetleman/claude/dashboard-threading-error-917baa",
+      "corps": "Dashboard : corriger le crash UnboundLocalError (threading) au démarrage",
+      "tag": ""
+    },
+    {
+      "hash": "9fb0b136c02797c8bf6f678fbb7c342f17457580",
+      "short": "9fb0b13",
+      "auteur": "Orangentleman",
+      "date": "2026-09-21T13:32:33+02:00",
+      "sujet": "Dashboard : corriger UnboundLocalError sur threading au démarrage",
+      "corps": "Un « import threading » local dans run() (bloc open_browser) rendait le\nnom local à toute la fonction ; l'usage plus haut par le watchdog d'arrêt\nauto levait donc UnboundLocalError et le .bat du dashboard plantait.\nLe module est déjà importé en tête de fichier : on retire l'import\nredondant et on documente le piège.\n\nCo-Authored-By: Claude Opus 5 <noreply@anthropic.com>",
+      "tag": "Dashboard"
+    },
     {
       "hash": "1e6583524e143d64f14bb0e6f022ab1dc6df2bad",
       "short": "1e65835",
