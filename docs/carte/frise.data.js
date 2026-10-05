@@ -1,8 +1,44 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
-  "genere_le": "2026-09-21T11:32:33.471Z",
+  "genere_le": "2026-10-05T17:59:48.415Z",
   "commits": [
+    {
+      "hash": "bd038368b4a969bbea45795932275d81d81ca0a6",
+      "short": "bd03836",
+      "auteur": "Orangentleman",
+      "date": "2026-10-05T19:59:40+02:00",
+      "sujet": "Données : doublons fusionnés, bios rattachées, citations entre guillemets",
+      "corps": "Erreurs relevées par le diagnostic (docs/diagnostic-2026-10.md, § 2.2-2.3) :\n\n- 4 identifiants de concept en double (scepticisme, sophisme,\n  falsifiabilité, obstacle épistémologique) et 2 quasi-doublons\n  (eudaimonia2, elan-vital2) fusionnés dans l'entrée la plus riche ;\n- la fiche « Langage » (langage-def) doublonnait la notion et attribuait la\n  double articulation à Saussure : fondue dans « Double articulation »\n  (Martinet) ;\n- bios de Simone Weil, Robert Nozick et Gunther Anders rangées sous le nom\n  court : clés d'AM renommées, formes courtes ajoutées à AUTHOR_ALIASES ;\n- 9 biographies manquantes écrites (Ellul, Darwin, Frans de Waal,\n  Christopher Stone, Baptiste Morizot, Michel Serres, François Ost,\n  Val Plumwood, Srdja Popovic) ;\n- dialogue vers « Gaston Bachelard » rattaché à Bachelard ;\n- Descartes : « je pense, donc je suis » rendu au Discours de la méthode ;\n  titre français du livre de Frans de Waal corrigé ;\n- 142 citations passées des apostrophes droites aux guillemets « ».\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": "Données"
+    },
+    {
+      "hash": "2977db2528f0c450a4d4b510340a685d506eb8f9",
+      "short": "2977db2",
+      "auteur": "Orangentleman",
+      "date": "2026-10-05T19:59:20+02:00",
+      "sujet": "Quiz v4 : sessions variées, questions sans réponse, synchro par fusion",
+      "corps": "Le quiz tournait en rond et donnait parfois la réponse dans la question\n(diagnostic docs/diagnostic-2026-10.md, § 2.1). Corrections :\n\n- cartes neuves tirées au hasard dans tout le filtre (avant : les 15\n  premiers concepts du fichier à chaque nouvelle session) ;\n- « Quel concept ? » : le terme et sa famille de mots sont masqués dans la\n  définition (quizMaskTerm), la carte est écartée si le mot reste lisible ;\n- QCM de citation : noms d'auteurs seuls, jamais le même auteur en leurre,\n  œuvre affichée après la réponse ;\n- seules les citations exactes (entre « ») font des cartes, une citation\n  sous plusieurs notions ne fait qu'une carte (champ notions) ;\n- identifiants de citation tirés du texte (quizHash), avec migration de la\n  progression existante (QUIZ_LEGACY, migrateQuizState) ;\n- carte notion → auteurs réduite à 4 auteurs et une thèse courte ;\n- état lu une fois par affichage (288 ms → 5 ms), date locale, badges à\n  80 % de cartes mémorisées, bouton « Relire la fiche » (quizReread).\n\nSynchro : fusion carte par carte au lieu d'adopter le distant, remises à\nzéro datées (epoch, resetAt), session gardée selon activeAt, envoi\nimmédiat quand la page se cache (syncFlush), nouvelle tentative au retour\ndu réseau. Éprouvé sur une fausse base en mémoire, avec un témoin.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": "Quiz v4"
+    },
+    {
+      "hash": "c6bbcd93c57c2cff74f1f920cde41917ba5fd159",
+      "short": "c6bbcd9",
+      "auteur": "Orangentleman",
+      "date": "2026-09-21T13:34:22+02:00",
+      "sujet": "Merge pull request #7 from Orangetleman/claude/dashboard-threading-error-917baa",
+      "corps": "Dashboard : corriger le crash UnboundLocalError (threading) au démarrage",
+      "tag": ""
+    },
+    {
+      "hash": "9fb0b136c02797c8bf6f678fbb7c342f17457580",
+      "short": "9fb0b13",
+      "auteur": "Orangentleman",
+      "date": "2026-09-21T13:32:33+02:00",
+      "sujet": "Dashboard : corriger UnboundLocalError sur threading au démarrage",
+      "corps": "Un « import threading » local dans run() (bloc open_browser) rendait le\nnom local à toute la fonction ; l'usage plus haut par le watchdog d'arrêt\nauto levait donc UnboundLocalError et le .bat du dashboard plantait.\nLe module est déjà importé en tête de fichier : on retire l'import\nredondant et on documente le piège.\n\nCo-Authored-By: Claude Opus 5 <noreply@anthropic.com>",
+      "tag": "Dashboard"
+    },
     {
       "hash": "1e6583524e143d64f14bb0e6f022ab1dc6df2bad",
       "short": "1e65835",

@@ -32,10 +32,12 @@
                      textes / concepts / dissertations / exemples (l'ancien
                      onglet « axes » est migré en « plans » au chargement).
   · const KEYS     — Object.keys(D) (ordre des notions)
-  · const AM       — Métadonnées des ~77 auteurs : bio, courant, période,
-                     thèmes, dialogues (oppose / prolonge / répond, + sujet)
-  · const CONCEPTS — Glossaire de ~165 concepts : def, cat, auteur, notions,
-                     liens (par notion), relations unifiées (ex-« tensions »)
+  · const AM       — Métadonnées des auteurs (une entrée par auteur de D, sous
+                     le MÊME nom) : bio, courant, période, thèmes, dialogues
+                     (oppose / prolonge / répond, + sujet)
+  · const CONCEPTS — Glossaire (~172 concepts + 31 repères cat:'Repère') : def,
+                     cat, auteur, notions, liens (par notion), relations
+                     unifiées (ex-« tensions »)
   · const CC       — (resté dans index.html) couleurs par courant philosophique
 
   NORMALISATION au chargement (rétro-compat des anciens formats de source) :
@@ -48,9 +50,10 @@
   · Index & liens   buildAI() (auteur → notions/idées) ; linkTerms() rend
                     cliquables notions/concepts/auteurs cités dans tout texte
                     (.nterm notion · .cterm concept · .aterm auteur)
-  · Rendu           renderSB (sidebar, 3 modes notions/auteurs/concepts),
-                    renderContent (notion, 5 onglets), renderAuthorContent,
-                    renderConceptContent
+  · Rendu           renderSB (sidebar, 5 modes notions/auteurs/concepts/
+                    reperes/methodo), renderContent (notion, 5 onglets),
+                    renderAuthorContent, renderConceptContent,
+                    renderMethodoContent
   · Navigation      fil d'Ariane cliquable (renderCrumbs / goMode), pile
                     d'historique, openNotion / openAuthor / openConcept
   · Affichage       mode révision / édition (localStorage philo-mode : épuré
@@ -58,16 +61,20 @@
                     onboarding 1re visite (.onb-overlay, flag philo-onboarded)
   · Contribution    modale « Proposer du contenu » : boîtes empilables
     (section J.)    (catégorie × cible × type) ; génère un texte lisible + un
-                    bloc JSON v3 ; envoi EN LIGNE (Supabase si connecté, sinon
-                    boîte anonyme PythonAnywhere) avec repli mailto automatique
+                    bloc JSON v3 ; envoi EN LIGNE dans Supabase (connecté, ou
+                    anonyme avec user_id NULL) avec repli mailto automatique
   · Quiz (sect. K.) révision active par cartes : Leitner (2 horizons), QCM,
                     gamification XP/niveau, filtres, reprise de session ; tout
                     est DÉRIVÉ de CONCEPTS / D / AI ; état localStorage philo-quiz
+                    (v4, oct. 2026 : ids stables, terme masqué, citations
+                    exactes seules, tirage au hasard, « Relire la fiche »)
   · Compte & sync   Supabase : authentification (e-mail + mot de passe, ou
-                    Google) ; synchronisation cross-appareil du quiz, des
-                    préférences et des brouillons de proposition ; suivi du
-                    statut des contributions dans « Mes propositions »
-  · PWA             manifest.json + sw.js (cache-first, hors-ligne) + icon.svg
+                    Google) ; synchronisation cross-appareil du quiz (fusion
+                    carte par carte), des préférences et des brouillons de
+                    proposition ; suivi du statut des contributions dans
+                    « Mes propositions »
+  · PWA             manifest.json + sw.js (réseau d'abord pour HTML/JS, cache
+                    d'abord pour le reste ; hors-ligne) + icon.svg
 -->
 <html lang="fr"><head><meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -784,6 +791,12 @@ body.is-signed-in .sb-account{color:#7bd88f;border-color:rgba(123,216,143,.45)}
 .quiz-next{min-height:48px;background:var(--color-accent-quiz);border:none;border-radius:var(--border-radius-md);
   color:#fff;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;transition:filter .15s}
 .quiz-next:hover{filter:brightness(1.12)}
+
+/* ── v4 : blanc à la place du terme masqué (« Quel concept ? ») ─────
+   La définition contenait souvent le mot à trouver : buildQuizCards le
+   remplace par ce blanc (span vide souligné, largeur fixe). */
+.quiz-mask{display:inline-block;width:3.4em;height:1em;vertical-align:-.1em;
+  border-bottom:2px solid var(--color-border-quiz)}
 
 /* ── v3 : sélecteur d'objectif + barre de progression du jour ─────── */
 .quiz-goal-row{display:flex;gap:6px;align-items:center}
@@ -1551,8 +1564,14 @@ body.sb-open .sb-backdrop{display:block;opacity:1}
 <!-- new (comptes) : bibliothèque cliente Supabase (authentification +
      base en ligne). Chargée AVANT le script principal pour exposer le
      global « supabase » (porteur de createClient), dont on se sert plus
-     bas pour créer le client SB. Build UMD via le CDN jsDelivr. -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+     bas pour créer le client SB. Build UMD via le CDN jsDelivr.
+     Version FIGÉE (oct. 2026) + empreinte d'intégrité (attribut integrity,
+     « SRI ») : le navigateur refuse le fichier si son contenu change. Avant,
+     « @2 » suivait toute nouvelle version 2.x dès sa publication. Pour
+     monter de version : changer le numéro ET recalculer l'empreinte
+     (sha384 du fichier dist/umd/supabase.js, encodée en base64). Garder la
+     même ligne dans triage/index.html. -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js" integrity="sha384-Rj26LVGvoeRVR6+mwQmFfcR3QOBEwT+ZmuCWpuiqeTzJpCs0ER4ITAWGb4Hiy3Ok" crossorigin="anonymous"></script>
 <script>
 /* ══════════════════════════════════════════════════════════════════
    A. DONNÉES — chargées depuis data.js (script classique, globales)
@@ -3606,7 +3625,12 @@ const AUTHOR_ALIASES={
   "James":"William James",
   "Breton":"André Breton",
   "Tzara":"Tristan Tzara",
-  "Perec":"Georges Perec"
+  "Perec":"Georges Perec",
+  // Bios d'AM rangées jusqu'en oct. 2026 sous la forme courte, alors que D
+  // emploie le nom complet : clés d'AM renommées, formes courtes gardées ici.
+  "Weil":"Simone Weil",
+  "Nozick":"Robert Nozick",
+  "Anders":"Gunther Anders"
 };
 Object.keys(AUTHOR_ALIASES).forEach(alias=>{
   const canon=AUTHOR_ALIASES[alias], key=alias.toLowerCase();
@@ -6332,7 +6356,14 @@ async function initAuth(){
   }
   // new (Phase 2) : au retour sur l'onglet, on récupère ce qu'un autre appareil
   // aurait pu écrire entre-temps (fusion non destructive).
-  document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') syncOnFocus(); });
+  // v4 : quand la page se CACHE (onglet changé, appli quittée, fermeture), on
+  // envoie aussitôt ce qui attendait (syncFlush) ; au retour du RÉSEAU, on
+  // refait une synchro complète, qui renvoie aussi ce qui avait échoué.
+  document.addEventListener('visibilitychange',()=>{
+    if(document.visibilityState==='visible') syncOnFocus(); else syncFlush();
+  });
+  window.addEventListener('pagehide',syncFlush);
+  window.addEventListener('online',()=>syncOnFocus());
 }
 
 /* authLabel() — nom lisible : prénom/nom Google si dispo, sinon la partie
@@ -6770,12 +6801,17 @@ async function copyShareLink(btn){
      pour ne RIEN perdre. Pour le quiz : fusion carte par carte (on garde la
      révision la plus récente) ; pour l'XP et la série : on garde le meilleur.
    • Ensuite, chaque changement local est repoussé en ligne (avec un petit
-     délai « anti-rafale » pour grouper les clics rapprochés).
+     délai « anti-rafale » pour grouper les clics rapprochés). Ce qui n'a pas
+     pu partir (délai en cours, réseau coupé) est envoyé dès que la page se
+     cache, et au retour du réseau (syncDirty / syncFlush, v4).
    • Au retour sur l'onglet, on relit l'en-ligne : si un AUTRE appareil a
-     progressé entre-temps, on fusionne.
-   • Règle de conflit globale : « dernière écriture gagne » via la colonne
-     updated_at — mais comme le quiz FUSIONNE au lieu d'écraser, aucune
-     progression n'est jamais perdue.
+     progressé entre-temps, on FUSIONNE le quiz carte par carte (mergeQuiz),
+     puis on renvoie la fusion si elle apporte quelque chose (v4 ; avant, le
+     distant remplaçait le local).
+   • Les remises à zéro sont DATÉES (epoch pour tout, resetAt par rythme) :
+     la fusion oublie les révisions plus anciennes, sans quoi une carte
+     effacée sur un appareil reviendrait depuis l'autre.
+   • Préférences : « dernière écriture gagne » via la colonne updated_at.
    • Non connecté / hors-ligne : tout continue de marcher en localStorage ;
      la synchro est un PLUS, jamais un prérequis. La moindre erreur réseau
      est avalée (console.warn) sans gêner l'usage.
@@ -6891,33 +6927,62 @@ function adoptRemoteDrafts(p){
 }
 
 /* mergeQuiz(a,b) — fusionne deux états de quiz sans rien perdre (a = local).
+   v4 : c'est désormais LA règle de synchro du quiz, à chaque retour sur
+   l'onglet et pas seulement à la 1re connexion (avant, le bloc distant
+   remplaçait le local : des réponses faites hors ligne sur un appareil
+   pouvaient disparaître). Les dates de remise à zéro empêchent la fusion de
+   ressusciter une progression effacée.
+   - les deux côtés passent d'abord par migrateQuizState (anciens ids) ;
+   - epoch (remise à zéro totale) : on garde la plus récente ; resetAt[h]
+     (remise à zéro d'un rythme) aussi. Une révision antérieure à l'une ou
+     l'autre est oubliée ;
    - byHorizon : union carte par carte, on garde la révision la plus récente
-     (lastSeen le plus grand).
-   - gamif.xp : on garde le maximum (et on recalcule le niveau).
-   - daily : meilleure série conservée ; le reste suit la date la plus récente.
+     (lastSeen le plus grand) ;
+   - gamif.xp : maximum des côtés qui datent de la DERNIÈRE remise à zéro
+     (l'XP d'avant une remise à zéro ne revient pas) ;
+   - daily : meilleure série conservée ; le reste suit la date la plus récente ;
+   - active : la session écrite en dernier (activeAt), y compris « aucune » ;
    - prefs.dontWarnNewSession : vrai si vrai d'au moins un côté. */
 function mergeQuiz(a,b){
-  a=a||{}; b=b||{};
+  a=migrateQuizState(JSON.parse(JSON.stringify(a||{})));
+  b=migrateQuizState(JSON.parse(JSON.stringify(b||{})));
   const out=JSON.parse(JSON.stringify(a));     // base = état local
-  out.byHorizon=out.byHorizon||{};
-  const bh=b.byHorizon||{};
+  const epoch=Math.max(a.epoch||0,b.epoch||0);
+  const ra=a.resetAt||{}, rb=b.resetAt||{};
+  out.epoch=epoch;
+  out.resetAt={};
+  out.byHorizon={};
   ['sprint','long'].forEach(h=>{
-    out.byHorizon[h]=out.byHorizon[h]||{};
-    const src=bh[h]||{};
-    for(const id in src){
-      const cur=out.byHorizon[h][id], cand=src[id];
-      if(!cur || (((cand&&cand.lastSeen)||0) > ((cur&&cur.lastSeen)||0))) out.byHorizon[h][id]=cand;
-    }
+    out.resetAt[h]=Math.max(ra[h]||0,rb[h]||0);
+    const cutoff=Math.max(epoch,out.resetAt[h]);   // tout ce qui précède est oublié
+    const merged={};
+    [a,b].forEach(side=>{
+      const src=(side.byHorizon&&side.byHorizon[h])||{};
+      for(const id in src){
+        const cand=src[id], seen=(cand&&cand.lastSeen)||0;
+        if(seen<=cutoff) continue;
+        if(!merged[id] || seen>(merged[id].lastSeen||0)) merged[id]=cand;
+      }
+    });
+    out.byHorizon[h]=merged;
   });
-  const ax=(a.gamif&&a.gamif.xp)||0, bx=(b.gamif&&b.gamif.xp)||0, mx=Math.max(ax,bx);
+  const xpOf=s=>((s.epoch||0)===epoch && s.gamif && s.gamif.xp)||0;
+  const mx=Math.max(xpOf(a),xpOf(b));
   out.gamif={xp:mx, level:quizLevel(mx)};
-  const ad=a.daily||{}, bd=b.daily||{};
+  // Un côté antérieur à la dernière remise à zéro totale ne compte pas pour le jour/la série.
+  const ad=(a.epoch||0)===epoch?(a.daily||{}):{}, bd=(b.epoch||0)===epoch?(b.daily||{}):{};
   // On garde le « daily » du jour le plus récent. ATTENTION : le quiz
   // renseigne .date (le dernier jour actif), pas .lastDate (champ historique
   // resté vide) — c'est donc bien .date qui sert d'arbitre. Puis on conserve
   // la meilleure série (streak), pour ne jamais la faire reculer à la fusion.
   out.daily=((bd.date||'')>(ad.date||'')) ? Object.assign({},ad,bd) : Object.assign({},bd,ad);
   out.daily.streak=Math.max(ad.streak||0, bd.streak||0);
+  if(!out.daily.goal) out.daily.goal=(a.daily&&a.daily.goal)||(b.daily&&b.daily.goal)||QUIZ_DEFAULT_GOAL;
+  // Session en cours : celle qui a été écrite en dernier ; à égalité (états
+  // d'avant v4, sans date), celle de cet appareil, sinon la distante.
+  const aAt=a.activeAt||0, bAt=b.activeAt||0;
+  out.active=bAt>aAt?(b.active||null):aAt>bAt?(a.active||null):(a.active||b.active||null);
+  out.activeAt=Math.max(aAt,bAt);
   out.prefs=out.prefs||{};
   out.prefs.dontWarnNewSession=!!(((a.prefs||{}).dontWarnNewSession)||((b.prefs||{}).dontWarnNewSession));
   if(!out.horizon) out.horizon=b.horizon||'sprint';
@@ -6960,22 +7025,21 @@ async function syncOnLogin(){
     // ── QUIZ ──
     const remoteQ=q.data&&q.data.data;
     const remoteQAt=(q.data&&q.data.updated_at)||null;
-    if(firstEver){
-      // FUSION unique : on combine local (anonyme) + distant, sans rien perdre.
-      if(remoteQ && remoteQ.byHorizon){
-        const merged=mergeQuiz(quizBlobForSync(), remoteQ);
-        // Session en cours : on garde celle de cet appareil si elle existe,
-        // sinon on adopte la distante.
-        merged.active=loadQuizState().active || remoteQ.active || null;
-        saveQuizState(merged);
-      }
+    if(firstEver || (sameAccount && remoteQAt!==marker.quiz)){
+      // 1re synchro sur cet appareil (on combine l'anonyme local et le compte),
+      // OU un autre appareil du même compte a écrit depuis notre dernier
+      // passage : on FUSIONNE carte par carte (mergeQuiz). Rien n'est perdu,
+      // et une remise à zéro faite ailleurs est respectée grâce à ses dates.
+      // (Avant v4, le second cas ADOPTAIT le distant tel quel : les réponses
+      // faites ici sans réseau disparaissaient.)
+      if(remoteQ && remoteQ.byHorizon) saveQuizState(mergeQuiz(loadQuizState(), remoteQ));
       // (si le distant est vide : on garde le local, il sera poussé ci-dessous)
-    } else if(sameAccount && remoteQAt===marker.quiz){
+    } else if(sameAccount){
       // Rien n'a changé en ligne depuis notre dernier passage → le local fait
       // foi (on ne touche à rien ; on poussera l'état local plus bas).
     } else {
-      // Le distant a changé (autre appareil) ou on change de compte → on adopte
-      // le distant TEL QUEL — y compris s'il a été remis à zéro ailleurs.
+      // Changement de COMPTE sur cet appareil → on adopte le distant TEL QUEL :
+      // on ne mélange pas la progression de deux personnes.
       if(remoteQ){ saveQuizState(remoteQ); }
       else { localStorage.removeItem('philo-quiz'); }
     }
@@ -7025,17 +7089,28 @@ async function syncOnLogin(){
    [Notion hors-programme NSI] « upsert » = UPDATE-or-INSERT : si la ligne de
    cet utilisateur existe déjà on la met à jour, sinon on la crée — en une
    seule requête, sans avoir à tester l'existence au préalable. */
+/* syncDirty — v4 : « il reste quelque chose à envoyer ». Un compteur par
+   table, augmenté à chaque changement local, remis à 0 seulement quand un
+   envoi a RÉUSSI sans qu'un nouveau changement soit arrivé entre-temps. Tant
+   qu'il n'est pas nul, l'envoi est retenté : quand la page se cache (on
+   ferme l'onglet ou on change d'appli pendant le délai anti-rafale) et au
+   retour du réseau (cf. initAuth). Avant v4, un envoi raté n'était jamais
+   refait. */
+const syncDirty={quiz:0,prefs:0};
+
 async function syncPushQuiz(immediate){
   if(!SB||!authUser) return;
+  if(!immediate) syncDirty.quiz++;
   const doPush=async()=>{
     const uid=syncUid(); if(!uid) return;
-    const now=new Date().toISOString();
+    const now=new Date().toISOString(), v=syncDirty.quiz;
     try{
       const {error}=await SB.from('quiz_progress')
         .upsert({user_id:uid,data:quizBlobForSync(),updated_at:now},{onConflict:'user_id'});
-      if(error){ console.warn("[sync] envoi du quiz :", error.message); return; }
+      if(error){ console.warn("[sync] envoi du quiz :", error.message); syncDirty.quiz=Math.max(syncDirty.quiz,1); return; }
       syncMeta.quiz=now; saveSyncMarker();   // notre local devient la dernière version connue
-    }catch(e){ console.warn("[sync] envoi du quiz :", (e&&e.message)||e); }
+      if(syncDirty.quiz===v) syncDirty.quiz=0;
+    }catch(e){ console.warn("[sync] envoi du quiz :", (e&&e.message)||e); syncDirty.quiz=Math.max(syncDirty.quiz,1); }
   };
   clearTimeout(syncQuizTimer);
   if(immediate){ await doPush(); }
@@ -7044,19 +7119,49 @@ async function syncPushQuiz(immediate){
 
 async function syncPushPrefs(immediate){
   if(!SB||!authUser) return;
+  if(!immediate) syncDirty.prefs++;
   const doPush=async()=>{
     const uid=syncUid(); if(!uid) return;
-    const now=new Date().toISOString();
+    const now=new Date().toISOString(), v=syncDirty.prefs;
     try{
       const {error}=await SB.from('preferences')
         .upsert({user_id:uid,data:prefsBlobForSync(),updated_at:now},{onConflict:'user_id'});
-      if(error){ console.warn("[sync] envoi des préférences :", error.message); return; }
+      if(error){ console.warn("[sync] envoi des préférences :", error.message); syncDirty.prefs=Math.max(syncDirty.prefs,1); return; }
       syncMeta.prefs=now; saveSyncMarker();   // notre local devient la dernière version connue
-    }catch(e){ console.warn("[sync] envoi des préférences :", (e&&e.message)||e); }
+      if(syncDirty.prefs===v) syncDirty.prefs=0;
+    }catch(e){ console.warn("[sync] envoi des préférences :", (e&&e.message)||e); syncDirty.prefs=Math.max(syncDirty.prefs,1); }
   };
   clearTimeout(syncPrefsTimer);
   if(immediate){ await doPush(); }
   else { syncPrefsTimer=setTimeout(doPush, SYNC_DEBOUNCE); }
+}
+
+/* syncFlush() — v4 : envoie tout de suite ce qui attendait (délai anti-rafale
+   en cours, ou envoi raté). Appelé quand la page se cache ou va être fermée,
+   pour qu'une réponse donnée juste avant de quitter ne reste pas en local. */
+function syncFlush(){
+  if(!syncReady || syncSuspend) return;
+  if(syncDirty.quiz) syncPushQuiz(true);
+  if(syncDirty.prefs) syncPushPrefs(true);
+}
+
+/* quizDiffers(x, y) — v4 : vrai si l'état fusionné x apporte quelque chose
+   que l'état distant y n'a pas (une carte, une révision plus récente, de
+   l'XP, une autre session, une remise à zéro). Sert à ne renvoyer la fusion
+   en ligne que si elle change quelque chose : sinon deux appareils se
+   renverraient le même état à chaque retour sur l'onglet. */
+function quizDiffers(x,y){
+  y=migrateQuizState(JSON.parse(JSON.stringify(y||{})));
+  if((x.epoch||0)!==(y.epoch||0)) return true;
+  for(const h of ['sprint','long']){
+    if(((x.resetAt||{})[h]||0)!==((y.resetAt||{})[h]||0)) return true;
+    const xs=(x.byHorizon&&x.byHorizon[h])||{}, ys=(y.byHorizon&&y.byHorizon[h])||{};
+    if(Object.keys(xs).length!==Object.keys(ys).length) return true;
+    for(const id in xs){ const p=ys[id]; if(!p || (p.lastSeen||0)!==(xs[id].lastSeen||0)) return true; }
+  }
+  if(((x.gamif||{}).xp||0)!==((y.gamif||{}).xp||0)) return true;
+  if((x.activeAt||0)!==(y.activeAt||0)) return true;
+  return false;
 }
 
 /* Hooks appelés depuis le code existant après une écriture locale. Ils ne
@@ -7065,10 +7170,15 @@ async function syncPushPrefs(immediate){
 function syncOnQuizChange(){ if(syncReady && !syncSuspend) syncPushQuiz(false); }
 function syncOnPrefsChange(){ if(syncReady && !syncSuspend) syncPushPrefs(false); }
 
-/* syncOnFocus() — au retour sur l'onglet : si un autre appareil a écrit depuis
-   (updated_at différent du dernier connu), on ADOPTE le distant tel quel (c'est
-   la version la plus récente). On ne fusionne PAS : fusionner ferait revenir
-   des cartes effacées ailleurs. */
+/* syncOnFocus() — au retour sur l'onglet (et au retour du réseau) : si un
+   autre appareil a écrit depuis (updated_at différent du dernier connu), on
+   FUSIONNE son quiz avec le nôtre carte par carte (v4 ; avant, on adoptait le
+   distant tel quel et ce qui avait été fait ici entre-temps était perdu). Les
+   remises à zéro datées (epoch, resetAt) empêchent de ressusciter des cartes
+   effacées ailleurs. Si la fusion apporte quelque chose au distant, on la
+   renvoie aussitôt, pour que les appareils convergent. Les préférences, elles,
+   suivent toujours la dernière écriture. Enfin, ce qui attendait d'être
+   envoyé (syncDirty) part. */
 async function syncOnFocus(){
   if(!SB||!authUser||!syncReady) return;
   const uid=syncUid();
@@ -7078,11 +7188,15 @@ async function syncOnFocus(){
       SB.from('preferences').select('data,updated_at').eq('user_id',uid).maybeSingle()
     ]);
     syncSuspend=true;
+    let pushQuiz=false;
     if(q.data && q.data.updated_at && q.data.updated_at!==syncMeta.quiz){
-      if(q.data.data){ saveQuizState(q.data.data); }
-      else { localStorage.removeItem('philo-quiz'); }
+      if(q.data.data){
+        const merged=mergeQuiz(loadQuizState(), q.data.data);
+        saveQuizState(merged);
+        pushQuiz=quizDiffers(merged, q.data.data);
+      } else pushQuiz=true;                   // ligne vide en ligne : le local fait foi
       syncMeta.quiz=q.data.updated_at; saveSyncMarker();
-      // Aligner le runtime sur l'état adopté (horizon + session reprenable) afin
+      // Aligner le runtime sur l'état fusionné (horizon + session reprenable) afin
       // que « Reprendre » et le bon rythme apparaissent même overlay déjà ouvert.
       syncRuntimeQuizFromStorage({keepLive:true});
       if(quizOverlayOpen()){ try{ renderQuiz(); }catch(e){} }
@@ -7093,6 +7207,8 @@ async function syncOnFocus(){
       syncMeta.prefs=p.data.updated_at; saveSyncMarker();
     }
     syncSuspend=false;
+    if(pushQuiz || syncDirty.quiz) await syncPushQuiz(true);
+    if(syncDirty.prefs) await syncPushPrefs(true);
   }catch(e){ syncSuspend=false; }
 }
 
@@ -7109,6 +7225,7 @@ function maybeStartSync(){
 function syncResetState(){
   syncReady=false;
   syncMeta.quiz=null; syncMeta.prefs=null;
+  syncDirty.quiz=0; syncDirty.prefs=0;
   clearTimeout(syncQuizTimer); clearTimeout(syncPrefsTimer);
 }
 
@@ -7180,12 +7297,90 @@ function stripHtml(s){
 /* ── K.1 DONNÉES — buildQuizCards() ──────────────────────────────────
    Construit la liste des cartes une fois pour toutes. 4 types :
      C1 'concept-def'    : recto = terme,        verso = définition
-     C2 'def-concept'    : recto = définition,   verso = terme  (bon QCM)
+     C2 'def-concept'    : recto = définition (terme MASQUÉ), verso = terme (bon QCM)
      C3 'cite-author'    : recto = citation,     verso = auteur — œuvre
      C3 'author-cite'    : recto = auteur — œuvre, verso = citation
-     C4 'notion-authors' : recto = notion,       verso = auteurs majeurs + thèse
-   Chaque carte : {id stable, type, notion?, recto, verso, qLabel, meta}.
-   L'id doit être STABLE entre les visites (sert de clé de progression). */
+     C4 'notion-authors' : recto = notion,       verso = 4 auteurs majeurs + thèse courte
+   Chaque carte : {id stable, type, notion (1re), notions (toutes), recto,
+   verso, qLabel, meta, pair}. L'id sert de clé de progression : il doit
+   rester STABLE quand on modifie les données.
+
+   v4 (octobre 2026) — corrections issues du diagnostic (docs/diagnostic-2026-10.md § 2.1) :
+   • l'id d'une carte de citation vient du TEXTE de la citation (empreinte
+     quizHash) et non plus de sa position (n° d'idée, n° de citation) : ajouter
+     ou réordonner une idée ne fait plus glisser la mémoire d'une carte à une
+     autre. QUIZ_LEGACY garde la table « ancien id → nouvel id » pour migrer la
+     progression existante (migrateQuizState) ;
+   • une même citation rangée sous plusieurs notions ne donne plus qu'UNE carte
+     (son champ notions les liste toutes) ;
+   • seules les citations EXACTES (entre guillemets « … ») font des cartes : une
+     reformulation sans guillemets n'est pas une citation ;
+   • la carte « Quel concept ? » n'existe que si le terme a pu être masqué dans
+     la définition (avant : 56 % des définitions contenaient la réponse). */
+
+/* quizHash(s) — empreinte courte et stable d'un texte (FNV-1a 32 bits, en base 36). */
+function quizHash(s){
+  let h=0x811c9dc5;
+  for(let i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,0x01000193)>>>0; }
+  return h.toString(36);
+}
+/* quizFold(s) — texte normalisé pour comparer : minuscules, sans accents, sans
+   guillemets ni ponctuation, espaces réduits. Sert à l'empreinte des citations
+   (une retouche typographique ne change pas l'id) et au contrôle du masquage. */
+function quizFold(s){
+  return String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'')
+    .replace(/[«»“”"'’.,;:!?…()\[\]—–-]/g,' ').replace(/\s+/g,' ').trim();
+}
+/* quizQuoted(txt) — extrait la ou les parties CITÉES (« … » ou “ … ”) d'un
+   texte de citation, sans le commentaire qui les suit. Renvoie '' s'il n'y a
+   aucune citation exacte (simple reformulation) : pas de carte dans ce cas. */
+function quizQuoted(txt){
+  return (String(txt||'').match(/«[^»]+»|“[^”]+”/g)||[]).map(p=>p.trim()).join(' / ');
+}
+/* quizMaskTerm(def, term) — remplace le terme (et ses variantes : pôles d'un
+   repère « A / B », mot entre parenthèses) par un blanc dans une définition
+   en texte brut. Les mots de la MÊME FAMILLE sont masqués aussi, sinon ils
+   trahissent la réponse (« légitimité », « illégitime » pour Légitime) :
+   • un mot de 7 lettres ou plus perd sa dernière lettre et accepte toute
+     terminaison (transcendant → transcendance, immanent → immanence) ;
+   • un mot de 4 lettres ou plus accepte un préfixe négatif (in-, im-, il-,
+     ir-) et toute terminaison (légal → illégalité) ;
+   • un mot plus court n'accepte que le pluriel (« fin » ne masque pas « infini »).
+   Renvoie {html, leaked} : html est échappé et prêt à afficher ; leaked=true
+   si le terme reste lisible malgré tout (par ex. écrit avec d'autres accents) :
+   la carte « Quel concept ? » est alors écartée, la carte inverse reste. */
+function quizMaskTerm(def, term){
+  const L='A-Za-zÀ-ÖØ-öø-ÿ0-9', W='a-zà-öø-ÿ';
+  const variants=String(term||'').split(/\s*\/\s*|\s*[()]\s*/).map(v=>v.trim()).filter(v=>v.length>=3);
+  if(!variants.includes(term)) variants.unshift(term);
+  variants.sort((a,b)=>b.length-a.length);   // « en puissance » avant « puissance »
+  const wordPat=w=>{
+    const bare=w.replace(/\\/g,'');           // longueur sans les échappements
+    if(!/[A-Za-zÀ-ÖØ-öø-ÿ]$/.test(w)) return w;   // finit par « ) » ou autre : tel quel
+    if(bare.length>=7) return '(?:in|im|il|ir)?'+w.slice(0,-1)+'['+W+']*';
+    if(bare.length>=4) return '(?:in|im|il|ir)?'+w+'['+W+']*';
+    return w+'(?:s|x|es)?';
+  };
+  const reOf=v=>new RegExp('(?<!['+L+'])'+v.replace(/[.*+?^${}()|[\]\\]/g,'\\$&').split(/\s+/).map(wordPat).join('\\s+')+'(?!['+L+'])','gi');
+  let out=def;
+  variants.forEach(v=>{ out=out.replace(reOf(v),'\u0001'); });
+  // Contrôle : le terme se lit-il encore, une fois accents et casse effacés ?
+  const folded=quizFold(out);
+  const leaked=variants.filter(v=>v.length>=4).some(v=>reOf(quizFold(v)).test(folded));
+  const esc=out.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+  return {html:esc.replace(/\u0001/g,'<span class="quiz-mask" aria-label="mot masqué"></span>'), leaked};
+}
+/* quizThesis(it) — la thèse d'une idée en une phrase courte (texte brut) :
+   la synthèse rédigée (it.fiche) si elle existe, sinon la 1re phrase de
+   l'idée ; coupée à ~150 caractères pour que la carte reste lisible. */
+function quizThesis(it){
+  let s=stripHtml((it&&(it.fiche||it.i))||'');
+  const m=s.match(/^(.{40,}?[.!?])(\s|$)/);
+  if(m) s=m[1];
+  return s.length>150?s.slice(0,149).replace(/\s+\S*$/,'')+'…':s;
+}
+
+const QUIZ_LEGACY={};   // ancien id de carte C3 (positionnel, avant v4) → nouvel id stable
 function buildQuizCards(){
   const cards=[];
   // C1 + C2 : concept ↔ définition. Les DEUX sens partagent la même « paire »
@@ -7194,16 +7389,19 @@ function buildQuizCards(){
   CONCEPTS.forEach(c=>{
     const def=stripHtml(c.def);
     if(!c.term||!def) return;
-    const notion=(c.notions||[])[0];
-    const pair='cpt:'+c.id;
-    cards.push({id:'c1:'+c.id,type:'concept-def',notion,recto:c.term,verso:def,
-      qLabel:'Définis ce concept',meta:{cat:c.cat,conceptId:c.id},pair});
-    cards.push({id:'c2:'+c.id,type:'def-concept',notion,recto:def,verso:c.term,
-      qLabel:'Quel concept ?',meta:{cat:c.cat,conceptId:c.id},pair});
+    const notions=(c.notions||[]).filter(k=>D[k]);
+    const notion=notions[0];
+    const pair='cpt:'+c.id, meta={cat:c.cat,conceptId:c.id};
+    cards.push({id:'c1:'+c.id,type:'concept-def',notion,notions,recto:c.term,verso:def,
+      qLabel:'Définis ce concept',meta,pair});
+    const masked=quizMaskTerm(def,c.term);   // la question ne doit pas contenir la réponse
+    if(!masked.leaked) cards.push({id:'c2:'+c.id,type:'def-concept',notion,notions,recto:masked.html,verso:c.term,
+      qLabel:'Quel concept ?',meta,pair});
   });
   // C3 : citation ↔ auteur (LES DEUX sens) depuis AI[name].entries[k].ideas[].citations[].
   // Les deux sens d'une même citation partagent la même « paire » (base) :
   // une seule direction par session (cf. retour « les cartes se répètent »).
+  const byBase={};
   Object.keys(AI).forEach(name=>{
     const ent=AI[name].entries;
     Object.keys(ent).forEach(k=>{
@@ -7211,26 +7409,39 @@ function buildQuizCards(){
         const work=idea.w||'';
         const who=name+(work?' — '+work:'');
         (idea.citations||[]).forEach((cit,ci)=>{
-          const txt=stripHtml(cit);
-          if(!txt) return;
-          const base='c3:'+name+':'+k+':'+ii+':'+ci;
-          cards.push({id:base+':a',type:'cite-author',notion:k,recto:txt,verso:who,
-            qLabel:'Qui a dit cela ?',meta:{author:name},pair:base});
-          cards.push({id:base+':b',type:'author-cite',notion:k,recto:who,verso:txt,
-            qLabel:'Cite une de ses formules',meta:{author:name},pair:base});
+          const oldBase='c3:'+name+':'+k+':'+ii+':'+ci;   // id d'avant v4 (position)
+          const txt=quizQuoted(stripHtml(cit));
+          if(!txt) return;                                // reformulation : pas une citation exacte
+          const base='c3:'+name+':'+quizHash(quizFold(txt));
+          QUIZ_LEGACY[oldBase+':a']=base+':a'; QUIZ_LEGACY[oldBase+':b']=base+':b';
+          if(byBase[base]){                               // même citation sous une autre notion
+            byBase[base].forEach(c=>{ if(!c.notions.includes(k)) c.notions.push(k); });
+            return;
+          }
+          const meta={author:name,work};
+          const a={id:base+':a',type:'cite-author',notion:k,notions:[k],recto:txt,verso:who,
+            qLabel:'Qui a dit cela ?',meta,pair:base};
+          const b={id:base+':b',type:'author-cite',notion:k,notions:[k],recto:who,verso:txt,
+            qLabel:'Cite une de ses formules',meta,pair:base};
+          byBase[base]=[a,b]; cards.push(a,b);
         });
       });
     });
   });
-  // C4 : notion → auteurs majeurs et leur idée principale (auto-évaluation).
-  // Carte unique par notion → sa paire est son propre id (rien à dédupliquer).
+  // C4 : notion → auteurs majeurs et leur thèse (auto-évaluation). Avant v4 :
+  // 5 auteurs avec leur idée ENTIÈRE, une réponse de 900 px sur téléphone.
+  // Désormais 4 auteurs au plus, dans l'ordre des cartes de la notion
+  // (compareAuthors), avec une thèse courte (quizThesis).
   KEYS.forEach(k=>{
-    const auts=(D[k].auteurs||[]).slice(0,5).map(a=>{
-      const idea=(a.ideas&&a.ideas[0])||{};
-      const id=stripHtml(idea.i||'');
-      return '<b>'+a.n+'</b>'+(idea.w?' ('+idea.w+')':'')+(id?' : '+id:'');
+    const names=[];
+    (D[k].auteurs||[]).forEach(a=>{ if(!names.includes(a.n)) names.push(a.n); });
+    names.sort(compareAuthors);
+    const auts=names.slice(0,4).map(n=>{
+      const idea=((AI[n]&&AI[n].entries[k]&&AI[n].entries[k].ideas)||[])[0]||{};
+      const th=quizThesis(idea);
+      return '<b>'+n+'</b>'+(idea.w?' ('+idea.w+')':'')+(th?' : '+th:'');
     });
-    if(auts.length) cards.push({id:'c4:'+k,type:'notion-authors',notion:k,
+    if(auts.length) cards.push({id:'c4:'+k,type:'notion-authors',notion:k,notions:[k],
       recto:D[k].l+(D[k].s?' — '+D[k].s:''),verso:auts.join('<br><br>'),
       qLabel:'Auteurs majeurs et leur thèse',meta:{},pair:'c4:'+k});
   });
@@ -7260,10 +7471,46 @@ let quizState={view:'dashboard',horizon:'sprint',mode:'cards',
   session:null,idx:0,results:null,revealed:false,
   qcmData:null,qcmAnswered:false,qcmChosen:null,confirmNew:false};
 
+/* migrateQuizState(s) — v4 : remplace les anciens ids de cartes de citation
+   (positionnels) par les ids stables (table QUIZ_LEGACY) dans la progression
+   des deux rythmes, dans la session en cours et dans ses ratés. Si deux
+   anciens ids mènent à la même carte (citation rangée sous deux notions), on
+   garde la révision la plus récente. Idempotent (marqueur s.idv=2) ; appelé à
+   chaque lecture (loadQuizState) et sur le bloc distant avant une fusion
+   (mergeQuiz), pour qu'un état venu d'une ancienne version soit converti aussi.
+   Modifie s et le renvoie. */
+function migrateQuizState(s){
+  if(!s || s.idv===2) return s;
+  const mapId=id=>QUIZ_LEGACY[id]||id;
+  if(s.byHorizon) ['sprint','long'].forEach(h=>{
+    const src=s.byHorizon[h]||{}, out={};
+    Object.keys(src).forEach(id=>{
+      const nid=mapId(id), p=src[id], cur=out[nid];
+      if(!cur || ((p&&p.lastSeen)||0)>(cur.lastSeen||0)) out[nid]=p;
+    });
+    s.byHorizon[h]=out;
+  });
+  if(s.active && Array.isArray(s.active.ids)){
+    s.active.ids=s.active.ids.map(mapId);
+    const r=s.active.results;
+    if(r && Array.isArray(r.wrongIds)) r.wrongIds=r.wrongIds.map(mapId);
+  }
+  s.idv=2;
+  return s;
+}
+
 /* loadQuizState() — lit/garantit la structure persistée 'philo-quiz'.
    Champs : byHorizon (progression Leitner par horizon), daily (objectif+streak),
    gamif (XP + niveau, transversal aux horizons), prefs (ne plus avertir),
-   active (session en cours sérialisée : ids + position). */
+   active (session en cours sérialisée : ids + position).
+   v4 — champs de synchro : activeAt (date de la dernière écriture de
+   « active », pour savoir quelle session garder à la fusion), resetAt
+   (date de remise à zéro de chaque rythme) et epoch (date de la dernière
+   remise à zéro TOTALE) : à la fusion de deux appareils, toute révision plus
+   ancienne qu'une remise à zéro est oubliée, au lieu de ressusciter.
+   Chaque appel relit et décode le stockage : les fonctions de lecture
+   (isDue, pickSession, quizStats…) reçoivent donc l'état en paramètre au lieu
+   de le relire carte par carte (864 décodages par affichage avant v4). */
 function loadQuizState(){
   let s={};
   try{ s=JSON.parse(localStorage.getItem('philo-quiz')||'{}'); }catch(e){ s={}; }
@@ -7275,10 +7522,19 @@ function loadQuizState(){
   if(!s.gamif) s.gamif={xp:0,level:1};                 // gamification (v3)
   if(!s.prefs) s.prefs={dontWarnNewSession:false};     // préférences
   if(s.active===undefined) s.active=null;              // session reprenable
-  return s;
+  if(!s.activeAt) s.activeAt=0;                        // v4 : date d'écriture de « active »
+  if(!s.resetAt) s.resetAt={sprint:0,long:0};          // v4 : remise à zéro d'un rythme
+  if(!s.epoch) s.epoch=0;                              // v4 : remise à zéro totale
+  return migrateQuizState(s);                          // v4 : anciens ids de cartes → ids stables
 }
 function saveQuizState(s){ localStorage.setItem('philo-quiz',JSON.stringify(s)); syncOnQuizChange(); }   // new (Phase 2) : reporte la progression vers le compte si connecté
-function todayStr(){ return new Date().toISOString().slice(0,10); }
+/* todayStr() — date LOCALE du jour (AAAA-MM-JJ). Avant v4 : toISOString(),
+   c'est-à-dire la date en temps universel ; en France, le « jour » changeait
+   donc à 1 h ou 2 h du matin (objectif du jour et série faussés). */
+function todayStr(){
+  const d=new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
 
 /* ── Gamification : XP → niveau (100 XP par niveau). ──────────────── */
 function quizLevel(xp){ return Math.floor((xp||0)/100)+1; }      // niveau courant
@@ -7289,21 +7545,25 @@ function quizSessionActive(){
   return !!(quizState.session && quizState.idx < quizState.session.length);
 }
 /* persistActive() — sérialise (ou efface) la session en cours dans localStorage,
-   pour pouvoir la REPRENDRE après un refresh / une réouverture de l'overlay. */
+   pour pouvoir la REPRENDRE après un refresh / une réouverture de l'overlay.
+   activeAt date l'écriture (v4) : à la fusion de deux appareils, c'est la
+   session écrite en dernier qui gagne, y compris une session TERMINÉE (null). */
 function persistActive(){
   const st=loadQuizState();
   st.active=quizSessionActive()
     ? {ids:quizState.session.map(c=>c.id),idx:quizState.idx,mode:quizState.mode,
        horizon:quizState.horizon,results:quizState.results}
     : null;
+  st.activeAt=Date.now();
   saveQuizState(st);
 }
 
-/* isDue(card, horizon) — true si la carte (déjà vue) est à réviser
+/* isDue(card, horizon, st) — true si la carte (déjà vue) est à réviser
    aujourd'hui. Une carte jamais vue n'est pas « due » ici : pickSession
-   l'ajoute via le quota de nouvelles cartes. */
-function isDue(card,horizon){
-  const st=loadQuizState();
+   l'ajoute via le quota de nouvelles cartes. st = état déjà lu (v4 : évite de
+   relire le stockage pour chaque carte) ; relu s'il est absent. */
+function isDue(card,horizon,st){
+  st=st||loadQuizState();
   const p=st.byHorizon[horizon][card.id];
   if(!p) return false;
   const box=Math.min(Math.max(p.box||1,1),5);
@@ -7354,12 +7614,15 @@ function onAnswer(id,ok){
 /* cardsForFilter() — applique les filtres MULTIPLES du dashboard.
    Logique : OU à l'intérieur d'une catégorie (plusieurs notions = l'une OU
    l'autre), ET entre catégories (notion(s) ET type(s) ET « ratés »).
-   Ensembles vides = pas de restriction sur cette catégorie. */
-function cardsForFilter(){
-  const st=loadQuizState(), h=quizState.horizon;
+   Ensembles vides = pas de restriction sur cette catégorie.
+   Une carte appartient à TOUTES ses notions (c.notions, v4) : un concept ou
+   une citation rangés sous deux notions répondent aux deux filtres.
+   st = état déjà lu (relu s'il est absent). */
+function cardsForFilter(st){
+  st=st||loadQuizState(); const h=quizState.horizon;
   const nf=quizState.notionFilters, tf=quizState.typeFilters;
   return QUIZ_CARDS.filter(c=>{
-    if(nf.size && !nf.has(c.notion)) return false;
+    if(nf.size && !(c.notions||[c.notion]).some(k=>nf.has(k))) return false;
     if(tf.size && !tf.has(c.type)) return false;
     if(quizState.wrongOnly){ const p=st.byHorizon[h][c.id]; if(!(p&&p.box<=1&&p.seen>0)) return false; }
     return true;
@@ -7372,20 +7635,28 @@ function toggleNotionFilter(k){ const s=quizState.notionFilters; s.has(k)?s.dele
 function toggleTypeFilter(t){ const s=quizState.typeFilters; s.has(t)?s.delete(t):s.add(t); renderQuiz(); }
 function quizFiltersEmpty(){ return quizState.notionFilters.size===0 && quizState.typeFilters.size===0 && !quizState.wrongOnly; }
 
-/* pickSession(n) — construit une session de n cartes :
-   1) les cartes DUES (triées par boîte ascendante = priorité aux fragiles) ;
-   2) complétées par des cartes JAMAIS VUES ;
+/* pickSession(n, st) — construit une session de n cartes :
+   1) les cartes DUES, triées par boîte ascendante (priorité aux fragiles),
+      au hasard à boîte égale ;
+   2) complétées par des cartes JAMAIS VUES, TIRÉES AU HASARD dans tout le
+      filtre (v4). Avant, elles venaient dans l'ordre du fichier : chaque
+      nouvelle session reprenait les 15 mêmes concepts, et il fallait une
+      quinzaine de sessions avant de voir une citation. Le tirage au hasard
+      mélange d'office les notions et les types, au prorata de leur nombre ;
    en ne gardant qu'UNE carte par « paire » (pair) : on évite ainsi de voir
    les deux sens d'un même concept/citation dans la même session (retour
    « les cartes se répètent »). La 1re rencontrée gagne = la plus prioritaire
-   (boîte la plus basse, due avant fraîche). Léger mélange final. */
-function pickSession(n){
+   (boîte la plus basse, due avant fraîche). Léger mélange final.
+   st = état déjà lu (relu s'il est absent). */
+function pickSession(n,st){
   n=n||QUIZ_SESSION_N;
-  const st=loadQuizState(), h=quizState.horizon;
-  const pool=cardsForFilter();
-  const due=pool.filter(c=>isDue(c,h))
-    .sort((a,b)=>((st.byHorizon[h][a.id].box||1)-(st.byHorizon[h][b.id].box||1)));
-  const fresh=pool.filter(c=>!st.byHorizon[h][c.id]);
+  st=st||loadQuizState(); const h=quizState.horizon, prog=st.byHorizon[h];
+  const pool=cardsForFilter(st);
+  const shuffle=a=>{ for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; };
+  // sort() est stable : mélanger AVANT de trier laisse le hasard départager une même boîte.
+  const due=shuffle(pool.filter(c=>isDue(c,h,st)))
+    .sort((a,b)=>((prog[a.id].box||1)-(prog[b.id].box||1)));
+  const fresh=shuffle(pool.filter(c=>!prog[c.id]));
   // Dédup DOUBLE pour ne jamais montrer deux fois « la même carte » dans une
   // session (retours BOX 14 puis BOX 33) :
   //   1. par PAIRE  → écarte le sens inverse d'un même item (recto/verso) ;
@@ -7429,17 +7700,20 @@ function pickSession(n){
   return pick;
 }
 
-/* quizStats() — % de maîtrise (boîte≥4) sur le filtre courant + comptes. */
-function quizStats(){
-  const st=loadQuizState(), h=quizState.horizon;
-  const pool=cardsForFilter();
+/* quizStats(st) — % de maîtrise (boîte≥4) sur le filtre courant + comptes.
+   sessionN = taille RÉELLE de la prochaine session (après dédoublonnage des
+   paires), et non plus due+fresh plafonné, qui annonçait parfois plus de
+   cartes qu'il n'en venait. st = état déjà lu (relu s'il est absent). */
+function quizStats(st){
+  st=st||loadQuizState(); const h=quizState.horizon;
+  const pool=cardsForFilter(st);
   let mastered=0,seen=0;
   pool.forEach(c=>{const p=st.byHorizon[h][c.id];if(p){seen++;if(p.box>=4)mastered++;}});
-  const due=pool.filter(c=>isDue(c,h)).length;
+  const due=pool.filter(c=>isDue(c,h,st)).length;
   const fresh=pool.filter(c=>!st.byHorizon[h][c.id]).length;
   const pct=pool.length?Math.round(mastered/pool.length*100):0;
   return {total:pool.length,mastered,seen,due,fresh,pct,
-    sessionN:Math.min(QUIZ_SESSION_N,due+fresh)};
+    sessionN:pickSession(QUIZ_SESSION_N,st).length};
 }
 
 /* ── K.3 OUVERTURE / FERMETURE ───────────────────────────────────── */
@@ -7495,8 +7769,8 @@ function renderQuiz(){
    (reprise OU nouvelle session avec avertissement), objectif du jour (v3),
    barres de maîtrise par notion (v2) et badges (v3). */
 function renderQuizDashboard(){
-  const st=loadQuizState();
-  const s=quizStats();
+  const st=loadQuizState();   // lu UNE fois, puis transmis (v4)
+  const s=quizStats(st);
   const nf=quizState.notionFilters, tf=quizState.typeFilters;   // filtres actifs (Sets)
   // Filtres multi-sélection : un bouton est « active » s'il est dans l'ensemble.
   const notionBtns=KEYS.map(k=>`<button class="${nf.has(k)?'active':''}" onclick="toggleNotionFilter('${k}')">${D[k].l}</button>`).join('');
@@ -7509,14 +7783,14 @@ function renderQuizDashboard(){
   const dayCount=st.daily.date===todayStr()?(st.daily.count||0):0;
   const dayPct=Math.min(100,Math.round(dayCount/goal*100));
   // v2 — barres de maîtrise par notion (triées décroissant).
-  const nm=notionMastery().sort((a,b)=>b.pct-a.pct);
+  const nm=notionMastery(st).sort((a,b)=>b.pct-a.pct);
   const nmHtml=nm.map(x=>`<div class="quiz-ns-row">
       <span class="quiz-ns-name">${D[x.k].l}</span>
       <span class="quiz-ns-bar"><span class="quiz-ns-fill" style="width:${x.pct}%;background:${D[x.k].c}"></span></span>
       <span class="quiz-ns-pct">${x.pct}%</span>
     </div>`).join('');
-  // v3 — badges (1 par notion : toutes les cartes en boîte 5).
-  const badges=quizBadges();
+  // v3 — badges (1 par notion ; acquis à 80 % de cartes mémorisées depuis v4).
+  const badges=quizBadges(st);
   const earned=badges.filter(b=>b.earned);
   const badgesHtml=(earned.length?earned:badges).slice(0,12).map(b=>`<span class="quiz-badge${b.earned?' earned':''}">${b.earned?'🏅':'🔒'} ${b.label}</span>`).join('');
   // Bloc de lancement adaptatif : avertissement, ou reprise + nouvelle, ou simple lancement.
@@ -7623,33 +7897,39 @@ function setQuizHorizon(h){
 }
 /* resetQuizHorizon() — efface la progression de CARTES de l'horizon courant
    uniquement (l'autre rythme, le niveau et les XP sont conservés). Si une
-   session de ce rythme est en cours, on l'abandonne (devenue incohérente). */
+   session de ce rythme est en cours, on l'abandonne (devenue incohérente).
+   v4 : la date de remise à zéro (resetAt) est gardée, pour que la fusion avec
+   un autre appareil oublie les révisions antérieures au lieu de les ramener. */
 function resetQuizHorizon(){
   const lbl=quizState.horizon==='sprint'?'Sprint':'Long terme';
   if(!confirm('Réinitialiser la progression des cartes du rythme « '+lbl+' » ?\n(Ton niveau, tes XP et l\'autre rythme sont conservés.)')) return;
   const st=loadQuizState();
   st.byHorizon[quizState.horizon]={};
-  if(quizState.horizon===(st.active&&st.active.horizon)) st.active=null;   // session de ce rythme invalidée
+  st.resetAt[quizState.horizon]=Date.now();
+  if(quizState.horizon===(st.active&&st.active.horizon)){ st.active=null; st.activeAt=Date.now(); }   // session de ce rythme invalidée
   saveQuizState(st);
   quizState.session=null; quizState.idx=0; quizState.results=null;
   quizState.view='dashboard';                                             // jamais rester sur une session vidée
   renderQuiz();
 }
 /* resetAllQuiz() — remet TOUT à zéro : cartes des DEUX rythmes, niveau, XP,
-   série, objectif et session en cours. Action irréversible (efface
-   entièrement la clé localStorage 'philo-quiz'). */
+   série, objectif et session en cours. Action irréversible.
+   v4 : au lieu d'effacer simplement la clé 'philo-quiz', on écrit un état
+   VIERGE daté (epoch = maintenant). La synchro fusionne désormais carte par
+   carte : sans cette date, la progression d'un autre appareil reviendrait à
+   la prochaine fusion ; avec elle, tout ce qui précède est oublié partout.
+   saveQuizState() propage aussi la remise à zéro au compte. */
 function resetAllQuiz(){
   if(!confirm('Tout réinitialiser ?\nCela efface ta progression sur les DEUX rythmes, ton niveau, tes XP, ta série et tes objectifs. Action irréversible.')) return;
   localStorage.removeItem('philo-quiz');                 // loadQuizState() recréera les valeurs par défaut
+  const now=Date.now(), st=loadQuizState();
+  st.epoch=now; st.resetAt={sprint:now,long:now}; st.activeAt=now;
+  saveQuizState(st);                                     // écrit l'état vierge daté + synchro
   quizState.session=null; quizState.idx=0; quizState.results=null; quizState.confirmNew=false;
   quizState.notionFilters.clear(); quizState.typeFilters.clear(); quizState.wrongOnly=false;
   quizState.horizon='sprint'; quizState.mode='cards'; quizState.revealed=false;
   quizState.view='dashboard';
   renderQuiz();
-  // new (Phase 2 — correctif) : propager la remise à zéro au compte. Sans cela,
-  // removeItem n'appelle pas saveQuizState → aucun envoi → au prochain
-  // chargement le distant ré-importait l'ancienne progression.
-  syncOnQuizChange();
 }
 
 /* renderNewSessionWarning() — panneau d'avertissement avant d'écraser une
@@ -7731,33 +8011,38 @@ function prepareCard(){
 }
 
 /* buildQCMChoices(card) — construit {choices[4], correct} : la bonne réponse
-   (card.verso) + 3 distracteurs tirés d'autres cartes DU MÊME TYPE.
+   + 3 distracteurs tirés d'autres cartes DU MÊME TYPE.
    RÈGLE (retour contributeur) : les 4 propositions doivent appartenir à la
    même FAMILLE de réponse. Pour def-concept, on ne mélange jamais un repère
    (paire « A / B ») avec un concept simple : distracteurs du même côté de la
-   partition repère/concept, en privilégiant la même catégorie (cat). Pour
-   cite-author, toutes les réponses sont des auteurs (déjà une seule famille) :
-   on privilégie la même notion. */
+   partition repère/concept, en privilégiant la même catégorie (cat).
+   Pour cite-author (v4) : les choix sont des NOMS d'auteurs seuls (l'œuvre et
+   la date allongeaient les choix et aidaient à deviner ; elles s'affichent
+   après la réponse), et un distracteur n'est JAMAIS le même auteur : avant,
+   « Freud, une œuvre » pouvait côtoyer « Freud, une autre œuvre », soit deux
+   bonnes réponses dont une seule comptée. On privilégie les auteurs d'une
+   même notion. */
 function buildQCMChoices(card){
-  const correct=card.verso;
-  // Cartes du même TYPE (même sens de question) avec une réponse différente.
-  const same=QUIZ_CARDS.filter(c=>c.type===card.type&&c.verso!==correct);
-  let pool;
-  if(card.type==='def-concept'){
+  let correct, answers;
+  if(card.type==='cite-author'){
+    correct=card.meta.author;
+    const others=QUIZ_CARDS.filter(c=>c.type==='cite-author'&&c.meta.author!==correct);
+    const near=others.filter(c=>c.notions.some(k=>card.notions.includes(k)));
+    const names=list=>[...new Set(list.map(c=>c.meta.author))];
+    answers=names(near).length>=3?names(near):names(others);
+  } else {
+    correct=card.verso;
+    // Cartes du même TYPE (même sens de question) avec une réponse différente.
+    const same=QUIZ_CARDS.filter(c=>c.type===card.type&&c.verso!==correct);
     // Famille = même côté de la partition repère / non-repère (jamais croisée).
     const isRep=!!(card.meta&&card.meta.cat==='Repère');
     const family=same.filter(c=>(!!(c.meta&&c.meta.cat==='Repère'))===isRep);
     // Plus fin : même catégorie exacte si on en a assez ; sinon, reste la famille.
     const near=family.filter(c=>c.meta&&c.meta.cat===card.meta.cat);
-    pool=near.length>=3?near:family;
-  } else {
-    // cite-author : distracteurs = autres auteurs, on privilégie la même notion.
-    const near=same.filter(c=>c.notion===card.notion);
-    pool=near.length>=3?near:same;
+    answers=[...new Set((near.length>=3?near:family).map(c=>c.verso))];
   }
-  // Distracteurs uniques (on dédoublonne par texte de verso).
-  const seen={},uniq=[];
-  pool.forEach(c=>{ if(!seen[c.verso]&&c.verso!==correct){seen[c.verso]=1;uniq.push(c.verso);} });
+  // Distracteurs uniques, différents de la bonne réponse, tirés au hasard.
+  const uniq=answers.filter(a=>a!==correct);
   for(let i=uniq.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[uniq[i],uniq[j]]=[uniq[j],uniq[i]];}
   const choices=[correct].concat(uniq.slice(0,3));
   for(let i=choices.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[choices[i],choices[j]]=[choices[j],choices[i]];}
@@ -7785,7 +8070,8 @@ function renderQuizSession(){
    l'élément existant → animation rotateY, sans re-rendu.
    Les boutons ❌/✅ sont placés SOUS la carte (`.quiz-answer-row`) : ils
    apparaissent une fois la réponse révélée et RESTENT visibles même si on
-   retourne la carte pour relire la question. */
+   retourne la carte pour relire la question.
+   v4 : la face réponse propose aussi « Relire la fiche » (quizReread). */
 function renderFlipBody(card){
   const notionLbl=card.notion&&D[card.notion]?D[card.notion].l:'';
   const rev=quizState.revealed;                          // réponse déjà vue ?
@@ -7800,7 +8086,7 @@ function renderFlipBody(card){
     <div class="quiz-card quiz-face-back">
       <div class="quiz-card-qlabel">Réponse</div>
       <div class="quiz-card-verso" style="border-top:none;padding-top:0">${card.verso}</div>
-      <div class="quiz-actions"><button class="quiz-reveal quiz-reflip" onclick="flipToQuestion()">↩ Revoir la question</button></div>
+      <div class="quiz-actions"><button class="quiz-reveal quiz-reflip" onclick="flipToQuestion()">↩ Revoir la question</button><button class="quiz-reveal quiz-reflip" onclick="quizReread()">📖 Relire la fiche</button></div>
     </div>
   </div></div>
   <div class="quiz-actions quiz-answer-row${rev?'':' hidden'}">
@@ -7810,7 +8096,9 @@ function renderFlipBody(card){
 }
 
 /* renderQCMBody(card) — question + 4 choix. Après réponse : surligne la
-   bonne (vert) et, si erreur, le choix cliqué (rouge) ; bouton « Suivant ». */
+   bonne (vert) et, si erreur, le choix cliqué (rouge) ; bouton « Suivant ».
+   v4 : après une réponse à « Qui a dit cela ? », la source complète
+   (auteur — œuvre) s'affiche, et « Relire la fiche » mène à la fiche. */
 function renderQCMBody(card){
   const q=quizState.qcmData, answered=quizState.qcmAnswered, chosen=quizState.qcmChosen;
   const notionLbl=card.notion&&D[card.notion]?D[card.notion].l:'';
@@ -7819,13 +8107,32 @@ function renderQCMBody(card){
     if(answered){ if(ch===q.correct) cls+=' good'; else if(ix===chosen) cls+=' bad'; }
     return `<button class="${cls}" ${answered?'disabled':''} onclick="qcmAnswer(${ix})">${ch}</button>`;
   }).join('');
+  const src=(answered&&card.type==='cite-author')?`<div class="quiz-card-notion">${card.verso}</div>`:'';
   return `<div class="quiz-card">
     <div class="quiz-card-qlabel">${card.qLabel}</div>
     <div class="quiz-card-recto" style="font-size:15px">${card.recto}</div>
     ${notionLbl?`<div class="quiz-card-notion">${notionLbl}</div>`:''}
     <div class="quiz-choices">${choicesHtml}</div>
-    ${answered?`<button class="quiz-next" onclick="advanceQuiz()">Suivant →</button>`:''}
+    ${src}
+    ${answered?`<button class="quiz-next" onclick="advanceQuiz()">Suivant →</button>
+      <button class="quiz-quit" onclick="quizReread()">📖 Relire la fiche</button>`:''}
   </div>`;
+}
+
+/* quizReread() — « Relire la fiche » (v4, idée reprise du quiz de Fiches
+   BUT) : ferme le quiz SANS perdre la session, qui reste reprenable, et ouvre
+   la fiche d'où vient la carte : le concept, l'onglet Citations de l'auteur,
+   ou la notion. Une carte QCM déjà répondue est comptée : on passe à la
+   suivante avant de sortir, pour ne pas la jouer deux fois à la reprise. */
+function quizReread(){
+  const card=quizState.session&&quizState.session[quizState.idx];
+  if(!card) return;
+  if(quizState.qcmAnswered){ quizState.idx++; quizState.qcmAnswered=false; }
+  quizState.revealed=false; quizState.view='dashboard';
+  persistActive(); closeQuiz();
+  if(card.meta&&card.meta.conceptId) openConcept(card.meta.conceptId);
+  else if(card.meta&&card.meta.author){ openAuthor(card.meta.author); curAuthorTab='citations'; renderAuthorContent(); }
+  else if(card.notion) openNotion(card.notion);
 }
 
 /* revealQuiz() — montre la réponse (face arrière) : .flipped sur l'élément
@@ -7895,24 +8202,27 @@ function setQuizMode(m){ quizState.mode=m; renderQuiz(); }
 /* setQuizGoal(n) — règle l'objectif quotidien (persisté). */
 function setQuizGoal(n){ const st=loadQuizState(); st.daily.goal=n; saveQuizState(st); renderQuiz(); }
 
-/* notionMastery() — % de cartes maîtrisées (boîte≥4) par notion, horizon courant. */
-function notionMastery(){
-  const st=loadQuizState(), h=quizState.horizon;
+/* notionMastery(st) — % de cartes maîtrisées (boîte≥4) par notion, horizon
+   courant. Une carte compte pour chacune de ses notions (c.notions, v4). */
+function notionMastery(st){
+  st=st||loadQuizState(); const h=quizState.horizon;
   return KEYS.map(k=>{
-    const cards=QUIZ_CARDS.filter(c=>c.notion===k);
+    const cards=QUIZ_CARDS.filter(c=>(c.notions||[c.notion]).includes(k));
     let m=0; cards.forEach(c=>{const p=st.byHorizon[h][c.id]; if(p&&p.box>=4)m++;});
     return {k,total:cards.length,pct:cards.length?Math.round(m/cards.length*100):0};
   }).filter(x=>x.total>0);
 }
 
-/* quizBadges() — 1 badge par notion : acquis si TOUTES ses cartes sont en
-   boîte 5 (maîtrise totale), pour l'horizon courant. */
-function quizBadges(){
-  const st=loadQuizState(), h=quizState.horizon;
+/* quizBadges(st) — 1 badge par notion, pour l'horizon courant : acquis quand
+   80 % de ses cartes sont MÉMORISÉES (palier ≥ 4). Avant v4, il fallait
+   TOUTES les cartes au palier 5, soit une cinquantaine par notion : badge
+   hors d'atteinte, donc sans effet. */
+const QUIZ_BADGE_PCT=80;
+function quizBadges(st){
+  const nm=notionMastery(st);
   return KEYS.map(k=>{
-    const cards=QUIZ_CARDS.filter(c=>c.notion===k);
-    const earned=cards.length>0&&cards.every(c=>{const p=st.byHorizon[h][c.id]; return p&&p.box>=5;});
-    return {k,label:D[k].l,earned};
+    const x=nm.find(m=>m.k===k);
+    return {k,label:D[k].l,earned:!!(x&&x.pct>=QUIZ_BADGE_PCT)};
   });
 }
 

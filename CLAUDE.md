@@ -4,6 +4,12 @@ Outil de révision **Philosophie Terminale** : `index.html` (HTML + CSS + JS),
 dark mode, sans dépendance ni build. Les **données** vivent dans `data.js`,
 chargé en `<script src="data.js">` **avant** le `<script>` principal.
 
+**Mise à jour en cours (octobre 2026).** Le diagnostic complet et la feuille
+de route validée sont dans `docs/diagnostic-2026-10.md` (ordre : 1 réparer,
+2 outiller, 3 build léger + adresses par page, 4 compléter les auteurs de la
+liste officielle, 5 hors programme, 6 enrichir ; décisions de l'auteur au
+§ 10). Le lire avant tout chantier de cette mise à jour.
+
 ## Carte du projet (`docs/carte/`)
 
 Vue d'ensemble **interactive et évolutive** du projet (du parcours élève
@@ -119,7 +125,23 @@ idée sans `i` (texte) mais avec une `citations` = une **citation simple**.
 L'ancien format à plat `{n, w, i, q}` et le `q` unique d'une idée restent
 acceptés en source : `normalizeAuthor()` convertit au chargement en
 `{n, ideas:[{w, i, citations:[q]}]}`. Toute **nouvelle entrée** s'écrit
-directement avec `citations:[…]`. `buildAI` fusionne les idées si un auteur
+directement avec `citations:[…]`.
+
+**Citation exacte ou reformulation.** Une citation **exacte** s'écrit entre
+guillemets français : `"« L'homme est condamné à être libre »"` (jamais
+entre apostrophes droites `'…'`, toutes converties en oct. 2026). Un texte
+sans guillemets est une **reformulation** : il s'affiche pareil, mais le quiz
+ne le pose pas en « Qui a dit cela ? » (seules les parties « … » font une
+carte, cf. `quizQuoted`). Ne jamais mettre entre guillemets une phrase dont on
+n'a pas vérifié qu'elle est de l'auteur.
+
+**Synthèse « mode fiche » (`fiche`).** Une entrée d'auteur (ou une idée) peut
+porter `fiche:"…"` : une version condensée de l'idée, lue par le **mode
+fiche** (lecture compressée des cartes, bascule dans ⚙ Réglages, clé
+localStorage `philo-fiche`, classe `body.mode-fiche`, `applyFicheMode` /
+`toggleFicheMode`). `normalizeAuthor()` propage le `fiche` d'une entrée à ses
+idées ; à défaut, `ideaSynthese()` prend la 1re phrase de l'idée. Le quiz s'en
+sert aussi (`quizThesis`) pour la carte « notion → auteurs ». `buildAI` fusionne les idées si un auteur
 apparaît plusieurs fois dans la même `D[k].auteurs[]` — en stockant une
 **copie** (`{n, ideas:a.ideas.slice()}`), jamais une référence à l'objet de
 `D` : sinon le `push` de fusion **muterait `D`** (idées dupliquées + carte
@@ -168,7 +190,11 @@ anciennes formes restent cliquables, `index.html` tient une table
 `AUTHOR_ALIASES` (alias→canonique) injectée dans `LINK_MAP` après les clés `AI`
 (`openAuthor` résout aussi l'alias par sécurité). En ajoutant un auteur,
 **réutiliser le `n` exact déjà employé ailleurs** ; au besoin, ajouter une
-entrée à `AUTHOR_ALIASES`.
+entrée à `AUTHOR_ALIASES`. **La clé d'`AM` doit être ce même nom canonique** :
+en oct. 2026, les bios de Simone Weil, Robert Nozick et Gunther Anders étaient
+rangées sous « Weil », « Nozick », « Anders » et leurs fiches s'affichaient
+sans bio (clés renommées, formes courtes passées dans `AUTHOR_ALIASES`). Tout
+auteur présent dans `D` doit avoir son entrée `AM`.
 
 ### Concept (objet dans `CONCEPTS`)
 ```js
@@ -547,13 +573,26 @@ dans `#quiz-body` par `renderQuiz()`. Aucune donnée n'est redite : tout est
 `--color-border-quiz`, `--color-text-quiz`, `--color-accent-quiz`.
 
 ### Cartes — `buildQuizCards()` → `QUIZ_CARDS` (index `QUIZ_BY_ID`)
-Chaque carte = `{id stable, type, notion?, recto, verso, qLabel, meta}`. 5 types :
-- `concept-def` (C1) terme→déf · `def-concept` (C2) déf→terme (bon support QCM) ;
+Chaque carte = `{id stable, type, notion, notions, recto, verso, qLabel, meta, pair}`
+(`notion` = la 1re, `notions` = toutes ; les filtres et la maîtrise par notion
+lisent `notions`). 5 types :
+- `concept-def` (C1) terme→déf · `def-concept` (C2) déf→terme (bon support QCM).
+  En C2, **le terme est masqué** dans la définition par `quizMaskTerm()` (blanc
+  `.quiz-mask`), avec sa famille de mots (légitime → légitimité, illégitime) ;
+  si le terme reste lisible malgré tout, la carte C2 n'est pas créée (C1 reste) ;
 - `cite-author` / `author-cite` (C3) citation↔auteur, **les deux sens**, depuis
-  `AI[name].entries[k].ideas[].citations[]` ;
-- `notion-authors` (C4) notion→auteurs majeurs + thèse (auto-évaluation).
+  `AI[name].entries[k].ideas[].citations[]`. Seules les citations **exactes**
+  (parties entre « … », `quizQuoted()`) font une carte ; une même citation
+  rangée sous plusieurs notions ne fait qu'**une** carte ;
+- `notion-authors` (C4) notion→4 auteurs majeurs (ordre `compareAuthors`) +
+  thèse courte (`quizThesis`) (auto-évaluation).
 `stripHtml()` nettoie les `def`/`i` (retire balises et `<details>`). **L'`id`
-doit rester stable** entre visites (sert de clé de progression).
+doit rester stable** entre visites (sert de clé de progression) : C1/C2 =
+`c1:`/`c2:` + id du concept ; C3 = `c3:<auteur>:<quizHash(quizFold(citation))>:a|b`
+(empreinte du TEXTE, insensible à la typographie ; avant oct. 2026 c'était la
+POSITION, qui glissait quand on éditait). `QUIZ_LEGACY` (ancien id → nouveau)
+sert à `migrateQuizState()`, appelée par `loadQuizState()` (marqueur `idv:2`).
+**Ne jamais renommer un `id` de concept à la légère** : sa progression est perdue.
 
 ### Moteur Leitner — double horizon
 `QUIZ_INTERVALS = {sprint:[0,1,2,4,7], long:[0,2,5,14,30]}` (jours, boîtes 1→5).
@@ -561,12 +600,15 @@ Les 2 horizons gardent leur progression séparée (basculer ne perd rien).
 « Maîtrisé » = boîte ≥ 4. **Vocabulaire UI** : côté interface on dit « **palier
 de mémorisation** » (1→5) et « cartes **mémorisées** » — *jamais* « boîte »
 (jargon Leitner) ni « niveau » (réservé à la gamification ⭐ XP, pour éviter la
-confusion). En interne, le code garde `box`/« boîte ». Fonctions : `isDue(card,horizon)`, `onAnswer(id,ok)`
+confusion). En interne, le code garde `box`/« boîte ». Fonctions : `isDue(card,horizon,st)`, `onAnswer(id,ok)`
 (ok→box+1 max 5 ; échec→box=1 ; maj lastSeen/seen/correct + compteur quotidien +
 **XP/niveau** ; **renvoie** `{gain, promoted, newlyMastered, box, leveledUp}`
-pour alimenter le récap de fin), `pickSession(n=15)` (dues triées par boîte
-ascendante + nouvelles jamais vues, léger mélange), `cardsForFilter()`,
-`quizStats()`.
+pour alimenter le récap de fin), `pickSession(n=15,st)` (dues triées par boîte
+ascendante, au hasard à boîte égale, puis nouvelles **tirées au hasard** dans
+tout le filtre ; une seule carte par paire ; léger mélange), `cardsForFilter(st)`,
+`quizStats(st)`. **Performance** : ces fonctions reçoivent l'état `st` lu UNE
+fois par affichage (avant oct. 2026, `isDue` relisait le stockage pour chaque
+carte : 864 lectures, ~300 ms par clic). `todayStr()` = date **locale**.
 
 ### localStorage `philo-quiz`
 ```js
@@ -575,12 +617,25 @@ ascendante + nouvelles jamais vues, léger mélange), `cardsForFilter()`,
   daily:{date,count,goal,streak,lastDate},
   gamif:{xp,level},                        // gamification (transversal aux horizons)
   prefs:{dontWarnNewSession},              // « ne plus afficher » l'avertissement
-  active:{ids:[…],idx,mode,horizon,results}|null }  // session reprenable (sérialisée)
+  active:{ids:[…],idx,mode,horizon,results}|null,  // session reprenable (sérialisée)
+  activeAt, resetAt:{sprint,long}, epoch,  // dates pour la fusion entre appareils
+  idv:2 }                                  // ids de cartes déjà migrés
 ```
 Lu/garanti par `loadQuizState()` ; écrit par `saveQuizState()`. **Persistance** :
 tout est dans `localStorage`, donc la progression survit à un refresh, à la
 fermeture de l'onglet et à un redémarrage de l'appareil (rien n'est en
 `sessionStorage`). Seul un effacement manuel du stockage du site la supprime.
+
+**Synchro du quiz (compte connecté, table `quiz_progress`).** `mergeQuiz(a,b)`
+fusionne carte par carte (la révision la plus récente gagne) ; toute révision
+antérieure à une **remise à zéro datée** est oubliée (`epoch` = remise à zéro
+totale par `resetAllQuiz`, `resetAt[h]` = d'un rythme par `resetQuizHorizon`) ;
+la session gardée est celle écrite en dernier (`activeAt`, posé par
+`persistActive`). `syncOnLogin` et `syncOnFocus` FUSIONNENT (même compte) au
+lieu d'adopter le distant ; seul un **changement de compte** adopte le distant
+tel quel. Après fusion, on renvoie en ligne si `quizDiffers()`. `syncDirty`
+compte ce qui reste à envoyer ; `syncFlush()` l'envoie quand la page se cache
+(`visibilitychange`, `pagehide`) ; l'évènement `online` relance `syncOnFocus`.
 
 ### Reprise de session (`active`)
 `persistActive()` sérialise/efface la session en cours dans `philo-quiz.active`
@@ -627,8 +682,14 @@ barres niveau + jour, « Refaire les ratés » `redoWrong()` + Retour).
 - **QCM** (toggle Cartes/QCM, `setQuizMode`) : appliqué aux types `def-concept`
   et `cite-author` ; les autres restent en flip. `prepareCard()` génère 4 choix
   une fois via `buildQCMChoices(card)` (3 distracteurs même `cat`/notion, dédoublonnés,
-  mélangés). `qcmAnswer(ix)` → feedback vert/rouge → `advanceQuiz()`. `recordResult`
+  mélangés). Pour `cite-author`, les choix sont des **noms d'auteurs seuls** et un
+  leurre n'est **jamais le même auteur** (avant : « Freud, œuvre A » et « Freud,
+  œuvre B » pouvaient coexister) ; l'œuvre s'affiche après la réponse.
+  `qcmAnswer(ix)` → feedback vert/rouge → `advanceQuiz()`. `recordResult`
   factorise l'enregistrement Leitner pour les 2 modes.
+- **« Relire la fiche »** (`quizReread`, v4) : depuis la face réponse ou après un
+  QCM, ferme le quiz en gardant la session et ouvre le concept, les citations de
+  l'auteur ou la notion d'où vient la carte.
 - **Barres de maîtrise par notion** : `notionMastery()` (% boîte≥4 par notion).
 - (Option non faite) mode **Match**.
 
@@ -636,8 +697,9 @@ barres niveau + jour, « Refaire les ratés » `redoWrong()` + Retour).
 - **Objectif quotidien réglable** 10/20/50 (`setQuizGoal`, persisté dans
   `daily.goal`) + **barre de progression du jour**. **Streak** déjà géré par
   `onAnswer` (`daily.streak`).
-- **Badges** : `quizBadges()` — 1 par notion, acquis si toutes ses cartes en
-  boîte 5 (horizon courant).
+- **Badges** : `quizBadges(st)` — 1 par notion, acquis quand `QUIZ_BADGE_PCT`
+  (80 %) de ses cartes sont mémorisées, palier ≥ 4 (horizon courant). Avant
+  oct. 2026 : toutes au palier 5, hors d'atteinte.
 - **Gamification XP/niveau** (`gamif:{xp,level}`, transversal aux horizons) :
   `onAnswer` attribue 10 XP/bonne réponse (1 sinon) + bonus (+5 promotion de
   boîte, +25 première maîtrise boîte≥4, +25 boîte 5). `quizLevel(xp)` =
@@ -658,3 +720,13 @@ barres niveau + jour, « Refaire les ratés » `redoWrong()` + Retour).
   l'ordre d'origine à valeur de tri égale.
 - Une boîte de contribution de cible `concept` n'a **pas** de `f.notion` :
   ses notions sont dans `f.cnotions` (tableau). Idem dans le JSON généré.
+- **`node --check` ne vérifie rien** sur cette machine (sortie 0 même sur un
+  fichier cassé). Contrôler la syntaxe en compilant `data.js` + le dernier
+  `<script>` inline d'`index.html` concaténés avec `new Function(…)`, et faire
+  d'abord passer une version volontairement cassée (le contrôle doit échouer).
+- **`id` de concept unique.** Un `id` en double dans `CONCEPTS` fait partager
+  la même carte de quiz à deux fiches (4 doublons fusionnés en oct. 2026).
+  Chercher l'`id` (et le `term`) avant d'ajouter un concept.
+- **Prévisualiser une worktree** : la config `philo-static` de
+  `.claude/launch.json` sert le dossier principal du dépôt, pas la worktree ;
+  utiliser une entrée avec `--directory <chemin de la worktree>`.
