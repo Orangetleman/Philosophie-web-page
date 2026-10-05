@@ -1,8 +1,17 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
-  "genere_le": "2026-10-05T18:12:01.235Z",
+  "genere_le": "2026-10-05T18:20:47.953Z",
   "commits": [
+    {
+      "hash": "7025f6e30f4fd8b328363c6ccd72cb20aab722aa",
+      "short": "7025f6e",
+      "auteur": "Orangentleman",
+      "date": "2026-10-05T20:12:00+02:00",
+      "sujet": "Vérificateur du contenu, avec témoins, et protocole du contenu",
+      "corps": "Rien ne contrôlait data.js (diagnostic § 5). Sur le modèle de\nverifier_corpus.py de Fiches BUT :\n\n- outils/verifier_contenu.mjs (Node seul) pose 9 questions : KEYS, champs\n  des notions, ids et termes de concept uniques, relations valides, format\n  des repères, fiche AM de chaque auteur, dialogues, guillemets des\n  citations, traces de support de cours. Sortie « cohérent » ou\n  « À CORRIGER » ; les avertissements (reformulations, dialogues vers un\n  auteur sans fiche) ne bloquent pas.\n- --temoins glisse une faute par question dans une copie des données :\n  les 9 sont vues. Témoin réel : lancé sur le data.js de main, il retrouve\n  les erreurs corrigées à l'étape 1 (10 doublons, 12 fiches sans bio,\n  143 citations mal guillemetées, 63 traces de cours).\n- .githooks/pre-commit le lance, bloquant, quand data.js est commité\n  (éprouvé : refus sur un id en double, passage sur les données saines).\n- docs/protocole-contenu.md : d'où vient le contenu, citation exacte ou\n  reformulation, trois statuts, minimum d'une notion, vérifications,\n  compte rendu.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": ""
+    },
     {
       "hash": "9e3101d464efb7ed7e883f8438acd25668972952",
       "short": "9e3101d",

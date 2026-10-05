@@ -88,9 +88,19 @@ copy .env.example .env
 (ci-dessous), lance le script `migrations/2026_aggregator_state.sql` dans
 l'éditeur SQL de Supabase (Dashboard → SQL Editor → coller → Run). Il ajoute
 les colonnes `aggregator_state` / `aggregator_updated_at` à la table
-`contributions` et en **interdit la lecture** aux contributeurs (notes
-internes). Sans cette migration, `sync`/`push` échoueront avec une erreur de
-colonne absente.
+`contributions`. Sans cette migration, `sync`/`push` échoueront avec une
+erreur de colonne absente. ⚠ Son « REVOKE SELECT (aggregator_state) » ne
+suffisait pas à cacher ces notes internes aux contributeurs : lance aussi
+`migrations/2026_contributions_colonnes.sql` (droits colonne par colonne).
+
+**Toutes les migrations, dans l'ordre** (pour une base neuve) :
+`2026_schema_base.sql` (tables du compte et des propositions, reconstituées
+depuis le code en oct. 2026 : à comparer d'abord avec la base réelle grâce à
+`2026_schema_lecture.sql`, en lecture seule), `2026_aggregator_state.sql`,
+`2026_admin_mobile.sql`, `2026_anon_contributions.sql`,
+`2026_contributions_colonnes.sql`. Leurs règles d'accès sont éprouvées par
+le banc `outils/banc/` (`npm ci && node banc_schema.mjs`, à la racine du
+banc).
 
 ### Flux
 

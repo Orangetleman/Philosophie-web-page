@@ -64,6 +64,17 @@ version périmée.
   par question dans une copie et vérifie qu'elle est vue (à relancer après
   toute modification du vérificateur ; une règle nouvelle = une question +
   son témoin). `--racine <dossier>` contrôle une autre copie du site.
+- **Base Supabase** : son schéma est versionné dans `philo-aggregator/migrations/`
+  (ordre et usage : README de l'agrégateur). `2026_schema_base.sql` est une
+  RECONSTITUTION depuis le code : la comparer à la base réelle
+  (`2026_schema_lecture.sql`, lecture seule) avant de s'en servir. Le banc
+  `outils/banc/` (PGlite, `npm ci && node banc_schema.mjs`) joue toutes les
+  migrations et éprouve les règles d'accès, chacune avec son témoin. Toute
+  migration nouvelle : l'ajouter à `ORDRE` dans `banc_schema.mjs`, avec ses
+  essais. ⚠ En PostgreSQL, un `REVOKE` sur une COLONNE ne retire rien si le rôle
+  garde le droit sur la TABLE (Supabase donne tout d'office à anon et
+  authenticated) : restreindre par `revoke all` sur la table puis `grant`
+  colonne par colonne.
 - Le hook `.githooks/pre-commit` le lance (bloquant) dès que `data.js` est
   dans le commit. ⚠ `core.hooksPath` pointe vers le `.githooks` du dépôt
   PRINCIPAL : dans une worktree, c'est la version de `main` qui s'exécute.

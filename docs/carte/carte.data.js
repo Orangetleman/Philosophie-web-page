@@ -34,7 +34,7 @@ window.CARTE = {
       "sw.js":      "Service Worker PWA (cache, hors-ligne).",
       "manifest.json": "Métadonnées d'installation PWA.",
       "philo-aggregator/": "Pipeline Python local : ingest des propositions, relecture Gemini, dashboard, export.",
-      "outils/":           "Outillage Node sans dépendance : verifier_contenu.mjs (contrôle de data.js, avec témoins)."
+      "outils/":           "Outillage Node : verifier_contenu.mjs (contrôle de data.js, avec témoins, sans dépendance) ; banc/ (règles d'accès Supabase sur PGlite)."
     }
   },
 
@@ -392,9 +392,15 @@ window.CARTE = {
       symbols:[{kind:"fn",name:"mergeQuiz",ref:"index.html:6939"},{kind:"fn",name:"syncOnLogin",ref:"index.html:7002"},{kind:"fn",name:"syncOnFocus",ref:"index.html:7175"},{kind:"var",name:"syncDirty",ref:"index.html:7092"},{kind:"fn",name:"syncPushQuiz",ref:"index.html:7094"},{kind:"fn",name:"syncFlush",ref:"index.html:7135"},{kind:"fn",name:"quizDiffers",ref:"index.html:7146"}],
       liens:[{to:"quiz.state",type:"lit",note:"Lit et réécrit philo-quiz (fusion)."},{to:"sync.tables.quiz_progress",type:"ecrit",note:"Upsert du blob quiz."}] },
 
+    { id:"sync.banc", label:"Banc d'essai des règles d'accès", niveau:1, parent:"sync", domaine:"sync",
+      novice:"Une fausse base de données, montée sur l'ordinateur, sur laquelle on vérifie que personne ne peut lire ou modifier ce qui ne lui appartient pas.",
+      ingenieur:"outils/banc/banc_schema.mjs (oct. 2026) : PGlite + decor_supabase.sql (rôles et droits par défaut de Supabase, auth.uid()) ; joue ORDRE (les migrations) puis 10 essais sous un rôle via sous(), chacun avec un témoin qui retire la règle. A révélé que le REVOKE colonne de 2026_aggregator_state.sql ne cachait rien.",
+      symbols:[{kind:"var",name:"ORDRE",ref:"outils/banc/banc_schema.mjs:29"},{kind:"var",name:"ESSAIS",ref:"outils/banc/banc_schema.mjs:63"},{kind:"fn",name:"sous",ref:"outils/banc/banc_schema.mjs:47"}],
+      liens:[{to:"sync.tables",type:"lit",note:"Éprouve les règles des tables Supabase."}] },
+
     { id:"sync.tables", label:"Tables Supabase", niveau:1, parent:"sync", domaine:"sync",
       novice:"Les trois tableaux en ligne : tes propositions, tes préférences et ta progression au quiz.",
-      ingenieur:"Trois tables PostgREST, protégées par RLS (auth.uid() = user_id). Leur schéma n'est pas encore versionné dans le dépôt (diagnostic § 2.4).",
+      ingenieur:"Trois tables PostgREST, protégées par RLS (auth.uid() = user_id). Schéma versionné depuis oct. 2026 dans philo-aggregator/migrations/ (2026_schema_base.sql, reconstitué depuis le code ; droits colonne par colonne sur contributions : 2026_contributions_colonnes.sql), éprouvé par outils/banc/banc_schema.mjs (PGlite, un témoin par essai).",
       symbols:[{kind:"table",name:"contributions",ref:"index.html:4776"},{kind:"table",name:"preferences",ref:"index.html:7011"},{kind:"table",name:"quiz_progress",ref:"index.html:7010"}] },
       { id:"sync.tables.quiz_progress", label:"quiz_progress", niveau:2, parent:"sync.tables", domaine:"sync",
         novice:"Le tableau qui stocke ta progression au quiz pour la retrouver sur un autre appareil.",

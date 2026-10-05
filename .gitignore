@@ -11,3 +11,5 @@ __pycache__/
 
 # Cours manuscrits (PDF) : on ne veut pas les versionner, mais ils sont souvent dans le dossier de travail.
 cours_manuscrits/
+# Dépendances du banc d'essai (outils/banc) : installées par npm ci.
+node_modules/
