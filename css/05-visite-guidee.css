@@ -1,0 +1,130 @@
+/* css/05-visite-guidee.css — morceau de la feuille de style du site. Le build
+   (outils/construire.mjs) recolle css/*.css dans l'ORDRE des noms pour
+   produire app.css : l'ordre compte (cascade CSS). */
+/* ── Visite guidée (onboarding) + bouton d'aide ─────────────────────
+   Remplace l'ancien overlay « 4 conseils » par une vraie visite pas-à-pas
+   à projecteur (spotlight), pilotée par le module TOUR du <script>.
+   - .tour-blocker : voile plein écran qui CAPTURE tous les clics — la page
+     n'est pas interactive pendant la visite (on avance avec les boutons).
+     Transparent par défaut ; .dim l'assombrit uniformément (étapes
+     « carte centrée » : bienvenue / récap / fin, sans cible).
+   - .tour-spot : rectangle posé sur l'élément ciblé. Sa GRANDE ombre
+     portée assombrit tout SAUF ce rectangle → effet projecteur. Il ne capte
+     pas les clics (pointer-events:none) ; c'est .tour-blocker, dessous, qui
+     bloque (z-index : blocker < spot < bulle).
+   - .tour-bubble : la bulle d'explication + les contrôles (cliquables). */
+.tour-blocker{position:fixed;inset:0;z-index:1300;display:none;background:transparent}
+.tour-blocker.open{display:block}
+.tour-blocker.dim{background:rgba(0,0,0,.72)}
+.tour-spot{position:fixed;z-index:1301;border-radius:var(--border-radius-md);
+  pointer-events:none;display:none;
+  box-shadow:0 0 0 9999px rgba(0,0,0,.72),0 0 0 2px var(--color-border-info);
+  transition:top .22s ease,left .22s ease,width .22s ease,height .22s ease}
+.tour-bubble{position:fixed;z-index:1302;width:min(330px,90vw);display:none;
+  background:var(--color-background-primary);border:0.5px solid var(--color-border-info);
+  border-radius:var(--border-radius-lg);padding:16px 16px 12px;
+  box-shadow:0 8px 30px rgba(0,0,0,.5);color:var(--color-text-primary);
+  transition:top .2s ease,left .2s ease}
+.tour-part{font-size:10px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;
+  color:var(--color-text-info);margin-bottom:5px}
+.tour-title{font-size:15px;font-weight:600;margin-bottom:6px}
+.tour-text{font-size:12.5px;color:var(--color-text-secondary);line-height:1.55}
+.tour-text b{color:var(--color-text-primary);font-weight:600}
+/* Liste à puces dans une bulle de visite (étape « Réglages & aide ») : compacte,
+   puces discrètes — pour présenter plusieurs options sans pavé de texte. */
+.tour-text ul.tour-list{margin:8px 0 6px;padding-left:17px;display:flex;flex-direction:column;gap:5px}
+.tour-text ul.tour-list li{line-height:1.45}
+.tour-progress{display:flex;gap:5px;flex-wrap:wrap;margin:13px 0 11px}
+/* Progression ENCADRÉE par thème : chaque partie de la visite (cf.
+   TOUR_PART_COLORS) forme un petit cadre arrondi à sa couleur — fond très
+   transparent + contour léger ; la partie en cours reçoit la classe .cur
+   (contour plus net), posée en JS. La couleur de la partie est passée en
+   variable inline --pc, réutilisée par les pastilles à l'intérieur. */
+/* Chaque cadre de partie est CLIQUABLE (saute à cette partie de la visite) et
+   affiche le NOM de la partie au survol/focus via ::after (étiquette instantanée
+   lue dans data-label). position:relative pour ancrer l'étiquette. */
+.tour-pgroup{position:relative;display:inline-flex;align-items:center;gap:4px;padding:3px 6px;
+  border-radius:999px;cursor:pointer;transition:border-color .2s,background .2s,filter .2s}
+.tour-pgroup:hover{filter:brightness(1.4)}
+.tour-pgroup:focus-visible{outline:2px solid var(--pc,var(--color-border-info));outline-offset:2px}
+.tour-pgroup[data-label]:hover::after,.tour-pgroup[data-label]:focus-visible::after{
+  content:attr(data-label);position:absolute;bottom:calc(100% + 6px);left:50%;
+  transform:translateX(-50%);white-space:nowrap;z-index:5;pointer-events:none;
+  background:var(--color-background-secondary);color:var(--color-text-primary);
+  border:0.5px solid var(--pc,var(--color-border-info));border-radius:6px;
+  padding:3px 7px;font-size:11px;font-weight:600;box-shadow:0 4px 14px rgba(0,0,0,.45)}
+.tour-dot{width:7px;height:7px;border-radius:50%;
+  background:var(--pc,var(--color-border-tertiary));opacity:.3;transition:opacity .2s,transform .2s}
+.tour-dot.done{opacity:.6}
+.tour-dot.cur{opacity:1;transform:scale(1.25)}
+.tour-ctrl{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.tour-btn{font-family:inherit;font-size:12px;font-weight:500;cursor:pointer;
+  border-radius:var(--border-radius-md);padding:7px 12px;outline:none;
+  transition:filter .15s,background .15s,color .15s}
+.tour-btn-next{background:var(--color-background-info);border:0.5px solid var(--color-border-info);
+  color:var(--color-text-info)}
+.tour-btn-next:hover{filter:brightness(1.3)}
+.tour-btn-prev{background:transparent;border:0.5px solid var(--color-border-tertiary);
+  color:var(--color-text-secondary)}
+.tour-btn-prev:hover{color:var(--color-text-primary);border-color:var(--color-border-secondary)}
+.tour-skip{margin-left:auto;display:flex;gap:10px}
+.tour-link{background:none;border:0;font-family:inherit;font-size:11px;cursor:pointer;
+  color:var(--color-text-tertiary);padding:4px 2px;text-decoration:underline;text-underline-offset:2px}
+.tour-link:hover{color:var(--color-text-secondary)}
+/* Écran de décision (fin du noyau) : choix empilé — bouton principal pleine
+   largeur, refus discret en dessous (et non rejeté à droite comme un « passer »). */
+.tour-ctrl-decision{flex-direction:column;align-items:stretch;gap:8px}
+.tour-ctrl-decision .tour-btn-next{text-align:center;padding:9px 12px}
+.tour-ctrl-decision .tour-link{text-align:center;margin:0}
+/* Croix de fermeture de la bulle — n'apparaît qu'en accès direct à une
+   partie (cf. tourBubbleHTML : seulement si tourState.jumped). */
+.tour-close{position:absolute;top:9px;right:9px;width:22px;height:22px;
+  border-radius:var(--border-radius-md);background:transparent;
+  border:0.5px solid var(--color-border-tertiary);color:var(--color-text-tertiary);
+  font-size:14px;line-height:1;cursor:pointer;font-family:inherit;outline:none;
+  display:flex;align-items:center;justify-content:center;transition:all .15s}
+.tour-close:hover{background:var(--color-background-secondary);color:var(--color-text-primary)}
+
+/* Bouton d'aide « ? » (rouvre la visite). Il vit dans .topbar-actions comme
+   simple élément flex (plus de position:fixed → aucun chevauchement avec la
+   recherche, y compris sur mobile). Le menu, lui, reste fixé (cf. .help-menu). */
+.help-btn{flex-shrink:0;width:30px;height:30px;
+  border-radius:50%;background:var(--color-background-secondary);
+  border:0.5px solid var(--color-border-secondary);color:var(--color-text-secondary);
+  font-size:15px;font-weight:600;cursor:pointer;line-height:1;font-family:inherit;
+  display:flex;align-items:center;justify-content:center;transition:all .15s}
+.help-btn:hover{color:var(--color-text-info);border-color:var(--color-border-info)}
+/* Menu déroulant du bouton d'aide. */
+.help-menu{position:fixed;top:58px;right:28px;z-index:210;width:235px;display:none;
+  background:var(--color-background-primary);border:0.5px solid var(--color-border-secondary);
+  border-radius:var(--border-radius-lg);padding:6px;box-shadow:0 8px 30px rgba(0,0,0,.5)}
+.help-menu.open{display:block}
+.help-menu-title{font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--color-text-tertiary);padding:7px 8px 4px}
+.help-item{display:block;width:100%;text-align:left;font-family:inherit;font-size:12.5px;
+  background:none;border:0;border-radius:var(--border-radius-md);color:var(--color-text-secondary);
+  padding:8px 10px;cursor:pointer;transition:background .15s,color .15s}
+.help-item:hover{background:var(--color-background-secondary);color:var(--color-text-primary)}
+.help-item.primary{color:var(--color-text-info);font-weight:500}
+.help-sep{height:0.5px;background:var(--color-border-tertiary);margin:5px 4px}
+/* Sur mobile, le bouton « ? » reste dans le groupe d'actions à droite de la
+   barre d'en-tête ; on ne resserre que le menu déroulant (toujours fixé). */
+@media (max-width:700px){
+  .help-menu{top:48px;right:12px}
+}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.62);z-index:1000;
+  display:none;align-items:center;justify-content:center;padding:20px;
+  padding-bottom:calc(20px + env(safe-area-inset-bottom,0px))}
+.modal-overlay.open{display:flex}
+.modal-panel{background:var(--color-background-primary);
+  border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);
+  width:min(680px,94vw);max-height:88vh;max-height:88dvh;display:flex;flex-direction:column;overflow:hidden}
+.modal-head{display:flex;align-items:center;justify-content:space-between;
+  padding:14px 18px;border-bottom:0.5px solid var(--color-border-tertiary);flex-shrink:0}
+.modal-title{font-size:14px;font-weight:600;color:var(--color-text-primary)}
+.modal-close{width:26px;height:26px;border-radius:var(--border-radius-md);
+  background:transparent;border:0.5px solid var(--color-border-tertiary);
+  color:var(--color-text-tertiary);font-size:16px;cursor:pointer;line-height:1;outline:none;
+  display:flex;align-items:center;justify-content:center;transition:all .15s}
+.modal-close:hover{background:var(--color-background-secondary);color:var(--color-text-primary)}
+.modal-body{padding:18px;overflow-y:auto;font-size:13px;color:var(--color-text-secondary);line-height:1.6}

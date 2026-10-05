@@ -1,8 +1,26 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
-  "genere_le": "2026-10-05T19:48:19.645Z",
+  "genere_le": "2026-10-05T19:53:53.759Z",
   "commits": [
+    {
+      "hash": "2b8380df1532a086138156fc7cf7ff5643cfd57a",
+      "short": "2b8380d",
+      "auteur": "Orangentleman",
+      "date": "2026-10-05T21:53:48+02:00",
+      "sujet": "Découpage d'index.html : le code passe dans js/ et css/, recollé par le build",
+      "corps": "index.html faisait 8 371 lignes (CSS + HTML + tout le JS) et devait être\nréécrit par sections entières. Il garde le squelette HTML (275 lignes) et\ncharge app.css, data.js, puis app.js.\n\n- js/ : 14 morceaux coupés aux bannières de section existantes (données et\n  état, navigation, barre latérale, fiches, liens, contribution, réglages,\n  visite guidée, compte, partage, synchro, démarrage, quiz, recherche).\n  css/ : 8 morceaux. L'ordre n'a pas changé.\n- Le build les recolle dans l'ordre des noms en UN SEUL app.js (et app.css) :\n  le JavaScript se comporte exactement comme l'ancien <script> unique (une\n  fonction reste utilisable avant la ligne où elle est écrite, ce qui ne\n  serait plus vrai avec plusieurs <script>). Il vérifie la syntaxe d'app.js\n  et nomme le fichier source et la ligne d'une faute (--temoins le prouve).\n  app.js et app.css entrent dans le précache.\n- Preuve : app.js et app.css sont identiques à l'ancien <script> et à\n  l'ancien <style>, hors lignes vides aux coupures (témoin : une espace\n  ajoutée est vue). Rendu vérifié dans le navigateur.\n- Carte du projet : verifie.mjs cherche désormais la DÉFINITION d'un\n  symbole et non une simple mention (une fonction supprimée mais encore\n  citée dans un commentaire passait pour présente : témoin vu), retrouve un\n  symbole qui a changé de fichier, et --corriger réécrit les refs. Le build\n  le lance ; son --controle exige des refs exactes (240 refs corrigées).\n- Vérificateur du contenu : AUTHOR_ALIASES est lu dans js/.\n- Hook de commit : déclenché aussi par js/, css/, docs/carte/, app.*.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": "Découpage d'index.html"
+    },
+    {
+      "hash": "abb3b176e6791663ef09a36622e1a9641ef4dd74",
+      "short": "abb3b17",
+      "auteur": "Orangentleman",
+      "date": "2026-10-05T21:48:19+02:00",
+      "sujet": "contenu : fiche de Ricœur nommée ricoeur.js (la ligature avait été perdue)",
+      "corps": "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": "contenu"
+    },
     {
       "hash": "4f15c9f3ca1d82076edef740cc3813b538cbbb36",
       "short": "4f15c9f",

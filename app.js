@@ -1,0 +1,6836 @@
+/* app.js — GÉNÉRÉ par outils/construire.mjs : js/*.js recollés dans l'ordre des noms.
+   NE PAS ÉDITER : modifier js/, puis lancer « node outils/construire.mjs ». */
+/* js/01-donnees-etat.js — morceau du script du site. Le build (outils/construire.mjs)
+   recolle js/*.js dans l'ORDRE des noms en UN SEUL script, app.js : les
+   fonctions restent visibles d'un morceau à l'autre comme avant, et le code
+   « de premier niveau » s'exécute dans cet ordre. */
+/* ══════════════════════════════════════════════════════════════════
+   A. DONNÉES — chargées depuis data.js (script classique, globales)
+   ──────────────────────────────────────────────────────────────────
+   Les données vivent dans data.js (chargé AVANT ce script) : on les
+   consomme ici directement comme variables globales.
+     const D        → dictionnaire des 17 notions du programme (clé =
+                      identifiant : "conscience", "nature", "bonheur"…).
+     const KEYS     → Object.keys(D) (ordre d'affichage des notions).
+     const AM       → métadonnées des auteurs (bio, courant, période,
+                      thèmes, dialogues).
+     const CONCEPTS → glossaire des concepts clés.
+     const CC       → couleurs par courant philosophique (resté ici).
+
+   Forme d'une notion D[k] (champs principaux) :
+     c   → couleur hex (badge, pills, graphe…)   l → label lisible
+     s   → sous-titre / question d'accroche       def → définition HTML
+     auteurs → [{n, ideas:[{w, i, citations:[…], new?, modified?}]}]
+               (multi-idées + multi-citations ; ancien {n,w,i,q} migré)
+     textes  → [{n, t}]  ·  exemples → [{tag, tit, body, lien}]
+     plans   → plans de dissertation [{q, intro, pb, axes:[…]}]
+               (les anciens « axes » y sont convertis par le build,
+                migrated:true)
+     liens   → noms d'autres notions liées (navigables)
+     diss    → sujets de dissertation (string ou {q, new?})
+
+   Les données arrivent déjà canoniques (build : outils/construire.mjs) ;
+   buildAI() construit l'index AI des auteurs.
+   ══════════════════════════════════════════════════════════════════ */
+
+
+/* ── B. ÉTAT GLOBAL DE L'AFFICHAGE ───────────────────────────────────
+   Ces variables mémorisent ce qui est affiché à l'écran. Toute
+   modification doit être suivie d'un appel à renderSB() et/ou
+   renderContent() / renderAuthorContent() pour mettre à jour l'UI.
+   (Déclarées dans data.js jusqu'en oct. 2026 ; data.js ne garde plus que
+   les données. KEYS, l'ordre des notions, y reste.) */
+let cur=KEYS[0];             // notion active (ex: "conscience")
+let curTab='auteurs';        // onglet actif dans la vue notion
+let curConceptSubTab='concepts'; // sous-onglet de l'onglet Concepts : 'concepts' | 'liens'
+let curExempleSubTab='exemples';  // sous-onglet de l'onglet Exemples : 'exemples' | 'accroches'
+let sbMode='notions';        // mode sidebar : 'notions' | 'auteurs' | 'concepts' | 'reperes' | 'methodo'
+let curAuthor=null;          // auteur actif (chaîne = nom exact dans AM/AI)
+let curAuthorTab='idees';    // onglet actif dans la fiche auteur
+
+/* ── Concept state ───────────────────────────────────────────── */
+let curConcept=null;
+let conceptSearch='';
+let conceptFilter=new Set(); // empty = all notions
+let conceptFilterOpen=false;
+let conceptFilterMode='or'; // 'or' = au moins une notion ; 'and' = toutes les notions cochées
+// new (Repères) : recherche de l'onglet « Repères » (sbMode='reperes').
+// Les repères (cat:'Repère') sont des CONCEPTS comme les autres, mais
+// rangés à part : on les liste ici et on les EXCLUT du glossaire général.
+// La fiche affichée reste la même (renderConceptContent + curConcept).
+// NB : l'onglet « Méthodo » (sbMode='methodo') est, lui, un GUIDE de
+// méthodologie distinct (renderMethodoContent) — à ne pas confondre.
+let repereSearch='';
+// Méthodo (guide) : parcours courant affiché par renderMethodoContent().
+//   'dissertation' | 'explication'. METHODO_TOPICS pilote la liste de la
+//   sidebar et le fil d'Ariane (défini plus bas, près de METHODO_GUIDE).
+let methodoTopic='dissertation';
+// REPERES() / vrais concepts : helpers de partition du tableau CONCEPTS.
+//   isRepere(c)    → ce concept est-il un repère méthodologique ?
+//   REPERES()      → liste des repères (onglet Repères)
+//   realConcepts() → glossaire « Concepts » (tout SAUF les repères)
+function isRepere(c){return c&&c.cat==='Repère';}
+function REPERES(){return CONCEPTS.filter(isRepere);}
+function realConcepts(){return CONCEPTS.filter(c=>!isRepere(c));}
+/* ── E. FORMAT DES DONNÉES ────────────────────────────────────────────
+   data.js arrive DÉJÀ au format canonique : auteurs {n, ideas:[{w, i,
+   citations:[…]}]}, plans de dissertation dans D[k].plans (les anciens axes
+   y sont convertis, migrated:true), relations de concepts unifiées (les
+   anciennes tensions sont des relations de type 'distinction').
+   Jusqu'en oct. 2026, ces conversions étaient refaites ici à CHAQUE
+   chargement (normalizeAuthor, migrateAxeToPlan, normalizeD,
+   normalizeConcepts). Elles vivent désormais dans outils/lib/formats.mjs,
+   appliquées une fois par le build (outils/construire.mjs), qui écrit
+   data.js à partir des sources de contenu/.                             */
+
+/* buildAI() — construit l'index auteurs à partir de D (déjà normalisé).
+   Parcourt toutes les notions et regroupe chaque auteur avec :
+     · notions  : liste des clés de notion où il apparaît
+     · entries  : { clé_notion → objet auteur normalisé {n, ideas:[…]} }
+   Si un auteur apparaît plusieurs fois dans D[k].auteurs[] (cas rare
+   mais autorisé), les idées sont concaténées — on ne perd aucune idée.
+   Résultat stocké dans const AI, utilisé par la sidebar Auteurs
+   et la fiche auteur (renderAuthorContent).                          */
+function buildAI(){
+  const idx={};
+  KEYS.forEach(k=>{
+    (D[k].auteurs||[]).forEach(a=>{
+      const name=a.n;
+      if(!idx[name]) idx[name]={notions:[],entries:{}};
+      if(!idx[name].entries[k]){
+        idx[name].notions.push(k);
+        // COPIE (n + NOUVEAU tableau d'idées) : ne jamais référencer l'objet
+        // de D tel quel, sinon la fusion ci-dessous (push) muterait
+        // D[k].auteurs[] — la notion afficherait alors des idées dupliquées
+        // et une carte « is-modified » fantôme (mélange neuve/ancienne).
+        idx[name].entries[k]={n:a.n, ideas:a.ideas.slice()};
+      }else{
+        // Doublon du même auteur dans la même notion : fusion des idées
+        // (dans la COPIE de l'index, jamais dans D).
+        idx[name].entries[k].ideas.push(...a.ideas);
+      }
+    });
+  });
+  return idx;
+}
+const AI=buildAI();
+
+/* authorsSorted() — renvoie la liste des noms d'auteurs triée :
+   d'abord par nombre de notions couvertes (décroissant),
+   puis alphabétiquement en cas d'égalité.                           */
+function authorsSorted(){
+  return Object.keys(AI).sort((a,b)=>{
+    const d=AI[b].notions.length-AI[a].notions.length;
+    return d!==0?d:a.localeCompare(b,'fr');
+  });
+}
+
+/* ── Tri des cartes auteur par « popularité » ────────────────────────────
+   Sert à ordonner les cartes d'auteur d'une notion (onglet « Auteurs »).
+   Trois critères en cascade :
+     1. PRINCIPAL — nombre de notions où l'auteur est référencé
+        (AI[nom].notions.length) : un auteur transversal « pèse » plus.
+     2. DÉPARTAGE — score « importance bac » = mesure AUTOMATIQUE du corpus
+        (combien l'auteur est développé partout : idées + dialogues + citations)
+        + un COUP DE POUCE manuel (BAC_BONUS) pour les incontournables du
+        programme, afin qu'une figure majeure peu développée ne tombe pas trop.
+     3. ALPHABÉTIQUE — pour un ordre stable et lisible à score égal.            */
+
+// Coup de pouce manuel : poids ajouté aux auteurs les plus attendus au bac.
+// Le score AUTO suffit pour la masse ; ceci ne sert qu'à départager / remonter
+// un auteur majeur. Barème à 4 paliers (12 / 9 / 6 / 3). MODIFIABLE à volonté.
+// (Variantes de nom incluses quand un même auteur apparaît sous plusieurs clés.)
+const BAC_BONUS={
+  // Palier S — fondateurs, quasi omniprésents au bac
+  "Platon":12,"Aristote":12,"Descartes":12,"Kant":12,
+  // Palier A — incontournables
+  "Hegel":9,"Rousseau":9,"Nietzsche":9,"Marx":9,"Freud":9,"Sartre":9,
+  "Hume":9,"Spinoza":9,"Pascal":9,"Bergson":9,"Hannah Arendt":9,"Arendt":9,
+  // Palier B — très fréquents
+  "Hobbes":6,"Locke":6,"Épicure":6,"Mill":6,"J.-S. Mill":6,"Merleau-Ponty":6,
+  "Heidegger":6,"Épictète":6,"Schopenhauer":6,"Leibniz":6,"Tocqueville":6,
+  "Comte":6,"Bachelard":6,"Popper":6,"Weber":6,"Rawls":6,"Bourdieu":6,"Durkheim":6,
+  // Palier C — classiques secondaires fréquemment cités
+  "Augustin":3,"Thomas d'Aquin":3,"Kierkegaard":3,"Sénèque":3,"Russell":3,
+  "La Boétie":3,"Étienne de La Boétie":3,"Thoreau":3,"Henry David Thoreau":3,
+  "Simondon":3,"Jonas":3,"Hans Jonas":3,"Simone Weil":3,"Engels":3,"Camus":3
+};
+
+/* authorPopularity(name) — critère 1 : nb de notions couvertes. */
+function authorPopularity(name){ return AI[name]?AI[name].notions.length:0; }
+
+/* authorBacScore(name) — critère 2 : score « importance bac » (auto + bonus).
+   Idées et dialogues pèsent double (densité de traitement), citations simple. */
+function authorBacScore(name){
+  const e=AI[name]; let ideas=0, cites=0;
+  if(e) Object.keys(e.entries).forEach(k=>{
+    const en=e.entries[k]; ideas+=(en.ideas||[]).length;
+    (en.ideas||[]).forEach(it=>{ cites+=(it.citations||[]).length; });
+  });
+  const dlg=(AM[name]&&AM[name].dialogues)?AM[name].dialogues.length:0;
+  return ideas*2 + dlg*2 + cites + (BAC_BONUS[name]||0);
+}
+
+/* compareAuthors(an, bn) — comparateur de tri (popularité ↓, bac ↓, A→Z). */
+function compareAuthors(an, bn){
+  return authorPopularity(bn)-authorPopularity(an)
+      || authorBacScore(bn)-authorBacScore(an)
+      || an.localeCompare(bn,'fr');
+}
+
+/* ── Courant → color ─────────────────────────────────────────── */
+const CC={
+  'Rationalisme':'#185FA5','Empirisme / Libéralisme':'#3B6D11','Idéalisme allemand':'#534AB7',
+  'Existentialisme / Phénoménologie':'#534AB7','Matérialisme historique':'#D85A30',
+  'Phénoménologie / Philosophie politique':'#993556','Utilitarisme / Libéralisme':'#EF9F27',
+  'Libéralisme égalitaire':'#EF9F27','Libertarianisme':'#5F5E5A','Sociologie critique':'#D4537E',
+  'Épicurisme':'#1D9E75','Contractualisme / Absolutisme':'#D85A30','Empirisme antique / Aristotélisme':'#3B6D11',
+  'Éthique de la responsabilité':'#185FA5','Ontologie / Phénoménologie existentiale':'#534AB7',
+  'Philosophie de la technique':'#185FA5','Philosophie sociale / Mysticisme':'#D4537E',
+  'Sociologie compréhensive':'#5F5E5A','Libéralisme politique':'#EF9F27',
+  'Vitalisme / Philosophie de la durée':'#1D9E75','Empirisme / Scepticisme':'#3B6D11',
+  'Phénoménologie du corps':'#534AB7','Matérialisme dialectique':'#D85A30',
+  'Transcendantalisme / Anarchisme pacifiste':'#1D9E75','Humanisme de la Renaissance':'#EF9F27',
+  'Rationalisme / Panthéisme':'#185FA5','Idéalisme transcendantal':'#534AB7',
+  'Psychanalyse':'#993556','Lumières / Contractualisme':'#1D9E75',
+  'Généalogie / Philosophie de la vie':'#993556','Idéalisme platonicien':'#534AB7',
+  'Matérialisme / Athéisme des Lumières':'#3B6D11','Stoïcisme':'#1D9E75',
+  'Socialisme / Critique du travail':'#D85A30','Philosophie de la culture / Postmodernisme':'#5F5E5A',
+  'Herméneutique / Phénoménologie':'#534AB7','Rationalisme républicain':'#185FA5',
+  'Augustinisme / Apologétique':'#EF9F27','Pessimisme / Volontarisme':'#5F5E5A',
+  'Philosophie de la technique / Philosophie de l\'existence':'#185FA5',
+  'Linguistique / Phénoménologie du langage':'#6B4FA0',
+  'Structuralisme / Linguistique':'#6B4FA0',
+  'Philosophie analytique du langage':'#6B4FA0',
+  'Pragmatique de la communication / Psychologie systémique':'#6B4FA0',
+  'Linguistique cognitive / Relativisme linguistique':'#6B4FA0',
+  'Littérature politique / Socialisme démocratique':'#D85A30',
+  'Philosophie du langage / Philologie':'#6B4FA0',
+  'Épistémologie critique':'#2E86AB',
+  'Histoire et philosophie des sciences':'#2E86AB',
+  'Philosophie de l\'absurde':'#C2603A',
+  'Scepticisme':'#6E7B8B'
+};
+/* js/02-navigation.js — morceau du script du site. Le build (outils/construire.mjs)
+   recolle js/*.js dans l'ORDRE des noms en UN SEUL script, app.js : les
+   fonctions restent visibles d'un morceau à l'autre comme avant, et le code
+   « de premier niveau » s'exécute dans cet ordre. */
+/* ── Historique de navigation ────────────────────────────────── */
+/* ── Système de navigation historique ───────────────────────────────
+   navHistory  : pile d'états (snapshots de cur, curTab, sbMode, etc.)
+   pushHistory(): sauvegarde l'état courant avant chaque navigation.
+   backBtnHTML(): génère le HTML du bouton Retour — désactivé si la
+                  pile est vide, sinon affiche le nombre de pages.
+   Le bouton Retour est placé dans la barre d'onglets (.tabs) de chaque
+   vue (notion, auteur, concept) par les fonctions renderContent* .     */
+let navHistory=[];
+let _navigating=false; // évite les boucles lors du goBack
+// navTouched : l'utilisateur a-t-il navigué depuis le chargement ? (mis à true
+// dans pushHistory). Sert à la PERSISTANCE DE POSITION (philo-nav) : on ne
+// pousse vers le cloud qu'après une vraie navigation, et on n'ADOPTE une
+// position distante (autre appareil) que si l'utilisateur n'a pas encore bougé
+// ici — pour ne jamais le « téléporter » en pleine lecture.
+let navTouched=false;
+
+/* pushHistory() — empile l'état d'affichage courant (mode, notion, onglets,
+   auteur, concept) dans la pile de navigation, pour le bouton Retour. Ignore
+   les doublons et les appels survenant pendant un goBack (drapeau _navigating). */
+function pushHistory(){
+  if(_navigating) return;
+  navTouched=true;   // une navigation utilisateur a eu lieu (cf. persistNav / adoption distante)
+  const last=navHistory[navHistory.length-1];
+  // Ne pas pousser si on est déjà sur la même page
+  if(last&&last.sbMode===sbMode&&last.cur===cur&&last.curTab===curTab
+    &&last.curAuthor===curAuthor&&last.curAuthorTab===curAuthorTab
+    &&last.curConcept===curConcept&&last.methodoTopic===methodoTopic) return;
+  navHistory.push({sbMode,cur,curTab,curAuthor,curAuthorTab,curConcept,methodoTopic});
+  if(navHistory.length>50) navHistory.shift();
+  updateBackBtn();
+}
+
+/* goBack() — dépile le dernier état de navigation et le restaure (bouton
+   Retour). _navigating empêche pushHistory de ré-empiler pendant l'opération. */
+function goBack(){
+  if(!navHistory.length) return;
+  _navigating=true;
+  const s=navHistory.pop();
+  sbMode=s.sbMode; cur=s.cur; curTab=s.curTab;
+  curAuthor=s.curAuthor; curAuthorTab=s.curAuthorTab; curConcept=s.curConcept;
+  if(s.methodoTopic) methodoTopic=s.methodoTopic;
+  renderSB();
+  if(sbMode==='auteurs'&&curAuthor) renderAuthorContent();
+  else if(sbMode==='concepts'||sbMode==='reperes') renderConceptContent();
+  else if(sbMode==='methodo') renderMethodoContent();   // guide de méthodologie
+  else renderContent();
+  _navigating=false;
+  updateBackBtn();
+}
+
+/* updateBackBtn() — synchronise l'état (activé/désactivé + infobulle) de
+   tous les boutons Retour présents dans le DOM avec la pile de navigation. */
+function updateBackBtn(){
+  document.querySelectorAll('.back-btn').forEach(btn=>{
+    btn.disabled=navHistory.length===0;
+    btn.title=navHistory.length?`Retour (${navHistory.length} page${navHistory.length>1?'s':''} dans l'historique)`:'Aucune page précédente';
+  });
+  // Persiste la pile « Retour » (résiste à l'actualisation). updateBackBtn est
+  // appelée à chaque changement de la pile (pushHistory / goBack).
+  try{ localStorage.setItem('philo-navhist', JSON.stringify(navHistory)); }catch(e){}
+}
+
+/* ── Persistance de la POSITION (résiste à l'actualisation + cross-plateforme) ──
+   On mémorise « où l'on est » (mode sidebar + fiche + onglet) dans localStorage
+   (philo-nav) à chaque rendu, et — pour les comptes connectés — on l'inclut dans
+   les préférences synchronisées (prefsBlobForSync.nav). Ainsi : un rafraîchissement
+   rouvre la même page, et un autre appareil reprend là où on s'était arrêté.
+   Liste des onglets de notion (validation à la restauration). */
+const NOTION_TABS=['auteurs','textes','concepts','diss','exemples'];
+
+/* renderCurrentView() — (re)rend la vue correspondant au sbMode courant.
+   Même aiguillage que goBack ; factorisé pour la restauration et le démarrage. */
+function renderCurrentView(){
+  if(sbMode==='auteurs'&&curAuthor) renderAuthorContent();
+  else if(sbMode==='concepts'||sbMode==='reperes') renderConceptContent();
+  else if(sbMode==='methodo') renderMethodoContent();
+  else renderContent();
+}
+
+/* navStateNow() — capture la position courante sous forme d'objet sérialisable. */
+function navStateNow(){
+  return {sbMode,cur,curTab,curConceptSubTab,curExempleSubTab,
+          curAuthor,curAuthorTab,curConcept,methodoTopic};
+}
+
+/* sameNav(a,b) — deux états désignent-ils la même page ? (champs « cœur »,
+   ceux que goBack restaure ; les sous-onglets sont ignorés). */
+function sameNav(a,b){
+  return !!a&&!!b&&a.sbMode===b.sbMode&&a.cur===b.cur&&a.curTab===b.curTab
+    &&a.curAuthor===b.curAuthor&&a.curAuthorTab===b.curAuthorTab
+    &&a.curConcept===b.curConcept&&a.methodoTopic===b.methodoTopic;
+}
+
+/* persistNav() — sauvegarde la position dans localStorage à chaque rendu (donc
+   à chaque navigation). Si l'utilisateur a réellement navigué (navTouched) et
+   qu'il est connecté, la synchro des préférences (debouncée) emportera aussi la
+   position vers le cloud. Appelée depuis renderCrumbs (commun aux 4 vues). */
+function persistNav(){
+  try{ localStorage.setItem('philo-nav', JSON.stringify(navStateNow())); }catch(e){}
+  if(navTouched && typeof syncOnPrefsChange==='function') syncOnPrefsChange();
+}
+
+/* applyNavState(s) — applique une position (locale ou distante) aux variables
+   globales, APRÈS validation (la cible doit toujours exister — une notion/fiche
+   a pu disparaître entre deux versions). Renvoie true si une position valide a
+   été appliquée, false sinon (on garde alors les valeurs par défaut). */
+function applyNavState(s){
+  if(!s||typeof s!=='object') return false;
+  const m=s.sbMode;
+  if(m==='notions'){
+    if(!s.cur||!D[s.cur]) return false;
+    cur=s.cur; sbMode='notions';
+    curTab=NOTION_TABS.includes(s.curTab)?s.curTab:'auteurs';
+    if(s.curConceptSubTab) curConceptSubTab=s.curConceptSubTab;
+    if(s.curExempleSubTab) curExempleSubTab=s.curExempleSubTab;
+    return true;
+  }
+  if(m==='auteurs'){
+    if(!s.curAuthor||!AI[s.curAuthor]) return false;
+    curAuthor=s.curAuthor; curAuthorTab=s.curAuthorTab||'idees'; sbMode='auteurs';
+    return true;
+  }
+  if(m==='concepts'||m==='reperes'){
+    const c=CONCEPTS.find(x=>x&&x.id===s.curConcept);
+    if(!c) return false;
+    curConcept=s.curConcept; sbMode=m;
+    return true;
+  }
+  if(m==='methodo'){
+    methodoTopic=(METHODO_TOPICS.find(t=>t.id===s.methodoTopic))?s.methodoTopic:'dissertation';
+    sbMode='methodo';
+    return true;
+  }
+  return false;
+}
+
+/* restoreNavFromStorage() — au démarrage : recharge la position sauvegardée.
+   Renvoie true si une position valide a été restaurée. */
+function restoreNavFromStorage(){
+  let s; try{ s=JSON.parse(localStorage.getItem('philo-nav')||'null'); }catch(e){ return false; }
+  return applyNavState(s);
+}
+
+/* navEntryValid(s) — une entrée d'historique pointe-t-elle encore vers une
+   cible existante ? (sans muter l'état). Sert à nettoyer l'historique restauré. */
+function navEntryValid(s){
+  if(!s) return false;
+  if(s.sbMode==='notions') return !!D[s.cur];
+  if(s.sbMode==='auteurs') return !!(s.curAuthor&&AI[s.curAuthor]);
+  if(s.sbMode==='concepts'||s.sbMode==='reperes') return !!CONCEPTS.find(x=>x&&x.id===s.curConcept);
+  if(s.sbMode==='methodo') return true;
+  return false;
+}
+
+/* restoreNavHistory() — au démarrage : recharge la PILE « ← Retour »
+   (philo-navhist) pour que le bouton Retour survive à l'actualisation. Local
+   seulement (l'historique est propre à l'appareil ; la position, elle, se
+   synchronise). Entrées invalides (cible disparue) filtrées. */
+function restoreNavHistory(){
+  let arr; try{ arr=JSON.parse(localStorage.getItem('philo-navhist')||'null'); }catch(e){ return; }
+  if(Array.isArray(arr)) navHistory=arr.filter(navEntryValid).slice(-50);
+}
+
+/* backBtnHTML() — renvoie le HTML du bouton Retour (désactivé si la pile
+   de navigation est vide). Inséré en tête des barres d'onglets. */
+function backBtnHTML(){
+  const disabled=navHistory.length===0;
+  return `<button class="back-btn"${disabled?' disabled':''} onclick="goBack()" title="${disabled?'Aucune page précédente':`Retour (${navHistory.length} page${navHistory.length>1?'s':''})`}">← Retour</button>`;
+}
+/* js/03-barre-laterale.js — morceau du script du site. Le build (outils/construire.mjs)
+   recolle js/*.js dans l'ORDRE des noms en UN SEUL script, app.js : les
+   fonctions restent visibles d'un morceau à l'autre comme avant, et le code
+   « de premier niveau » s'exécute dans cet ordre. */
+/* ── renderSB ────────────────────────────────────────────────── */
+let authorSearch='';
+let authorFilter=new Set(); // empty = all
+let filterOpen=false;
+let filterMode='or'; // 'or' | 'and'
+
+/* authorsFiltered() — applique la recherche texte ET le filtre par notions.
+   Recherche : porte UNIQUEMENT sur le nom de l'auteur (pas sur le courant
+   ni la biographie) — comportement le plus prévisible pour l'utilisateur. */
+function authorsFiltered(){
+  const q=authorSearch.trim().toLowerCase();
+  return authorsSorted().filter(name=>{
+    const entry=AI[name];
+    const matchSearch=!q||name.toLowerCase().includes(q);
+    let matchFilter=true;
+    if(authorFilter.size>0){
+      if(filterMode==='or') matchFilter=entry.notions.some(k=>authorFilter.has(k));
+      else matchFilter=[...authorFilter].every(k=>entry.notions.includes(k));
+    }
+    return matchSearch&&matchFilter;
+  });
+}
+
+/* toggleFilter(k) — coche/décoche la notion k dans le filtre des auteurs,
+   puis reconstruit la sidebar. */
+function toggleFilter(k){
+  if(authorFilter.has(k)) authorFilter.delete(k); else authorFilter.add(k);
+  renderSB();
+}
+
+/* ── F. RENDU — SIDEBAR ──────────────────────────────────────────────
+
+   renderSB() reconstruit la sidebar entière à chaque changement de mode.
+   Elle contient deux zones :
+     · .sb-fixed  : onglets de mode (Notions / Auteurs / Concepts) + barre
+                    de recherche + panneau de filtre — toujours visible
+     · .sidebar-list : liste scrollable des items (notions, auteurs ou concepts)
+
+   Selon sbMode, elle appelle ensuite :
+     · renderSBList()         → liste des notions (mode 'notions')
+     · renderSBList()         → liste des auteurs (mode 'auteurs')
+     · renderSBConceptsList() → liste des concepts (mode 'concepts')        */
+
+/* ── Barres de recherche de la sidebar : saisie, effacement, clic droit ──
+   Trois barres partagent le même comportement (auteurs / concepts / repères).
+   `which` ∈ 'author' | 'concept' | 'repere' identifie la variable d'état et la
+   fonction de rendu de liste à rafraîchir. */
+
+/* sbSearchInput(el, which) — appelé à chaque frappe : met à jour la variable
+   d'état, ne re-rend QUE la liste (pas toute la sidebar, pour la perf) et
+   ajuste la visibilité de la croix d'effacement de ce champ. */
+function sbSearchInput(el, which){
+  if(which==='author'){ authorSearch=el.value; renderSBList(); }
+  else if(which==='concept'){ conceptSearch=el.value; renderSBConceptsList(); }
+  else if(which==='repere'){ repereSearch=el.value; renderSBReperesList(); }
+  const btn=el.parentNode.querySelector('.sb-search-clear');
+  if(btn) btn.style.display=el.value?'flex':'none';
+}
+
+/* clearSidebarSearch(which) — vide la barre concernée et refait le rendu
+   complet de la sidebar (qui réécrit le champ vide + masque la croix), puis
+   redonne le focus au champ pour enchaîner une nouvelle saisie. */
+function clearSidebarSearch(which){
+  if(which==='author') authorSearch='';
+  else if(which==='concept') conceptSearch='';
+  else if(which==='repere') repereSearch='';
+  renderSB();
+  const inp=document.querySelector('.sb-search'); if(inp) inp.focus();
+}
+
+/* searchCtxClear(e, which) — clic droit sur la barre : on bloque le menu
+   contextuel natif du navigateur et on vide le champ à la place. */
+function searchCtxClear(e, which){ e.preventDefault(); clearSidebarSearch(which); return false; }
+
+function renderSB(){
+  const sb=document.getElementById('sb');
+
+  // ── Zone fixe : sb-tabs toujours en haut ──────────────────────
+  let fixed=sb.querySelector('.sb-fixed');
+  if(!fixed){
+    fixed=document.createElement('div');
+    fixed.className='sb-fixed';
+    sb.innerHTML='';
+    sb.appendChild(fixed);
+  }
+  // 5 onglets de mode. « Concepts » et « Repères » partagent la MÊME fiche
+  // (renderConceptContent + curConcept) mais des listes disjointes : le
+  // glossaire « Concepts » exclut les repères, l'onglet « Repères » ne
+  // montre QU'EUX. En entrant dans un mode, on recale curConcept pour
+  // qu'il pointe sur une fiche présente dans la liste de ce mode.
+  // « Méthodo » est à part : un GUIDE de méthodologie (renderMethodoContent),
+  // pas une fiche concept. (Les onglets s'enroulent sur plusieurs lignes —
+  // cf. CSS .sb-tabs/.sb-tab — pour rester tous visibles dans la sidebar.)
+  fixed.innerHTML=`<div class="sb-tabs" style="gap:1px;padding:8px 0 6px">
+    <div class="sb-tab${sbMode==='notions'?' active':''}" onclick="sbMode='notions';renderSB();renderContent()" style="font-size:9px">Notions</div>
+    <div class="sb-tab${sbMode==='auteurs'?' active':''}" onclick="if(sbMode!=='auteurs'){sbMode='auteurs';if(!curAuthor)curAuthor=authorsSorted()[0];curAuthorTab='idees';renderSB();renderAuthorContent();}" style="font-size:9px">Auteurs</div>
+    <div class="sb-tab${sbMode==='concepts'?' active':''}" onclick="if(sbMode!=='concepts'){sbMode='concepts';const c0=realConcepts().find(c=>c.id===curConcept)||realConcepts()[0];if(c0)curConcept=c0.id;renderSB();renderConceptContent();}" style="font-size:9px">Concepts</div>
+    <div class="sb-tab${sbMode==='reperes'?' active':''}" onclick="if(sbMode!=='reperes'){sbMode='reperes';const r0=REPERES().find(c=>c.id===curConcept)||REPERES()[0];if(r0)curConcept=r0.id;renderSB();renderConceptContent();}" style="font-size:9px" title="Repères du programme : les distinctions conceptuelles (absolu/relatif, légal/légitime…)">Repères</div>
+    <div class="sb-tab${sbMode==='methodo'?' active':''}" onclick="if(sbMode!=='methodo'){sbMode='methodo';renderSB();renderMethodoContent();}" style="font-size:9px" title="Méthode pas à pas : dissertation et explication de texte">Méthodo</div>
+  </div>`;
+
+  // ── Bouton « 🎯 Réviser » (mode quiz) : AU-DESSUS de .sb-propose ──
+  // Toujours visible (révision ET édition). Créé une seule fois, conservé.
+  let quizBtn=sb.querySelector('.sb-quiz');
+  if(!quizBtn){
+    quizBtn=document.createElement('button');
+    quizBtn.className='sb-quiz';
+    quizBtn.innerHTML='🎯 Réviser';
+    quizBtn.title='Réviser en cartes (quiz à répétition espacée)';
+    quizBtn.onclick=openQuiz;
+    sb.appendChild(quizBtn);
+  }
+
+  // ── Bouton de contribution : entre les onglets de mode et la liste ──
+  // Créé une seule fois, puis conservé entre les rendus (comme .sb-fixed).
+  let propose=sb.querySelector('.sb-propose');
+  if(!propose){
+    propose=document.createElement('button');
+    propose.className='sb-propose';
+    propose.innerHTML='💡 Proposer du contenu';
+    propose.title='Proposer un ajout, une correction ou une remarque';
+    propose.onclick=openProposal;
+    sb.appendChild(propose);
+  }
+
+  let list=sb.querySelector('.sidebar-list');
+  if(!list){
+    list=document.createElement('div');
+    list.className='sidebar-list';
+    sb.appendChild(list);
+  }
+  list.innerHTML='';
+
+  // ── Bouton « ⚙ Réglages » (bas de la sidebar, persistant) ──
+  // Regroupe les fonctions NON nécessaires à la révision (bascule du mode
+  // d'affichage, etc.). Remplace l'ancien bouton « Mode » peu lisible.
+  let settingsBtn=sb.querySelector('.sb-settings');
+  if(!settingsBtn){
+    settingsBtn=document.createElement('button');
+    settingsBtn.className='sb-settings';
+    settingsBtn.innerHTML='⚙ Réglages';
+    settingsBtn.title='Réglages (mode d\'affichage…)';
+    settingsBtn.onclick=openSettings;
+    sb.appendChild(settingsBtn);
+  }
+  // new (comptes) : zone compte, tout en bas, persistante comme le reste.
+  // Déconnecté → DEUX boutons (Se connecter / Créer un compte) ; connecté →
+  // un seul (nom → profil). Contenu et visibilité gérés par renderAccountBtn().
+  let acctWrap=sb.querySelector('.sb-account-wrap');
+  if(!acctWrap){
+    acctWrap=document.createElement('div');
+    acctWrap.className='sb-account-wrap';
+    sb.appendChild(acctWrap);
+  }
+  renderAccountBtn();   // remplit la zone selon l'état (connecté / déconnecté)
+  applyPhiloMode();   // met à jour le libellé selon l'état actuel
+  applyFicheMode();   // applique le « mode fiche » (lecture compressée) si actif
+
+  if(sbMode==='notions'){
+    KEYS.forEach(k=>{
+      const el=document.createElement('div');
+      el.className='nb'+(k===cur?' active':'');
+      el.innerHTML=`<span class="dot" style="background:${D[k].c}"></span>${D[k].l}`;
+      el.onclick=()=>{pushHistory();cur=k;curTab='auteurs';sbMode='notions';renderSB();renderContent()};
+      list.appendChild(el);
+    });
+  } else if(sbMode==='auteurs'){
+    // Search row (fixe dans la zone fixe, en dessous des sb-tabs)
+    let searchRow=fixed.querySelector('.sb-search-row');
+    if(!searchRow){
+      searchRow=document.createElement('div');
+      searchRow.className='sb-search-row';
+      fixed.appendChild(searchRow);
+    }
+    searchRow.innerHTML=`
+      <div class="sb-search-field">
+        <input class="sb-search" type="text" placeholder="Rechercher…" value="${authorSearch.replace(/"/g,'&quot;')}"
+          oninput="sbSearchInput(this,'author')" oncontextmenu="searchCtxClear(event,'author')" />
+        <button class="sb-search-clear" style="display:${authorSearch?'flex':'none'}" title="Effacer (clic droit aussi)" aria-label="Effacer la recherche" onclick="clearSidebarSearch('author')">✕</button>
+      </div>
+      <button class="sb-filter-btn${(authorFilter.size>0)||filterOpen?' active':''}" onclick="filterOpen=!filterOpen;renderSB()" title="Filtrer par notion">⊟</button>`;
+    // Filter panel (dans la zone scrollable)
+    if(filterOpen){
+      const fp=document.createElement('div');
+      fp.className='filter-panel open';
+      const checks=KEYS.map(k=>{
+        const checked=authorFilter.has(k);
+        return `<div class="filter-notion-item" onclick="toggleFilter('${k}')">
+          <div class="filter-notion-check${checked?' checked':''}" style="${checked?`background:${D[k].c};color:#fff`:''}">${checked?'✓':''}</div>
+          <span class="filter-notion-label">${D[k].l}</span>
+          <span style="width:6px;height:6px;border-radius:50%;background:${D[k].c};flex-shrink:0;margin-left:auto"></span>
+        </div>`;
+      }).join('');
+      fp.innerHTML=`<div class="filter-panel-title">Filtrer par notion</div>
+        <div style="display:flex;gap:3px;margin-bottom:8px">
+          <button class="filter-action-btn" title="Un auteur apparaît s'il traite au moins une des notions cochées" style="${filterMode==='or'?'background:var(--color-background-secondary);color:var(--color-text-primary);border-color:var(--color-border-secondary)':''}"
+            onclick="filterMode='or';renderSB()">Au moins une</button>
+          <button class="filter-action-btn" title="Un auteur n'apparaît que s'il traite toutes les notions cochées simultanément" style="${filterMode==='and'?'background:var(--color-background-secondary);color:var(--color-text-primary);border-color:var(--color-border-secondary)':''}"
+            onclick="filterMode='and';renderSB()">Toutes</button>
+        </div>
+        <div class="filter-notions">${checks}</div>
+        <div class="filter-actions">
+          <button class="filter-action-btn" onclick="authorFilter=new Set(KEYS);renderSB()">Sélect. tout</button>
+          <button class="filter-action-btn" onclick="authorFilter=new Set();renderSB()">Effacer</button>
+        </div>`;
+      list.appendChild(fp);
+    }
+    const listWrap=document.createElement('div');
+    listWrap.id='sb-author-list';
+    list.appendChild(listWrap);
+    renderSBList();
+  } else if(sbMode==='concepts'){
+    // Concepts
+    let searchRow=fixed.querySelector('.sb-search-row');
+    if(!searchRow){
+      searchRow=document.createElement('div');
+      searchRow.className='sb-search-row';
+      fixed.appendChild(searchRow);
+    }
+    searchRow.innerHTML=`
+      <div class="sb-search-field">
+        <input class="sb-search" type="text" placeholder="Rechercher…" value="${conceptSearch.replace(/"/g,'&quot;')}"
+          oninput="sbSearchInput(this,'concept')" oncontextmenu="searchCtxClear(event,'concept')" />
+        <button class="sb-search-clear" style="display:${conceptSearch?'flex':'none'}" title="Effacer (clic droit aussi)" aria-label="Effacer la recherche" onclick="clearSidebarSearch('concept')">✕</button>
+      </div>
+      <button class="sb-filter-btn${(conceptFilter.size>0)||conceptFilterOpen?' active':''}" onclick="conceptFilterOpen=!conceptFilterOpen;renderSB()" title="Filtrer par notion">⊟</button>`;
+    if(conceptFilterOpen){
+      const cfp=document.createElement('div');
+      cfp.className='filter-panel open';
+      const cChecks=KEYS.map(k=>{
+        const checked=conceptFilter.has(k);
+        return `<div class="filter-notion-item" onclick="toggleConceptFilter('${k}')">
+          <div class="filter-notion-check${checked?' checked':''}" style="${checked?`background:${D[k].c};color:#fff`:''}">${checked?'✓':''}</div>
+          <span class="filter-notion-label">${D[k].l}</span>
+          <span style="width:6px;height:6px;border-radius:50%;background:${D[k].c};flex-shrink:0;margin-left:auto"></span>
+        </div>`;
+      }).join('');
+      cfp.innerHTML=`<div class="filter-panel-title">Filtrer par notion</div>
+        <div style="display:flex;gap:3px;margin-bottom:8px">
+          <button class="filter-action-btn" title="Un concept apparaît s'il est lié à au moins une des notions cochées" style="${conceptFilterMode==='or'?'background:var(--color-background-secondary);color:var(--color-text-primary);border-color:var(--color-border-secondary)':''}"
+            onclick="conceptFilterMode='or';renderSB()">Au moins une</button>
+          <button class="filter-action-btn" title="Un concept n'apparaît que s'il est lié à toutes les notions cochées simultanément" style="${conceptFilterMode==='and'?'background:var(--color-background-secondary);color:var(--color-text-primary);border-color:var(--color-border-secondary)':''}"
+            onclick="conceptFilterMode='and';renderSB()">Toutes</button>
+        </div>
+        <div class="filter-notions">${cChecks}</div>
+        <div class="filter-actions">
+          <button class="filter-action-btn" onclick="conceptFilter=new Set(KEYS);renderSB()">Sélect. tout</button>
+          <button class="filter-action-btn" onclick="conceptFilter=new Set();renderSB()">Effacer</button>
+        </div>`;
+      list.appendChild(cfp);
+    }
+    const listWrap=document.createElement('div');
+    listWrap.id='sb-concept-list';
+    list.appendChild(listWrap);
+    renderSBConceptsList();
+  } else if(sbMode==='reperes'){
+    // ── Repères : liste des repères (cat:'Repère') ──
+    // Recherche seule (pas de filtre par notion : les repères forment une
+    // liste de référence stable et courte). Même carte .cb que les concepts.
+    let searchRow=fixed.querySelector('.sb-search-row');
+    if(!searchRow){
+      searchRow=document.createElement('div');
+      searchRow.className='sb-search-row';
+      fixed.appendChild(searchRow);
+    }
+    searchRow.innerHTML=`
+      <div class="sb-search-field">
+        <input class="sb-search" type="text" placeholder="Rechercher un repère…" value="${repereSearch.replace(/"/g,'&quot;')}"
+          oninput="sbSearchInput(this,'repere')" oncontextmenu="searchCtxClear(event,'repere')" />
+        <button class="sb-search-clear" style="display:${repereSearch?'flex':'none'}" title="Effacer (clic droit aussi)" aria-label="Effacer la recherche" onclick="clearSidebarSearch('repere')">✕</button>
+      </div>`;
+    const listWrap=document.createElement('div');
+    listWrap.id='sb-reperes-list';
+    list.appendChild(listWrap);
+    renderSBReperesList();
+  } else {
+    // ── Méthodo (guide) : liste des deux parcours méthodologiques ──
+    // Pas de recherche : la liste est minuscule (Dissertation / Explication
+    // de texte). Un clic choisit le parcours rendu dans la zone principale.
+    METHODO_TOPICS.forEach(t=>{
+      const el=document.createElement('div');
+      el.className='nb'+(t.id===methodoTopic?' active':'');
+      el.innerHTML=`<span class="dot" style="background:var(--color-accent-quiz,#4f9dff)"></span>${t.label}`;
+      el.onclick=()=>{methodoTopic=t.id;renderSB();renderMethodoContent();};
+      list.appendChild(el);
+    });
+  }
+}
+
+/* toggleConceptFilter(k) — coche/décoche la notion k dans le filtre des
+   concepts, puis reconstruit la sidebar. */
+function toggleConceptFilter(k){
+  if(conceptFilter.has(k)) conceptFilter.delete(k); else conceptFilter.add(k);
+  renderSB();
+}
+
+/* renderSBConceptsList() — filtre, trie et affiche la liste des concepts.
+   Filtres cumulables : recherche texte + notions cochées.
+   Recherche : porte UNIQUEMENT sur le terme du concept (pas sur la
+   catégorie ni la définition) — comportement le plus prévisible.
+   Tri : par nombre de notions traitées (décroissant). Les concepts
+   transversaux (liés à plusieurs notions) apparaissent donc en haut.
+   On ne compte que les notions VALIDES (présentes dans D), exactement
+   comme le rendu des pastilles — ainsi le tri correspond toujours au
+   nombre de badges visibles, même si une clé erronée traîne dans data.
+   À nombre égal, l'ordre du tableau CONCEPTS est conservé (tri stable). */
+function renderSBConceptsList(){
+  const wrap=document.getElementById('sb-concept-list');
+  if(!wrap) return;
+  const q=conceptSearch.trim().toLowerCase();
+  // 1. Filtrage : recherche sur le terme ET filtre par notions (si actif).
+  //    On part de realConcepts() : les repères (cat:'Repère') sont rangés
+  //    dans l'onglet « Méthodo », pas dans le glossaire général.
+  const list=realConcepts().filter(c=>{
+    const matchSearch=!q||c.term.toLowerCase().includes(q);
+    let matchFilter=true;
+    if(conceptFilter.size>0){
+      if(conceptFilterMode==='or') matchFilter=c.notions.some(k=>conceptFilter.has(k));
+      else matchFilter=[...conceptFilter].every(k=>c.notions.includes(k));
+    }
+    return matchSearch&&matchFilter;
+  // 2. Tri : par nombre de notions VALIDES traitées (décroissant)
+  }).sort((a,b)=>b.notions.filter(k=>D[k]).length-a.notions.filter(k=>D[k]).length);
+  if(!list.length){wrap.innerHTML=`<div style="padding:10px 4px;font-size:11px;color:var(--color-text-tertiary);text-align:center">Aucun résultat</div>`;return;}
+  // Compteur TOUJOURS affiché : total de concepts, ou « filtrés / total »
+  // quand une recherche/un filtre est actif (repères exclus du total).
+  const hasFilter=q||(conceptFilter.size>0);
+  const total=realConcepts().length;
+  const countTxt=hasFilter
+    ?`${list.length} / ${total} concepts`
+    :`${total} concept${total>1?'s':''}`;
+  wrap.innerHTML=`<div class="sb-results-count">${countTxt}</div>`;
+  list.forEach(c=>{
+    const el=document.createElement('div');
+    el.className='cb'+(c.id===curConcept?' active':'');
+    const bdgs=c.notions.map(k=>D[k]?`<span class="ab-bdg" style="background:${D[k].c}" title="${D[k].l}"></span>`:'').join('');
+    el.innerHTML=`<div class="cb-term">${c.term}</div><div class="ab-badges" style="margin-top:3px">${bdgs}</div>`;
+    el.onclick=()=>{curConcept=c.id;renderSBConceptsList();renderConceptContent()};
+    wrap.appendChild(el);
+  });
+}
+
+/* renderSBReperesList() — filtre et affiche la liste des REPÈRES (sbMode
+   'reperes'). Mêmes cartes .cb que les concepts, mais :
+     · source = REPERES() (les concepts cat:'Repère' uniquement) ;
+     · recherche sur le terme seule (pas de filtre par notion) ;
+     · tri ALPHABÉTIQUE par terme (liste de référence, pas de notion-count).
+   La fiche affichée au clic est la même que pour un concept
+   (renderConceptContent + curConcept) : un repère EST un concept. */
+function renderSBReperesList(){
+  const wrap=document.getElementById('sb-reperes-list');
+  if(!wrap) return;
+  const q=repereSearch.trim().toLowerCase();
+  const all=REPERES();
+  const list=all
+    .filter(c=>!q||c.term.toLowerCase().includes(q))
+    .sort((a,b)=>a.term.localeCompare(b.term,'fr'));
+  if(!list.length){wrap.innerHTML=`<div style="padding:10px 4px;font-size:11px;color:var(--color-text-tertiary);text-align:center">Aucun repère</div>`;return;}
+  // Compteur : total de repères, ou « filtrés / total » si recherche active.
+  const countTxt=q?`${list.length} / ${all.length} repères`:`${all.length} repère${all.length>1?'s':''}`;
+  wrap.innerHTML=`<div class="sb-results-count">${countTxt}</div>`;
+  list.forEach(c=>{
+    const el=document.createElement('div');
+    el.className='cb'+(c.id===curConcept?' active':'');
+    const bdgs=c.notions.map(k=>D[k]?`<span class="ab-bdg" style="background:${D[k].c}" title="${D[k].l}"></span>`:'').join('');
+    el.innerHTML=`<div class="cb-term">${c.term}</div><div class="ab-badges" style="margin-top:3px">${bdgs}</div>`;
+    el.onclick=()=>{curConcept=c.id;renderSBReperesList();renderConceptContent()};
+    wrap.appendChild(el);
+  });
+}
+
+/* CONCEPT_TO_NOTION — table de correspondance pour les concepts
+   dont l'id commence par "notion-" : un clic sur ces concepts
+   redirige vers la notion du programme, non vers une fiche concept.
+   Ex : "notion-conscience" → ouvre D["conscience"] dans sbMode='notions'. */
+const CONCEPT_TO_NOTION={
+  'notion-conscience':'conscience','notion-liberté':'liberte','notion-justice':'justice',
+  'notion-etat':'etat','notion-travail':'travail','notion-technique':'technique',
+  'notion-nature':'nature','notion-bonheur':'bonheur','notion-art':'art',
+  'notion-temps':'temps','notion-langage':'langage','notion-raison':'raison',
+  'notion-science':'science','notion-religion':'religion','notion-verite':'verite',
+  'notion-inconscient':'inconscient'
+};
+
+/* openConcept(id) — point d'entrée des liens .cterm et des cartes concept
+   de la sidebar. Si l'id est une entrée "notion-*", redirige vers la vue
+   notion. Sinon, ouvre la fiche concept dans la zone principale.       */
+function openConcept(id){
+  const notionKey=CONCEPT_TO_NOTION[id];
+  if(notionKey&&D[notionKey]){
+    pushHistory();
+    cur=notionKey; curTab='auteurs'; sbMode='notions';
+    renderSB(); renderContent();
+    focusAfterRender();   // surbrillance d'arrivée (retour contributeur)
+    return;
+  }
+  pushHistory();
+  // Un repère ouvre l'onglet « Repères » (où il est listé), un concept
+  // ordinaire l'onglet « Concepts » : la sidebar reste cohérente avec la
+  // fiche affichée. La fiche elle-même est rendue par renderConceptContent.
+  const c=CONCEPTS.find(x=>x&&x.id===id);
+  sbMode=isRepere(c)?'reperes':'concepts'; curConcept=id;
+  renderSB(); renderConceptContent();
+  focusAfterRender();   // surbrillance d'arrivée (retour contributeur)
+}
+
+/* openNotion(key) — ouvre une notion du programme (clé de D).
+   Point d'entrée des liens .nterm générés dans le texte par linkTerms. */
+function openNotion(key){
+  if(!D[key]) return;
+  pushHistory();
+  cur=key; curTab='auteurs'; sbMode='notions';
+  renderSB(); renderContent();
+  focusAfterRender();   // surbrillance d'arrivée (retour contributeur)
+}
+/* js/04-fiches.js — morceau du script du site. Le build (outils/construire.mjs)
+   recolle js/*.js dans l'ORDRE des noms en UN SEUL script, app.js : les
+   fonctions restent visibles d'un morceau à l'autre comme avant, et le code
+   « de premier niveau » s'exécute dans cet ordre. */
+/* ── Surbrillance d'arrivée des liens dynamiques (retour contributeur) ──────
+   Quand on suit un lien dynamique, on signale où l'on atterrit :
+     · en règle générale, on fait briller l'en-tête (.notion-head) de la fiche
+       ouverte — c'est le repère « tu es ici » ;
+     · cas spécial : une notion ouverte DEPUIS une fiche concept fait briller la
+       1re mention de ce concept dans le contenu de la notion (et défile dessus).
+   Mécanique : pendingConceptMention porte l'id du concept source (consommé une
+   seule fois) ; focusAfterRender() l'applique après le rendu. */
+let pendingConceptMention=null;   // id de concept à repérer dans la notion, ou null
+let pendingAuthorMention=null;    // nom d'auteur à repérer dans la notion (pastille de notion d'une fiche auteur), ou null
+let pendingAccroche=null;         // index d'accroche à faire briller (recherche globale), ou null
+
+/* scrollAndFlash(el) — amène el dans la vue puis le fait briller ~1,6 s.
+   Deux fiabilisations par rapport à une version naïve :
+     · si la cible est dans un <details> replié (ex. mention de concept logée
+       dans le panneau « Approfondir la notion »), on OUVRE ses ancêtres
+       <details> — sinon scrollIntoView défile vers un élément masqué et l'on
+       a l'impression que « ça ne marche pas » ou que ça vise le mauvais repère ;
+     · on attend que la mise en page soit STABLE (double requestAnimationFrame)
+       avant de défiler : juste après une réécriture de .main-content, les
+       hauteurs ne sont pas encore fiables et un défilement immédiat atterrit à
+       côté — c'est la cause des ratés intermittents.
+   On retire/rajoute la classe (avec reflow) pour relancer l'animation même si
+   l'élément la portait déjà. */
+function scrollAndFlash(el){
+  if(!el) return false;
+  // 1) Déplier les <details> ancêtres pour que la cible soit réellement visible.
+  for(let p=el.parentElement;p;p=p.parentElement){
+    if(p.tagName==='DETAILS' && !p.open) p.open=true;
+  }
+  // 2) Défiler + faire briller une fois la mise en page stabilisée.
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    try{ el.scrollIntoView({behavior:'smooth',block:'center'}); }catch(e){}
+    el.classList.remove('flash-target');
+    void el.offsetWidth;             // force un reflow → l'animation repart de zéro
+    el.classList.add('flash-target');
+    setTimeout(()=>{ if(el) el.classList.remove('flash-target'); },1700);
+  }));
+  return true;
+}
+
+/* focusAfterRender() — après le rendu d'une fiche (notion / concept / auteur),
+   applique la surbrillance d'arrivée. Le requestAnimationFrame garantit que le
+   DOM fraîchement injecté existe avant qu'on cherche la cible ; scrollAndFlash
+   s'occupe ensuite d'attendre une mise en page stable avant de défiler. */
+function focusAfterRender(){
+  requestAnimationFrame(()=>{
+    const mainEl=document.getElementById('main');
+    if(!mainEl) return;
+    // 0) Notion ouverte depuis la recherche globale sur une accroche → on fait
+    //    briller la carte d'accroche ciblée (sous-onglet « Accroches »).
+    if(pendingAccroche!==null){
+      const ai=pendingAccroche; pendingAccroche=null;   // consommé
+      const card=mainEl.querySelector('.accroche-card[data-acc="'+ai+'"]');
+      if(card){ scrollAndFlash(card); return; }
+    }
+    // 1) Notion ouverte depuis une fiche concept → on vise le concept.
+    if(pendingConceptMention){
+      const id=pendingConceptMention; pendingConceptMention=null;   // consommé
+      const sel='.cterm[onclick*="openConcept(\''+id+'\')"]';
+      // a) Mention VISIBLE dans la prose courante (offsetParent non nul = hors
+      //    <details> replié) → on la fait briller dans son contexte argumentatif.
+      const inProse=[...mainEl.querySelectorAll(sel)];
+      const visible=inProse.find(el=>el.offsetParent!==null);
+      if(visible){ scrollAndFlash(visible); return; }
+      // b) Concept non mentionné dans la prose visible : le lien notion↔concept
+      //    est de toute façon documenté dans l'onglet « Concepts » de la notion
+      //    (le concept Y FIGURE FORCÉMENT puisqu'on vient de sa pastille
+      //    « Notions concernées »). On bascule donc sur cet onglet et on fait
+      //    briller SA CARTE — au lieu de pointer le simple titre de la notion,
+      //    qui n'apprend rien sur le concept.
+      if(sbMode==='notions' && D[cur] && curTab!=='concepts'){
+        curTab='concepts'; curConceptSubTab='concepts';
+        renderContent();   // recrée contenu + fil d'Ariane
+        requestAnimationFrame(()=>{
+          const term=document.querySelector('#main .concept-card .cc-term[onclick*="openConcept(\''+id+'\')"]');
+          const card=term?term.closest('.concept-card'):null;
+          if(card){ scrollAndFlash(card); return; }
+          const h2=document.querySelector('#main .notion-head'); if(h2) scrollAndFlash(h2);
+        });
+        return;
+      }
+      // c) Dernier recours : mention cachée dans un <details> (scrollAndFlash
+      //    l'ouvrira), sinon on retombe sur l'en-tête plus bas.
+      if(inProse[0]){ scrollAndFlash(inProse[0]); return; }
+    }
+    // 1bis) Notion ouverte depuis une fiche AUTEUR (pastille de notion) → on
+    //        fait briller la CARTE de cet auteur dans l'onglet « Auteurs ».
+    if(pendingAuthorMention){
+      const name=pendingAuthorMention; pendingAuthorMention=null;   // consommé
+      // S'assurer d'être sur l'onglet Auteurs (où vivent les cartes .ac).
+      if(sbMode==='notions' && D[cur] && curTab!=='auteurs'){
+        curTab='auteurs'; renderContent();
+      }
+      // Repérer la carte par le nom exact du lien auteur (.an-link). On compare
+      // le texte plutôt qu'un sélecteur d'attribut, robuste aux apostrophes.
+      requestAnimationFrame(()=>{
+        const link=[...mainEl.querySelectorAll('.ac .an-link')]
+          .find(el=>el.textContent.trim()===name);
+        const card=link?link.closest('.ac'):null;
+        if(card){ scrollAndFlash(card); return; }
+        const h2=mainEl.querySelector('.notion-head'); if(h2) scrollAndFlash(h2);
+      });
+      return;
+    }
+    // 2) Sinon : on fait briller l'en-tête de la fiche (repère d'arrivée).
+    const head=mainEl.querySelector('.notion-head');
+    if(head) scrollAndFlash(head);
+  });
+}
+
+/* openNotionFromConcept(key, conceptId) — ouvre la notion `key` et programme la
+   surbrillance de la 1re mention du concept `conceptId` dans son contenu.
+   Utilisé par les pastilles « Notions concernées » de la fiche concept. */
+function openNotionFromConcept(key, conceptId){
+  if(!D[key]) return;
+  pushHistory();
+  pendingConceptMention=conceptId;
+  cur=key; curTab='auteurs'; sbMode='notions';
+  renderSB(); renderContent();
+  focusAfterRender();
+}
+
+/* openNotionFromAuthor(key, authorName) — ouvre la notion `key` sur l'onglet
+   « Auteurs » et programme la surbrillance de la CARTE de cet auteur dans la
+   notion. Utilisé par les pastilles de notion (« Bonheur → ») des cartes
+   d'idée d'une fiche auteur, pour retrouver d'un clic où l'auteur intervient. */
+function openNotionFromAuthor(key, authorName){
+  if(!D[key]) return;
+  pushHistory();
+  pendingAuthorMention=authorName;
+  cur=key; curTab='auteurs'; sbMode='notions';
+  renderSB(); renderContent();
+  focusAfterRender();
+}
+
+/* openNotionAccroche(key, ai) — ouvre la notion `key` directement sur l'onglet
+   Exemples, sous-onglet « Accroches », et fait briller l'accroche d'indice `ai`.
+   Utilisé par la recherche globale (Ctrl+K) sur les résultats de type accroche. */
+function openNotionAccroche(key, ai){
+  if(!D[key]) return;
+  pushHistory();
+  pendingAccroche=ai;
+  cur=key; curTab='exemples'; curExempleSubTab='accroches'; sbMode='notions';
+  renderSB(); renderContent();
+  focusAfterRender();
+}
+
+/* relTypeLabel(t) — libellé lisible d'un type de relation entre concepts.
+   Utilisé par l'onglet Concepts d'une notion et par la fiche concept. */
+function relTypeLabel(t){
+  return {oppose:"s'oppose à",prolonge:'prolonge',complete:'complète',repond:'répond à',
+          distinction:'se distingue de',implique:'implique'}[t]||t;
+}
+
+/* planCardHTML(p) — rend une carte « plan de dissertation ».
+   La carte est elle-même un <details> DÉROULABLE : on ne voit que le sujet
+   (summary), et on déplie le plan pour lire son développement (divulgation
+   progressive — évite le mur de texte quand une notion a plusieurs plans).
+   Structure dépliée : sujet (q) → problématisation (intro) → problématique
+   (pb) → 3 axes I/II/III. Chaque axe a des sous-parties (A/B/C) rendues en
+   <details> DÉROULABLE (arguments, auteurs, référence, mini-limite) et se
+   clôt par sa LIMITE (transition marquée vers l'axe suivant).
+   Tolère tous les champs vides : les plans issus de la migration
+   automatique (migrated:true) n'ont que les arguments remplis.
+   Utilise la notion courante `cur` (global) pour les boutons « + ».      */
+function planCardHTML(p){
+  const ROMAN=['I','II','III','IV','V','VI'];
+  const LETTERS=['A','B','C','D','E','F'];
+  const statusCls=p.new?' is-new':p.modified?' is-modified':'';
+  const nb=p.new?`<span class="new-badge">✦ Nouveau</span>`:'';
+  const mb=p.modified?`<span class="modified-badge">✎ Modifié</span>`:'';
+  const mig=p.migrated?`<span class="plan-migr" title="Plan converti automatiquement depuis l'ancien format — à enrichir (problématisation, titres d'axes, limites)">↻ à enrichir</span>`:'';
+  // CORPS du plan (problématisation + problématique + axes). Construit à
+  // part car la carte est désormais DÉROULABLE : le développement est
+  // replié par défaut, on ne montre que le sujet (summary). Divulgation
+  // progressive — on déplie le plan qu'on veut réellement travailler.
+  let body='';
+  if(p.intro) body+=`<div class="plan-intro"><span class="plan-lbl">Problématisation —</span> ${linkTerms('<span>'+p.intro+'</span>')}</div>`;
+  if(p.pb) body+=`<div class="plan-pb"><span class="plan-lbl">Problématique —</span> ${linkTerms('<span>'+p.pb+'</span>')}</div>`;
+  (p.axes||[]).forEach((ax,i)=>{
+    body+=`<div class="plan-axe">
+      <div class="plan-axe-head">${ROMAN[i]||(i+1)}. ${ax.t?linkTerms('<span>'+ax.t+'</span>'):'<span class="plan-todo">(titre de l\'axe à préciser)</span>'}</div>`;
+    (ax.sps||[]).forEach((sp,j)=>{
+      const letter=LETTERS[j]||(j+1);
+      // Corps COMPLET de la sous-partie (jamais tronqué) : arguments +
+      // auteurs + référence + mini-limite.
+      let spBody='';
+      if(sp.args) spBody+=`<div class="plan-sp-args">${linkTerms('<span>'+sp.args+'</span>')}</div>`;
+      if(sp.auteurs) spBody+=`<div class="plan-sp-meta"><span class="plan-lbl">Auteurs —</span> ${linkTerms('<span>'+sp.auteurs+'</span>')}</div>`;
+      if(sp.ref) spBody+=`<div class="plan-sp-ref">${linkTerms('<span>'+sp.ref+'</span>')}</div>`;
+      if(sp.limite) spBody+=`<div class="plan-sp-limite"><span class="plan-lbl">Limite —</span> ${linkTerms('<span>'+sp.limite+'</span>')}</div>`;
+      if(sp.t){
+        // Sous-partie TITRÉE → repliable (<details>) : le titre, entier, sert
+        // de résumé. Aucune troncature.
+        body+=`<details class="plan-sp"><summary><span class="plan-sp-letter">${letter}.</span> ${linkTerms('<span>'+sp.t+'</span>')}</summary>
+          <div class="plan-sp-body">${spBody}</div></details>`;
+      }else{
+        // Sous-partie SANS titre (ex. plan migré) → contenu affiché EN ENTIER,
+        // directement, sans repli ni « … ».
+        body+=`<div class="plan-sp plan-sp-flat"><span class="plan-sp-letter">${letter}.</span>
+          <div class="plan-sp-body">${spBody||'<span class="plan-todo">(sous-partie à compléter)</span>'}</div></div>`;
+      }
+    });
+    if(ax.limite) body+=`<div class="plan-axe-limite"><span class="plan-lbl">Limite de l'axe —</span> ${linkTerms('<span>'+ax.limite+'</span>')}</div>`;
+    body+=`</div>`;
+  });
+  body+=pPlus('correction','plan',cur,p.q||'plan');
+  // Carte DÉROULABLE : le sujet (plan-q) sert de résumé cliquable ; le
+  // <details> est replié par défaut. Tout le contenu reste intact à
+  // l'intérieur (rien n'est tronqué), seulement masqué tant qu'on ne
+  // déplie pas. Le bouton « + » de correction vit dans le corps déplié.
+  return `<details class="plan-card${statusCls}">
+    <summary class="plan-q">${linkTerms('<span>'+(p.q||'(sujet à préciser)')+'</span>')} ${nb}${mb}${mig}</summary>
+    <div class="plan-card-body">${body}</div>
+  </details>`;
+}
+
+/* ── G. RENDU — FICHES ───────────────────────────────────────────────
+
+   renderConceptContent() — affiche la fiche d'un concept du glossaire.
+   Contenu : titre, catégorie, définition, auteur(s) associé(s),
+   tensions conceptuelles, notion-pills (liens vers les notions liées). */
+function renderConceptContent(){
+  renderCrumbs();
+  const mainEl=document.getElementById('main');
+  if(!mainEl.querySelector('.tabs')||!mainEl.querySelector('.main-content')){
+    mainEl.innerHTML='<div class="tabs"></div><div class="main-content"></div>';
+  }
+  const tabsEl=mainEl.querySelector('.tabs');
+  const mc=mainEl.querySelector('.main-content');
+  tabsEl.innerHTML=backBtnHTML(); // bouton retour seul dans la barre
+
+  const c=CONCEPTS.find(x=>x.id===curConcept);
+  if(!c){mc.innerHTML='';return;}
+
+  // Notion pills. Au clic, on ouvre la notion ET on fait briller la 1re mention
+  // de CE concept dans son contenu (openNotionFromConcept — retour contributeur).
+  const safeCid=c.id.replace(/'/g,"\\'");
+  const notionPills=c.notions.map(k=>{
+    const nd=D[k]; if(!nd) return '';
+    return `<span class="notion-pill" style="color:${nd.c};border-color:${nd.c}40;background:${nd.c}12"
+      onclick="openNotionFromConcept('${k}','${safeCid}')">${nd.l} →</span>`;
+  }).join('');
+
+  // Auteur link
+  const autLink=c.auteur?c.auteur.split('/').map(a=>{
+    const name=a.trim();
+    return AI[name]?`<span class="an-link" onclick="openAuthor('${name.replace(/'/g,"\\'")}')"> ${name}</span>`:` ${name}`;
+  }).join(' /'):'' ;
+
+  let html=`
+<div class="notion-head">
+  <div>
+    <div class="concept-title">${c.term}</div>
+    ${c.cat?`<span class="concept-cat-badge facet-clickable" title="Voir les concepts de cette catégorie" onclick="openFacet('cat','${String(c.cat).replace(/'/g,"\\'")}')">${c.cat}</span>`:''}
+  </div>
+</div>
+<div class="concept-def-box">${linkTerms(c.def)}${pPlus('correction','concept',c.notions.join(','),c.term,'')}</div>`;
+
+  if(c.auteur) html+=`<div class="concept-section"><div class="concept-section-title">Auteur(s) associé(s)</div><div style="font-size:12px;color:var(--color-text-secondary)">${autLink}</div></div>`;
+
+  // Relations & distinctions (système UNIFIÉ) : on agrège
+  //   · les relations SORTANTES (c.relations) — vers un concept (r.to),
+  //     vers un terme libre (r.term), ou une distinction (desc seule) ;
+  //   · les relations ENTRANTES (autres concepts pointant vers c.id),
+  //     pour que le lien soit visible des deux côtés sans double saisie.
+  // NB : `cur` (clé de notion) n'est PAS utilisé ici — locales selfTerm/other.
+  const rels=[];
+  (c.relations||[]).forEach(r=>{
+    if(r.to){
+      const tg=CONCEPTS.find(x=>x.id===r.to);
+      if(tg) rels.push({kind:'concept',other:tg,type:r.type,desc:r.desc,dir:'out'});
+      else   rels.push({kind:'free',term:r.to,type:r.type,desc:r.desc});   // id orphelin → terme libre
+    }else{
+      rels.push({kind:'free',term:r.term||'',type:r.type,desc:r.desc});    // distinction / terme libre
+    }
+  });
+  CONCEPTS.forEach(x=>{
+    if(x.id===c.id) return;
+    (x.relations||[]).forEach(r=>{ if(r.to===c.id) rels.push({kind:'concept',other:x,type:r.type,desc:r.desc,dir:'in'}); });
+  });
+  // Section TOUJOURS affichée (même vide) pour porter le bouton « Proposer
+  // un lien » et permettre de contribuer.
+  html+=`<div class="concept-section"><div class="concept-section-title">Relations &amp; distinctions</div>`;
+  if(!rels.length) html+=`<div style="color:var(--color-text-tertiary);font-size:12px;padding:4px 0 8px">Aucune relation référencée pour l'instant.</div>`;
+  rels.forEach(r=>{
+    const selfTerm=`<span class="cc-term" style="cursor:default">${c.term}</span>`;
+    // Repère lisible de la relation (pour le « + » de correction).
+    const relRef=c.term+' '+relTypeLabel(r.type)+' '+(r.kind==='concept'?r.other.term:(r.term||r.desc||''));
+    // Distinction pure (pas de cible) : juste le texte (ex. « A ≠ B »).
+    if(r.kind==='free'&&!r.term){
+      html+=`<div class="crel-card"><div class="crel-head"><span class="crel-dir crel-${r.type}">${relTypeLabel(r.type)}</span></div><div class="crel-desc">${linkTerms('<span>'+(r.desc||'')+'</span>')}</div>${pPlus('correction','concept-relation','',c.term+' — distinction : '+(r.desc||''))}</div>`;
+      return;
+    }
+    let left,right;
+    if(r.kind==='concept'){
+      const safeOther=r.other.id.replace(/'/g,"\\'");
+      const otherTerm=`<span class="cc-term" onclick="openConcept('${safeOther}')">${r.other.term}</span>`;
+      left=r.dir==='out'?selfTerm:otherTerm;
+      right=r.dir==='out'?otherTerm:selfTerm;
+    }else{
+      // terme libre : rendu via linkTerms (se liera si une fiche existe un jour)
+      left=selfTerm;
+      right=linkTerms('<span>'+r.term+'</span>');
+    }
+    html+=`<div class="crel-card"><div class="crel-head">${left}<span class="crel-dir crel-${r.type}">${relTypeLabel(r.type)}</span>${right}</div>${r.desc?`<div class="crel-desc">${linkTerms('<span>'+r.desc+'</span>')}</div>`:''}${pPlus('correction','concept-relation','',relRef)}</div>`;
+  });
+  // Bouton « + Proposer un lien » : pré-remplit le concept source (c.term).
+  html+=pPlusCat('concept-relation','','Proposer un lien','',c.term);
+  html+=`</div>`;
+
+  if(c.notions.length) html+=`<div class="concept-section"><div class="concept-section-title">Notions concernées</div><div style="display:flex;flex-wrap:wrap;gap:6px">${notionPills}</div></div>`;
+
+  mc.innerHTML=html;
+}
+
+/* ── G bis. ONGLET MÉTHODO (guide) ───────────────────────────────────
+   Guide de méthode (sbMode='methodo'), DISTINCT de l'onglet « Repères ».
+   Deux parcours (METHODO_TOPICS) : la dissertation et l'explication de
+   texte. Chaque parcours = un SQUELETTE visuel de la copie (vue d'ensemble)
+   + des ÉTAPES dépliables (le détail pas à pas, avec des phrases toutes
+   prêtes et une astuce). Le contenu passe par linkTerms() pour rendre
+   cliquables les concepts/notions/auteurs cités (ex. « problématique »,
+   « thèse »…). Aucune donnée de data.js n'est dupliquée ici : c'est de la
+   méthodologie pure. */
+const METHODO_TOPICS=[
+  {id:'dissertation', label:'Dissertation'},
+  {id:'explication',  label:'Explication de texte'}
+];
+
+const METHODO_GUIDE={
+  dissertation:{
+    titre:'La dissertation',
+    intro:"Disserter, ce n'est pas donner son avis : c'est <b>répondre à un problème par un raisonnement organisé et progressif</b>. "
+        +"On part d'une question, on montre qu'elle oppose plusieurs réponses possibles, puis on construit pas à pas une réponse "
+        +"argumentée en s'appuyant sur des <b>auteurs</b>, des <b>concepts</b> et des <b>exemples</b>.",
+    squelette:[
+      {bloc:'Introduction', detail:"Accroche → analyse des termes du sujet → <b>problématique</b> (la question qui oppose deux réponses) → annonce du plan."},
+      {bloc:'I. Thèse', detail:"La réponse la plus spontanée au sujet : on la défend solidement… puis on en montre la limite."},
+      {bloc:'II. Antithèse', detail:"Une objection qui corrige la première réponse et <b>déplace</b> le problème."},
+      {bloc:'III. Dépassement', detail:"Une position plus fine qui lève la tension — souvent grâce à une <b>distinction</b> décisive."},
+      {bloc:'Conclusion', detail:"Bilan des étapes → réponse claire à la problématique → ouverture."}
+    ],
+    etapes:[
+      {t:"Analyser le sujet",
+       body:"<p>Avant tout : <b>définir chaque mot</b> du sujet et repérer ses <b>présupposés</b>. Un même terme a souvent plusieurs sens — c'est là que naît le problème. Demande-toi ce que le sujet tient déjà pour acquis.</p>",
+       phrases:["« Le terme … peut s'entendre en deux sens : … et … »","« Le sujet suppose que … : est-ce si évident ? »"],
+       tip:"Souligne chaque mot du sujet : <b>chaque mot compte</b>, surtout les petits (« peut-on », « faut-il », « toujours »)."},
+      {t:"Problématiser",
+       body:"<p>Transforme le sujet en <b>problème</b> : montre que deux réponses opposées sont également défendables. La problématique, c'est cette <b>tension</b> à résoudre, formulée en une question précise — pas une simple reformulation du sujet.</p>",
+       phrases:["« On pourrait répondre que … ; pourtant, … »","« Le problème est donc de savoir si … ou si, au contraire, … »"],
+       tip:"Une bonne problématique se reconnaît à ce qu'on <b>ne peut pas y répondre par oui ou non immédiatement</b>."},
+      {t:"Construire le plan",
+       body:"<p>Trois parties (les correcteurs y tiennent) qui <b>progressent</b> — chacune corrige ou approfondit la précédente. Deux formes admises : le plan <b>dialectique</b> (thèse → objection → dépassement) et le plan <b>progressif</b> (on creuse la même question par paliers de plus en plus fins). Jamais un « pour / contre / synthèse » plaqué : chaque partie répond à la problématique d'une manière <b>nouvelle</b>.</p>",
+       phrases:["I. réponse spontanée — II. objection qui la limite — III. distinction qui dépasse","« Ce qui était vrai en … ne l'est plus dès lors que … »"],
+       tip:"Teste ton plan : si on peut <b>inverser deux parties sans rien changer</b>, c'est qu'il ne progresse pas."},
+      {t:"Rédiger l'introduction",
+       body:"<p>Quatre temps enchaînés : une <b>accroche</b> (exemple, paradoxe — voir le sous-onglet « Accroche » des Exemples), l'<b>analyse des termes</b>, la <b>problématique</b>, et l'<b>annonce du plan</b>. Elle se rédige souvent <i>après</i> avoir trouvé le plan.</p>",
+       phrases:["« … . Cet exemple invite à se demander si … »","« Nous verrons d'abord que … , avant de montrer que … , pour enfin … »"],
+       tip:"Pas de réponse dès l'introduction : on <b>pose</b> le problème, on ne le tranche pas encore."},
+      {t:"Construire une sous-partie",
+       body:"<p>Une sous-partie = <b>une seule idée</b>, développée en trois temps :</p>"
+          +"<p><b>1. Affirmer</b> la thèse (la phrase-idée). <b>2. Expliquer</b> : le raisonnement qui la justifie (le <i>pourquoi</i>). <b>3. Illustrer</b> : un exemple précis ou un <b>auteur</b> qui l'incarne. On termine par une <b>transition</b> vers la suite.</p>",
+       phrases:["« En effet, … » (l'explication) puis « Par exemple, … » / « Comme le montre … »","« Mais cette thèse se heurte à … , ce qui nous conduit à … » (transition)"],
+       tip:"Un exemple n'est jamais là pour décorer : il doit <b>prouver</b> l'idée — explique toujours <b>en quoi</b>. Une référence par sous-partie suffit (≈ <b>5 auteurs au maximum</b> sur la copie) : on <b>mobilise</b> un auteur, on ne récite pas le cours."},
+      {t:"Rédiger la conclusion",
+       body:"<p>Trois temps : <b>bilan</b> du chemin parcouru (sans tout répéter), <b>réponse</b> nette à la problématique, et une <b>ouverture</b> (nouvelle question, prolongement) — jamais une question vague.</p>",
+       phrases:["« Au terme de ce parcours, il apparaît que … »","« Reste alors à se demander si … »"],
+       tip:"La conclusion <b>répond</b> vraiment à la question posée : relis ton introduction avant de la rédiger."}
+    ]
+  },
+  explication:{
+    titre:"L'explication de texte",
+    intro:"Expliquer un texte, c'est en restituer la <b>thèse</b> et en suivre l'<b>argumentation</b> pas à pas pour la rendre claire — "
+        +"sans paraphraser (redire en moins bien) ni plaquer un cours. On montre <b>pourquoi</b> l'auteur dit ce qu'il dit, "
+        +"et en quoi sa réponse est forte.",
+    squelette:[
+      {bloc:'Introduction', detail:"Thème → <b>problème</b> auquel le texte répond → <b>thèse</b> de l'auteur → annonce des mouvements."},
+      {bloc:'Développement', detail:"On suit l'<b>ordre du texte</b> : pour chaque mouvement, on cite, on explique les termes, on reformule l'argument."},
+      {bloc:'Discussion', detail:"(Selon la consigne) intérêt et portée de la thèse, puis une <b>limite</b> éventuelle, discutée avec rigueur."},
+      {bloc:'Conclusion', detail:"Ce que le texte établit → réponse au problème → ouverture."}
+    ],
+    etapes:[
+      {t:"Lire et situer le texte",
+       body:"<p>Lis deux fois. Repère le <b>thème</b> (de quoi ça parle), la <b>question</b> à laquelle le texte répond, et le <b>type</b> de texte (démonstration, réfutation, analyse d'un exemple…). Situe-le dans une notion du programme.</p>",
+       phrases:["« Ce texte porte sur … et répond à la question : … »","« L'auteur cherche ici à établir que … »"],
+       tip:"Ne jamais expliquer un texte qu'on n'a pas relu : la <b>thèse</b> apparaît souvent à la deuxième lecture."},
+      {t:"Dégager la thèse",
+       body:"<p>La <b>thèse</b>, c'est la position défendue par l'auteur, résumable en <b>une phrase</b>. Distingue-la des <b>arguments</b> (ce qui la justifie) et des <b>exemples</b> (ce qui l'illustre). Tout le texte est au service de cette thèse.</p>",
+       phrases:["« La thèse de l'auteur est que … »","« Cette idée s'oppose à l'opinion commune selon laquelle … »"],
+       tip:"Si tu ne peux pas écrire la thèse en une phrase, c'est qu'elle n'est <b>pas encore claire</b> pour toi."},
+      {t:"Repérer la structure (les mouvements)",
+       body:"<p>Découpe le texte en <b>moments argumentatifs</b> (les « mouvements ») et nomme la <b>fonction</b> de chacun : pose-t-il la thèse ? l'illustre-t-il ? répond-il à une objection ? Les connecteurs (« or », « mais », « donc ») sont tes repères.</p>",
+       phrases:["« Dans un premier mouvement (l. … à …), l'auteur … »","« Il anticipe alors une objection : … »"],
+       tip:"Indique les <b>lignes</b> de chaque mouvement : ça structure ta copie et prouve que tu suis le texte."},
+      {t:"Expliquer pas à pas",
+       body:"<p>Pour chaque mouvement : <b>cite</b> brièvement, <b>élucide les termes</b> techniques, <b>reformule</b> l'argument avec tes mots et explicite la <b>logique</b> (pourquoi telle idée entraîne telle autre). <b>Ne paraphrase pas</b> : ajoute toujours du sens.</p>",
+       phrases:["« Par … , l'auteur entend … »","« Autrement dit, … . Ce qui revient à dire que … »"],
+       tip:"Test anti-paraphrase : si ta phrase pourrait être <b>supprimée sans rien perdre</b>, c'est de la paraphrase."},
+      {t:"Dégager les enjeux / discuter",
+       body:"<p>Montre l'<b>intérêt philosophique</b> de la thèse : à quel problème répond-elle, qu'apporte-t-elle ? Si la consigne le demande, propose une <b>discussion</b> mesurée : une objection sérieuse, un cas qui résiste — sans démolir gratuitement l'auteur.</p>",
+       phrases:["« L'intérêt de cette thèse est de … »","« On peut toutefois objecter que … »"],
+       tip:"Discuter ≠ donner son avis : toute objection doit être <b>argumentée</b>, comme une mini-dissertation."},
+      {t:"Rédiger intro et conclusion",
+       body:"<p>L'<b>introduction</b> annonce thème, problème, thèse et mouvements (sans expliquer encore). La <b>conclusion</b> récapitule ce que le texte a établi, répond au problème et ouvre. Rédige-les une fois l'explication faite.</p>",
+       phrases:["« Nous suivrons les trois moments de l'argumentation : … »","« Ainsi, le texte montre que … »"],
+       tip:"L'introduction d'explication <b>n'annonce pas un plan en parties</b> : elle annonce les <b>mouvements du texte</b>."}
+    ]
+  }
+};
+
+/* renderMethodoContent() — affiche le guide du parcours courant (methodoTopic)
+   dans la zone principale : bascule de parcours, squelette visuel, puis étapes
+   dépliables. Mirroir de renderConceptContent pour la structure du #main. */
+function renderMethodoContent(){
+  renderCrumbs();
+  const mainEl=document.getElementById('main');
+  if(!mainEl.querySelector('.tabs')||!mainEl.querySelector('.main-content')){
+    mainEl.innerHTML='<div class="tabs"></div><div class="main-content"></div>';
+  }
+  const tabsEl=mainEl.querySelector('.tabs');
+  const mc=mainEl.querySelector('.main-content');
+  tabsEl.innerHTML=backBtnHTML();   // bouton retour seul dans la barre
+
+  const g=METHODO_GUIDE[methodoTopic]||METHODO_GUIDE.dissertation;
+  // Bascule entre les deux parcours (boutons en tête de zone principale).
+  const switchHTML=METHODO_TOPICS.map(t=>
+    `<button class="${t.id===methodoTopic?'active':''}" role="tab" aria-selected="${t.id===methodoTopic}" onclick="methodoTopic='${t.id}';renderSB();renderMethodoContent();">${t.label}</button>`
+  ).join('');
+  // Squelette : une ligne par bloc de copie (vue d'ensemble de la structure).
+  const skelHTML=g.squelette.map(s=>
+    `<div class="methodo-skel-row"><div class="methodo-skel-bloc">${s.bloc}</div><div class="methodo-skel-detail">${linkTerms('<span>'+s.detail+'</span>')}</div></div>`
+  ).join('');
+  // Étapes dépliables : numéro + titre, corps, phrases toutes prêtes, astuce.
+  const stepsHTML=g.etapes.map((e,i)=>{
+    const phrases=(e.phrases||[]).length
+      ? `<div class="methodo-block-title">Phrases toutes prêtes</div><ul class="methodo-phrases">${e.phrases.map(p=>`<li>${linkTerms('<span>'+p+'</span>')}</li>`).join('')}</ul>`
+      : '';
+    const tip=e.tip?`<div class="methodo-tip">💡 ${linkTerms('<span>'+e.tip+'</span>')}</div>`:'';
+    return `<details class="methodo-step"${i===0?' open':''}>
+      <summary><span class="methodo-step-num">${i+1}</span>${e.t}</summary>
+      <div class="methodo-step-body">${linkTerms('<span>'+e.body+'</span>')}${phrases}${tip}</div>
+    </details>`;
+  }).join('');
+
+  mc.innerHTML=`<div class="methodo-wrap">
+    <div class="methodo-eyebrow">Je révise la méthode de…</div>
+    <div class="methodo-switch" role="tablist" aria-label="Choisir la méthode">${switchHTML}</div>
+    <p class="methodo-intro">${linkTerms('<span>'+g.intro+'</span>')}</p>
+    <div class="methodo-sectitle">La copie en un coup d'œil</div>
+    <div class="methodo-skel">${skelHTML}</div>
+    <div class="methodo-sectitle">Étape par étape</div>
+    <div class="methodo-steps">${stepsHTML}</div>
+  </div>`;
+}
+
+
+/* tab(id)        — change l'onglet actif dans la vue notion (curTab).
+   openAuthor(name) — ouvre la fiche d'un auteur depuis n'importe où
+                      (liens .an-link dans les cartes auteur, pills dans
+                      la fiche concept, noms dans l'onglet Dialogues…).  */
+function tab(id){pushHistory();curTab=id;renderContent()}
+
+/* ── Facette « courant » / « catégorie » (regrouper par étiquette) ──────────
+   Cliquer le COURANT d'un auteur (sous son nom) ou la CATÉGORIE d'un concept
+   (badge/tag) ouvre une petite liste de tous ceux qui PARTAGENT cette
+   étiquette — chacun cliquable vers sa fiche. Pratique en révision : « montre-
+   moi tous les stoïciens », « tous les concepts de métaphysique »…
+     kind = 'courant' → on liste les AUTEURS dont AM[nom].courant === value
+     kind = 'cat'     → on liste les CONCEPTS dont c.cat === value
+   L'overlay réutilise le style .modal-overlay ; openAuthor/openConcept ferment
+   d'abord la facette puis ouvrent la fiche. */
+function openFacet(kind,value){
+  const ov=document.getElementById('facet-overlay');
+  const body=document.getElementById('facet-body');
+  const titleEl=document.getElementById('facet-title');
+  if(!ov||!body||!titleEl) return;
+  value=String(value||'');
+  let items='', label='', n=0;
+  if(kind==='courant'){
+    label='Courant';
+    const col=CC[value]||'#888';
+    // Les courants sont souvent COMPOSÉS (« Théorie critique / Sociologie ») et
+    // quasi uniques. Pour que le clic regroupe vraiment, on rapproche les
+    // auteurs qui partagent un MOT SIGNIFICATIF du courant (≥ 5 lettres, hors
+    // « philosophie » trop générique) : tous les « rationalismes », les
+    // « idéalismes », les « phénoménologies »… se retrouvent ainsi ensemble.
+    // L'auteur au courant EXACTEMENT identique passe en tête ; le courant
+    // propre de chacun est affiché en sous-ligne (pour la transparence).
+    const toks=s=>s.toLowerCase().split(/[^a-zà-ÿ]+/).filter(w=>w.length>=5&&w!=='philosophie');
+    const wanted=new Set(toks(value));
+    const names=Object.keys(AI).filter(nm=>{
+      const c=(AM[nm]||{}).courant||'';
+      if(!c) return false;
+      if(c===value) return true;
+      return toks(c).some(w=>wanted.has(w));
+    }).sort((a,b)=>{
+      const ea=((AM[a]||{}).courant||'')===value?0:1, eb=((AM[b]||{}).courant||'')===value?0:1;
+      return ea!==eb?ea-eb:a.localeCompare(b,'fr');
+    });
+    n=names.length;
+    items=names.map(nm=>{
+      const c=(AM[nm]||{}).courant||'';
+      const ccol=CC[c]||col;
+      return `<button class="facet-item" onclick="closeFacet();openAuthor('${nm.replace(/'/g,"\\'")}')">`
+        +`<span class="facet-dot" style="background:${ccol}"></span>`
+        +`<span class="facet-name">${nm}<span class="facet-sub">${c}</span></span></button>`;
+    }).join('');
+  } else { // 'cat' : concepts d'une même catégorie (repères inclus si cat='Repère')
+    label='Catégorie';
+    const cs=CONCEPTS.filter(c=>(c.cat||'')===value).sort((a,b)=>a.term.localeCompare(b.term,'fr'));
+    n=cs.length;
+    items=cs.map(c=>{
+      const col=(c.notions&&c.notions[0]&&D[c.notions[0]])?D[c.notions[0]].c:'#888';
+      const sub=(c.notions||[]).map(k=>D[k]?D[k].l:'').filter(Boolean).join(' · ');
+      return `<button class="facet-item" onclick="closeFacet();openConcept('${c.id.replace(/'/g,"\\'")}')">`
+        +`<span class="facet-dot" style="background:${col}"></span>`
+        +`<span class="facet-name">${c.term}${sub?`<span class="facet-sub">${sub}</span>`:''}</span></button>`;
+    }).join('');
+  }
+  titleEl.innerHTML=`${label} : <strong>${value}</strong> <span class="facet-count">${n}</span>`;
+  body.innerHTML=items||'<div class="facet-empty">Aucun élément.</div>';
+  ov.classList.add('open');
+}
+/* closeFacet() — referme l'overlay de facette. */
+function closeFacet(){ const ov=document.getElementById('facet-overlay'); if(ov) ov.classList.remove('open'); }
+// Échap referme la facette (comme les autres overlays ; no-op si déjà fermée).
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeFacet(); });
+
+/* ── Fil d'Ariane — navigation hiérarchique cliquable ─────────────────
+   renderCrumbs() peuple #crumbs selon l'état (sbMode, cur, curTab,
+   curAuthor, curAuthorTab, curConcept, curConceptSubTab). Chaque segment
+   porte data-act / data-arg ; un écouteur unique délègue les clics.
+   Style « explorateur Windows » : on clique sur n'importe quel niveau
+   pour y revenir directement. Le dernier segment (en cours) est inerte. */
+function renderCrumbs(){
+  persistNav();   // mémorise la position courante (résiste à l'actualisation + cloud)
+  const el=document.getElementById('crumbs'); if(!el) return;
+  // Helper : un segment. cur=true → segment « courant » (non cliquable).
+  const seg=(label,act,arg,cur)=>cur
+    ? `<span class="crumb current">${label}</span>`
+    : `<span class="crumb" data-act="${act}" data-arg="${pEsc(arg||'')}">${label}</span>`;
+  const sep=`<span class="crumb-sep">›</span>`;
+  const segs=[];
+  if(sbMode==='notions'){
+    segs.push(seg('Notions','mode','notions',false));
+    const n=D[cur];
+    if(n){
+      // Clic sur la notion → onglet par défaut 'auteurs'.
+      const notionIsCurrent=(curTab==='auteurs');
+      segs.push(seg(n.l,'tab','auteurs',notionIsCurrent));
+      if(!notionIsCurrent){
+        const lbl={textes:'Textes',concepts:'Concepts',diss:'Dissertations',exemples:'Exemples'}[curTab]||curTab;
+        // Pour l'onglet concepts, un dernier niveau pour le sous-onglet.
+        if(curTab==='concepts'){
+          const subIsLiens=(curConceptSubTab==='liens');
+          segs.push(seg(lbl,'subtab','concepts',!subIsLiens));   // « Concepts » courant si sous-onglet 'concepts'
+          if(subIsLiens) segs.push(seg('Liens entre concepts','',null,true));
+        }else{
+          segs.push(seg(lbl,'',null,true));
+        }
+      }
+    }
+  }else if(sbMode==='auteurs'){
+    segs.push(seg('Auteurs','mode','auteurs',false));
+    if(curAuthor){
+      const isIdees=(curAuthorTab==='idees');
+      segs.push(seg(curAuthor,'authortab','idees',isIdees));
+      if(!isIdees){
+        const lbl={citations:'Citations',oeuvres:'Œuvres',dialogues:'Dialogues'}[curAuthorTab]||curAuthorTab;
+        segs.push(seg(lbl,'',null,true));
+      }
+    }
+  }else if(sbMode==='concepts'){
+    segs.push(seg('Concepts','mode','concepts',false));
+    if(curConcept){
+      // garde x&& : Array.find visite les trous de tableau comme undefined
+      // (contrairement à map/forEach), donc une virgule en trop dans CONCEPTS
+      // ferait planter sur x.id sans cette protection.
+      const c=CONCEPTS.find(x=>x&&x.id===curConcept);
+      if(c) segs.push(seg(c.term,'',null,true));
+    }
+  }else if(sbMode==='reperes'){
+    // Repères : même fiche que les concepts, mais segment racine distinct.
+    segs.push(seg('Repères','mode','reperes',false));
+    if(curConcept){
+      const c=CONCEPTS.find(x=>x&&x.id===curConcept);
+      if(c) segs.push(seg(c.term,'',null,true));
+    }
+  }else if(sbMode==='methodo'){
+    // Méthodo (guide) : racine « Méthodo » + parcours courant (Dissertation /
+    // Explication de texte). Le parcours est l'élément courant (non cliquable).
+    segs.push(seg('Méthodo','mode','methodo',false));
+    const t=METHODO_TOPICS.find(t=>t.id===methodoTopic);
+    if(t) segs.push(seg(t.label,'',null,true));
+  }
+  el.innerHTML=segs.join(sep);
+}
+/* goMode(mode) — bascule la sidebar vers un mode (notions/auteurs/concepts)
+   et re-rend la zone principale. Utilisé par les crumbs et la sb-tab. */
+function goMode(mode){
+  if(sbMode===mode){ renderSB(); return; }
+  sbMode=mode;
+  if(mode==='notions'){ renderSB(); renderContent(); }
+  else if(mode==='auteurs'){ if(!curAuthor) curAuthor=authorsSorted()[0]; curAuthorTab='idees'; renderSB(); renderAuthorContent(); }
+  else if(mode==='concepts'){ const c0=realConcepts().find(c=>c.id===curConcept)||realConcepts()[0]; if(c0) curConcept=c0.id; renderSB(); renderConceptContent(); }
+  else if(mode==='reperes'){ const r0=REPERES().find(c=>c.id===curConcept)||REPERES()[0]; if(r0) curConcept=r0.id; renderSB(); renderConceptContent(); }
+  else if(mode==='methodo'){ renderSB(); renderMethodoContent(); }   // guide de méthodologie
+}
+
+/* openAuthor(name) — ouvre la fiche d'un auteur depuis n'importe où :
+   bascule la sidebar en mode 'auteurs' et rend la fiche. Ignore un nom
+   absent de l'index AI. */
+function openAuthor(name){
+  // Résout une variante de nom (alias) vers le nom canonique, par sécurité —
+  // les liens passent déjà le canonique, ceci ne couvre qu'un appel résiduel.
+  if(!AI[name] && typeof AUTHOR_ALIASES!=='undefined' && AUTHOR_ALIASES[name]) name=AUTHOR_ALIASES[name];
+  if(!AI[name]) return;
+  pushHistory();
+  sbMode='auteurs'; curAuthor=name; curAuthorTab='idees';
+  renderSB(); renderAuthorContent();
+  focusAfterRender();   // surbrillance d'arrivée (retour contributeur)
+}
+
+/* renderAuthorContent() — affiche la fiche d'un auteur (curAuthor).
+   4 onglets (curAuthorTab) :
+     · idées     → une carte par notion couverte (œuvre + idée + pill notion)
+     · citations → citations de l'auteur, groupées par notion
+     · œuvres    → œuvres mentionnées avec les notions associées
+     · dialogues → relations avec d'autres auteurs (oppose/prolonge/répond)
+   Tous les textes passent par linkTerms() pour rendre les concepts cliquables. */
+
+/* ideaCitationsHTML(cites) — rend les citations d'une idée : la première
+   est toujours visible ; s'il y en a plusieurs, les suivantes sont dans
+   un déroulant. Renvoie '' si aucune citation. */
+function ideaCitationsHTML(cites){
+  if(!cites||!cites.length) return '';
+  const first=`<div class="aq">${linkTerms('<span>'+cites[0]+'</span>')}</div>`;
+  if(cites.length===1) return first;
+  const n=cites.length-1;
+  const rest=cites.slice(1).map(c=>`<div class="aq aq-more">${linkTerms('<span>'+c+'</span>')}</div>`).join('');
+  return first+`<details class="aq-details"><summary>+ ${n} autre${n>1?'s':''} citation${n>1?'s':''}</summary>${rest}</details>`;
+}
+/* ideaSynthese(it) — version CONDENSÉE d'une idée pour le « mode fiche »
+   (lecture rapide façon fiche de révision). Priorité à une synthèse rédigée
+   à la main (champ it.fiche) ; à défaut, on extrait la THÈSE = la 1re phrase
+   de l'idée (elles sont écrites thèse-d'abord, souvent avec un lead en gras).
+   On coupe au 1er point/!/? HORS balise, en évitant les abréviations proches
+   du début, puis on rééquilibre les balises ouvertes. Renvoie du HLML lié
+   (linkTerms) ou '' si pas d'idée. */
+function ideaSynthese(it){
+  if(it&&it.fiche) return linkTerms('<span>'+it.fiche+'</span>');
+  const html=(it&&it.i)||''; if(!html) return '';
+  let depth=0, cut=-1;
+  for(let i=0;i<html.length;i++){
+    const ch=html[i];
+    if(ch==='<') depth++;
+    else if(ch==='>'){ if(depth>0) depth--; }
+    else if(depth===0 && (ch==='.'||ch==='!'||ch==='?')){
+      const nxt=html[i+1];
+      // fin de phrase = ponctuation suivie d'espace/balise/fin ; on ignore les
+      // coupures trop précoces (abréviations type « av. », « p. ex. »).
+      if((nxt===undefined||nxt===' '||nxt==='<') && i>=45){ cut=i+1; break; }
+    }
+  }
+  let s=(cut>0?html.slice(0,cut):html).trim();
+  // Rééquilibrer les balises de mise en forme éventuellement laissées ouvertes.
+  ['strong','em','span'].forEach(tag=>{
+    const o=(s.match(new RegExp('<'+tag+'(?:\\s|>)','g'))||[]).length;
+    const c=(s.match(new RegExp('</'+tag+'>','g'))||[]).length;
+    for(let k=c;k<o;k++) s+='</'+tag+'>';
+  });
+  return linkTerms('<span>'+s+'</span>');
+}
+
+function renderAuthorContent(){
+  renderCrumbs();
+  const mainEl=document.getElementById('main');
+  if(!mainEl.querySelector('.tabs')||!mainEl.querySelector('.main-content')){
+    mainEl.innerHTML='<div class="tabs"></div><div class="main-content"></div>';
+  }
+  const tabsEl=mainEl.querySelector('.tabs');
+  const mc=mainEl.querySelector('.main-content');
+
+  if(!curAuthor||!AI[curAuthor]){mc.innerHTML='';tabsEl.innerHTML='';return;}
+  const entry=AI[curAuthor];
+  const meta=AM[curAuthor]||{bio:'',courant:'',periode:'',themes:[],dialogues:[]};
+  const cc=CC[meta.courant]||'#888';
+  // Nom de l'auteur échappé pour les attributs onclick (pastilles de notion
+  // des onglets Idées / Citations / Œuvres → openNotionFromAuthor).
+  const safeAuthor=curAuthor.replace(/'/g,"\\'");
+
+  // notion badges row
+  const notionBdgs=entry.notions.map(k=>`<span class="ab-bdg" style="background:${D[k].c};width:8px;height:8px" title="${D[k].l}"></span>`).join('');
+
+  const tabs2=[{id:'idees',l:'Idées'},{id:'citations',l:'Citations'},{id:'oeuvres',l:'Œuvres'},{id:'dialogues',l:'Dialogues'}];
+
+  // Barre d'onglets fixe
+  tabsEl.innerHTML=backBtnHTML()+tabs2.map(t=>`<div class="tab${curAuthorTab===t.id?' active':''}" onclick="curAuthorTab='${t.id}';renderAuthorContent()">${t.l}</div>`).join('');
+
+  let html=`
+<div class="notion-head">
+  <div>
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+      <div class="author-title">${curAuthor}</div>
+      ${meta.courant?`<span class="author-courant facet-clickable" style="background:${cc}18;color:${cc};border:0.5px solid ${cc}40" title="Voir les auteurs de ce courant" onclick="openFacet('courant','${String(meta.courant).replace(/'/g,"\\'")}')">${meta.courant}</span>`:''}
+    </div>
+    <div style="display:flex;gap:3px;align-items:center;margin-top:5px">${notionBdgs}<span style="font-size:10px;color:var(--color-text-tertiary);margin-left:4px">${entry.notions.length} notion${entry.notions.length>1?'s':''}</span></div>
+  </div>
+</div>`;
+
+  if(meta.bio){
+    html+=`<div class="author-def-box">${linkTerms('<span>'+meta.bio+'</span>')}`;
+    if(meta.periode||meta.themes.length){
+      html+=`<details><summary>Période &amp; thèmes majeurs</summary>`;
+      if(meta.periode) html+=`<div style="margin-top:8px;font-size:12px"><span style="font-weight:500;color:var(--color-text-primary)">Période :</span> ${meta.periode}</div>`;
+      if(meta.themes.length) html+=`<div style="margin-top:4px;font-size:12px"><span style="font-weight:500;color:var(--color-text-primary)">Thèmes :</span> ${linkTerms('<span>'+meta.themes.join(' · ')+'</span>')}</div>`;
+      html+=`</details>`;
+    }
+    html+=`</div>`;
+  }
+
+  // (les onglets sont désormais dans tabsEl — pas dans html)
+
+  if(curAuthorTab==='idees'){
+    html+=`<div class="slabel">Idées de ${curAuthor} par notion</div>`;
+    // Une notion peut contenir plusieurs idées de l'auteur (a.ideas[]) :
+    // on rend une carte par idée, en répétant la pill de la notion pour
+    // que chaque idée soit clairement rattachée.
+    entry.notions.forEach(k=>{
+      const a=entry.entries[k]; const nc=D[k].c;
+      a.ideas.forEach(it=>{
+        const nb=it.new?`<span class="new-badge">✦ Nouveau</span>`:'';
+        const mb=it.modified?`<span class="modified-badge">✎ Modifié</span>`:'';
+        const statusCls=it.new?' is-new':it.modified?' is-modified':'';
+        html+=`<div class="idea-card${statusCls}">
+          <div class="idea-card-head">
+            <div class="idea-card-work">${it.w||''} ${nb}${mb}</div>
+            <span class="notion-pill" style="color:${nc};border-color:${nc}40;background:${nc}12"
+              onclick="openNotionFromAuthor('${k}','${safeAuthor}')">${D[k].l} →</span>
+          </div>
+          ${it.i?`<div class="idea-card-body">${linkTerms('<span>'+it.i+'</span>')}</div>`:''}
+          ${ideaCitationsHTML(it.citations)}
+          ${pPlus('correction','auteur',k,curAuthor+' — '+(it.w||'idée')+' · '+D[k].l,curAuthor)}
+        </div>`;
+      });
+    });
+    html+=pPlusCat('auteur','','Proposer une idée',curAuthor);
+  }
+  else if(curAuthorTab==='citations'){
+    // Collecte plate : chaque citation de chaque idée devient une carte.
+    // Une idée peut porter plusieurs citations (it.citations[]).
+    const qs=[];
+    entry.notions.forEach(k=>{
+      entry.entries[k].ideas.forEach(it=>{ (it.citations||[]).forEach(cite=>qs.push({k,it,cite})); });
+    });
+    if(!qs.length){html+=`<div style="color:var(--color-text-tertiary);font-size:12px;padding:10px 0">Aucune citation référencée.</div>`;}
+    else{
+      html+=`<div class="slabel">Citations de ${curAuthor}</div>`;
+      qs.forEach(({k,it,cite})=>{
+        const nc=D[k].c;
+        html+=`<div class="cit-card" style="border-left-color:${nc}">
+          <div class="cit-card-text">${linkTerms('<span>'+cite+'</span>')}</div>
+          <div class="cit-card-footer">
+            <span class="cit-card-src">${it.w||''}</span>
+            <span class="notion-pill" style="color:${nc};border-color:${nc}40;background:${nc}12"
+              onclick="openNotionFromAuthor('${k}','${safeAuthor}')">${D[k].l} →</span>
+          </div>
+          ${pPlus('correction','auteur',k,curAuthor+' — citation · '+D[k].l,curAuthor)}
+        </div>`;
+      });
+    }
+    html+=pPlusCat('auteur','','Proposer une citation',curAuthor);
+  }
+  else if(curAuthorTab==='oeuvres'){
+    // Une œuvre peut être référencée par plusieurs idées et plusieurs
+    // notions. On agrège : works[w] = Set de notions où l'œuvre apparaît.
+    const works={};
+    entry.notions.forEach(k=>{
+      entry.entries[k].ideas.forEach(it=>{
+        if(it.w){ if(!works[it.w]) works[it.w]=new Set(); works[it.w].add(k); }
+      });
+    });
+    const wks=Object.keys(works);
+    if(!wks.length){html+=`<div style="color:var(--color-text-tertiary);font-size:12px;padding:10px 0">Aucune œuvre référencée.</div>`;}
+    else{
+      html+=`<div class="slabel">Œuvres de ${curAuthor} à connaître</div>`;
+      wks.forEach(w=>{
+        const ks=Array.from(works[w]);
+        const bdgs=ks.map(k=>`<span class="notion-pill" style="color:${D[k].c};border-color:${D[k].c}40;background:${D[k].c}12;font-size:10px;padding:2px 7px"
+          onclick="openNotionFromAuthor('${k}','${safeAuthor}')">${D[k].l}</span>`).join('');
+        html+=`<div class="oeuvre-card"><div class="oeuvre-title">${w}</div><div class="oeuvre-badges">${bdgs}</div>${pPlus('correction','auteur',ks[0]||'',curAuthor+' — œuvre : '+w,curAuthor)}</div>`;
+      });
+    }
+    html+=pPlusCat('auteur','','Proposer une œuvre',curAuthor);
+  }
+  else if(curAuthorTab==='dialogues'){
+    const dials=meta.dialogues||[];
+    if(!dials.length){html+=`<div style="color:var(--color-text-tertiary);font-size:12px;padding:10px 0">Aucun dialogue référencé.</div>`;}
+    else{
+      html+=`<div class="slabel">Relations philosophiques de ${curAuthor}</div>`;
+      const DL={'oppose':'S\'oppose à','prolonge':'Prolonge','repond':'Répond à'};
+      dials.forEach(d=>{
+        const can=!!AI[d.auteur];
+        const safeN=d.auteur.replace(/'/g,"\\'");
+        html+=`<div class="dial-card">
+          <span class="dial-dir dial-${d.dir}">${DL[d.dir]||d.dir}</span>
+          <div class="dial-body">
+            <span class="dial-auteur" ${can?`onclick="openAuthor('${safeN}')"`:''}>${d.auteur}</span>
+            <div class="dial-sujet">${d.sujet}</div>
+            <div class="dial-desc">${linkTerms('<span>'+d.desc+'</span>')}</div>
+          </div>
+          ${pPlus('correction','auteur','',curAuthor+' — dialogue avec '+d.auteur,curAuthor)}
+        </div>`;
+      });
+    }
+    html+=pPlusCat('auteur','','Proposer un dialogue',curAuthor);
+  }
+
+  mc.innerHTML=html;
+}
+
+/* renderContent() — vue principale d'une notion (cur).
+   C'est la fonction de rendu la plus volumineuse : elle gère les 5 onglets
+   de la barre (curTab) :
+     · auteurs   → grille de cartes auteur (.ag/.ac), linkTerms sur .ai
+     · textes    → liste des textes du cours (.tbox), linkTerms sur .titxt
+     · axes      → 3 axes de dissertation avec sous-parties (.axe-card/.sp)
+     · exemples  → cartes d'exemples (.ex-card), filtrage par tag
+     · diss      → questions de dissertation (.dq) + liens vers notions liées
+   La définition (.def-box) est toujours affichée en haut, quelle que soit
+   l'onglet actif.                                                         */
+function renderContent(){
+  renderCrumbs();
+  const mainEl=document.getElementById('main');
+  // Garantir la structure .tabs + .main-content
+  if(!mainEl.querySelector('.tabs')||!mainEl.querySelector('.main-content')){
+    mainEl.innerHTML='<div class="tabs"></div><div class="main-content"></div>';
+  }
+  const tabsEl=mainEl.querySelector('.tabs');
+  const mc=mainEl.querySelector('.main-content');
+
+  const n=D[cur];
+  const c=n.c;
+  const tabs2=['auteurs','textes','concepts','diss','exemples'];
+  const tabLabels={'auteurs':'Auteurs','textes':'Textes','concepts':'Concepts','diss':'Dissertations','exemples':'Exemples'};
+
+  // Remplir la barre d'onglets (toujours fixe)
+  tabsEl.innerHTML=backBtnHTML()+tabs2.map(t=>`<div class="tab${curTab===t?' active':''}" onclick="tab('${t}')">${tabLabels[t]}</div>`).join('');
+
+  // Contenu scrollable
+  let html=`
+<div class="notion-head">
+  <div class="nbadge" style="background:${c}"></div>
+  <div><div class="ntitle">${n.l}</div><div class="nsub">${n.s}</div></div>
+</div>
+<div class="def-box">${linkTerms(n.def)}${pPlus('ajout','notion',cur,'Définition / approfondissement de '+n.l)}</div>`;
+
+  if(curTab==='auteurs'){
+    // Fusion VOULUE : toutes les idées d'un même auteur pour cette notion
+    // tiennent dans UNE seule carte (clarté). Un auteur peut être saisi soit
+    // en une entrée multi-idées (a.ideas[]), soit en plusieurs entrées du
+    // même nom : on regroupe ici par nom, en conservant l'ordre de 1re
+    // apparition. (La fusion ne touche pas D : on copie les idées.)
+    const byAuthor=[]; const authorPos={};
+    n.auteurs.forEach(a=>{
+      if(authorPos[a.n]===undefined){ authorPos[a.n]=byAuthor.length; byAuthor.push({n:a.n, ideas:a.ideas.slice()}); }
+      else byAuthor[authorPos[a.n]].ideas.push(...a.ideas);
+    });
+    // Tri par « popularité » : nb de notions couvertes, puis score importance
+    // bac (auto-corpus + coup de pouce), puis alphabétique (cf. compareAuthors).
+    byAuthor.sort((a,b)=>compareAuthors(a.n,b.n));
+    html+=`<div class="slabel">Auteurs et idées clés (${byAuthor.length} auteurs)</div><div class="ag">`;
+    byAuthor.forEach(a=>{
+      const safeN=a.n.replace(/'/g,"\\'");
+      // CHAQUE idée = sa propre zone (.a-idea) avec SA couleur (is-new /
+      // is-modified) et SES badges — les états sont par idée, plus au niveau
+      // de la carte. Les zones se disposent horizontalement (cf. .a-ideas).
+      let ideasHTML='';
+      a.ideas.forEach(it=>{
+        const nb=it.new?`<span class="new-badge">✦ Nouveau</span>`:'';
+        const mb=it.modified?`<span class="modified-badge">✎ Modifié</span>`:'';
+        const ic=it.new?' is-new':it.modified?' is-modified':'';   // teinte propre à l'idée
+        ideasHTML+=`<div class="a-idea${ic}">
+          <div class="aw">${it.w||''} ${nb}${mb}</div>
+          ${it.i?`<div class="ai">${linkTerms('<span>'+it.i+'</span>')}</div>`:''}
+          ${ideaSynthese(it)?`<div class="ai-fiche">${ideaSynthese(it)}</div>`:''}
+          ${ideaCitationsHTML(it.citations)}
+          ${pPlus('correction','auteur',cur,a.n+' — '+(it.w||'idée'))}
+        </div>`;
+      });
+      // Carte élargie à toute la rangée si l'auteur a plusieurs idées, pour
+      // que les zones tiennent réellement CÔTE À CÔTE (sinon elles
+      // s'empileraient faute de largeur dans la grille étroite).
+      const multi=a.ideas.length>1?' ac-multi':'';
+      const nameColor=inkOnDark(c);   // nom = couleur de la notion (neutre)
+      html+=`<div class="ac${multi}">
+        <div class="an" style="color:${nameColor}">
+          <span class="an-link" style="color:${nameColor}" onclick="openAuthor('${safeN}')">${a.n}</span>
+        </div>
+        <div class="a-ideas">${ideasHTML}</div>
+      </div>`;
+    });
+    html+=`</div>`;
+    html+=pPlusCat('auteur',cur,'Proposer un auteur');
+  }
+  else if(curTab==='textes'){
+    html+=`<div class="slabel">Textes &amp; extraits à connaître</div><div class="tbox">`;
+    n.textes.forEach(t=>{
+      const newBadge=t.new?`<span class="new-badge">✦ Nouveau</span>`:'';
+      const modBadge=t.modified?`<span class="modified-badge">✎ Modifié</span>`:'';
+      const statusClass=t.new?' is-new':t.modified?' is-modified':'';
+      html+=`<div class="ti2${statusClass}"><span class="tinum">${t.n} ${newBadge}${modBadge}</span><span class="titxt">${linkTerms('<span>'+t.t+'</span>')}</span>${pPlus('correction','texte',cur,t.n)}</div>`;
+    });
+    html+=`</div>`;
+    html+=pPlusCat('texte',cur,'Proposer un texte');
+  }
+  else if(curTab==='concepts'){
+    // Concepts rattachés à la notion courante (c.notions.includes(cur)).
+    // Les repères (cat:'Repère') sont exclus : ils vivent dans l'onglet
+    // « Méthodo » de la sidebar, pas dans le glossaire de la notion.
+    const cs=CONCEPTS.filter(c=>(c.notions||[]).includes(cur)&&!isRepere(c));
+    // Liens entre concepts : relations dont les DEUX extrémités sont dans
+    // la notion (mini-graphe local). Calculé d'abord pour afficher le compte
+    // dans le sous-onglet.
+    const idsInNotion=new Set(cs.map(c=>c.id));
+    const relPairs=[];
+    cs.forEach(c=>{
+      (c.relations||[]).forEach(r=>{
+        if(idsInNotion.has(r.to)){
+          const target=CONCEPTS.find(x=>x.id===r.to);
+          if(target) relPairs.push({from:c,to:target,type:r.type,desc:r.desc});
+        }
+      });
+    });
+    // Deux sous-onglets : « Concepts liés » / « Liens entre concepts » —
+    // évite de scroller jusqu'en bas pour voir les liens.
+    html+=`<div class="subtabs">
+      <button class="subtab${curConceptSubTab==='concepts'?' active':''}" onclick="curConceptSubTab='concepts';renderContent()">Concepts liés (${cs.length})</button>
+      <button class="subtab${curConceptSubTab==='liens'?' active':''}" onclick="curConceptSubTab='liens';renderContent()">Liens entre concepts (${relPairs.length})</button>
+    </div>`;
+    if(curConceptSubTab==='liens'){
+      // ── Sous-onglet « Liens entre concepts » ──
+      if(!relPairs.length){
+        html+=`<div style="color:var(--color-text-tertiary);font-size:12px;padding:6px 0 10px">Aucun lien entre les concepts de cette notion pour l'instant.</div>`;
+      }
+      relPairs.forEach(p=>{
+        const safeFrom=p.from.id.replace(/'/g,"\\'");
+        const safeTo=p.to.id.replace(/'/g,"\\'");
+        html+=`<div class="crel-card">
+          <div class="crel-head">
+            <span class="cc-term" onclick="openConcept('${safeFrom}')">${p.from.term}</span>
+            <span class="crel-dir crel-${p.type}">${relTypeLabel(p.type)}</span>
+            <span class="cc-term" onclick="openConcept('${safeTo}')">${p.to.term}</span>
+          </div>
+          ${p.desc?`<div class="crel-desc">${linkTerms('<span>'+p.desc+'</span>')}</div>`:''}
+          ${pPlus('correction','concept-relation',cur,p.from.term+' '+relTypeLabel(p.type)+' '+p.to.term)}
+        </div>`;
+      });
+    }else{
+      // ── Sous-onglet « Concepts liés » ──
+      if(!cs.length){
+        html+=`<div style="color:var(--color-text-tertiary);font-size:12px;padding:6px 0 10px">Aucun concept rattaché à cette notion pour l'instant.</div>`;
+      }
+      cs.forEach(c=>{
+        const isNew=c.new, isMod=c.modified;
+        const statusCls=isNew?' is-new':isMod?' is-modified':'';
+        const nb=isNew?`<span class="new-badge">✦ Nouveau</span>`:'';
+        const mb=isMod?`<span class="modified-badge">✎ Modifié</span>`:'';
+        const safeId=c.id.replace(/'/g,"\\'");
+        // Définition COMPLÈTE + explication du lien concept ↔ notion (c.liens[cur]).
+        const lien=c.liens&&c.liens[cur];
+        html+=`<div class="concept-card${statusCls}">
+          <div class="cc-head">
+            <span class="cc-term" onclick="openConcept('${safeId}')">${c.term} →</span>
+            ${c.cat?`<span class="cc-cat facet-clickable" title="Voir les concepts de cette catégorie" onclick="event.stopPropagation();openFacet('cat','${String(c.cat).replace(/'/g,"\\'")}')">${c.cat}</span>`:''}${nb}${mb}
+          </div>
+          <div class="cc-def">${linkTerms(c.def||'')}</div>
+          ${lien?`<div class="cc-lien"><span class="cc-lien-label">Lien avec ${n.l} :</span> ${linkTerms('<span>'+lien+'</span>')}</div>`:''}
+          ${pPlus('correction','concept',cur,c.term)}
+        </div>`;
+      });
+    }
+    // Bouton « + » de bas de section, adapté au sous-onglet courant.
+    if(curConceptSubTab==='liens')
+      html+=pPlusCat('concept-relation',cur,'Proposer un lien entre concepts');
+    else
+      html+=pPlusCat('concept',cur,'Proposer un concept');
+  }
+  else if(curTab==='exemples'){
+    // Onglet « Exemples » = DEUX sous-onglets (curExempleSubTab) :
+    //   • 'exemples'  → exemples concrets mobilisables (n.exemples) ;
+    //   • 'accroches' → phrases d'accroche prêtes à l'emploi pour OUVRIR une
+    //     dissertation (n.accroches). Les accroches sont aussi indexées dans
+    //     la recherche globale (Ctrl+K, type 'accroche') ; activer un résultat
+    //     ouvre la notion sur ce sous-onglet et fait briller la bonne carte.
+    const exs=n.exemples||[];
+    const accs=n.accroches||[];
+    html+=`<div class="subtabs">
+      <button class="subtab${curExempleSubTab==='exemples'?' active':''}" onclick="curExempleSubTab='exemples';renderContent()">Exemples (${exs.length})</button>
+      <button class="subtab${curExempleSubTab==='accroches'?' active':''}" onclick="curExempleSubTab='accroches';renderContent()">Accroches (${accs.length})</button>
+    </div>`;
+    if(curExempleSubTab==='accroches'){
+      // ── Sous-onglet « Accroches » ──
+      // Cartes plus explicites (façon fiche concept) : un type (Citation,
+      // Paradoxe, Mythe…), l'amorce rédigée (a.t), une source facultative
+      // (a.src). data-acc=index → cible du scroll/flash venant de la recherche.
+      html+=`<div class="slabel">Phrases d'accroche prêtes pour ouvrir une dissertation</div>`;
+      if(!accs.length) html+=`<div style="color:var(--color-text-tertiary);font-size:12px;padding:6px 0 10px">Aucune accroche pour l'instant.</div>`;
+      accs.forEach((a,ai)=>{
+        const nb=a.new?`<span class="new-badge">✦ Nouveau</span>`:'';
+        const mb=a.modified?`<span class="modified-badge">✎ Modifié</span>`:'';
+        const sc=a.new?' is-new':a.modified?' is-modified':'';
+        html+=`<div class="accroche-card${sc}" data-acc="${ai}">
+          <div class="accroche-head">
+            <span class="accroche-type">${a.type||'Accroche'}</span>${nb}${mb}
+          </div>
+          <div class="accroche-body">${linkTerms('<span>'+a.t+'</span>')}</div>
+          ${a.src?`<div class="accroche-src">— ${linkTerms('<span>'+a.src+'</span>')}</div>`:''}
+          ${pPlus('correction','accroche',cur,a.type||'Accroche')}
+        </div>`;
+      });
+      html+=pPlusCat('accroche',cur,'Proposer une accroche');
+    } else {
+      // ── Sous-onglet « Exemples » (vue historique inchangée) ──
+      html+=`<div class="slabel">Exemples concrets mobilisables en dissertation</div>`;
+      exs.forEach(e=>{
+        const tagColors={
+          'Littérature':'#534AB7','Cas clinique':'#D85A30','Science':'#1D9E75','Sciences':'#1D9E75',
+          'Société':'#5F5E5A','Écologie':'#1D9E75','Anthropologie':'#3B6D11','Mythe':'#EF9F27',
+          'Psychologie':'#534AB7','Psychanalyse':'#993556','Philosophie':'#185FA5','Cinéma':'#D4537E',
+          'Histoire':'#993556','Contemporain':'#185FA5','Actualité':'#D85A30','Droit':'#5F5E5A',
+          'Texte':'#EF9F27','Art contemporain':'#8B5E3C','Musique':'#8B5E3C','Sociologie':'#5F5E5A',
+          'Épistémologie':'#185FA5','Éthique':'#993556','Morale':'#993556','Logique':'#185FA5',
+          'Politique':'#5F5E5A','Numérique':'#185FA5','Clinique':'#D85A30'
+        };
+        const tc=tagColors[e.tag]||c;
+        const newBadgeEx=e.new?`<span class="new-badge">✦ Nouveau</span>`:'';
+        const modBadgeEx=e.modified?`<span class="modified-badge">✎ Modifié</span>`:'';
+        const statusClassEx=e.new?' is-new':e.modified?' is-modified':'';
+        html+=`<div class="ex-card${statusClassEx}">
+          <div class="ex-head">
+            <span class="ex-tag" style="background:${(e.new||e.modified)?((e.new?'var(--color-new-bg)':'var(--color-mod-bg)')):tc+'18'};color:${(e.new||e.modified)?((e.new?'var(--color-new)':'var(--color-mod)')):tc};border:0.5px solid ${(e.new||e.modified)?((e.new?'var(--color-new-border)':'var(--color-mod-border)')):tc+'40'}">${e.tag}</span>
+            <span class="ex-title">${e.tit}</span>${newBadgeEx}${modBadgeEx}
+          </div>
+          <div class="ex-body">${linkTerms('<span>'+e.body+'</span>')}</div>
+          <div class="ex-lien">${e.lien}</div>
+          ${pPlus('correction','exemple',cur,e.tit)}
+        </div>`;
+      });
+      html+=pPlusCat('exemple',cur,'Proposer un exemple');
+    }
+  }
+  else if(curTab==='diss'){
+    // Onglet « Dissertations » : remplace l'ancien onglet Axes et absorbe
+    // l'ancien onglet Dissertations. Trois sections :
+    //   1. liens avec d'autres notions (navigation) ;
+    //   2. plans de dissertation détaillés et déroulables (n.plans) ;
+    //   3. autres sujets de dissertation (n.diss, questions simples).
+    // 1) Liens avec d'autres notions
+    const liens=n.liens||[];
+    if(liens.length){
+      html+=`<div class="slabel">Liens avec d'autres notions</div>
+      <div class="liens-row">
+        ${liens.map(l=>{const k=KEYS.find(k=>D[k].l===l);return k?`<div class="lpill" style="border-color:${D[k].c};color:${D[k].c}" onclick="pushHistory();cur='${k}';curTab='auteurs';sbMode='notions';renderSB();renderContent()">${l}</div>`:''}).join('')}
+      </div>`;
+    }
+    // 2) Plans de dissertation détaillés (cartes déroulables)
+    const plans=n.plans||[];
+    html+=`<div class="slabel">Plans de dissertation détaillés (${plans.length})</div>`;
+    if(!plans.length) html+=`<div style="color:var(--color-text-tertiary);font-size:12px;padding:6px 0 10px">Aucun plan détaillé pour l'instant.</div>`;
+    plans.forEach(p=>{ html+=planCardHTML(p); });
+    html+=pPlusCat('plan',cur,'Proposer un plan');
+    // 3) Autres sujets de dissertation (questions simples)
+    html+=`<div class="slabel">Autres sujets de dissertation</div>
+    <div class="diss-list">`;
+    n.diss.forEach(d=>{
+      const isNew=typeof d==='object'&&d.new;
+      const isMod=typeof d==='object'&&d.modified;
+      const txt=typeof d==='object'?d.q:d;
+      const modBadgeDq=isMod?`<span class="modified-badge" style="margin-left:6px;vertical-align:middle">✎ Modifié</span>`:'';
+      html+=`<div class="dq${isNew?' is-new':isMod?' is-modified':''}">${linkTerms('<span>'+txt+'</span>')}${modBadgeDq}${pPlus('correction','dissertation',cur,txt)}</div>`;
+    });
+    html+=`</div>`;
+    html+=pPlusCat('dissertation',cur,'Proposer un sujet');
+  }
+
+  mc.innerHTML=html;
+}
+
+/* renderSBList() — affiche la liste des items dans la sidebar scrollable.
+   En mode 'notions' : une entrée .nb par notion (avec point coloré).
+   En mode 'auteurs' : une entrée .ab par auteur filtré/recherché,
+   avec les badges colorés des notions couvertes.                      */
+function renderSBList(){
+  const wrap=document.getElementById('sb-author-list');
+  if(!wrap) return;
+  const list=authorsFiltered();
+  const inp=document.querySelector('.sb-search');
+  if(inp&&document.activeElement!==inp) inp.value=authorSearch;
+  let html='';
+  if(!list.length){html=`<div style="padding:10px 4px;font-size:11px;color:var(--color-text-tertiary);text-align:center">Aucun résultat</div>`;}
+  else{
+    const fa=authorFilter.size>0;
+    // Compteur TOUJOURS affiché : total d'auteurs, ou « filtrés / total »
+    // quand une recherche/un filtre est actif.
+    const total=Object.keys(AI).length;
+    const hasFilter=authorSearch||fa;
+    const countTxt=hasFilter
+      ?`${list.length} / ${total} auteurs`
+      :`${total} auteur${total>1?'s':''}`;
+    html+=`<div class="sb-results-count">${countTxt}</div>`;
+    list.forEach(name=>{
+      const entry=AI[name];
+      const bdgs=entry.notions.map(k=>`<span class="ab-bdg" style="background:${D[k].c}" title="${D[k].l}"></span>`).join('');
+      const safeN=name.replace(/'/g,"\\'");
+      html+=`<div class="ab${name===curAuthor?' active':''}" onclick="pushHistory();curAuthor='${safeN}';curAuthorTab='idees';renderSBList();renderAuthorContent()">
+        <div class="ab-name">${name}</div><div class="ab-badges">${bdgs}</div>
+      </div>`;
+    });
+  }
+  wrap.innerHTML=html;
+}
+/* js/05-liens-dynamiques.js — morceau du script du site. Le build (outils/construire.mjs)
+   recolle js/*.js dans l'ORDRE des noms en UN SEUL script, app.js : les
+   fonctions restent visibles d'un morceau à l'autre comme avant, et le code
+   « de premier niveau » s'exécute dans cet ordre. */
+/* ── H. MOTEUR DE LIENS DYNAMIQUES ──────────────────────────────────
+
+   LINK_MAP : dictionnaire { terme_en_minuscules → {t, v} } construit au
+   chargement à partir de trois sources, par ordre de priorité décroissant :
+     · notions  → {t:'n', v:cléDeD}     pour chaque notion de D
+     · concepts → {t:'c', v:idConcept}  pour CONCEPTS (hors entrées notion-*)
+     · auteurs  → {t:'a', v:nomAuteur}  pour chaque clé de l'index AI
+   La priorité notion > concept > auteur évite les collisions de termes
+   (ex : « Conscience » pointe vers la notion, pas un concept homonyme).
+
+   LINK_REGEX : regex globale, termes triés du plus long au plus court
+   (ex : « William James » doit matcher avant « James »). Les bornes de mot
+   utilisent des lookarounds qui reconnaissent les lettres ACCENTUÉES
+   (À-ÿ) — \b échouait sur « Vérité », « État », « Épistémé », « Sacré »…
+
+   linkTerms(html) : découpe la chaîne en balises + fragments de texte, et
+   ne linkifie que le texte (y compris avant la 1re balise et après la
+   dernière). Remplace chaque terme reconnu par un <span> cliquable dont
+   la CLASSE code le type :
+     .cterm (concept) → openConcept · .aterm (auteur) → openAuthor
+     .nterm (notion, coloré) → openNotion
+   Appelé sur toutes les zones de texte libre : définitions, idées,
+   citations, biographies, thèmes, axes, exemples, dialogues.            */
+const LINK_MAP={};
+// 1. Notions (priorité haute) — libellé de chaque notion de D
+KEYS.forEach(k=>{ LINK_MAP[D[k].l.toLowerCase()]={t:'n',v:k}; });
+// 2. Concepts — hors entrées notion-* (déjà couvertes par les notions)
+CONCEPTS.forEach(c=>{
+  if(c.id.startsWith('notion-')) return;
+  const key=c.term.toLowerCase();
+  if(!LINK_MAP[key]) LINK_MAP[key]={t:'c',v:c.id};
+});
+// 3. Auteurs — clés de AI (garantit que openAuthor reconnaîtra le nom)
+Object.keys(AI).forEach(name=>{
+  const key=name.toLowerCase();
+  if(!LINK_MAP[key]) LINK_MAP[key]={t:'a',v:name};
+});
+// 3 bis. Alias d'auteurs : variantes de nom (forme courte/longue) → nom
+// canonique (clé AI), après fusion des doublons dans D. Permet que linkTerms
+// lie AUSSI ces variantes en prose vers la BONNE fiche (sinon, une mention
+// « Arendt » ou « Jonas » deviendrait du texte mort une fois la fiche unifiée).
+const AUTHOR_ALIASES={
+  // Doublons fusionnés dans D (cf. ci-dessus) :
+  "Arendt":"Hannah Arendt",
+  "Henry David Thoreau":"Thoreau",
+  "Étienne de La Boétie":"La Boétie",
+  "J.-S. Mill":"Mill",
+  "Jonas":"Hans Jonas",
+  // Formes courtes (nom de famille) d'auteurs déjà au nom complet dans D :
+  // ces mentions en prose deviennent ainsi cliquables vers la bonne fiche.
+  "James":"William James",
+  "Breton":"André Breton",
+  "Tzara":"Tristan Tzara",
+  "Perec":"Georges Perec",
+  // Bios d'AM rangées jusqu'en oct. 2026 sous la forme courte, alors que D
+  // emploie le nom complet : clés d'AM renommées, formes courtes gardées ici.
+  "Weil":"Simone Weil",
+  "Nozick":"Robert Nozick",
+  "Anders":"Gunther Anders"
+};
+Object.keys(AUTHOR_ALIASES).forEach(alias=>{
+  const canon=AUTHOR_ALIASES[alias], key=alias.toLowerCase();
+  if(AI[canon] && !LINK_MAP[key]) LINK_MAP[key]={t:'a',v:canon};
+});
+// Bornes "mot" accentuées : on refuse une lettre/chiffre juste avant ou après
+const LINK_REGEX=new RegExp(
+  '(?<![A-Za-zÀ-ÖØ-öø-ÿ0-9])('
+  +Object.keys(LINK_MAP).sort((a,b)=>b.length-a.length)
+     .map(t=>t.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|')
+  +')(?![A-Za-zÀ-ÖØ-öø-ÿ0-9])','gi');
+
+/* new: inkOnDark(hex) — éclaircit une couleur de notion pour qu'elle reste
+   LISIBLE quand on l'emploie comme couleur de TEXTE sur le fond sombre des
+   cartes. Les couleurs de notion (ex. Conscience #534AB7, Langage #6B4FA0)
+   sont volontairement foncées ; utilisées telles quelles en texte sur un
+   fond ~#1e1e1e, leur contraste tombe sous le seuil WCAG 2 AA (4.5:1), ce
+   que signalait l'audit d'accessibilité. On mélange donc la couleur vers le
+   blanc, par petits paliers, JUSQU'À atteindre un contraste sûr — sans
+   changer sa teinte : l'identité colorée de la notion est préservée, juste
+   un peu plus claire. Renvoie une chaîne « #rrggbb ».
+   On vise le seuil contre la surface la PLUS CLAIRE où ces liens
+   apparaissent (#2a2a2a, ex. .cit-card) : le contraste est alors garanti
+   sur toutes les cartes plus sombres. La fonction est pure (sans effet de
+   bord) et mémoïse ses résultats, car linkTerms l'appelle très souvent. */
+const _inkCache={};
+function inkOnDark(hex){
+  if(_inkCache[hex]) return _inkCache[hex];
+  // Normaliser « #abc » ou « #aabbcc » en composantes 0..255.
+  let h=hex.replace('#','');
+  if(h.length===3) h=h.split('').map(x=>x+x).join('');
+  let r=parseInt(h.slice(0,2),16), g=parseInt(h.slice(2,4),16), b=parseInt(h.slice(4,6),16);
+  // Luminance relative WCAG (linéarisation sRGB d'un canal, puis pondération).
+  const lin=v=>{ v/=255; return v<=0.03928 ? v/12.92 : Math.pow((v+0.055)/1.055,2.4); };
+  const lum=(r,g,b)=>0.2126*lin(r)+0.7152*lin(g)+0.0722*lin(b);
+  const BG=lum(0x2a,0x2a,0x2a);                       // surface claire de référence
+  const ratio=l=>(Math.max(l,BG)+0.05)/(Math.min(l,BG)+0.05);
+  // Éclaircir vers le blanc (+8 % par palier) jusqu'au seuil 4.5:1, ou blanc.
+  for(let i=0; i<14 && ratio(lum(r,g,b))<4.5; i++){
+    r=Math.round(r+(255-r)*0.08);
+    g=Math.round(g+(255-g)*0.08);
+    b=Math.round(b+(255-b)*0.08);
+  }
+  const hx=v=>v.toString(16).padStart(2,'0');
+  return _inkCache[hex]='#'+hx(r)+hx(g)+hx(b);
+}
+
+/* linkTerms(html) — cf. section H ci-dessus : rend cliquables les notions,
+   concepts et auteurs détectés dans un fragment HTML. */
+function linkTerms(html){
+  // Découpe la chaîne en BALISES (<...>) et FRAGMENTS DE TEXTE, puis ne
+  // linkifie que le texte. Indispensable : une version antérieure ne
+  // traitait que le texte ENTRE > et < — le texte avant la 1re balise et
+  // surtout APRÈS la dernière (fréquent : la plupart des def finissent en
+  // texte brut) n'était jamais lié, d'où des auteurs/concepts non cliquables.
+  return html.replace(/<[^>]+>|[^<]+/g,(chunk)=>{
+    if(chunk[0]==='<') return chunk; // c'est une balise : on n'y touche pas
+    return chunk.replace(LINK_REGEX,(m)=>{
+      const e=LINK_MAP[m.toLowerCase()];
+      if(!e) return m;
+      if(e.t==='n'){ // lien notion — coloré avec la couleur (éclaircie) de la notion
+        // inkOnDark : version assez claire de la couleur de notion pour rester
+        // lisible en texte sur fond sombre (WCAG AA). On l'applique au texte ET
+        // au soulignement, qui restent ainsi de la même teinte que la notion.
+        const col=inkOnDark(D[e.v].c);
+        return `<span class="nterm" style="color:${col};border-color:${col}" onclick="openNotion('${e.v}')" title="Voir la notion : ${D[e.v].l}">${m}</span>`;
+      }
+      if(e.t==='a'){ // lien auteur
+        const safe=e.v.replace(/'/g,"\\'");
+        return `<span class="aterm" onclick="openAuthor('${safe}')" title="Voir l'auteur : ${e.v}">${m}</span>`;
+      }
+      // lien concept
+      return `<span class="cterm" onclick="openConcept('${e.v}')" title="Voir définition : ${m}">${m}</span>`;
+    });
+  });
+}
+/* js/06-contribution.js — morceau du script du site. Le build (outils/construire.mjs)
+   recolle js/*.js dans l'ORDRE des noms en UN SEUL script, app.js : les
+   fonctions restent visibles d'un morceau à l'autre comme avant, et le code
+   « de premier niveau » s'exécute dans cet ordre. */
+/* ── J. INTERFACE DE CONTRIBUTION ────────────────────────────────────
+   Modale permettant à un visiteur de proposer du contenu, qui sera
+   transmis au propriétaire du site.
+
+   MODÈLE — une soumission = une ou plusieurs « boîtes » empilées.
+   Chaque boîte a deux menus : un TYPE de proposition et une CIBLE.
+     · type  : 'ajout' | 'correction' | 'remarque'
+     · cible : 'notion' | 'auteur' | 'texte' | 'plan' | 'exemple'
+               | 'dissertation' | 'concept'
+   Les champs propres à chaque (type × cible) seront ajoutés à l'étape 1c
+   dans le conteneur .pbox-fields.
+
+   CAS PARTICULIER — RETOURS SUR LE SITE (catégorie 'site') : sous-cibles
+   'site-bug' (signaler une erreur) et 'site-fonction' (proposer une
+   fonctionnalité). Ces retours ne portent PAS sur le contenu philosophique
+   mais sur l'outil. Le 3e menu « Type d'action » n'a alors aucun sens : il
+   est masqué et le type est fixé en interne sur 'remarque' (valeur déjà
+   connue de la pipeline d'agrégation, donc rien de neuf à propager côté
+   base de données). La cible suffit à les distinguer.
+
+   ÉTAT
+     proposalBoxes — tableau des boîtes : { id, type, cible }
+     proposalSeq   — compteur d'id uniques
+   RENDU
+     renderProposal() — reconstruit le corps de la modale
+   ACTIONS
+     openProposal / closeProposal — affiche / masque la modale
+     addProposalBox / removeProposalBox — ajoute / retire une boîte (min. 1)
+     setProposalField — change type/cible d'une boîte puis re-rend          */
+
+// Adresse de réception des propositions — repli si l'envoi en ligne échoue.
+const PROPOSAL_EMAIL='compte.secondaire.toi@gmail.com';
+
+// new (comptes) : configuration Supabase (BaaS = Backend-as-a-Service —
+// base PostgreSQL + authentification hébergées en ligne). Ces deux valeurs
+// sont PUBLIQUES par conception :
+//   • SUPABASE_URL      : l'adresse du projet.
+//   • SUPABASE_ANON_KEY : la clé « anon/publishable », prévue pour vivre
+//     dans le navigateur. Elle n'autorise QUE ce que les règles RLS (Row
+//     Level Security — permissions ligne par ligne, côté base) permettent.
+// La clé SECRÈTE (service_role) ne figure JAMAIS ici : elle reste sur le PC.
+const SUPABASE_URL='https://fipdatwirklhgdbujobz.supabase.co';
+const SUPABASE_ANON_KEY='sb_publishable_7A5cSXlmufU1mDfjs1hIIA_PSHpXOdB';
+// Client unique, nommé SB pour ne pas masquer le global « supabase » du CDN.
+// Si le CDN n'a pas pu se charger (hors-ligne) ou si l'URL manque, SB reste
+// null et toute la couche compte se désactive proprement (repli mail/local).
+const SB=(window.supabase&&SUPABASE_URL)?window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY):null;
+
+// new (mot de passe oublié) : le lien reçu par e-mail ramène sur le site avec
+// « type=recovery » dans l'URL. supabase-js consomme ce jeton puis NETTOIE
+// l'URL très tôt — souvent AVANT qu'initAuth ne s'abonne à onAuthStateChange
+// (initAuth est async : il attend getSession). L'évènement PASSWORD_RECOVERY
+// peut donc passer inaperçu, et l'utilisateur se retrouve « juste connecté »
+// sans écran de réinitialisation. On capture donc le drapeau ICI, de façon
+// SYNCHRONE (même tick que createClient, avant tout nettoyage), pour pouvoir
+// forcer l'écran « nouveau mot de passe » dans initAuth, quelle que soit la
+// course d'évènements. (Cherché dans le hash ET la query selon le flow.)
+const AUTH_RECOVERY_IN_URL=/type=recovery/.test(location.hash)||/type=recovery/.test(location.search);
+
+// Libellés des deux menus déroulants
+const PROPOSAL_TYPES=[
+  {v:'ajout',      l:'Ajout'},
+  {v:'correction', l:'Correction / modification'},
+  {v:'remarque',   l:'Remarque'}
+];
+/* Menu à 2 niveaux : Catégorie principale (niveau 1) → Sous-cible (niveau 2).
+   La sous-cible reste stockée dans box.cible (clé de dispatch dans tout le
+   code) ; categorie sert au regroupement de l'UI et de l'agrégateur.      */
+const PROPOSAL_CATS=[
+  {v:'notion', l:'Notion'},
+  {v:'auteur', l:'Auteur'},
+  {v:'concept',l:'Concept'},
+  // new: 4e catégorie — retours sur le site lui-même (pas sur le contenu philo).
+  {v:'site',   l:'Le site / l’appli'}
+];
+const PROPOSAL_SOUSCIBLES={
+  notion:[
+    {v:'notion',      l:'Définition / approfondissement'},
+    {v:'texte',       l:'Texte / extrait'},
+    {v:'plan',        l:'Plan de dissertation'},
+    {v:'dissertation',l:'Sujet de dissertation'},
+    {v:'exemple',     l:'Exemple'},
+    {v:'accroche',    l:'Accroche (amorce de dissertation)'}
+  ],
+  auteur:[
+    {v:'auteur',         l:'Idée / œuvre'},
+    {v:'auteur-citation',l:'Citation'},
+    {v:'auteur-dialogue',l:'Dialogue'},
+    {v:'auteur-bio',     l:'Biographie / métadonnées'}
+  ],
+  concept:[
+    {v:'concept',         l:'Définition'},
+    {v:'concept-relation',l:'Relation'}
+  ],
+  // new: retours sur l'outil. Pas de « type d'action » associé (voir
+  // renderProposal/setProposalField : le 3e menu est masqué et le type
+  // est fixé en interne sur 'remarque', valeur déjà connue de la pipeline).
+  site:[
+    {v:'site-bug',     l:'Signaler une erreur / un bug'},
+    {v:'site-fonction',l:'Proposer une fonctionnalité'}
+  ]
+};
+// Catégorie d'une sous-cible (dispatch + rétro-compat des anciennes cibles).
+const CIBLE_CAT={
+  notion:'notion',texte:'notion',plan:'notion',dissertation:'notion',exemple:'notion',accroche:'notion',
+  auteur:'auteur','auteur-citation':'auteur','auteur-dialogue':'auteur','auteur-bio':'auteur',
+  concept:'concept','concept-relation':'concept',
+  // new: cibles de retour sur le site.
+  'site-bug':'site','site-fonction':'site'
+};
+function cibleCat(cible){return CIBLE_CAT[cible]||'notion';}
+/* Libellés lisibles d'un type / d'une catégorie / d'une sous-cible. */
+function proposalTypeLabel(v){const o=PROPOSAL_TYPES.find(x=>x.v===v);return o?o.l:v;}
+function proposalCatLabel(v){const o=PROPOSAL_CATS.find(x=>x.v===v);return o?o.l:v;}
+function proposalCibleLabel(v){
+  for(const cat in PROPOSAL_SOUSCIBLES){
+    const o=PROPOSAL_SOUSCIBLES[cat].find(x=>x.v===v);
+    if(o) return o.l;
+  }
+  return v;
+}
+
+let proposalBoxes=[];        // boîtes de la soumission en cours
+let proposalSeq=0;           // compteur d'id uniques
+let proposalContributor='';  // nom/pseudo du contributeur (facultatif)
+let proposalView='edit';     // vue de la modale : 'edit' | 'preview' | 'mine'
+
+// new : ÉDITION d'une proposition DÉJÀ ENVOYÉE (statut « en attente »). Quand on
+// rouvre une proposition depuis « Mes propositions » pour la corriger, on retient
+// ici l'id de la ligne Supabase (null = nouvelle proposition → insert classique).
+// Pendant l'édition, le BROUILLON local en cours est mis de côté dans
+// editDraftBackup et restauré en sortie (on n'écrase jamais une saisie non envoyée).
+let editingContribId=null;   // id de la ligne en cours d'édition, ou null
+let editDraftBackup=null;    // brouillon local sauvegardé le temps de l'édition
+let myContribCache=[];       // dernières propositions chargées (retrouver un payload par id)
+
+/* new (Phase 3) : BROUILLON de proposition — persistant + synchronisé.
+   Les boîtes en cours de saisie n'étaient qu'en mémoire : perdues au
+   rechargement et jamais reportées sur le compte. On les sauvegarde en
+   localStorage ('philo-drafts') et on les fait voyager dans le bloc
+   « préférences » synchronisé (pas de nouvelle table à créer). */
+function proposalOpen(){
+  const o=document.getElementById('proposal-overlay');
+  return !!(o && o.classList.contains('open'));
+}
+function draftsBlobForSync(){
+  return { boxes:proposalBoxes, contributor:proposalContributor, seq:proposalSeq };
+}
+function saveDrafts(){
+  try{ localStorage.setItem('philo-drafts', JSON.stringify(draftsBlobForSync())); }catch(e){}
+}
+/* draftChanged — à appeler après CHAQUE modification du brouillon : on
+   persiste localement, puis on programme un envoi (différé) vers le compte.
+   Exception : pendant l'ÉDITION d'une proposition déjà envoyée (editingContribId),
+   on ne touche PAS au brouillon (ni disque, ni sync) — il est mis de côté et
+   sera restauré en sortie, donc les modifications en cours ne doivent pas
+   l'écraser. */
+function draftChanged(){
+  if(editingContribId) return;   // édition d'un envoi : brouillon local préservé
+  saveDrafts(); if(typeof syncOnPrefsChange==='function') syncOnPrefsChange();
+}
+/* applyDraftsBlob — recharge un brouillon (depuis le stockage ou le compte)
+   dans l'état d'exécution. Par défaut on NE touche à rien si la modale est
+   ouverte, pour ne pas effacer une saisie en cours sous les doigts du
+   contributeur. `force` lève ce garde-fou (cf. adoptRemoteDrafts : la modale
+   est ouverte MAIS rien n'est saisi localement → on peut adopter sans risque). */
+function applyDraftsBlob(d, force){
+  if(!d || (proposalOpen() && !force)) return;
+  if(Array.isArray(d.boxes)) proposalBoxes=d.boxes;
+  proposalContributor=d.contributor||'';
+  let maxId=0; proposalBoxes.forEach(b=>{ if(b && b.id>maxId) maxId=b.id; });
+  proposalSeq=Math.max(d.seq||0, maxId);   // jamais réutiliser un id déjà pris
+}
+/* restoreDraftsFromStorage — au démarrage : recharge le brouillon local. */
+function restoreDraftsFromStorage(){
+  try{ applyDraftsBlob(JSON.parse(localStorage.getItem('philo-drafts')||'null')); }catch(e){}
+}
+/* draftIsEmpty — vrai si le brouillon ne contient rien de saisi. Sert à
+   décider, à la 1re connexion, si l'on peut adopter le brouillon du compte
+   sans rien écraser. */
+function draftIsEmpty(){
+  if((proposalContributor||'').trim()) return false;
+  if(!proposalBoxes.length) return true;
+  if(proposalBoxes.length>1) return false;
+  const f=(proposalBoxes[0]||{}).f||{};
+  return !Object.keys(f).some(k=>{
+    const v=f[k];
+    if(Array.isArray(v)) return v.some(it=> it && (typeof it==='object'
+      ? Object.keys(it).some(ik=>String(it[ik]==null?'':it[ik]).trim())
+      : String(it).trim()));
+    return String(v==null?'':v).trim();
+  });
+}
+/* clearDrafts — vide le brouillon après un envoi en ligne réussi : une boîte
+   neuve, le NOM du contributeur conservé (réutilisable). On persiste et on
+   synchronise, mais on NE re-rend PAS (pour garder le message « Envoyé » à
+   l'écran) : la prochaine ouverture repartira sur une boîte vierge. */
+function clearDrafts(){
+  proposalBoxes=[{id:++proposalSeq,categorie:'auteur',type:'ajout',cible:'auteur',f:{ideas:[{}]}}];
+  draftChanged();
+}
+/* setProposalContributor — écrit le nom du contributeur + persiste le brouillon. */
+function setProposalContributor(v){ proposalContributor=v; draftChanged(); }
+
+/* prefillContributorFromAccount — préremplit le nom avec le pseudo du compte
+   connecté SI le champ est encore vide (retour contributeur : une proposition
+   envoyée connecté s'affichait « anonyme »). Ne touche pas à un nom déjà saisi. */
+function prefillContributorFromAccount(){
+  if(authUser && !(proposalContributor||'').trim()) proposalContributor=authLabel();
+}
+
+/* ensureIdeas — garantit que box.f.ideas existe (au moins une idée vide).
+   Une boîte cible 'auteur' utilise box.f.ideas[] pour permettre N idées
+   (œuvre / date / idée / citation / concepts) sous le même nom d'auteur. */
+function ensureIdeas(box){
+  const f=box.f||(box.f={});
+  if(!Array.isArray(f.ideas)) f.ideas=[{}];
+  if(f.ideas.length===0) f.ideas.push({});
+}
+/* Ajoute une boîte vierge (catégorie 'auteur' / sous-cible 'auteur' par
+   défaut). Init box.f.ideas=[{}] car la sous-cible 'auteur' s'appuie dessus. */
+function addProposalBox(){
+  proposalBoxes.push({id:++proposalSeq,categorie:'auteur',type:'ajout',cible:'auteur',f:{ideas:[{}]}});
+  renderProposal();
+}
+/* Supprime une boîte — on en conserve toujours au moins une. */
+function removeProposalBox(id){
+  if(proposalBoxes.length<=1) return;
+  proposalBoxes=proposalBoxes.filter(b=>b.id!==id);
+  renderProposal();
+}
+/* Change la catégorie, la sous-cible ou le type d'une boîte, puis re-rend.
+   - categorie : on bascule cible sur la 1re sous-cible de la catégorie.
+   - cible     : on en déduit la catégorie (cohérence du menu).
+   Les champs texte, eux, écrivent via setBoxF/setIdeaF SANS re-rendre
+   (pour ne pas perdre le focus). Si la cible devient 'auteur', f.ideas
+   est garanti. */
+function setProposalField(id,key,val){
+  const b=proposalBoxes.find(x=>x.id===id);
+  if(!b) return;
+  if(key==='categorie'){
+    b.categorie=val;
+    const list=PROPOSAL_SOUSCIBLES[val];
+    b.cible=(list&&list[0])?list[0].v:'notion';
+    // Catégorie 'site' : le « type d'action » n'a pas de sens — on fixe une
+    // valeur valide ('remarque') car le menu correspondant est masqué.
+    if(val==='site') b.type='remarque';
+  }else if(key==='cible'){
+    b.cible=val;
+    b.categorie=cibleCat(val);
+  }else{
+    b[key]=val;
+  }
+  if(b.cible==='auteur') ensureIdeas(b);
+  renderProposal();
+}
+
+/* addProposalIdea — ajoute une idée vide à box.f.ideas et re-rend. */
+function addProposalIdea(id){
+  const b=proposalBoxes.find(x=>x.id===id); if(!b) return;
+  ensureIdeas(b);
+  b.f.ideas.push({});
+  renderProposal();
+}
+/* removeProposalIdea — supprime l'idée d'index idx (au moins une reste). */
+function removeProposalIdea(id,idx){
+  const b=proposalBoxes.find(x=>x.id===id); if(!b||!Array.isArray(b.f.ideas)) return;
+  if(b.f.ideas.length<=1) return;
+  b.f.ideas.splice(idx,1);
+  renderProposal();
+}
+/* setIdeaF — écrit une valeur de champ dans box.f.ideas[idx]. rerender=true
+   seulement si le champ modifie la STRUCTURE du formulaire (ex. catégorie). */
+function setIdeaF(id,idx,key,val,rerender){
+  const b=proposalBoxes.find(x=>x.id===id); if(!b) return;
+  ensureIdeas(b);
+  const it=b.f.ideas[idx]||(b.f.ideas[idx]={});
+  it[key]=val;
+  draftChanged();              // new (Phase 3) : persiste + synchronise le brouillon
+  if(rerender) renderProposal();
+}
+/* toggleIdeaRemove — (mode modif) marque une idée « à retirer » et révèle
+   le champ justification. Re-rend pour afficher/masquer la justification. */
+function toggleIdeaRemove(id,idx,on){
+  const b=proposalBoxes.find(x=>x.id===id); if(!b) return;
+  ensureIdeas(b);
+  const it=b.f.ideas[idx]||(b.f.ideas[idx]={});
+  it.remove=on;
+  renderProposal();
+}
+/* Citations d'une idée — box.f.ideas[idx].citations[] (0..N). */
+function addIdeaCitation(id,idx){
+  const b=proposalBoxes.find(x=>x.id===id); if(!b) return;
+  ensureIdeas(b);
+  const it=b.f.ideas[idx]||(b.f.ideas[idx]={});
+  if(!Array.isArray(it.citations)) it.citations=[];
+  it.citations.push('');
+  renderProposal();
+}
+function removeIdeaCitation(id,idx,ci){
+  const b=proposalBoxes.find(x=>x.id===id); if(!b) return;
+  const it=b.f.ideas[idx]; if(!it||!Array.isArray(it.citations)) return;
+  it.citations.splice(ci,1);
+  renderProposal();
+}
+/* setIdeaCitation — écrit une citation SANS re-rendu (préserve le focus). */
+function setIdeaCitation(id,idx,ci,val){
+  const b=proposalBoxes.find(x=>x.id===id); if(!b) return;
+  const it=b.f.ideas[idx]; if(!it||!Array.isArray(it.citations)) return;
+  it.citations[ci]=val;
+  draftChanged();              // new (Phase 3) : persiste + synchronise le brouillon
+}
+
+/* ── Champs d'une boîte selon (type × cible) — étape 1c ──────────────
+   · type 'ajout'      → champs de la cible (obligatoires / facultatifs)
+   · type 'correction' → mêmes champs TOUS facultatifs + élément ciblé
+   · type 'remarque'   → notion + élément concerné + texte libre
+   Les valeurs sont stockées dans box.f. Les champs texte appellent
+   setBoxF(...,false) : pas de re-rendu. Seuls les menus qui changent la
+   STRUCTURE re-rendent (type, cible, catégorie d'exemple « Autre »).   */
+
+// Champs propres à chaque sous-cible. t:'text'|'area'|'excat'|'dialdir'|'reltype'
+// · r:requis (mode ajout). Les valeurs sont dans box.f (sauf cible 'auteur'
+// idée/œuvre, dont les champs sont PAR IDÉE dans box.f.ideas[]).
+const PROPOSAL_FIELDS={
+  notion:[
+    {k:"notiondef",l:"Définition / approfondissement proposé",t:"area",r:true,ph:"Le texte que vous proposez d'ajouter ou de préciser pour cette notion."}
+  ],
+  // 'auteur' (idée/œuvre) : champs PAR IDÉE (notion + citations gérées à part).
+  auteur:[
+    {k:"oeuvre",l:"Œuvre",t:"text",r:true,ph:"ex. Méditations métaphysiques"},
+    {k:"date",l:"Date de l'œuvre",t:"text",r:false,ph:"ex. 1641"},
+    {k:"idee",l:"Idée maîtresse (ce que l'auteur traite)",t:"area",r:true},
+    {k:"concepts",l:"Termes à lier aux concepts",t:"text",r:false,ph:"termes séparés par des virgules"}
+  ],
+  // 'auteur-citation' : citation simple (notion + œuvre) ou rattachée.
+  "auteur-citation":[
+    {k:"oeuvre",l:"Œuvre",t:"text",r:false,ph:"ex. Méditations métaphysiques"},
+    {k:"rattach",l:"Rattacher à une idée existante",t:"text",r:false,ph:"œuvre / idée déjà présente — vide = citation simple"},
+    {k:"citation",l:"Citation",t:"area",r:true}
+  ],
+  // 'auteur-dialogue' : relation entre auteurs → AM[nom].dialogues[].
+  "auteur-dialogue":[
+    {k:"dialdir",l:"Type de relation",t:"dialdir",r:true},
+    {k:"dialauteur",l:"Auteur en relation",t:"text",r:true,ph:"ex. Spinoza"},
+    {k:"dialsujet",l:"Sujet de la relation",t:"text",r:true,ph:"ex. le déterminisme"},
+    {k:"dialdesc",l:"Description",t:"area",r:true}
+  ],
+  // 'auteur-bio' : métadonnées de l'auteur → AM[nom].
+  "auteur-bio":[
+    {k:"a_bio",l:"Biographie",t:"area",r:false,ph:"dates, nationalité, apport principal"},
+    {k:"a_courant",l:"Courant philosophique",t:"text",r:false,ph:"ex. Rationalisme"},
+    {k:"a_periode",l:"Période / siècle",t:"text",r:false,ph:"ex. XVIIe siècle"},
+    {k:"a_themes",l:"Thèmes clés",t:"text",r:false,ph:"séparés par des virgules"}
+  ],
+  texte:[
+    {k:"titre",l:"Titre / source du texte",t:"text",r:true,ph:"ex. Descartes, Discours de la méthode"},
+    {k:"contenu",l:"Contenu de l'extrait",t:"area",r:true}
+  ],
+  plan:[
+    {k:"plan_q",l:"Sujet (question de dissertation)",t:"text",r:true,ph:"ex. La science et la religion s'opposent-elles ?"},
+    {k:"plan_intro",l:"Problématisation (mise en tension)",t:"area",r:false,ph:"Pourquoi le sujet pose problème, en quelques phrases."},
+    {k:"plan_pb",l:"Problématique",t:"area",r:false,ph:"La question reformulée après problématisation."},
+    {k:"plan_a1t",l:"Axe I — titre",t:"text",r:true,ph:"Réponse évidente, argumentée"},
+    {k:"plan_a1c",l:"Axe I — arguments / sous-parties",t:"area",r:true},
+    {k:"plan_a1l",l:"Axe I — limite (transition vers II)",t:"text",r:false},
+    {k:"plan_a2t",l:"Axe II — titre",t:"text",r:false,ph:"Réflexion plus profonde"},
+    {k:"plan_a2c",l:"Axe II — arguments / sous-parties",t:"area",r:false},
+    {k:"plan_a2l",l:"Axe II — limite (transition vers III)",t:"text",r:false},
+    {k:"plan_a3t",l:"Axe III — titre",t:"text",r:false,ph:"Redéfinition / ouverture"},
+    {k:"plan_a3c",l:"Axe III — arguments / sous-parties",t:"area",r:false},
+    {k:"plan_a3l",l:"Axe III — limite / ouverture finale",t:"text",r:false}
+  ],
+  exemple:[
+    {k:"excat",l:"Catégorie",t:"excat",r:true},
+    {k:"extitre",l:"Titre de l'exemple",t:"text",r:true,ph:"ex. Auteur/idée — titre court"},
+    {k:"excorps",l:"Description de l'exemple",t:"area",r:true},
+    {k:"exlien",l:"Auteurs / idées associés",t:"text",r:false,ph:"ex. Descartes, doute méthodique"}
+  ],
+  // 'accroche' : amorce RÉDIGÉE prête à recopier pour ouvrir une dissertation
+  // → D[notion].accroches[] = {type, t, src?, new:true}. La notion vient du
+  // sélecteur (cible de catégorie 'notion'). acctype = tag court (Citation,
+  // Paradoxe, Mythe, Actualité…) ; acctexte = la phrase d'ouverture ; accsrc =
+  // source facultative.
+  accroche:[
+    {k:"acctype",l:"Type d'accroche",t:"text",r:true,ph:"ex. Citation, Paradoxe, Mythe, Actualité…"},
+    {k:"acctexte",l:"Phrase d'accroche (rédigée, prête à recopier)",t:"area",r:true,ph:"Une amorce qui ouvre sur le problème du sujet."},
+    {k:"accsrc",l:"Source (facultatif)",t:"text",r:false,ph:"ex. Pascal, Pensées"}
+  ],
+  dissertation:[
+    {k:"question",l:"Question de dissertation",t:"text",r:true,ph:"ex. La liberté est-elle une illusion ?"}
+  ],
+  concept:[
+    {k:"cterme",l:"Terme",t:"text",r:true,ph:"ex. Réminiscence"},
+    {k:"ccat",l:"Catégorie",t:"text",r:false,ph:"ex. Métaphysique, Logique…"},
+    {k:"cdef",l:"Définition",t:"area",r:true},
+    {k:"clien",l:"Lien avec la / les notion(s) cochée(s)",t:"area",r:false,ph:"En quoi ce concept éclaire-t-il cette notion ? (affiché dans l'onglet Concepts)"}
+  ],
+  // 'concept-relation' : un lien (ou une distinction) entre concepts/termes.
+  "concept-relation":[
+    {k:"cterme",l:"Concept concerné",t:"text",r:true,ph:"ex. NOMA"},
+    {k:"reltype",l:"Type de relation",t:"reltype",r:true},
+    {k:"relcible",l:"Concept / terme en relation",t:"text",r:true,ph:"ex. concordisme (ou « A ≠ B » pour une distinction)"},
+    {k:"reldesc",l:"Description du lien",t:"area",r:false}
+  ],
+  // new: 'site-bug' — signalement d'une erreur d'usage du site (pas du contenu).
+  "site-bug":[
+    {k:"bugou",     l:"Où, dans le site ?",t:"text",r:false,ph:"ex. la fiche Conscience, le quiz, le menu latéral…"},
+    {k:"bugdesc",   l:"Décrivez le problème",t:"area",r:true,ph:"Ce qui ne va pas, et ce à quoi vous vous attendiez."},
+    {k:"bugrepro",  l:"Comment le reproduire (étapes)",t:"area",r:false,ph:"1. … 2. … (si vous savez comment le refaire apparaître)"},
+    {k:"bugappareil",l:"Appareil / navigateur",t:"text",r:false,ph:"ex. iPhone Safari, PC Chrome"}
+  ],
+  // new: 'site-fonction' — proposition d'une nouvelle fonctionnalité de l'outil.
+  "site-fonction":[
+    {k:"fonctitre",l:"L’idée en une phrase",t:"text",r:true,ph:"ex. Pouvoir surligner un passage d’une fiche"},
+    {k:"foncdesc", l:"Décrivez la fonctionnalité",t:"area",r:true,ph:"Comment imaginez-vous que ça marche ?"},
+    {k:"foncusage",l:"À quoi cela vous servirait-il ?",t:"area",r:false,ph:"Le besoin auquel ça répond (facultatif)."}
+  ]
+};
+
+// Catégories d'exemples : liste consolidée [valeur, description]
+const EXEMPLE_CATEGORIES=[
+  ["Histoire","événement ou fait historique"],
+  ["Science","découverte, théorie ou fait scientifique"],
+  ["Histoire des sciences","épisode de l'histoire scientifique"],
+  ["Sociologie","fait social, étude sociologique"],
+  ["Psychologie / Psychanalyse","cas clinique, mécanisme psychique"],
+  ["Politique / Droit","institution, loi, fait politique"],
+  ["Littérature","œuvre ou personnage littéraire"],
+  ["Arts","cinéma, peinture, musique, art contemporain"],
+  ["Philosophie","thèse, expérience de pensée, doctrine"],
+  ["Épistémologie / Logique","méthode, raisonnement, argumentation"],
+  ["Éthique / Morale","dilemme ou principe moral"],
+  ["Anthropologie","pratique ou trait culturel humain"],
+  ["Mythe","récit mythologique ou religieux"],
+  ["Actualité / Société","fait contemporain, débat de société"],
+  ["Écologie","environnement, climat, nature"],
+  ["Œuvres clés","repère bibliographique"],
+  ["Technique","objet technique, innovation"],
+  ["Autre","catégorie non listée"]
+];
+
+/* Échappe une valeur pour l'insérer dans du HTML (attribut ou texte). */
+function pEsc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;");}
+/* Marqueur visuel obligatoire / facultatif. */
+function reqMark(req){return req?'<span class="preq">obligatoire</span>':'<span class="popt">facultatif</span>';}
+
+/* setBoxF — écrit une valeur de champ dans box.f. rerender=true seulement
+   si le champ modifie la STRUCTURE du formulaire (ex. catégorie « Autre »). */
+function setBoxF(id,key,val,rerender){
+  const b=proposalBoxes.find(x=>x.id===id);
+  if(!b) return;
+  (b.f||(b.f={}))[key]=val;
+  draftChanged();              // new (Phase 3) : persiste + synchronise le brouillon
+  if(rerender) renderProposal();
+}
+/* Coche / décoche une notion liée (cible « concept »). Sans re-rendu. */
+function toggleBoxNotion(id,k,on){
+  const b=proposalBoxes.find(x=>x.id===id); if(!b) return;
+  const arr=b.f.cnotions||(b.f.cnotions=[]);
+  const i=arr.indexOf(k);
+  if(on&&i<0) arr.push(k); else if(!on&&i>=0) arr.splice(i,1);
+  draftChanged();              // new (Phase 3) : persiste + synchronise le brouillon
+}
+
+/* pField — rend un champ générique (input texte ou textarea). */
+function pField(boxId,def,value,required){
+  const ph=def.ph?` placeholder="${pEsc(def.ph)}"`:"";
+  const v=pEsc(value||"");
+  const ctrl=def.t==="area"
+    ? `<textarea class="ptext" rows="3"${ph} oninput="setBoxF(${boxId},'${def.k}',this.value,false)">${v}</textarea>`
+    : `<input class="pinput" type="text" value="${v}"${ph} oninput="setBoxF(${boxId},'${def.k}',this.value,false)">`;
+  return `<div class="pfield"><label class="plabel">${def.l} ${reqMark(required)}</label>${ctrl}</div>`;
+}
+
+/* pIdeaField — variante de pField pour les champs d'une idée d'auteur :
+   écrit dans box.f.ideas[ideaIdx][def.k] au lieu de box.f[def.k]. */
+function pIdeaField(boxId,ideaIdx,def,value,required){
+  const ph=def.ph?` placeholder="${pEsc(def.ph)}"`:"";
+  const v=pEsc(value||"");
+  const ctrl=def.t==="area"
+    ? `<textarea class="ptext" rows="3"${ph} oninput="setIdeaF(${boxId},${ideaIdx},'${def.k}',this.value,false)">${v}</textarea>`
+    : `<input class="pinput" type="text" value="${v}"${ph} oninput="setIdeaF(${boxId},${ideaIdx},'${def.k}',this.value,false)">`;
+  return `<div class="pfield"><label class="plabel">${def.l} ${reqMark(required)}</label>${ctrl}</div>`;
+}
+
+/* notionSelectHTML — menu de la notion de rattachement de la boîte. */
+function notionSelectHTML(box,required){
+  const cur=box.f.notion||"";
+  const lbl=box.cible==="notion"?"Notion concernée":"Notion de rattachement";
+  const opts='<option value="">— choisir une notion —</option>'
+    +KEYS.map(k=>`<option value="${k}"${cur===k?" selected":""}>${D[k].l}</option>`).join("");
+  return `<div class="pfield"><label class="plabel">${lbl} ${reqMark(required)}</label>
+    <select class="psel" onchange="setBoxF(${box.id},'notion',this.value,false)">${opts}</select></div>`;
+}
+
+/* notionsMultiHTML — cases à cocher des notions liées (cible « concept »). */
+function notionsMultiHTML(box){
+  const sel=box.f.cnotions||[];
+  const items=KEYS.map(k=>`<label class="pchk"><input type="checkbox"${sel.indexOf(k)>=0?" checked":""} onchange="toggleBoxNotion(${box.id},'${k}',this.checked)"> ${D[k].l}</label>`).join("");
+  return `<div class="pfield"><label class="plabel">Notions liées ${reqMark(false)}</label>
+    <div class="pchk-grid">${items}</div></div>`;
+}
+
+/* excatFieldHTML — menu des catégories d'exemple (+ champ libre si « Autre »). */
+function excatFieldHTML(box,required){
+  const cur=box.f.excat||"";
+  const opts='<option value="">— choisir une catégorie —</option>'
+    +EXEMPLE_CATEGORIES.map(c=>`<option value="${pEsc(c[0])}"${cur===c[0]?" selected":""}>${pEsc(c[0])} — ${pEsc(c[1])}</option>`).join("");
+  let html=`<div class="pfield"><label class="plabel">Catégorie ${reqMark(required)}</label>
+    <select class="psel" onchange="setBoxF(${box.id},'excat',this.value,true)">${opts}</select></div>`;
+  if(cur==="Autre")
+    html+=pField(box.id,{k:"excatautre",l:"Catégorie personnalisée",t:"text",ph:"votre catégorie"},box.f.excatautre,required);
+  return html;
+}
+
+/* findKnownAuthor — cherche si un nom saisi correspond à un auteur connu
+   (recherche tolérante : inclusion dans un sens ou dans l'autre). */
+function findKnownAuthor(name){
+  const q=(name||"").trim().toLowerCase();
+  if(q.length<2) return null;
+  return Object.keys(AI).find(k=>{
+    const a=k.toLowerCase();
+    return a===q||a.indexOf(q)>=0||q.indexOf(a)>=0;
+  })||null;
+}
+/* authorStatusHTML — message sous le champ nom (auteur connu / nouveau). */
+function authorStatusHTML(val,known){
+  if(!val.trim()) return "";
+  return known
+    ? '<div class="pauth-ok">✓ Auteur déjà présent : <strong>'+pEsc(known)+"</strong></div>"
+    : '<div class="pauth-newmsg">Auteur non répertorié — vous pouvez compléter sa fiche ci-dessous (facultatif).</div>';
+}
+/* onAuthorName — saisie du nom : met à jour le statut et affiche/masque le
+   sous-formulaire « nouvel auteur » SANS re-rendu (le focus est conservé). */
+function onAuthorName(id,val){
+  const b=proposalBoxes.find(x=>x.id===id); if(!b) return;
+  b.f.nom=val;
+  const known=findKnownAuthor(val);
+  const status=document.getElementById("pauth-status-"+id);
+  const sub=document.getElementById("pauth-new-"+id);
+  if(status) status.innerHTML=authorStatusHTML(val,known);
+  if(sub) sub.style.display=(!val.trim()||known)?"none":"";
+}
+/* authorNameHTML — champ nom + statut + sous-formulaire « nouvel auteur ». */
+function authorNameHTML(box,required){
+  const nom=box.f.nom||"";
+  const known=findKnownAuthor(nom);
+  const hidden=(!nom.trim()||known)?' style="display:none"':"";
+  return `<div class="pfield">
+      <label class="plabel">Nom de l'auteur ${reqMark(required)}</label>
+      <input class="pinput" type="text" value="${pEsc(nom)}" placeholder="ex. Descartes" oninput="onAuthorName(${box.id},this.value)">
+      <div id="pauth-status-${box.id}">${authorStatusHTML(nom,known)}</div>
+    </div>
+    <div class="pauth-new" id="pauth-new-${box.id}"${hidden}>
+      <div class="phint" style="margin-bottom:8px">Nouvel auteur — ces informations aideront à créer sa fiche :</div>
+      ${pField(box.id,{k:"a_bio",l:"Biographie courte",t:"area",ph:"dates, nationalité, apport principal"},box.f.a_bio,false)}
+      ${pField(box.id,{k:"a_courant",l:"Courant philosophique",t:"text",ph:"ex. Rationalisme"},box.f.a_courant,false)}
+      ${pField(box.id,{k:"a_periode",l:"Période / siècle",t:"text",ph:"ex. XVIIe siècle"},box.f.a_periode,false)}
+      ${pField(box.id,{k:"a_themes",l:"Thèmes clés",t:"text",ph:"séparés par des virgules"},box.f.a_themes,false)}
+    </div>`;
+}
+
+/* authorNameSimpleHTML — champ nom + statut, SANS sous-formulaire bio
+   (sous-cibles citation / dialogue / bio : la bio y est hors-sujet ou bien
+   c'est le contenu principal). */
+function authorNameSimpleHTML(box,required){
+  const nom=box.f.nom||"";
+  const known=findKnownAuthor(nom);
+  return `<div class="pfield">
+      <label class="plabel">Nom de l'auteur ${reqMark(required)}</label>
+      <input class="pinput" type="text" value="${pEsc(nom)}" placeholder="ex. Descartes" oninput="onAuthorName(${box.id},this.value)">
+      <div id="pauth-status-${box.id}">${authorStatusHTML(nom,known)}</div>
+    </div>`;
+}
+/* selectFieldHTML — champ <select> générique (types dialdir / reltype).
+   opts = tableau de paires [valeur, libellé]. */
+function selectFieldHTML(box,def,opts,required){
+  const cur=box.f[def.k]||'';
+  const o='<option value="">— choisir —</option>'
+    +opts.map(p=>`<option value="${p[0]}"${cur===p[0]?' selected':''}>${pEsc(p[1])}</option>`).join('');
+  return `<div class="pfield"><label class="plabel">${def.l} ${reqMark(required)}</label>
+    <select class="psel" onchange="setBoxF(${box.id},'${def.k}',this.value,false)">${o}</select></div>`;
+}
+/* ideaCitationsFormHTML — liste des citations d'une idée (box.f.ideas[idx]) :
+   0..N citations, chacune supprimable, + bouton « Ajouter une citation ». */
+function ideaCitationsFormHTML(boxId,idx,it){
+  const cites=Array.isArray(it.citations)?it.citations:[];
+  let h=`<div class="pcites"><label class="plabel">Citations <span class="popt">facultatif</span></label>`;
+  cites.forEach((c,ci)=>{
+    h+=`<div class="pcite-row">
+      <textarea class="ptext" rows="2" placeholder="citation" oninput="setIdeaCitation(${boxId},${idx},${ci},this.value)">${pEsc(c||'')}</textarea>
+      <button class="pidea-del" title="Supprimer cette citation" onclick="removeIdeaCitation(${boxId},${idx},${ci})">×</button>
+    </div>`;
+  });
+  h+=`<button class="pidea-addbtn" onclick="addIdeaCitation(${boxId},${idx})">+ Ajouter une citation</button></div>`;
+  return h;
+}
+/* authorIdeaBlocksHTML — blocs d'idée multi-notions de la sous-cible 'auteur'.
+   Chaque bloc : notion (sélecteur) + œuvre/date/idée/concepts + citations[]
+   (+ retrait justifié en mode correction). Bouton « + Ajouter une idée ». */
+function authorIdeaBlocksHTML(box){
+  ensureIdeas(box);
+  const isAjout=box.type==='ajout';
+  const multi=box.f.ideas.length>1;
+  let h='';
+  box.f.ideas.forEach((it,idx)=>{
+    const del=multi?` <button class="pidea-del" title="Supprimer ce bloc" onclick="removeProposalIdea(${box.id},${idx})">×</button>`:'';
+    h+=`<div class="pidea"><div class="pidea-head">Idée ${idx+1}${del}</div>`;
+    // Notion PAR idée (plusieurs idées possibles, sur notions identiques ou non)
+    const curN=it.notion||'';
+    const opts='<option value="">— choisir une notion —</option>'
+      +KEYS.map(k=>`<option value="${k}"${curN===k?' selected':''}>${D[k].l}</option>`).join('');
+    h+=`<div class="pfield"><label class="plabel">Notion ${reqMark(isAjout)}</label>
+      <select class="psel" onchange="setIdeaF(${box.id},${idx},'notion',this.value,false)">${opts}</select></div>`;
+    PROPOSAL_FIELDS.auteur.forEach(d=>{ h+=pIdeaField(box.id,idx,d,it[d.k],isAjout&&d.r); });
+    h+=ideaCitationsFormHTML(box.id,idx,it);
+    if(box.type==='correction'){
+      h+=`<label class="pchk" style="margin-top:8px"><input type="checkbox"${it.remove?' checked':''} onchange="toggleIdeaRemove(${box.id},${idx},this.checked)"> Retirer cette idée / cette notion</label>`;
+      if(it.remove) h+=pIdeaField(box.id,idx,{k:'justif',l:'Justification du retrait',t:'area',ph:'Pourquoi retirer cette idée / notion ?'},it.justif,true);
+    }
+    h+='</div>';
+  });
+  h+=`<div class="pidea-add"><button class="pidea-addbtn" onclick="addProposalIdea(${box.id})">+ Ajouter une idée (et sa notion)</button></div>`;
+  return h;
+}
+
+/* renderBoxFields — formulaire selon (catégorie × sous-cible × type).
+   - remarque   : ciblage adapté (notion / auteur / concept) + texte libre.
+   - ajout/corr : rattachement notion adéquat, puis champs de la sous-cible. */
+function renderBoxFields(box){
+  const f=box.f||(box.f={});
+  const cat=box.categorie||cibleCat(box.cible);
+  const isAjout=box.type==='ajout';
+
+  // ── RETOUR SUR LE SITE (catégorie 'site') ──
+  // Pas de notion, pas d'auteur, pas de menu « type » : juste les champs
+  // libres de la sous-cible (bug / fonctionnalité). Le caractère
+  // obligatoire vient directement de d.r (le type est figé sur 'remarque').
+  if(cat==='site'){
+    let h='';
+    (PROPOSAL_FIELDS[box.cible]||[]).forEach(d=>{ h+=pField(box.id,d,f[d.k],d.r); });
+    return h;
+  }
+
+  // ── REMARQUE : ciblage selon la catégorie + texte libre ──
+  if(box.type==="remarque"){
+    let h='';
+    if(cat==='notion') h+=notionSelectHTML(box,false);
+    else if(cat==='auteur') h+=authorNameSimpleHTML(box,false);
+    else if(cat==='concept') h+=pField(box.id,{k:'cterme',l:'Concept concerné',t:'text',ph:'ex. NOMA (vide si remarque générale)'},f.cterme,false);
+    h+=pField(box.id,{k:"remelement",l:"Élément concerné",t:"text",ph:"titre, citation, zone précise… (facultatif)"},f.remelement,false);
+    h+=pField(box.id,{k:"remtexte",l:"Votre remarque",t:"area",ph:"Décrivez le passage concerné et ce que vous suggérez."},f.remtexte,true);
+    return h;
+  }
+
+  // ── AJOUT / CORRECTION ──
+  let html='';
+  // Rattachement notion selon la sous-cible.
+  if(box.cible==='concept') html+=notionsMultiHTML(box);                       // concept : notions liées
+  else if(cat==='notion') html+=notionSelectHTML(box,isAjout);                 // notion def/texte/plan/sujet/exemple
+  else if(box.cible==='auteur-citation') html+=notionSelectHTML(box,isAjout);  // citation simple : notion requise
+
+  // Correction : référence de l'élément ciblé.
+  if(box.type==="correction"){
+    html+=pField(box.id,{k:"cibleref",l:"Élément précis à corriger",t:"text",ph:"ex. la citation de Sartre, le titre de l'axe 2…"},f.cibleref,true);
+    html+='<div class="phint" style="margin:-3px 0 9px">Ne remplissez ci-dessous que les champs à modifier.</div>';
+  }
+
+  // Sous-cible 'auteur' (idée/œuvre) : nom + bio-si-nouveau + blocs multi-notions.
+  if(box.cible==='auteur'){
+    html+=authorNameHTML(box,isAjout);
+    html+=authorIdeaBlocksHTML(box);
+    return html;
+  }
+  // Autres sous-cibles auteur (citation / dialogue / bio) : nom simple.
+  if(cat==='auteur') html+=authorNameSimpleHTML(box,isAjout);
+
+  // Champs propres à la sous-cible.
+  (PROPOSAL_FIELDS[box.cible]||[]).forEach(d=>{
+    const req=isAjout&&d.r;
+    if(d.t==='excat') html+=excatFieldHTML(box,req);
+    else if(d.t==='dialdir') html+=selectFieldHTML(box,d,[['oppose',"s'oppose à"],['prolonge','prolonge'],['repond','répond à']],req);
+    else if(d.t==='reltype') html+=selectFieldHTML(box,d,[['oppose',"s'oppose à"],['prolonge','prolonge'],['complete','complète'],['repond','répond à'],['distinction','se distingue de'],['implique','implique']],req);
+    else html+=pField(box.id,d,f[d.k],req);
+  });
+  return html;
+}
+
+/* ── Génération du texte de la proposition (étape 2) ────────────────
+   generateProposalText() assemble un texte structuré : en-tête lisible
+   + bloc « prêt à coller » (objet JS) pour les ajouts, description champ
+   par champ pour les corrections, texte libre pour les remarques.
+   Seuls les champs effectivement remplis figurent dans la sortie.      */
+
+/* Valeur d'un champ, nettoyée (chaîne sans espaces de bord). */
+function gv(f,k){return String(f&&f[k]!=null?f[k]:'').trim();}
+/* Encadre une valeur en chaîne JS (échappe \, " et sauts de ligne). */
+function jsStr(v){
+  return '"'+String(v==null?'':v).replace(/\\/g,'\\\\').replace(/"/g,'\\"').replace(/\r?\n/g,'\\n')+'"';
+}
+/* Construit un littéral d'objet JS depuis des paires [clé,valeur,raw].
+   Ignore les valeurs vides. raw=true → la valeur est insérée telle quelle. */
+function jsObj(pairs,withNew){
+  const parts=withNew?['new:true']:[];
+  pairs.forEach(p=>{
+    const k=p[0],v=p[1],raw=p[2];
+    if(raw){ if(v!=null&&v!=='') parts.push(k+':'+v); }
+    else if(v!=null&&String(v).trim()!=='') parts.push(k+':'+jsStr(v));
+  });
+  return '{'+parts.join(', ')+'}';
+}
+/* Transforme un terme en identifiant (id de concept). */
+function slugify(s){
+  return String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'')
+    .replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'')||'a-definir';
+}
+
+/* Corps généré pour une boîte en mode 'ajout', selon la cible. */
+function generateAjout(b,f){
+  const nk=f.notion||'?';
+  if(b.cible==='notion')
+    return 'Texte proposé pour la définition / l\'approfondissement :\n'+(gv(f,'notiondef')||'(vide)')+'\n';
+  if(b.cible==='auteur'){
+    // Idées groupées PAR NOTION → une insertion D[notion].auteurs[] par notion.
+    // Chaque idée : {w, i, citations:[…]}. On ignore les idées vides.
+    const byNotion={};
+    (f.ideas||[]).forEach(it=>{
+      const hasCite=(it.citations||[]).some(c=>String(c).trim());
+      if(!(gv(it,'oeuvre')||gv(it,'idee')||hasCite)) return;
+      const k=gv(it,'notion')||'?';
+      (byNotion[k]||(byNotion[k]=[])).push(it);
+    });
+    let s='';
+    Object.keys(byNotion).forEach(k=>{
+      const ideaLits=byNotion[k].map(it=>{
+        const w=[gv(it,'oeuvre'),gv(it,'date')].filter(Boolean).join(', ');
+        const cites='['+(it.citations||[]).map(c=>String(c).trim()).filter(Boolean).map(jsStr).join(', ')+']';
+        return jsObj([['w',w],['i',gv(it,'idee')],['citations',cites,true]],true);
+      });
+      s+='À insérer dans D.'+k+'.auteurs[] :\n'+jsObj([['n',gv(f,'nom')],['ideas','['+ideaLits.join(', ')+']',true]],true)+'\n\n';
+    });
+    const conceptsAll=(f.ideas||[]).map(it=>gv(it,'concepts')).filter(Boolean).join(', ');
+    if(conceptsAll) s+='Termes à lier au glossaire : '+conceptsAll+'\n';
+    if(gv(f,'a_bio')||gv(f,'a_courant')||gv(f,'a_periode')||gv(f,'a_themes')){
+      const themes='['+gv(f,'a_themes').split(',').map(x=>x.trim()).filter(Boolean).map(jsStr).join(',')+']';
+      s+='\nNouvel auteur — entrée AM['+jsStr(gv(f,'nom'))+'] :\n'
+        +jsObj([['bio',gv(f,'a_bio')],['courant',gv(f,'a_courant')],['periode',gv(f,'a_periode')],['themes',themes,true],['dialogues','[]',true]],false)+'\n';
+    }
+    return s||'(aucune idée renseignée)\n';
+  }
+  if(b.cible==='auteur-citation'){
+    // Citation simple/rattachée : une idée minimale portée par sa citation.
+    const w=gv(f,'oeuvre'), cite=gv(f,'citation');
+    const idea=jsObj([['w',w],['citations','['+(cite?jsStr(cite):'')+']',true]],true);
+    let s='À insérer dans D.'+nk+'.auteurs[] (auteur '+jsStr(gv(f,'nom'))+') :\n'+idea+'\n';
+    if(gv(f,'rattach')) s+='\n(De préférence : ajouter cette citation aux citations[] de l\'idée existante « '+gv(f,'rattach')+' »)\n';
+    return s;
+  }
+  if(b.cible==='auteur-dialogue')
+    return 'À insérer dans AM['+jsStr(gv(f,'nom'))+'].dialogues[] :\n'
+      +jsObj([['dir',gv(f,'dialdir')],['auteur',gv(f,'dialauteur')],['sujet',gv(f,'dialsujet')],['desc',gv(f,'dialdesc')]],false)+'\n';
+  if(b.cible==='auteur-bio'){
+    const themes='['+gv(f,'a_themes').split(',').map(x=>x.trim()).filter(Boolean).map(jsStr).join(',')+']';
+    return 'À insérer / compléter dans AM['+jsStr(gv(f,'nom'))+'] :\n'
+      +jsObj([['bio',gv(f,'a_bio')],['courant',gv(f,'a_courant')],['periode',gv(f,'a_periode')],['themes',themes,true]],false)+'\n';
+  }
+  if(b.cible==='texte')
+    return 'À insérer dans D.'+nk+'.textes[] :\n'+jsObj([['n',gv(f,'titre')],['t',gv(f,'contenu')]],true)+'\n';
+  if(b.cible==='plan'){
+    // Construit un littéral de plan {q, intro, pb, axes:[{t, sps:[{args}], limite}]}.
+    // Le formulaire visiteur ne saisit qu'un contenu par axe (pas de
+    // sous-parties imbriquées) : il est placé dans une seule sous-partie
+    // {args:…}, à découper ensuite à la main si besoin.
+    const axes=[];
+    ['1','2','3'].forEach(n=>{
+      const t=gv(f,'plan_a'+n+'t'), cc=gv(f,'plan_a'+n+'c'), li=gv(f,'plan_a'+n+'l');
+      if(t||cc||li){
+        const sps=cc?'[{args:'+jsStr(cc)+'}]':'[]';
+        axes.push('{t:'+jsStr(t)+', sps:'+sps+', limite:'+jsStr(li)+'}');
+      }
+    });
+    return 'À insérer dans D.'+nk+'.plans[] :\n'
+      +jsObj([['q',gv(f,'plan_q')],['intro',gv(f,'plan_intro')],['pb',gv(f,'plan_pb')],['axes','['+axes.join(', ')+']',true]],true)+'\n';
+  }
+  if(b.cible==='exemple'){
+    const tag=gv(f,'excat')==='Autre'?gv(f,'excatautre'):gv(f,'excat');
+    return 'À insérer dans D.'+nk+'.exemples[] :\n'
+      +jsObj([['tag',tag],['tit',gv(f,'extitre')],['body',gv(f,'excorps')],['lien',gv(f,'exlien')]],true)+'\n';
+  }
+  if(b.cible==='accroche')
+    return 'À insérer dans D.'+nk+'.accroches[] :\n'
+      +jsObj([['type',gv(f,'acctype')],['t',gv(f,'acctexte')],['src',gv(f,'accsrc')]],true)+'\n';
+  if(b.cible==='dissertation')
+    return 'À insérer dans D.'+nk+'.diss[] :\n'+jsObj([['q',gv(f,'question')]],true)+'\n';
+  if(b.cible==='concept'){
+    const notions='['+(f.cnotions||[]).map(jsStr).join(',')+']';
+    // liens : l'explication du lien (clien) est rattachée à CHAQUE notion
+    // cochée (même texte) — à ajuster ensuite si les notions diffèrent.
+    const clien=gv(f,'clien');
+    const liensLit=clien?'{'+(f.cnotions||[]).map(k=>jsStr(k)+':'+jsStr(clien)).join(', ')+'}':'';
+    const pairs=[['id',jsStr(slugify(gv(f,'cterme'))),true],['term',gv(f,'cterme')],['cat',gv(f,'ccat')||'À préciser'],
+                 ['def',gv(f,'cdef')],['notions',notions,true]];
+    if(liensLit) pairs.push(['liens',liensLit,true]);
+    return 'À insérer dans le tableau CONCEPTS[] :\n'+jsObj(pairs,true)+'\n';
+  }
+  if(b.cible==='concept-relation'){
+    // Relation unifiée {to|term, type, desc} à ajouter aux relations[] du
+    // concept source. Si la cible est un concept fiché, remplacer term par to.
+    const cibleTerm=gv(f,'relcible');
+    const rel=jsObj([['term',cibleTerm],['type',gv(f,'reltype')],['desc',gv(f,'reldesc')]],false);
+    return 'À ajouter dans CONCEPTS[« '+gv(f,'cterme')+' »].relations[] :\n'+rel
+      +'\n(si « '+cibleTerm+' » est un concept fiché, remplacer term:"…" par to:"<id-concept>")\n';
+  }
+  return '(cible inconnue)\n';
+}
+
+/* generateSiteBody — corps lisible d'un retour sur le site (catégorie
+   'site'). Pas de notion ni d'auteur : on liste simplement les champs
+   renseignés de la sous-cible (bug / fonctionnalité). */
+function generateSiteBody(b,f){
+  if(b.cible==='site-bug'){
+    let s='Type de retour : bug / erreur d\'usage du site\n';
+    if(gv(f,'bugou'))       s+='Où : '+gv(f,'bugou')+'\n';
+    s+='\nProblème :\n'+(gv(f,'bugdesc')||'(vide)')+'\n';
+    if(gv(f,'bugrepro'))    s+='\nÉtapes pour reproduire :\n'+gv(f,'bugrepro')+'\n';
+    if(gv(f,'bugappareil')) s+='\nAppareil / navigateur : '+gv(f,'bugappareil')+'\n';
+    return s;
+  }
+  // site-fonction
+  let s='Type de retour : proposition de fonctionnalité\n';
+  s+='\nIdée : '+(gv(f,'fonctitre')||'(vide)')+'\n';
+  s+='\nDescription :\n'+(gv(f,'foncdesc')||'(vide)')+'\n';
+  if(gv(f,'foncusage')) s+='\nBesoin / usage :\n'+gv(f,'foncusage')+'\n';
+  return s;
+}
+
+/* Corps généré pour une boîte (remarque / correction / ajout). */
+function generateBoxBody(b){
+  const f=b.f||{};
+  // Retour sur le site : corps dédié, sans ligne « Notion » (hors-sujet).
+  if((b.categorie||cibleCat(b.cible))==='site') return generateSiteBody(b,f);
+  // Ligne « notion » adaptée à la catégorie / sous-cible :
+  //  · concept def → notions liées (f.cnotions) ;
+  //  · auteur idée → notions DISTINCTES des idées (f.ideas[].notion) ;
+  //  · dialogue / bio / relation → aucune notion ;
+  //  · autres → notion de rattachement (f.notion).
+  let notionLine='';
+  if(b.cible==='concept'){
+    const ks=(f.cnotions||[]).filter(k=>D[k]);
+    notionLine='Notions liées : '+(ks.length?ks.map(k=>D[k].l).join(', '):'—');
+  }else if(b.cible==='auteur'){
+    const ks=[...new Set((f.ideas||[]).map(it=>gv(it,'notion')).filter(Boolean))];
+    notionLine='Notions : '+(ks.length?ks.map(k=>D[k]?D[k].l:k).join(', '):'—');
+  }else if(b.cible==='auteur-dialogue'||b.cible==='auteur-bio'||b.cible==='concept-relation'){
+    notionLine='';
+  }else{
+    notionLine='Notion : '+(f.notion&&D[f.notion]?D[f.notion].l:'—');
+  }
+  const nlPrefix=notionLine?notionLine+'\n':'';
+  if(b.type==='remarque')
+    return nlPrefix
+      +'Élément concerné : '+(gv(f,'remelement')||'—')+'\n\n'
+      +'Remarque :\n'+(gv(f,'remtexte')||'(vide)')+'\n';
+  if(b.type==='correction'){
+    const head=nlPrefix+'Élément ciblé : '+(gv(f,'cibleref')||'—')+'\n\nModifications proposées :\n';
+    const lines=[];
+    // Nom d'auteur pour toutes les sous-cibles auteur.
+    if(cibleCat(b.cible)==='auteur'&&gv(f,'nom')) lines.push('  - Nom de l\'auteur : '+gv(f,'nom'));
+    if(b.cible==='auteur'){
+      // Cible auteur (idée/œuvre) : champs PAR IDÉE (notion + œuvre/idée +
+      // citations[] + retrait justifié).
+      const ideas=f.ideas||[];
+      const multi=ideas.length>1;
+      ideas.forEach((it,idx)=>{
+        const lbl=multi?(' (idée '+(idx+1)+')'):'';
+        if(gv(it,'notion')) lines.push('  - Notion'+lbl+' : '+(D[gv(it,'notion')]?D[gv(it,'notion')].l:gv(it,'notion')));
+        if(it.remove) lines.push('  - ⚠ RETRAIT'+lbl+' : '+(gv(it,'justif')||'(sans justification)'));
+        (PROPOSAL_FIELDS.auteur).forEach(d=>{ if(gv(it,d.k)) lines.push('  - '+d.l+lbl+' : '+gv(it,d.k)); });
+        (it.citations||[]).forEach(c=>{ if(String(c).trim()) lines.push('  - Citation'+lbl+' : '+String(c).trim()); });
+      });
+    }else{
+      (PROPOSAL_FIELDS[b.cible]||[]).forEach(d=>{ if(gv(f,d.k)) lines.push('  - '+d.l+' : '+gv(f,d.k)); });
+    }
+    return head+(lines.length?lines.join('\n'):'  (aucun champ rempli)')+'\n';
+  }
+  return nlPrefix+(notionLine?'\n':'')+generateAjout(b,f);
+}
+
+/* cleanFields — copie de box.f sans les valeurs vides (pour le bloc JSON).
+   Cas particulier : f.ideas est un tableau d'objets. Chaque idée est
+   nettoyée de ses champs vides ; les idées entièrement vides sont
+   retirées. */
+function cleanFields(f){
+  const o={};
+  Object.keys(f||{}).forEach(k=>{
+    const v=f[k];
+    if(k==='ideas'&&Array.isArray(v)){
+      const cleaned=v.map(it=>{
+        const out={};
+        Object.keys(it||{}).forEach(ik=>{
+          const iv=it[ik];
+          if(Array.isArray(iv)){                 // citations[] : on garde les non vides
+            const arr=iv.map(x=>String(x).trim()).filter(Boolean);
+            if(arr.length) out[ik]=arr;
+          }else if(iv!=null&&String(iv).trim()!=='') out[ik]=String(iv).trim();
+        });
+        return out;
+      }).filter(it=>Object.keys(it).length>0);
+      if(cleaned.length) o[k]=cleaned;
+    }
+    else if(Array.isArray(v)){ if(v.length) o[k]=v.slice(); }
+    else if(v!=null&&String(v).trim()!=='') o[k]=String(v).trim();
+  });
+  return o;
+}
+/* generateProposalJSON — objet structuré de la proposition, destiné au
+   programme d'agrégation externe (schéma « philo-proposal/v3 »).
+   v3 : chaque boîte porte categorie (notion/auteur/concept) + cible
+        (sous-cible) + type. Pour cible 'auteur', fields.ideas[] est un
+        tableau { notion, oeuvre, date, idee, citations:[…], concepts }.
+   v2/v1 : sans categorie, cible à plat. L'agrégateur lit les trois.     */
+function generateProposalJSON(){
+  return {
+    schema:'philo-proposal/v3',
+    date:new Date().toISOString(),
+    contributor:(proposalContributor||'').trim()||'anonyme',
+    boxes:proposalBoxes.map(b=>({categorie:b.categorie||cibleCat(b.cible),cible:b.cible,type:b.type,fields:cleanFields(b.f)}))
+  };
+}
+/* Assemble le texte complet : une partie LISIBLE (relecture humaine) puis
+   un bloc DONNÉES JSON délimité, lu tel quel par le programme d'agrégation
+   (entre [PHILO-PROPOSAL-JSON-START] et [PHILO-PROPOSAL-JSON-END]).        */
+function generateProposalText(){
+  const name=(proposalContributor||'').trim()||'anonyme';
+  let out='══════════════════════════════════════════\n'
+    +' PROPOSITION — GRAPHE PHILOSOPHIE TERMINALE\n'
+    +'══════════════════════════════════════════\n'
+    +'Contributeur : '+name+'\n'
+    +'Nombre de boîtes : '+proposalBoxes.length+'\n';
+  proposalBoxes.forEach((b,i)=>{
+    const cat=b.categorie||cibleCat(b.cible);
+    // Pour un retour sur le site, le « type d'action » est masqué dans l'UI
+    // et figé en interne : on n'affiche donc pas la ligne « Action ».
+    const actionLine=cat==='site' ? '' : 'Action    : '+proposalTypeLabel(b.type)+'\n';
+    out+='\n──────────  BOÎTE '+(i+1)+'  ──────────\n'
+      +'Catégorie : '+proposalCatLabel(cat)+'\n'
+      +'Préciser  : '+proposalCibleLabel(b.cible)+'\n'
+      +actionLine+'\n'
+      +generateBoxBody(b);
+  });
+  out+='\n══════════════════════════════════════════\n';
+  // Bloc machine : NE PAS MODIFIER — extrait et analysé par le programme d'agrégation.
+  out+='\n[PHILO-PROPOSAL-JSON-START]\n'
+    +JSON.stringify(generateProposalJSON(),null,2)
+    +'\n[PHILO-PROPOSAL-JSON-END]\n';
+  return out;
+}
+
+/* Bascule édition / aperçu. */
+function showProposalPreview(){ proposalView='preview'; renderProposal(); }
+function showProposalEdit(){ proposalView='edit'; renderProposal(); }
+/* new : depuis « Mes propositions », « ← Nouvelle proposition » revient à
+   l'édition d'une NOUVELLE proposition. Si on corrigeait un envoi, on en sort
+   proprement (editingContribId effacé, brouillon local restauré). */
+function startNewProposal(){ if(editingContribId) exitEditContrib(); proposalView='edit'; renderProposal(); }
+/* Copie le texte généré dans le presse-papier. */
+function copyProposal(){
+  const txt=generateProposalText();
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(txt).then(function(){
+      const btn=document.getElementById('pcopy-btn'); if(btn) btn.textContent='✓ Copié';
+    },function(){});
+  }
+}
+/* Ouvre l'application mail du contributeur, pré-remplie vers PROPOSAL_EMAIL,
+   avec le texte de la proposition en corps de message (étape 3).
+   Note : affecter window.location.href à une URL mailto: NE quitte PAS la
+   page (le navigateur délègue au gestionnaire de courrier) ; la modale
+   reste donc ouverte derrière. */
+function sendProposal(){
+  if(!proposalGuardOk()) return;   // même garde-fou pour l'envoi par email manuel
+  const subject='Proposition — Graphe Philosophie Terminale';
+  window.location.href='mailto:'+PROPOSAL_EMAIL
+    +'?subject='+encodeURIComponent(subject)
+    +'&body='+encodeURIComponent(generateProposalText());
+}
+
+/* new (Phase 5) : repli mailto AUTOMATIQUE et silencieux.
+   Quand l'envoi en ligne échoue (hors-ligne, service endormi, RLS, etc.),
+   on ne laisse plus l'utilisateur faire l'effort de cliquer : on bascule
+   tout de suite sur son application mail (sendProposal), en l'annonçant
+   d'une ligne. Le bouton « Envoyer par email » reste là, discret, pour
+   relancer le mail à la main si le gestionnaire ne s'est pas ouvert.
+   `reason` = message technique de l'échec (affiché entre parenthèses). */
+function proposalMailtoFallback(reason){
+  const btn=document.getElementById('psend-btn');
+  const status=document.getElementById('psend-status');
+  if(btn){ btn.disabled=false; btn.textContent='Réessayer en ligne'; }
+  if(status){
+    status.style.color='#e0c170';
+    status.textContent='Envoi en ligne impossible ('+reason
+      +'). On ouvre ton application mail en repli — il te reste à appuyer sur « Envoyer ».';
+  }
+  // Bascule effective vers le client mail (ne quitte pas la page).
+  sendProposal();
+}
+
+/* new (Phase 3) : envoi de la proposition RATTACHÉE AU COMPTE.
+   Quand l'utilisateur est connecté, « Envoyer en ligne » insère la
+   proposition dans la table Supabase « contributions » (rattachée au
+   compte). Avantage : on peut ensuite suivre son statut dans
+   « Mes propositions ». La sécurité RLS impose user_id = auth.uid() : on le
+   renseigne donc explicitement. Le statut prend sa valeur par défaut côté
+   base ('en_attente'). En cas d'échec : on n'ouvre PAS l'email (cela
+   quitterait la page) ; on invite à réessayer ou à utiliser « Envoyer par
+   email », tout proche — la contribution n'est jamais perdue. */
+function sendProposalToSupabase(){
+  const btn=document.getElementById('psend-btn');
+  const status=document.getElementById('psend-status');
+  const setStatus=function(msg,color){ if(status){ status.textContent=msg; status.style.color=color||''; } };
+  if(btn){ btn.disabled=true; btn.textContent='Envoi…'; }
+  setStatus('Envoi en cours…','');
+  SB.from('contributions').insert({
+    user_id: authUser.id,            // exigé par la règle RLS (auth.uid() = user_id)
+    payload: generateProposalJSON()  // ton JSON v3, stocké tel quel (colonne jsonb)
+  }).then(function(res){
+    if(res.error) throw res.error;
+    if(btn){ btn.textContent='✓ Envoyé'; }   // reste désactivé : évite le double envoi
+    setStatus('Merci ! Ta proposition est enregistrée sur ton compte. Suis son statut dans « Mes propositions ». 🎉','#2ecc71');
+    clearDrafts();   // new (Phase 3) : la proposition étant soumise, on vide le brouillon
+  }).catch(function(err){
+    // new (Phase 5) : repli mailto automatique (plus de message « clique ici »).
+    proposalMailtoFallback((err&&err.message)||err);
+  });
+}
+
+/* Envoi ANONYME via Supabase (a remplacé la boîte PythonAnywhere, retirée).
+   Insère la proposition avec user_id NULL (aucun compte) : une règle RLS dédiée
+   (migration 2026_anon_contributions.sql) autorise le rôle « anon » à insérer
+   une ligne non rattachée à un compte, au statut « en_attente ». Le pseudo
+   saisi voyage dans payload.contributor (pas de suivi de statut, faute de
+   compte). Repli mailto automatique en cas d'échec — la contribution n'est
+   jamais perdue. */
+function sendProposalAnonSupabase(){
+  const btn=document.getElementById('psend-btn');
+  const status=document.getElementById('psend-status');
+  const setStatus=function(msg,color){ if(status){ status.textContent=msg; status.style.color=color||''; } };
+  if(btn){ btn.disabled=true; btn.textContent='Envoi…'; }
+  setStatus('Envoi en cours…','');
+  SB.from('contributions').insert({
+    user_id: null,                   // envoi anonyme : ligne non liée à un compte
+    payload: generateProposalJSON()  // JSON v3 (le pseudo est dans payload.contributor)
+  }).then(function(res){
+    if(res.error) throw res.error;
+    if(btn){ btn.textContent='✓ Envoyé'; }   // reste désactivé : évite le double envoi
+    setStatus('Merci ! Ta proposition anonyme a bien été envoyée. 🎉','#2ecc71');
+    clearDrafts();
+  }).catch(function(err){
+    proposalMailtoFallback((err&&err.message)||err);
+  });
+}
+
+/* new (Phase 3) : aiguillage du bouton « Envoyer en ligne ».
+   - Édition d'un envoi « en attente » (connecté) → UPDATE de la ligne Supabase.
+   - Connecté (nouvelle proposition) → Supabase (suivi du statut possible).
+   - Non connecté, Supabase dispo → Supabase anonyme (user_id NULL) — voie
+     principale des anonymes.
+   - Supabase indisponible (hors-ligne / CDN non chargé) → repli mailto direct
+     (proposalMailtoFallback). L'ancienne boîte anonyme PythonAnywhere, éteinte,
+     a été retirée en oct. 2026 (dossier philo-mailbox/ supprimé). */
+/* ── Validation des champs obligatoires avant envoi ─────────────────────────
+   Avant, on pouvait envoyer une proposition même si des champs obligatoires
+   étaient vides (aucun avertissement). proposalMissing() reconstruit la liste
+   des champs requis MANQUANTS en miroir des règles de renderBoxFields (selon
+   catégorie × cible × type), et proposalGuardOk() bloque l'envoi en l'affichant. */
+function proposalEmpty(v){ return !String(v==null?'':v).trim(); }
+function proposalMissing(){
+  const miss=[];
+  proposalBoxes.forEach((b,bi)=>{
+    const f=b.f||{}, cat=b.categorie||cibleCat(b.cible), isAjout=b.type==='ajout';
+    const add=l=>miss.push('Boîte '+(bi+1)+' — '+l);
+    if(cat==='site'){ (PROPOSAL_FIELDS[b.cible]||[]).forEach(d=>{ if(d.r&&proposalEmpty(f[d.k])) add(d.l); }); return; }
+    if(b.type==='remarque'){ if(proposalEmpty(f.remtexte)) add('Votre remarque'); return; }
+    // ajout / correction : rattachement notion requis (ajout) selon la cible
+    if(isAjout && cat==='notion' && b.cible!=='concept' && proposalEmpty(f.notion)) add('Notion');
+    if(isAjout && b.cible==='auteur-citation' && proposalEmpty(f.notion)) add('Notion');
+    if(b.type==='correction' && proposalEmpty(f.cibleref)) add('Élément précis à corriger');
+    if(b.cible==='auteur'){           // idée/œuvre : nom + (par idée) œuvre & idée
+      if(isAjout && proposalEmpty(f.nom)) add('Nom de l\'auteur');
+      if(isAjout) (f.ideas||[]).forEach((it,i)=>{ PROPOSAL_FIELDS.auteur.forEach(d=>{ if(d.r&&proposalEmpty(it&&it[d.k])) add('idée '+(i+1)+' : '+d.l); }); });
+      return;
+    }
+    if(isAjout && cat==='auteur' && proposalEmpty(f.nom)) add('Nom de l\'auteur');  // citation/dialogue/bio
+    (PROPOSAL_FIELDS[b.cible]||[]).forEach(d=>{ if(isAjout&&d.r&&proposalEmpty(f[d.k])) add(d.l); });
+  });
+  return miss;
+}
+/* proposalGuardOk() — true si tout est rempli ; sinon affiche la liste des
+   manques (zone #psend-status) et renvoie false (l'appelant abandonne l'envoi). */
+function proposalGuardOk(){
+  const miss=proposalMissing();
+  if(!miss.length) return true;
+  const status=document.getElementById('psend-status');
+  const msg='⚠ Champs obligatoires manquants — '+miss.slice(0,8).join(' ; ')+(miss.length>8?' …':'');
+  if(status){ status.textContent=msg; status.style.color='#e74c3c'; try{ status.scrollIntoView({behavior:'smooth',block:'center'}); }catch(e){} }
+  else alert(msg);
+  return false;
+}
+
+function submitProposalOnline(){
+  if(!proposalGuardOk()) return;   // bloque si des champs obligatoires sont vides
+  if(SB && authUser && editingContribId) updateProposalInSupabase();
+  else if(SB && authUser) sendProposalToSupabase();
+  else if(SB) sendProposalAnonSupabase();   // anonyme → Supabase
+  else proposalMailtoFallback('service en ligne indisponible');   // Supabase non chargé : repli mail
+}
+
+/* new : UPDATE d'une proposition « en attente » (édition, pas un nouvel insert).
+   La règle RLS d'update n'autorise QUE ses propres lignes ENCORE « en_attente »
+   (cf. SQL fourni au déploiement). On chaîne .select('id') pour SAVOIR si une
+   ligne a vraiment été modifiée : si RLS bloque (statut changé entre-temps),
+   l'update touche 0 ligne SANS erreur → data vide, qu'on traite comme un refus.
+   Succès → on quitte l'édition (brouillon local restauré) et on revient à
+   « Mes propositions ». Échec → message clair, PAS de repli mailto (un email
+   ne mettrait rien à jour). */
+function updateProposalInSupabase(){
+  const btn=document.getElementById('psend-btn');
+  const status=document.getElementById('psend-status');
+  const setStatus=function(msg,color){ if(status){ status.textContent=msg; status.style.color=color||''; } };
+  if(btn){ btn.disabled=true; btn.textContent='Enregistrement…'; }
+  setStatus('Enregistrement en cours…','');
+  SB.from('contributions')
+    .update({ payload: generateProposalJSON() })   // remplace le contenu par la version corrigée
+    .eq('id', editingContribId)
+    .eq('user_id', authUser.id)                    // ceinture+bretelles avec la RLS
+    .select('id')
+    .then(function(res){
+      if(res.error) throw res.error;
+      if(!res.data || !res.data.length)
+        throw new Error('Modification refusée — la proposition n\'est peut-être plus « en attente ».');
+      exitEditContrib();        // restaure le brouillon local mis de côté
+      proposalView='mine';
+      renderProposal();         // recharge « Mes propositions » (version à jour)
+    })
+    .catch(function(err){
+      if(btn){ btn.disabled=false; btn.textContent='Enregistrer les modifications'; }
+      setStatus('Échec de l\'enregistrement : '+((err&&err.message)||err),'#e74c3c');
+    });
+}
+
+/* new (Phase 3) : bascule vers la vue « Mes propositions ». */
+function showProposalMine(){ proposalView='mine'; renderProposal(); }
+
+/* new : reconstruit les boîtes RUNTIME (proposalBoxes) depuis un payload stocké
+   (v1/v2/v3), afin de RÉ-ÉDITER une proposition envoyée. Chaque boîte stockée
+   {categorie,cible,type,fields} redevient {id,categorie,cible,type,f}. La
+   catégorie est déduite si absente (anciens payloads), f est une COPIE PROFONDE
+   (jamais le payload d'origine) et f.ideas est garanti pour la cible 'auteur'. */
+function boxesFromPayload(payload){
+  const src=(payload&&payload.boxes)||[];
+  return src.map(function(b){
+    const cible=b.cible||'notion';
+    const box={ id:++proposalSeq,
+      categorie:b.categorie||cibleCat(cible),
+      cible:cible,
+      type:b.type||(cibleCat(cible)==='site'?'remarque':'ajout'),
+      f:JSON.parse(JSON.stringify(b.fields||{})) };   // copie profonde
+    if(cible==='auteur') ensureIdeas(box);
+    return box;
+  });
+}
+
+/* new : rouvre une proposition « en attente » pour la corriger. On met le
+   brouillon local de côté (editDraftBackup) afin de ne JAMAIS l'écraser, on
+   reconstruit les boîtes depuis le payload stocké, puis on passe en vue édition
+   (une bannière y rappelle qu'on modifie un envoi). L'envoi fera un UPDATE. */
+function editMyContribution(id){
+  const row=myContribCache.find(function(c){ return String(c.id)===String(id); });
+  if(!row) return;
+  // Sauvegarde du brouillon en cours (copie profonde) pour le restaurer ensuite.
+  // Garde : si on édite DÉJÀ un envoi (on passe de la correction d'une proposition
+  // à une autre), proposalBoxes contient l'autre envoi — surtout ne pas l'adopter
+  // comme « brouillon » ; on conserve le backup d'origine (le vrai brouillon).
+  if(!editingContribId)
+    editDraftBackup={ boxes:JSON.parse(JSON.stringify(proposalBoxes)),
+      contributor:proposalContributor, seq:proposalSeq };
+  editingContribId=row.id;        // valeur d'origine (uuid ou bigint) → eq() correct
+  proposalBoxes=boxesFromPayload(row.payload);
+  if(!proposalBoxes.length)
+    proposalBoxes=[{id:++proposalSeq,categorie:'auteur',type:'ajout',cible:'auteur',f:{ideas:[{}]}}];
+  // Nom : on reprend celui du payload s'il était nommé, sinon le pseudo du compte.
+  const who=(row.payload&&row.payload.contributor)||'';
+  proposalContributor=(who&&who!=='anonyme')?who:(authUser?authLabel():'');
+  proposalView='edit';
+  renderProposal();
+}
+
+/* new : quitte le mode « édition d'un envoi » et RESTAURE le brouillon local
+   mis de côté. Appelé après un enregistrement réussi ET sur annulation. */
+function exitEditContrib(){
+  editingContribId=null;
+  if(editDraftBackup){
+    proposalBoxes=Array.isArray(editDraftBackup.boxes)?editDraftBackup.boxes:[];
+    proposalContributor=editDraftBackup.contributor||'';
+    proposalSeq=Math.max(proposalSeq, editDraftBackup.seq||0);
+    editDraftBackup=null;
+  }
+}
+
+/* new : annule l'édition d'un envoi (sans rien enregistrer) et revient à la
+   liste « Mes propositions ». Le brouillon local est restauré. */
+function cancelEditContrib(){ exitEditContrib(); proposalView='mine'; renderProposal(); }
+
+/* Étiquette + classe CSS de pastille pour un statut de contribution.
+   Les quatre valeurs viennent de l'enum SQL contrib_status. */
+function contribStatusLabel(s){
+  switch(s){
+    case 'validee_integree': return {txt:'Validée — intégrée au site', cls:'pst-ok'};
+    case 'validee_en_cours': return {txt:'Validée — intégration en cours', cls:'pst-prog'};
+    case 'refusee':          return {txt:'Non retenue', cls:'pst-no'};
+    default:                 return {txt:'En attente de relecture', cls:'pst-wait'};   // 'en_attente'
+  }
+}
+
+/* Résumé court d'une proposition à partir de son payload v3 (pour la liste). */
+function contribSummary(payload){
+  try{
+    const boxes=(payload&&payload.boxes)||[];
+    if(!boxes.length) return 'Proposition';
+    const parts=boxes.slice(0,3).map(b=>proposalCibleLabel(b.cible)||b.cible||'boîte');
+    let s=parts.join(', ');
+    if(boxes.length>3) s+=' …';
+    return s+' ('+boxes.length+' boîte'+(boxes.length>1?'s':'')+')';
+  }catch(e){ return 'Proposition'; }
+}
+
+/* new : libellé lisible d'un champ d'une boîte, à partir de sa cible.
+   On réutilise PROPOSAL_FIELDS (mêmes intitulés qu'au moment de la saisie) ;
+   à défaut (champ méta ou inconnu), on retombe sur une petite table puis sur
+   la clé brute. */
+function contribFieldLabel(cible,key){
+  const defs=PROPOSAL_FIELDS[cible]||[];
+  const f=defs.find(x=>x.k===key);
+  if(f) return f.l;
+  // Champs transverses (méta de correction / remarque, notion d'attache…).
+  const META={notion:"Notion",cnotions:"Notions liées",nom:"Nom de l'auteur",
+    cibleref:"Élément ciblé",remelement:"Élément concerné",remtexte:"Remarque",
+    justif:"Justification du retrait",citations:"Citations"};
+  return META[key]||key;
+}
+
+/* new : rend le DÉTAIL d'une proposition (toutes ses boîtes et leurs champs)
+   à partir du payload v3 stocké. Permet au contributeur de revoir, dans
+   « Mes propositions », EXACTEMENT ce qu'il a proposé — et pas seulement le
+   résumé d'une ligne. Tolérant aux payloads v1/v2 (champs à plat). */
+function contribDetailHTML(payload){
+  const boxes=(payload&&payload.boxes)||[];
+  if(!boxes.length) return '';
+  // Rend une paire libellé/valeur ; ignore les valeurs vides.
+  const row=function(label,val){
+    if(val==null||val==='') return '';
+    return '<div class="pmine-f"><b>'+pEsc(label)+'</b> : '+pEsc(val)+'</div>';
+  };
+  const html=boxes.map(function(b){
+    const cible=b.cible||'';
+    const f=b.fields||{};
+    let inner='';
+    // En-tête de boîte : type + cible (ex. « Ajout — Idée d'auteur »).
+    const head=proposalTypeLabel(b.type)+' — '+(proposalCibleLabel(cible)||cible||'boîte');
+    // Cas auteur (idée) : les champs sont PAR IDÉE dans fields.ideas[].
+    if(Array.isArray(f.ideas)){
+      if(f.nom) inner+=row("Nom de l'auteur",f.nom);
+      f.ideas.forEach(function(it,j){
+        inner+='<div class="pmine-f" style="margin-top:5px"><b>Idée '+(j+1)+'</b></div>';
+        ['notion','oeuvre','date','idee','concepts'].forEach(function(k){
+          inner+=row(contribFieldLabel('auteur',k)||k,it[k]);
+        });
+        if(Array.isArray(it.citations)) it.citations.filter(Boolean).forEach(function(c){ inner+=row('Citation',c); });
+        if(it.justif) inner+=row('Justification du retrait',it.justif);
+      });
+    } else {
+      // Cas général : on parcourt les champs du formulaire.
+      Object.keys(f).forEach(function(k){
+        const v=f[k];
+        if(Array.isArray(v)){ v.filter(Boolean).forEach(function(item){ inner+=row(contribFieldLabel(cible,k),item); }); }
+        else inner+=row(contribFieldLabel(cible,k),v);
+      });
+    }
+    return '<div class="pmine-box"><div class="pmine-box-h">'+pEsc(head)+'</div>'+inner+'</div>';
+  }).join('');
+  return '<details class="pmine-det"><summary>Voir le détail proposé</summary>'+html+'</details>';
+}
+
+/* new (Phase 3) : charge et affiche les propositions du compte connecté.
+   La règle RLS contrib_select ne renvoie QUE les lignes de l'utilisateur ;
+   on ajoute tout de même le filtre user_id par clarté. */
+async function renderMyContributions(){
+  const wrap=document.getElementById('pmine-list');
+  if(!wrap) return;
+  if(!SB || !authUser){ wrap.innerHTML='<div class="phint">Connecte-toi pour retrouver tes propositions ici.</div>'; return; }
+  try{
+    const {data,error}=await SB.from('contributions')
+      .select('id,payload,statut,explication,avis_ia,created_at')   // id : requis pour l'édition
+      .eq('user_id',authUser.id)
+      .order('created_at',{ascending:false});
+    if(error) throw error;
+    if(!data || !data.length){ wrap.innerHTML='<div class="phint">Tu n\'as pas encore envoyé de proposition en ligne depuis ce compte.</div>'; return; }
+    myContribCache=data;   // new : on retient les lignes pour retrouver un payload par id (édition)
+    wrap.innerHTML=data.map(c=>{
+      const st=contribStatusLabel(c.statut);
+      const d=c.created_at?new Date(c.created_at).toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'}):'';
+      // new : une proposition ENCORE « en attente » peut être corrigée par son
+      // auteur (bouton ✎) — l'envoi fera un UPDATE de la ligne (cf. RLS).
+      const canEdit=(c.statut||'en_attente')==='en_attente';
+      const editBtn=canEdit
+        ? '<div class="pmine-actions"><button class="pbtn pbtn-sm" onclick="editMyContribution(\''+pEsc(String(c.id))+'\')">✎ Modifier</button></div>'
+        : '';
+      // Explication = mot du RELECTEUR (humain), écrit lors du changement de
+      // statut et renvoyé via Supabase. Présent seulement une fois trié.
+      const expl=c.explication ? '<div class="pmine-expl">'+pEsc(c.explication)+'</div>' : '';
+      // new : avis AUTOMATIQUE (IA) reformulé pour l'usager, renvoyé par
+      // l'agrégateur dans la colonne avis_ia — DISTINCT de l'explication
+      // ci-dessus. Affiché à part et étiqueté « indicatif » : c'est une aide,
+      // un humain tranche ensuite.
+      const avia=c.avis_ia ? '<div class="pmine-avia"><span class="pmine-avia-h">🤖 Avis automatique (indicatif)</span>'+pEsc(c.avis_ia)+'</div>' : '';
+      // new : détail repliable du contenu proposé (toutes les boîtes).
+      const detail=contribDetailHTML(c.payload);
+      return '<div class="pmine-item">'
+        +'<div class="pmine-top"><span class="pmine-sum">'+pEsc(contribSummary(c.payload))+'</span>'
+        +'<span class="pst '+st.cls+'">'+pEsc(st.txt)+'</span></div>'
+        +(d?'<div class="pmine-date">Envoyée le '+pEsc(d)+'</div>':'')
+        +detail
+        +avia
+        +expl
+        +editBtn
+        +'</div>';
+    }).join('');
+  }catch(e){
+    wrap.innerHTML='<div class="phint" style="color:#e74c3c">Impossible de charger tes propositions ('+pEsc((e&&e.message)||String(e))+').</div>';
+  }
+}
+
+/* Reconstruit le corps de la modale : vue d'ÉDITION (boîtes + nom du
+   contributeur + bouton Aperçu), vue d'APERÇU (texte généré) ou vue
+   « MES PROPOSITIONS » (suivi des contributions du compte). */
+function renderProposal(){
+  const body=document.getElementById('proposal-body');
+  if(!body) return;
+  const logged=!!(SB && authUser);
+  // ── Vue MES PROPOSITIONS (compte connecté) ──
+  if(proposalView==='mine'){
+    body.innerHTML='<div class="ppreview-head">Mes propositions envoyées — leur statut et l\'explication.</div>'
+      +'<div id="pmine-list" class="pmine-list">Chargement…</div>'
+      +'<div class="pactions"><button class="pbtn" onclick="startNewProposal()">← Nouvelle proposition</button></div>';
+    renderMyContributions();   // remplit #pmine-list de façon asynchrone
+    return;
+  }
+  // ── Vue APERÇU ──
+  if(proposalView==='preview'){
+    // new : en mode ÉDITION d'un envoi (editingContribId), l'aperçu enregistre
+    // une CORRECTION (UPDATE) au lieu d'un nouvel envoi → libellés et boutons
+    // adaptés (pas d'email/copie : ces voies créeraient une nouvelle proposition).
+    const editing=!!editingContribId;
+    // Le message d'aide dépend du contexte : édition / connecté / anonyme.
+    const onlineHint = editing
+      ? 'Tu corriges une proposition déjà envoyée : « Enregistrer les modifications » remplace son contenu (elle reste « en attente »).'
+      : (logged
+        ? 'Connecté : « Envoyer en ligne » enregistre ta proposition sur ton compte — tu pourras suivre son statut dans « Mes propositions ».'
+        : 'Astuce : connecte-toi avant d\'envoyer pour suivre le statut de ta proposition. Sinon, « Envoyer en ligne » la transmet de façon anonyme.');
+    // Bouton « Mes propositions » réservé aux comptes connectés (masqué en édition).
+    const mineBtn = (logged && !editing) ? '<button class="pbtn" onclick="showProposalMine()">Mes propositions</button>' : '';
+    // En édition : pas de repli mailto/copie (un email n'updaterait pas la ligne).
+    const fallbackBtns = editing ? ''
+      : '<button class="pbtn" id="pcopy-btn" onclick="copyProposal()">Copier le texte</button>'
+        // new (Phase 5) : « Envoyer par email » est un repli discret (pbtn-ghost).
+        +'<button class="pbtn pbtn-ghost" onclick="sendProposal()">Envoyer par email</button>';
+    // Note de repli mailto : sans objet en édition.
+    const fallbackNote = editing ? '' : ' En cas de problème (hors-ligne, service indisponible), l\'envoi bascule automatiquement sur ton application mail.';
+    const sendLabel = editing ? 'Enregistrer les modifications' : 'Envoyer en ligne';
+    body.innerHTML='<div class="ppreview-head">Aperçu — ce texte sera transmis tel quel :</div>'
+      +'<textarea class="ppreview" readonly>'+pEsc(generateProposalText())+'</textarea>'
+      +'<div class="phint" style="margin-top:8px">'+onlineHint+fallbackNote+'</div>'
+      // new: ligne de retour d'état de l'envoi en ligne (succès / erreur).
+      +'<div id="psend-status" class="phint" style="margin-top:8px;min-height:1.1em"></div>'
+      +'<div class="pactions">'
+      +'<button class="pbtn" onclick="showProposalEdit()">← Modifier</button>'
+      +fallbackBtns
+      +mineBtn
+      // new (Phase 3): voie principale — UPDATE si édition, sinon insertion Supabase.
+      +'<button class="pbtn pbtn-primary" id="psend-btn" onclick="submitProposalOnline()">'+sendLabel+'</button>'
+      +'</div>';
+    return;
+  }
+  // ── Vue ÉDITION ──
+  // new : bannière quand on CORRIGE une proposition déjà envoyée (« en attente »).
+  // Elle rappelle l'enjeu (on remplace la version précédente) et offre une sortie
+  // propre (cancelEditContrib restaure le brouillon local et revient à la liste).
+  let html='';
+  if(editingContribId){
+    html+='<div class="pedit-banner">✎ Tu modifies une proposition <b>déjà envoyée</b> (en attente). '
+      +'En l\'enregistrant, tu <b>remplaces</b> la version précédente. '
+      +'<button class="pbtn pbtn-ghost pbtn-sm" onclick="cancelEditContrib()">Annuler</button></div>';
+  }
+  html+='<div class="phint" style="margin-bottom:12px">Chaque « boîte » décrit une proposition. '
+    +'Empilez-en autant que nécessaire (ex. un auteur + un exemple).</div>';
+  proposalBoxes.forEach((b,i)=>{
+    // Menu en cascade : Catégorie → Préciser (sous-cible) → Type d'action.
+    const cat=b.categorie||cibleCat(b.cible);
+    const catOpts=PROPOSAL_CATS.map(o=>`<option value="${o.v}"${cat===o.v?' selected':''}>${o.l}</option>`).join('');
+    const subOpts=(PROPOSAL_SOUSCIBLES[cat]||[]).map(o=>`<option value="${o.v}"${b.cible===o.v?' selected':''}>${o.l}</option>`).join('');
+    const typeOpts=PROPOSAL_TYPES.map(o=>`<option value="${o.v}"${b.type===o.v?' selected':''}>${o.l}</option>`).join('');
+    // Catégorie 'site' : un retour bug/fonctionnalité n'a pas de « type
+    // d'action » — on masque ce 3e menu (le type est figé sur 'remarque').
+    const typeField=cat==='site' ? '' : `<div class="pfield">
+        <label class="plabel">Type d'action</label>
+        <select class="psel" onchange="setProposalField(${b.id},'type',this.value)">${typeOpts}</select>
+      </div>`;
+    html+=`<div class="pbox" id="pbox-${b.id}">
+      <div class="pbox-head">
+        <span class="pbox-num">Boîte ${i+1}</span>
+        <button class="pbox-del" title="Supprimer cette boîte"${proposalBoxes.length<=1?' disabled':''}
+          onclick="removeProposalBox(${b.id})">✕</button>
+      </div>
+      <div class="pfield">
+        <label class="plabel">Catégorie</label>
+        <select class="psel" onchange="setProposalField(${b.id},'categorie',this.value)">${catOpts}</select>
+      </div>
+      <div class="pfield">
+        <label class="plabel">Préciser</label>
+        <select class="psel" onchange="setProposalField(${b.id},'cible',this.value)">${subOpts}</select>
+      </div>
+      ${typeField}
+      <div class="pbox-fields">${renderBoxFields(b)}</div>
+    </div>`;
+  });
+  html+=`<button class="pbox-add" onclick="addProposalBox()">+ Ajouter une boîte</button>`;
+  html+=`<div class="pfield" style="margin-top:16px">
+      <label class="plabel">Votre nom / pseudo <span class="popt">facultatif</span></label>
+      <input class="pinput" type="text" value="${pEsc(proposalContributor)}" placeholder="ex : anonyme" oninput="setProposalContributor(this.value)">
+    </div>`;
+  // new (Phase 3) : accès « Mes propositions » depuis l'édition (connecté).
+  const mineBtnEdit = logged ? `<button class="pbtn" onclick="showProposalMine()">Mes propositions</button>` : '';
+  html+=`<div class="pactions">${mineBtnEdit}<button class="pbtn pbtn-primary" onclick="showProposalPreview()">Aperçu de la proposition</button></div>`;
+  body.innerHTML=html;
+  // new (Phase 3) : toute modification de structure passe par ce rendu — on en
+  // profite pour persister/synchroniser le brouillon (les saisies de texte, qui
+  // ne re-rendent pas, sont couvertes par setBoxF/setIdeaF).
+  draftChanged();
+}
+
+/* ── « + » de proposition injectés dans les vues (étape 1d) ──────────
+   pPlus    — petit bouton d'angle sur une carte (mode 'correction')
+   pPlusCat — bouton de catégorie en bas de section (mode 'ajout')
+   Chaque bouton porte sa cible dans des data-attributs (dont data-pa, le
+   nom d'auteur, pour les « + » de la vue Auteur) ; un écouteur délégué
+   (dans initProposalUI) les lit et ouvre la modale pré-remplie.        */
+function pPlus(type,cible,notion,ref,author){
+  const cleanRef=(ref||'').replace(/<[^>]+>/g,'');   // pas de balises dans le repère
+  return `<button class="pplus" title="${type==='ajout'?'Proposer un ajout ici':'Proposer une correction'}"`
+    +` data-pt="${type}" data-pc="${cible}" data-pn="${pEsc(notion||'')}" data-pr="${pEsc(cleanRef)}" data-pa="${pEsc(author||'')}">+</button>`;
+}
+function pPlusCat(cible,notion,label,author,ref){
+  return `<div class="pplus-catwrap"><button class="pplus-cat" title="Proposer un ajout"`
+    +` data-pt="ajout" data-pc="${cible}" data-pn="${pEsc(notion||'')}" data-pr="${pEsc(ref||'')}" data-pa="${pEsc(author||'')}">+ ${label}</button></div>`;
+}
+/* Une boîte est « vierge » si elle a ses valeurs par défaut et aucun champ
+   rempli. Pour cible 'auteur', il faut aussi que toutes les idées soient
+   vides (les ideas vides initialisées par défaut ne comptent pas). */
+function isBoxPristine(b){
+  if(b.type!=='ajout'||b.cible!=='auteur') return false;
+  const f=b.f||{};
+  return !Object.keys(f).some(k=>{
+    const v=f[k];
+    if(k==='ideas'&&Array.isArray(v)){
+      // au moins une idée porte un champ non vide ?
+      return v.some(it=>it&&Object.keys(it).some(ik=>String(it[ik]==null?'':it[ik]).trim()));
+    }
+    return Array.isArray(v)?v.length:String(v==null?'':v).trim();
+  });
+}
+/* Ouvre la modale avec une boîte pré-remplie depuis un bouton « + ».
+   Remplace l'unique boîte vierge le cas échéant, sinon empile une boîte. */
+function openProposalFromPlus(type,cible,notion,ref,author){
+  const box={id:++proposalSeq,categorie:cibleCat(cible),type:type,cible:cible,f:{}};
+  if(notion){
+    if(cible==='concept') box.f.cnotions=notion.split(',').filter(Boolean);
+    else if(cibleCat(cible)!=='concept') box.f.notion=notion;   // pas de notion pour concept-relation
+  }
+  if(type==='correction'&&ref) box.f.cibleref=ref;
+  else if(type==='ajout'&&cible==='concept-relation'&&ref) box.f.cterme=ref;  // concept source pré-rempli
+  if(author) box.f.nom=author;   // « + » de la vue Auteur : nom pré-rempli
+  if(cible==='auteur') ensureIdeas(box);   // cible auteur → init ideas[]
+  if(proposalBoxes.length===0||(proposalBoxes.length===1&&isBoxPristine(proposalBoxes[0])))
+    proposalBoxes=[box];
+  else
+    proposalBoxes.push(box);
+  prefillContributorFromAccount();   // nom = pseudo du compte si vide (cf. helper)
+  proposalView='edit';
+  renderProposal();
+  document.getElementById('proposal-overlay').classList.add('open');
+  scrollToProposalBox(box.id);   // amène la boîte ciblée directement en vue
+}
+/* scrollToProposalBox — fait défiler la modale jusqu'à la boîte d'id donné
+   et la met brièvement en surbrillance (repère visuel). requestAnimationFrame
+   garantit que le DOM est rendu et l'overlay visible avant le scroll. */
+function scrollToProposalBox(id){
+  requestAnimationFrame(()=>{
+    const el=document.getElementById('pbox-'+id);
+    if(!el) return;
+    el.scrollIntoView({behavior:'smooth',block:'start'});
+    el.classList.add('pbox-flash');
+    setTimeout(()=>el.classList.remove('pbox-flash'),1200);
+  });
+}
+
+/* Ouvre la modale (en garantissant au moins une boîte). Le contenu
+   saisi n'est PAS réinitialisé à la fermeture : on le conserve. */
+function openProposal(){
+  if(proposalBoxes.length===0) proposalBoxes.push({id:++proposalSeq,categorie:'auteur',type:'ajout',cible:'auteur',f:{ideas:[{}]}});
+  // Préremplir le nom avec le pseudo du compte si connecté ET champ vide (retour
+  // contributeur : sinon une proposition envoyée connecté s'affichait « anonyme »
+  // dans le dashboard). On ne touche pas à une valeur déjà saisie à la main.
+  if(authUser && !(proposalContributor||'').trim()) proposalContributor=authLabel();
+  proposalView='edit';
+  renderProposal();
+  document.getElementById('proposal-overlay').classList.add('open');
+}
+/* new : ouvre la modale de contribution directement sur « Mes propositions »
+   (déclencheur .topbar-mine de la barre d'en-tête, visible seulement connecté).
+   renderProposal() en vue 'mine' charge la liste des contributions du compte. */
+function openMyProposals(){
+  proposalView='mine';
+  renderProposal();
+  document.getElementById('proposal-overlay').classList.add('open');
+}
+/* closeProposal() — masque la modale de contribution (la saisie est conservée). */
+function closeProposal(){
+  document.getElementById('proposal-overlay').classList.remove('open');
+}
+/* Câblage des événements de fermeture (exécuté une fois au chargement).
+   Le bouton d'ouverture (.sb-propose) est câblé dans renderSB. */
+(function initProposalUI(){
+  document.getElementById('proposal-close').addEventListener('click',closeProposal);
+  // Fermeture au clic sur le fond assombri : on ne ferme QUE si le clic
+  // a COMMENCÉ et FINI sur le fond. Sinon, sélectionner du texte dans le
+  // panneau puis relâcher la souris sur le fond fermerait la modale par erreur.
+  const _ov=document.getElementById('proposal-overlay');
+  let _downOnBackdrop=false;
+  _ov.addEventListener('mousedown',e=>{ _downOnBackdrop=(e.target===_ov); });
+  _ov.addEventListener('click',e=>{ if(e.target===_ov&&_downOnBackdrop) closeProposal(); });
+  // touche Échap → ferme
+  document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeProposal(); });
+  // clic sur un bouton « + » injecté dans les vues → ouvre la modale pré-remplie
+  document.addEventListener('click',e=>{
+    const btn=e.target.closest?e.target.closest('.pplus,.pplus-cat'):null;
+    if(btn) openProposalFromPlus(btn.dataset.pt,btn.dataset.pc,btn.dataset.pn,btn.dataset.pr||'',btn.dataset.pa||'');
+  });
+})();
+/* js/07-affichage-reglages.js — morceau du script du site. Le build (outils/construire.mjs)
+   recolle js/*.js dans l'ORDRE des noms en UN SEUL script, app.js : les
+   fonctions restent visibles d'un morceau à l'autre comme avant, et le code
+   « de premier niveau » s'exécute dans cet ordre. */
+/* ── Tiroir « burger » (mobile ≤700px) ─────────────────────────────
+   La sidebar est masquée par défaut en mobile et révélée en ajoutant
+   la classe `sb-open` sur <body>. Le voile (#sb-backdrop) la referme
+   au clic, idem touche Échap. Sélectionner un item de la sidebar
+   (.nb/.ab/.cb) referme aussi automatiquement le tiroir, pour que
+   l'élève voie immédiatement le contenu choisi.                       */
+function toggleSidebar(){document.body.classList.toggle('sb-open')}
+function closeSidebar(){document.body.classList.remove('sb-open')}
+
+/* ── Mode révision / édition (persisté en localStorage) ──────────────
+   Par défaut « révision » (élève) : badges new/modified, boutons de
+   contribution (+) et « 💡 Proposer du contenu » cachés via CSS pour
+   un rendu épuré. « Édition » : tout est révélé pour le mainteneur.
+   Bascule via le bouton .sb-mode en bas de la sidebar.                */
+function applyPhiloMode(){
+  const m=localStorage.getItem('philo-mode')||'revision';
+  document.body.classList.toggle('mode-edition', m==='edition');
+  // Le toggle vit désormais dans le menu « Réglages » : on le rafraîchit s'il
+  // est ouvert (pour que le libellé suive l'état).
+  const ov=document.getElementById('settings-overlay');
+  if(ov && ov.classList.contains('open')) renderSettingsBody();
+}
+function togglePhiloMode(){
+  const cur=localStorage.getItem('philo-mode')||'revision';
+  localStorage.setItem('philo-mode', cur==='edition'?'revision':'edition');
+  applyPhiloMode();
+  syncOnPrefsChange();        // new (Phase 2) : reporte la préférence vers le compte si connecté
+}
+
+/* applyFicheMode() — applique le « mode fiche » (lecture compressée des cartes
+   d'auteur dans les notions) via la classe body.mode-fiche, lue dans
+   localStorage 'philo-fiche'. Rafraîchit le menu Réglages s'il est ouvert. */
+function applyFicheMode(){
+  document.body.classList.toggle('mode-fiche', localStorage.getItem('philo-fiche')==='1');
+  const ov=document.getElementById('settings-overlay');
+  if(ov && ov.classList.contains('open')) renderSettingsBody();
+}
+function toggleFicheMode(){
+  localStorage.setItem('philo-fiche', localStorage.getItem('philo-fiche')==='1'?'0':'1');
+  applyFicheMode();
+}
+
+/* ── Menu « ⚙ Réglages » ─────────────────────────────────────────────────
+   Regroupe les fonctions NON nécessaires à la révision. Le toggle de mode y
+   est rendu EXPLICITE : le bouton nomme le mode-CIBLE (l'action), avec le mode
+   ACTUEL rappelé en petit au-dessus (avant, le bouton affichait le mode courant
+   et l'on ne savait pas si c'était un bouton ou un état). */
+function renderSettingsBody(){
+  const body=document.getElementById('settings-body'); if(!body) return;
+  const isEd=(localStorage.getItem('philo-mode')||'revision')==='edition';
+  const isFiche=localStorage.getItem('philo-fiche')==='1';
+  body.innerHTML=
+    '<div class="set-row">'
+    +'<div class="set-row-cur">Mode d\'affichage actuel : <strong>'+(isEd?'Édition':'Révision')+'</strong></div>'
+    +'<div class="set-row-desc">Le mode <em>édition</em> révèle les badges « ✦ nouveau / ✎ modifié » et les boutons « + » pour proposer du contenu. Le mode <em>révision</em> épure l\'affichage pour se concentrer sur l\'apprentissage.</div>'
+    +'<button class="pbtn pbtn-primary set-mode-btn" onclick="togglePhiloMode()">'
+      +(isEd?'👁 Revenir au mode révision':'✎ Passer en mode édition')+'</button>'
+    +'</div>'
+    // Mode fiche : compresse les cartes d'auteur des notions pour une lecture rapide.
+    +'<div class="set-row">'
+    +'<div class="set-row-cur">Mode fiche : <strong>'+(isFiche?'activé':'désactivé')+'</strong></div>'
+    +'<div class="set-row-desc">Compresse chaque boîte d\'auteur dans les notions (idée bornée à 2 lignes, citations masquées) pour une <em>lecture rapide</em>, façon fiche de révision. Le contenu complet reste sur la fiche de l\'auteur.</div>'
+    +'<button class="pbtn pbtn-primary set-mode-btn" onclick="toggleFicheMode()">'
+      +(isFiche?'📖 Affichage complet':'🗂 Activer le mode fiche')+'</button>'
+    +'</div>'
+    // Carte technique du projet (doc) — discret, pour les curieux de l'envers du décor.
+    +'<div class="set-row">'
+    +'<div class="set-row-cur">🔎 Découvrir l\'envers du projet</div>'
+    +'<div class="set-row-desc">Pour les curieux de la technique : une <strong>carte interactive</strong> de l\'architecture (du parcours élève jusqu\'au nom des fonctions) et une <strong>frise</strong> de l\'évolution du projet commit par commit.</div>'
+    +'<a class="pbtn pbtn-ghost set-mode-btn" href="docs/carte/carte.html" target="_blank" rel="noopener" style="display:inline-block;text-decoration:none;margin-right:6px">🗺 Carte du projet ↗</a>'
+    +'<a class="pbtn pbtn-ghost set-mode-btn" href="docs/carte/frise.html" target="_blank" rel="noopener" style="display:inline-block;text-decoration:none">🕓 Frise des commits ↗</a>'
+    +'</div>';
+}
+/* openSettings / closeSettings — ouvre/ferme l'overlay de réglages. */
+function openSettings(){ const ov=document.getElementById('settings-overlay'); if(!ov) return; renderSettingsBody(); ov.classList.add('open'); }
+function closeSettings(){ const ov=document.getElementById('settings-overlay'); if(ov) ov.classList.remove('open'); }
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeSettings(); });
+/* js/08-visite-guidee.js — morceau du script du site. Le build (outils/construire.mjs)
+   recolle js/*.js dans l'ORDRE des noms en UN SEUL script, app.js : les
+   fonctions restent visibles d'un morceau à l'autre comme avant, et le code
+   « de premier niveau » s'exécute dans cet ordre. */
+/* ══════════════════════════════════════════════════════════════════
+   VISITE GUIDÉE (onboarding nouvelle génération)
+   ──────────────────────────────────────────────────────────────────
+   Remplace l'ancien overlay « 4 conseils ». Visite pas-à-pas à projecteur :
+   un voile assombrit toute la page, un « trou » lumineux met en valeur
+   l'élément décrit, une bulle explique + propose Précédent / Suivant /
+   Passer cette partie / Tout passer.
+
+   Principe « visite pilotée » : pendant la visite, la PAGE N'EST PAS
+   interactive (le voile .tour-blocker capte les clics) ; c'est la visite
+   qui met l'appli dans le bon état à chaque étape (sélection d'une notion,
+   ouverture du tiroir sur mobile, passage temporaire en mode édition,
+   OUVERTURE du mode révision ou de la modale de contribution pour les
+   détailler de l'intérieur…), puis pointe l'élément réel. Le ménage des
+   fenêtres ainsi ouvertes est fait par tourCloseOverlays() à chaque
+   changement d'étape et à la fin.
+
+   Déclenchement : automatiquement à la 1re visite (drapeau localStorage
+   'philo-tour-v1'), et à la demande via le bouton « ? » (haut-droite).
+
+   Deux façons d'entrer, deux jeux de sorties (pour rester clair) :
+     · Déroulé guidé (1re visite / « Refaire tout ») : on avance aux boutons.
+       Le clic dans le sombre est inerte SAUF sur la dernière page (où il
+       ferme), et il n'y a pas de croix.
+     · Accès direct à une partie via le menu « ? » (tourState.jumped) : on
+       est en révision ciblée → une CROIX sur la bulle et le clic dans le
+       sombre ferment la visite à tout moment.
+
+   Chaque étape de TOUR_STEPS :
+     part      → identifiant de « partie » (progression + saut de partie +
+                 accès direct depuis le menu d'aide)
+     title     → titre court de la bulle
+     text      → explication (HTML simple : <b> autorisé)
+     side       → 'sidebar' | 'main' : gère le tiroir burger sur mobile
+     center    → true : carte centrée sans cible (bienvenue / récap / fin)
+     setup     → met l'appli dans l'état voulu avant de pointer
+     target    → fonction renvoyant l'élément à mettre en valeur (ou null)
+     nextLabel → libellé personnalisé du bouton Suivant
+   ══════════════════════════════════════════════════════════════════ */
+
+// Libellés lisibles des parties (sert d'en-tête de bulle + menu d'aide).
+// Ordre : on présente « Proposer » AVANT « Mon compte », car la partie compte
+// renvoie aux propositions (statut « Mes propositions ») — déjà vues alors.
+const TOUR_PARTS={welcome:'Bienvenue',fiches:'Les fiches',liens:'Les liens',
+  nav:'Naviguer',partage:'Partager',reviser:'Réviser',proposer:'Proposer',
+  compte:'Mon compte',end:''};
+
+// Couleur d'accent par partie : sert à ENCADRER les pastilles de progression
+// (un cadre coloré par thème, cf. tourProgressHTML). Teintes distinctes et
+// lisibles sur fond sombre — une par partie de TOUR_PARTS.
+const TOUR_PART_COLORS={welcome:"#9aa0b5",fiches:"#5b8def",liens:"#3fb6a8",
+  nav:"#e0a458",partage:"#d8c24a",reviser:"#e06b9b",proposer:"#b07fe0",
+  compte:"#57bfd6",end:"#6fcf97"};
+
+// Garantit qu'une fiche de NOTION est affichée (état de départ commun à la
+// plupart des étapes : sidebar en mode « notions », contenu d'une notion).
+function tourShowNotion(){
+  sbMode='notions';
+  if(!D[cur]) cur=KEYS[0];
+  renderSB(); renderContent();
+}
+
+/* tourShowTab(tab) — comme tourShowNotion, mais bascule EN PLUS sur un onglet
+   précis de la fiche (curTab) afin que la visite détaille chaque onglet en
+   montrant réellement son contenu (Auteurs, Textes, Concepts, Diss, Exemples). */
+function tourShowTab(tab){
+  sbMode='notions';
+  if(!D[cur]) cur=KEYS[0];
+  curTab=tab;
+  renderSB(); renderContent();
+}
+
+/* tourTabEl(label) — renvoie le bouton d'onglet de la fiche dont le libellé
+   correspond. Robuste à l'ordre et au bouton « ← Retour » qui précède les
+   onglets. Repli sur la barre d'onglets entière si introuvable. */
+function tourTabEl(label){
+  return Array.from(document.querySelectorAll('.tabs .tab'))
+    .find(t=>t.textContent.trim()===label) || document.querySelector('.tabs');
+}
+
+/* tourShowSidebarMode(mode) — bascule la sidebar dans l'un de ses cinq modes
+   (notions / auteurs / concepts / reperes / methodo) pour la visite, en
+   s'assurant qu'un item est bien sélectionné (sinon la liste pointerait dans
+   le vide), puis rend la sidebar ET le contenu correspondant. Sert à PRÉSENTER
+   chaque porte d'entrée en montrant réellement sa LISTE — pas seulement le
+   bouton d'onglet (retour utilisateur BOX 17 : « tu dis Auteurs, tu présentes
+   les auteurs »). Reproduit la logique des onclick des sb-tab (recalage de
+   curAuthor / curConcept selon la liste active du mode). */
+function tourShowSidebarMode(mode){
+  sbMode=mode;
+  if(mode==='auteurs'){
+    if(!curAuthor) curAuthor=authorsSorted()[0];
+    curAuthorTab='idees';
+    renderSB(); renderAuthorContent();
+  } else if(mode==='concepts'){
+    const c0=realConcepts().find(c=>c.id===curConcept)||realConcepts()[0];
+    if(c0) curConcept=c0.id;
+    renderSB(); renderConceptContent();
+  } else if(mode==='reperes'){
+    const r0=REPERES().find(c=>c.id===curConcept)||REPERES()[0];
+    if(r0) curConcept=r0.id;
+    renderSB(); renderConceptContent();
+  } else if(mode==='methodo'){   // guide de méthodologie (pas une fiche)
+    renderSB(); renderMethodoContent();
+  } else {                       // 'notions' (défaut)
+    if(!D[cur]) cur=KEYS[0];
+    renderSB(); renderContent();
+  }
+}
+
+/* tourBoxEl(sel, tabLabel) — pour la visite des onglets de la fiche : renvoie
+   la PREMIÈRE « boîte » de contenu réellement affichée dans la zone principale
+   (la carte, pas le bouton d'onglet) afin que le projecteur zoome sur un
+   exemple concret de ce qu'on trouve dans l'onglet (retour utilisateur :
+   « zoomer sur une boîte, pas sur le titre de l'onglet »). `sel` peut lister
+   plusieurs classes (ex. plans + sujets de l'onglet Dissertations). Repli sur
+   le bouton d'onglet via tourTabEl si l'onglet courant n'a aucune boîte
+   (notion sans contenu pour cet onglet). */
+function tourBoxEl(sel, tabLabel){
+  const list=sel.split(',').map(s=>'.main-content '+s.trim()).join(',');
+  return document.querySelector(list) || tourTabEl(tabLabel);
+}
+
+/* ── Étapes qui ENTRENT dans une fenêtre (quiz / contribution) ───────────
+   La visite reste « pilotée » : le voile capte les clics, mais on ouvre
+   réellement la fenêtre concernée pour la détailler de l'intérieur. Ces
+   setups sont idempotents (rappelés à chaque étape de la partie) ; le
+   ménage entre parties est fait par tourCloseOverlays(). */
+
+/* tourOpenQuiz() — ouvre le mode révision sur son tableau de bord. openQuiz
+   lit l'état sauvegardé et n'écrit rien : la progression de l'élève n'est
+   jamais modifiée par la visite. */
+function tourOpenQuiz(){ openQuiz(); }
+
+/* tourOpenProposal() — ouvre la modale de contribution en vue ÉDITION. On
+   force le mode édition le temps de la visite (champs et bouton visibles) ;
+   openProposal garantit au moins une boîte SANS effacer une saisie existante. */
+function tourOpenProposal(){
+  document.body.classList.add('mode-edition');
+  proposalView='edit';
+  openProposal();
+}
+
+/* tourOpenProposalPreview() — comme tourOpenProposal mais bascule sur la vue
+   APERÇU (étape « Aperçu et envoi »). */
+function tourOpenProposalPreview(){
+  tourOpenProposal();
+  proposalView='preview';
+  renderProposal();
+}
+
+/* tourProposalSelect(n) — renvoie le n-ième menu déroulant (.psel) de la
+   1re boîte de la modale (0 = Catégorie, 1 = Préciser, 2 = Type d'action).
+   Repli sur la boîte entière si ce menu n'existe pas (ex. catégorie « site »
+   où le 3e menu est masqué), pour toujours mettre en valeur quelque chose. */
+function tourProposalSelect(n){
+  const b=document.querySelector('#proposal-overlay .pbox');
+  if(!b) return null;
+  return b.querySelectorAll('.psel')[n] || b;
+}
+
+/* tourCloseOverlays() — referme les fenêtres que la visite a pu ouvrir
+   (contribution, mode révision) avant de changer d'étape, pour repartir
+   d'un écran propre. Idempotent ; les étapes qui en ont besoin les
+   rouvrent ensuite via leur `setup` (close + open dans la même frame =
+   aucun clignotement). */
+function tourCloseOverlays(){
+  const pov=document.getElementById('proposal-overlay'); if(pov) pov.classList.remove('open');
+  const qov=document.getElementById('quiz-overlay');     if(qov) qov.classList.remove('open');
+}
+
+const TOUR_STEPS=[
+  // ── Partie 0 : Bienvenue (carte centrée, sans projecteur) ──
+  { part:'welcome', center:true, title:'🏛️ Bienvenue !',
+    text:"Tu viens d'arriver sur un <b>outil de fiches de philo</b> pour le bac : "
+        +"notions, auteurs et concepts du programme de Terminale, reliés entre eux, "
+        +"avec une <b>révision active</b> en cartes. Petit tour du propriétaire ?",
+    nextLabel:'Commencer ▶' },
+
+  // ── Partie 1 : Les fiches ──
+  { part:'fiches', side:'sidebar', title:'Cinq portes d’entrée',
+    text:"Tout en haut de la barre latérale, <b>cinq onglets</b> ouvrent l’outil "
+        +"sous plusieurs angles : <b>Notions</b>, <b>Auteurs</b>, <b>Concepts</b>, "
+        +"<b>Repères</b> (les distinctions du programme) et <b>Méthodo</b> "
+        +"(la méthode pas à pas de la dissertation et de l’explication de texte).",
+    setup:tourShowNotion, target:()=>document.querySelector('.sb-tabs') },
+  // Chaque porte d'entrée est PRÉSENTÉE en basculant réellement la sidebar dans
+  // son mode (tourShowSidebarMode) puis en mettant en valeur sa LISTE, pas le
+  // simple bouton d'onglet (retour utilisateur BOX 17 : « tu dis Notions, tu
+  // présentes les notions ; tu dis Auteurs, tu présentes les auteurs… »).
+  { part:'fiches', side:'sidebar', title:'Les Notions',
+    text:"Voici la liste des <b>notions</b> du programme (la conscience, la nature, l’art…). "
+        +"C’est le point de départ le plus naturel.",
+    setup:()=>tourShowSidebarMode('notions'), target:()=>document.querySelector('#sb .sidebar-list') },
+  { part:'fiches', side:'sidebar', title:'Les Auteurs',
+    text:"Tu préfères entrer par un <b>philosophe</b> ? Cet onglet liste les auteurs et, pour "
+        +"chacun, ses idées clés et les notions qu’il a traitées.",
+    setup:()=>tourShowSidebarMode('auteurs'), target:()=>document.querySelector('#sb .sidebar-list') },
+  { part:'fiches', side:'sidebar', title:'Les Concepts',
+    text:"Le <b>glossaire</b> des termes techniques (le déterminisme, l’aliénation…), avec leur "
+        +"définition et leurs liens vers les notions et les autres concepts.",
+    setup:()=>tourShowSidebarMode('concepts'), target:()=>document.querySelector('#sb .sidebar-list') },
+  { part:'fiches', side:'sidebar', title:'Les Repères',
+    text:"Les <b>repères du programme</b> : les distinctions à maîtriser pour analyser un sujet "
+        +"(absolu/relatif, légal/légitime, en fait/en droit…), chacune avec sa définition et un exemple.",
+    setup:()=>tourShowSidebarMode('reperes'), target:()=>document.querySelector('#sb .sidebar-list') },
+  { part:'fiches', side:'sidebar', title:'La Méthodo',
+    text:"Le <b>guide de méthode</b> : comment analyser un sujet, problématiser, bâtir un plan et "
+        +"rédiger une <b>dissertation</b> ou une <b>explication de texte</b> — avec un squelette "
+        +"visuel de la copie et des phrases toutes prêtes, étape par étape.",
+    setup:()=>tourShowSidebarMode('methodo'), target:()=>document.querySelector('#sb .sidebar-list') },
+  // — Au cœur du projet : le DÉTAIL d'une fiche de notion. On montre la
+  //   définition, le volet « Approfondir », puis CHAQUE onglet (en basculant
+  //   réellement dessus via tourShowTab) avec ce qu'on y trouve. Pensé mobile :
+  //   textes courts ; positionTourStep recentre chaque cible à l'écran.
+  { part:'fiches', side:'main', title:'Le cœur : la fiche de notion',
+    text:"Voici une <b>fiche de notion</b>, le cœur de l’outil. Tout en haut, sa "
+        +"<b>définition</b> pose les bases : sens du mot, enjeux et premières distinctions.",
+    setup:tourShowNotion, target:()=>document.querySelector('.def-box') },
+  { part:'fiches', side:'main', title:'Approfondir la notion',
+    text:"Sous la définition, le volet <b>« Approfondir la notion »</b> se déroule : "
+        +"précisions, distinctions fines et repères pour aller plus loin que l’essentiel.",
+    setup:()=>{ tourShowNotion(); const d=document.querySelector('.def-box details'); if(d) d.open=true; },
+    target:()=>document.querySelector('.def-box details')||document.querySelector('.def-box') },
+  { part:'fiches', side:'main', title:'Les onglets de la fiche',
+    text:"Sous la définition, <b>cinq onglets</b> organisent tout le reste : <b>Auteurs</b>, "
+        +"<b>Textes</b>, <b>Concepts</b>, <b>Dissertations</b> et <b>Exemples</b>. "
+        +"Passons-les en revue.",
+    setup:tourShowNotion, target:()=>document.querySelector('.tabs') },
+  { part:'fiches', side:'main', title:'Onglet Auteurs',
+    text:"Les <b>philosophes majeurs</b> sur cette notion : pour chacun, ses <b>idées clés</b> "
+        +"(classées par œuvre) et ses <b>citations</b>. Ta matière première pour argumenter.",
+    setup:()=>tourShowTab('auteurs'), target:()=>tourBoxEl('.ac','Auteurs') },
+  { part:'fiches', side:'main', title:'Onglet Textes',
+    text:"Les <b>extraits clés</b> du programme, avec leur référence. À relire pour citer un "
+        +"texte précis et montrer que tu connais les œuvres au programme.",
+    setup:()=>tourShowTab('textes'), target:()=>tourBoxEl('.ti2','Textes') },
+  { part:'fiches', side:'main', title:'Onglet Concepts',
+    text:"Les <b>concepts clés</b> liés à la notion, en <b>deux sous-onglets</b> : ceux qui "
+        +"<b>éclairent la notion</b>, puis les <b>liens entre concepts</b> (oppositions, "
+        +"distinctions…). Le vocabulaire technique attendu de toi.",
+    setup:()=>tourShowTab('concepts'), target:()=>tourBoxEl('.concept-card','Concepts') },
+  { part:'fiches', side:'main', title:'Onglet Dissertations',
+    text:"De quoi <b>composer</b> : les <b>notions voisines</b> à mobiliser, des <b>plans "
+        +"détaillés</b> (problématique + 3 axes déroulables, avec sous-parties, auteurs et "
+        +"références) et des <b>sujets</b> pour t’entraîner.",
+    setup:()=>tourShowTab('diss'), target:()=>tourBoxEl('.plan-card, .dq','Dissertations') },
+  { part:'fiches', side:'main', title:'Onglet Exemples',
+    text:"Deux sous-onglets. <b>Exemples</b> : des cas concrets (œuvres, sciences, "
+        +"actualité…) à <b>réinvestir</b> pour illustrer un argument. <b>Accroches</b> : des "
+        +"<b>phrases d’ouverture rédigées</b>, prêtes à recopier pour <b>amorcer</b> une "
+        +"dissertation (cherchables aussi via Ctrl + K).",
+    setup:()=>tourShowTab('exemples'), target:()=>tourBoxEl('.ex-card','Exemples') },
+
+  // ── Partie 2 : Les liens dynamiques ──
+  { part:'liens', side:'main', title:'Tout est relié',
+    text:"Les <b>termes colorés</b> dans les textes sont cliquables : notions, auteurs et concepts "
+        +"forment un <b>graphe</b>. Un clic t’emmène à la fiche correspondante — explore de proche "
+        +"en proche, sans jamais te perdre.",
+    setup:tourShowNotion,
+    target:()=>document.querySelector('.main-content .nterm, .main-content .cterm, .main-content .aterm')
+            ||document.querySelector('.def-box') },
+
+  // ── Partie 3 : Naviguer / revenir en arrière ──
+  // Volontairement CONCIS (retour utilisateur) : une phrase par outil de
+  // navigation, et l'étape « Réglages & aide » présentée sous forme de LISTE
+  // plutôt qu'en pavé. Le « mode fiche » y figure → il entre ainsi dans le NOYAU.
+  { part:'nav', side:'main', title:'Le fil d’Ariane',
+    text:"En haut, le <b>fil d’Ariane</b> montre où tu te trouves : clique un niveau pour y remonter.",
+    setup:tourShowNotion, target:()=>document.getElementById('crumbs') },
+  { part:'nav', side:'main', title:'Revenir en arrière',
+    text:"Le bouton <b>← Retour</b> te ramène à la page précédente — pratique après avoir suivi un lien.",
+    setup:tourShowNotion, target:()=>document.querySelector('.back-btn') },
+  { part:'nav', side:'main', title:'Chercher partout (Ctrl + K)',
+    text:"Ce bouton, ou le raccourci <b>Ctrl + K</b> (⌘ + K sur Mac), ouvre la <b>recherche globale</b> : "
+        +"tape une notion, un auteur ou un concept et saute droit à sa fiche.",
+    setup:tourShowNotion, target:()=>document.getElementById('topbar-search') },
+  { part:'nav', side:'sidebar', title:'Réglages & aide',
+    text:"Tout en bas de la barre, <b>⚙ Réglages</b> regroupe deux options :"
+        +"<ul class='tour-list'>"
+        +"<li><b>Mode fiche</b> : compresse chaque fiche d’auteur en une <b>synthèse courte</b>, pour réviser vite.</li>"
+        +"<li><b>Mode édition</b> : fait apparaître les boutons <b>+</b> pour proposer des corrections.</li>"
+        +"</ul>"
+        +"Et le bouton <b>?</b>, en haut à droite, rouvre cette visite quand tu veux.",
+    setup:()=>tourShowSidebarMode('notions'), target:()=>document.querySelector('.sb-settings') },
+
+  // ── Partie 4 : Partager l'outil ──
+  // Pointe le bouton de partage de la barre du haut puis décrit la fenêtre
+  // (QR code à scanner, lien à copier, partage natif du téléphone). On ne fait
+  // que DÉSIGNER le bouton : la visite ne l'ouvre pas, pour rester simple.
+  { part:'partage', side:'main', title:'Partager l’outil',
+    text:"Le bouton <b>🔗 Partager</b> ouvre une fenêtre pour transmettre le site à un camarade : "
+        +"un <b>QR code</b> à scanner, le <b>lien à copier</b>, et — sur téléphone — le <b>partage "
+        +"direct</b> (messages, mail…). De quoi réviser à plusieurs.",
+    setup:tourShowNotion, target:()=>document.getElementById('topbar-share') },
+
+  // ── Partie 5 : Réviser (le quiz) ──
+  // On OUVRE réellement le mode révision pendant la visite : la 1re étape
+  // pointe le bouton (quiz fermé), les suivantes pilotent l'overlay ouvert
+  // (setup:tourOpenQuiz) et mettent en valeur chaque réglage du tableau de bord.
+  { part:'reviser', side:'sidebar', title:'Réviser activement',
+    text:"Le bouton <b>🎯 Réviser</b> ouvre le <b>mode révision</b> : un quiz en cartes que le site "
+        +"fabrique tout seul à partir des fiches. Ouvrons-le pour le visiter.",
+    setup:tourShowNotion, target:()=>document.querySelector('.sb-quiz') },
+  { part:'reviser', side:'main', title:'Ton niveau et tes points',
+    text:"Tout en haut, ton <b>niveau</b> et tes <b>XP</b> : tu en gagnes à chaque bonne réponse. "
+        +"Un petit ressort de jeu pour réviser un peu chaque jour.",
+    setup:tourOpenQuiz, target:()=>document.querySelector('#quiz-overlay .quiz-level') },
+  { part:'reviser', side:'main', title:'Ta mémorisation',
+    text:"Ce pourcentage, c’est la part de tes cartes <b>bien ancrées</b>. Chaque carte gravit "
+        +"<b>5 paliers</b> : une bonne réponse la fait monter (elle revient moins souvent), une "
+        +"erreur la fait redescendre. C’est la <b>répétition espacée</b>.",
+    setup:tourOpenQuiz, target:()=>document.querySelector('#quiz-overlay .quiz-mastery') },
+  { part:'reviser', side:'main', title:'Sprint ou long terme',
+    text:"Choisis ton <b>rythme</b> : <b>⚡ Sprint</b> resserre les révisions (avant un contrôle), "
+        +"<b>📅 Long terme</b> les espace pour ancrer durablement. Chaque rythme garde sa propre "
+        +"progression.",
+    setup:tourOpenQuiz, target:()=>document.querySelector('#quiz-overlay .quiz-horizon') },
+  { part:'reviser', side:'main', title:'Cartes ou QCM',
+    text:"Deux formats au choix : <b>🃏 Cartes</b> (tu retournes la carte pour vérifier) ou "
+        +"<b>📝 QCM</b> (choix multiples). Prends celui qui t’aide le plus à mémoriser.",
+    setup:tourOpenQuiz, target:()=>document.querySelector('#quiz-overlay .quiz-mode-toggle') },
+  { part:'reviser', side:'main', title:'Cibler une révision',
+    text:"Tu peux <b>filtrer</b> : une ou plusieurs notions, un type de question, ou seulement "
+        +"<b>tes ratés</b>. Idéal pour retravailler un point précis.",
+    setup:tourOpenQuiz, target:()=>document.querySelector('#quiz-overlay .quiz-filters') },
+  { part:'reviser', side:'main', title:'Lancer la session',
+    text:"Ce bouton démarre la <b>session du jour</b> : le site choisit les cartes à revoir "
+        +"maintenant. Une session interrompue se <b>reprend</b> là où tu l’avais laissée.",
+    setup:tourOpenQuiz, target:()=>document.querySelector('#quiz-overlay .quiz-start') },
+  { part:'reviser', side:'main', title:'Un objectif par jour',
+    text:"Fixe un <b>objectif quotidien</b> (10, 20 ou 50 cartes) et garde ta <b>série</b> 🔥 en "
+        +"révisant un peu chaque jour. Le vrai secret, c’est la régularité.",
+    setup:tourOpenQuiz, target:()=>document.querySelector('#quiz-overlay .quiz-goal-pick') },
+
+  // ── Partie 6 : Proposer / éditer ──
+  // Présentée AVANT « Mon compte » : la partie compte renvoie au suivi des
+  // propositions (« Mes propositions »), qu'il faut donc avoir déjà vues.
+  // Les 2 premières étapes restent dans la barre latérale (mode édition +
+  // bouton) ; les suivantes OUVRENT la modale de contribution (tourOpenProposal)
+  // et détaillent les 3 menus en cascade, les champs, l'empilement et l'envoi.
+  { part:'proposer', side:'sidebar', title:'Réglages → mode édition',
+    text:"Dans <b>⚙ Réglages</b>, tu peux passer en <b>mode édition</b> : il fait apparaître partout "
+        +"de petits boutons <b>+</b> sur les cartes (cachés par défaut pour un rendu épuré), pour "
+        +"proposer des corrections ciblées.",
+    setup:tourShowNotion, target:()=>document.querySelector('.sb-settings') },
+  { part:'proposer', side:'sidebar', title:'Proposer du contenu',
+    text:"En mode édition, <b>💡 Proposer du contenu</b> ouvre une fenêtre pour suggérer un "
+        +"<b>ajout</b>, une <b>correction</b> ou une <b>remarque</b>. Ouvrons-la pour la découvrir.",
+    // On force l'affichage du bouton (caché en mode révision) le temps de
+    // l'étape ; endTour()/renderTourStep() restaurent le mode réel ensuite.
+    setup:()=>{ tourShowNotion(); document.body.classList.add('mode-edition'); },
+    target:()=>document.querySelector('.sb-propose') },
+  { part:'proposer', side:'main', title:'Une « boîte » = une idée',
+    text:"Chaque proposition tient dans une <b>boîte</b>. Tu peux en <b>empiler plusieurs</b> dans "
+        +"un même envoi (par exemple un auteur et un exemple).",
+    setup:tourOpenProposal, target:()=>document.querySelector('#proposal-overlay .pbox') },
+  { part:'proposer', side:'main', title:'À quoi ça touche ?',
+    text:"Premier menu, la <b>catégorie</b> : une <b>notion</b>, un <b>auteur</b>, un <b>concept</b>, "
+        +"ou un retour sur <b>le site</b> lui-même (un bug, une idée de fonctionnalité).",
+    setup:tourOpenProposal, target:()=>tourProposalSelect(0) },
+  { part:'proposer', side:'main', title:'Préciser',
+    text:"Le deuxième menu <b>précise</b> : pour un auteur, par exemple, s’agit-il d’une citation, "
+        +"d’un dialogue avec un autre auteur, de sa biographie… La fenêtre adapte alors les champs "
+        +"à remplir.",
+    setup:tourOpenProposal, target:()=>tourProposalSelect(1) },
+  { part:'proposer', side:'main', title:'Que veux-tu faire ?',
+    text:"Le troisième menu, l’<b>action</b> : <b>ajouter</b> du contenu, <b>corriger</b> une erreur "
+        +"ou laisser une <b>remarque</b>. (Pour un retour sur le site, ce menu disparaît : c’est "
+        +"toujours une remarque.)",
+    setup:tourOpenProposal, target:()=>tourProposalSelect(2) },
+  { part:'proposer', side:'main', title:'Remplir les champs',
+    text:"En dessous s’affichent les <b>champs</b> correspondants. Remplis seulement ce que tu sais : "
+        +"pas besoin d’être exhaustif, l’essentiel suffit.",
+    setup:tourOpenProposal, target:()=>{ const b=document.querySelector('#proposal-overlay .pbox'); return b?(b.querySelector('.pbox-fields')||b):null; } },
+  { part:'proposer', side:'main', title:'Empiler des boîtes',
+    text:"Avec <b>+ Ajouter une boîte</b>, tu proposes plusieurs choses d’un coup. Chaque boîte "
+        +"reste indépendante des autres.",
+    setup:tourOpenProposal, target:()=>document.querySelector('#proposal-overlay .pbox-add') },
+  { part:'proposer', side:'main', title:'Aperçu et envoi',
+    text:"Enfin, l’<b>aperçu</b> te montre exactement ce qui sera transmis, puis tu <b>envoies</b> "
+        +"(en ligne, ou par email en repli). Ta proposition est <b>relue</b> avant d’être publiée.",
+    setup:tourOpenProposalPreview, target:()=>document.querySelector('#proposal-overlay .pactions') },
+
+  // ── Partie 7 : Mon compte (facultatif — synchronisation & suivi) ──
+  // Pointe le bouton .sb-account (toujours visible) puis récapitule les
+  // bénéfices, en renvoyant aux propositions VUES juste avant. La visite ne
+  // CLIQUE pas le bouton : aucun risque si Supabase n'est pas encore configuré,
+  // on ne fait que le désigner.
+  { part:'compte', side:'sidebar', title:'Un compte (facultatif)',
+    text:"Tout en bas de la barre latérale, tu peux <b>créer un compte</b>. Ce n’est pas "
+        +"obligatoire pour réviser, mais ça débloque deux choses bien pratiques.",
+    setup:tourShowNotion, target:()=>document.querySelector('.sb-account') },
+  { part:'compte', center:true, title:'Sync & suivi',
+    text:"<b>1.</b> Ta <b>révision</b> (progression, série, objectif) te suit sur <b>tous tes "
+        +"appareils</b> — commence sur l’ordi, continue sur le téléphone.<br>"
+        +"<b>2.</b> Les <b>propositions</b> qu’on vient de voir sont reliées à ton compte : suis "
+        +"leur <b>statut</b> (en attente, intégrée, refusée) via le bouton <b>📋 Mes propositions</b>, "
+        +"qui apparaît en haut de la page une fois connecté.<br>"
+        +"Tu restes maître de tes données : on peut se <b>déconnecter</b> ou <b>supprimer son "
+        +"compte</b> à tout moment." },
+
+  // ── Fin ──
+  // Un FOCUS dédié sur le bouton « ? » (rouvrir la visite) — demandé : au moins
+  // un projecteur réel sur ce bouton, ici en fin de parcours. Puis la carte
+  // finale (PWA installable + hors-ligne), centrée.
+  { part:'end', side:'main', title:'Revenir à la visite',
+    text:"Ce bouton <b>?</b>, en haut à droite, <b>rouvre cette visite</b> quand tu veux — "
+        +"en entier ou directement sur une partie précise. Tu peux donc y revenir sans crainte.",
+    setup:tourShowNotion, target:()=>document.getElementById('help-btn') },
+  { part:'end', center:true, title:'C’est parti 🎓',
+    text:"Voilà l’essentiel ! 💡 Astuce : le site s’<b>installe</b> comme une appli "
+        +"(menu du navigateur → « Installer ») et fonctionne <b>hors-ligne</b> — pratique "
+        +"pour réviser dans le train. Bonnes révisions !",
+    nextLabel:'Terminer' },
+];
+
+// NOYAU de la visite (1er passage) : l'essentiel pour savoir naviguer. Marqué
+// par step.core. Le 1er passage joue UNIQUEMENT ces étapes puis propose la
+// « visite détaillée » (le reste). On marque ici, sans alourdir chaque étape :
+//   • accueil, liens dynamiques, navigation → core ;
+//   • les 5 portes d'entrée (fiches, côté sidebar) → core ;
+//   • la 1re étape de « réviser » (intro) → core ; le détail vient après.
+(function markTourCore(){
+  const coreParts=new Set(['welcome','liens','nav']);
+  let reviserSeen=false;
+  TOUR_STEPS.forEach(s=>{
+    if(coreParts.has(s.part)) s.core=true;
+    else if(s.part==='fiches' && s.side==='sidebar') s.core=true;
+    else if(s.part==='reviser' && !reviserSeen){ s.core=true; reviserSeen=true; }
+  });
+})();
+
+// État interne : index de l'étape courante (-1 = visite fermée), cache du
+// DOM, `jumped` (true = accès direct à une partie → croix + clic sombre pour
+// sortir), `mode` (core | detail | full) et `decision` (vrai pendant l'écran
+// « continuer la visite détaillée ? » entre le noyau et le détail).
+const tourState={i:-1, dom:null, jumped:false, mode:'full', decision:false};
+
+/* tourSeq() — indices des étapes ACTIVES selon le mode :
+   • core   → seulement les étapes du noyau (step.core) ;
+   • detail → seulement les approfondissements (!step.core) ;
+   • full   → toutes. La navigation (suivant/précédent/passer) opère sur cette
+   séquence ; le noyau et le détail s'enchaînent ainsi sans réordonner le tableau. */
+function tourSeq(){
+  const m=tourState.mode;
+  const all=TOUR_STEPS.map((s,k)=>k);
+  if(m==='core')   return all.filter(k=>TOUR_STEPS[k].core);
+  if(m==='detail') return all.filter(k=>!TOUR_STEPS[k].core);
+  return all;
+}
+
+/* buildTourDOM() — crée (une seule fois) les éléments de la visite :
+   le voile bloquant, le projecteur et la bulle. Réutilisés ensuite. */
+function buildTourDOM(){
+  if(tourState.dom) return tourState.dom;
+  const blocker=document.createElement('div'); blocker.className='tour-blocker';
+  const spot=document.createElement('div'); spot.className='tour-spot';
+  const bubble=document.createElement('div'); bubble.className='tour-bubble';
+  // Clic dans le sombre → fermeture conditionnelle (cf. tourBlockerClick).
+  blocker.addEventListener('click',tourBlockerClick);
+  document.body.appendChild(blocker);
+  document.body.appendChild(spot);
+  document.body.appendChild(bubble);
+  return tourState.dom={blocker,spot,bubble};
+}
+
+/* startTour(i, jumped) — démarre la visite à l'index i (0 = depuis le début).
+   `jumped` (défaut false) = entrée par accès direct à une partie : active la
+   croix et le clic-sombre pour sortir. Ferme le menu d'aide et le tiroir
+   pour partir d'un état propre. */
+function startTour(i, jumped, mode){
+  closeHelpMenu();
+  closeSidebar();
+  buildTourDOM();
+  tourState.mode=mode||'full';     // 'core' (1er passage) | 'detail' | 'full'
+  tourState.decision=false;
+  tourState.i=(i|0);
+  tourState.jumped=!!jumped;
+  document.addEventListener('keydown',tourKey);
+  window.addEventListener('resize',tourReposition);
+  renderTourStep();
+}
+
+/* tourGoPart(part) — va directement à la 1re étape d'une partie (menu d'aide).
+   Entrée « ciblée » → jumped=true (croix + clic-sombre pour sortir) ; mode FULL
+   pour que toutes les parties soient accessibles. */
+function tourGoPart(part){
+  const idx=TOUR_STEPS.findIndex(s=>s.part===part);
+  if(idx>=0) startTour(idx, true, 'full');
+}
+
+/* ── Bandeau d'avertissement « contenu en construction » ─────────────────────
+   Réapparaît à CHAQUE chargement (aucune persistance, contrairement à
+   l'onboarding) ; deux façons de disparaître : la croix (dismissNotice) ou,
+   à défaut, automatiquement au bout d'une minute (timer posé par initNotice).
+   Le mot souligné ouvre la partie « Proposer / éditer » de la visite guidée. */
+let noticeTimer=null;   // id du minuteur d'auto-fermeture (null si déjà fermé)
+
+/* dismissNotice() — ferme le bandeau (anim de sortie puis retrait du DOM) et
+   annule le minuteur d'auto-fermeture s'il court encore. */
+function dismissNotice(){
+  const b=document.getElementById('notice-banner');
+  if(noticeTimer){ clearTimeout(noticeTimer); noticeTimer=null; }
+  if(!b) return;
+  b.classList.add('hide');                 // transition opacity/translate
+  setTimeout(()=>{ if(b&&b.parentNode) b.remove(); },300);
+}
+
+/* noticeOpenContribTour() — depuis le mot souligné : ferme le bandeau et ouvre
+   la partie « participation active » du tutoriel. */
+function noticeOpenContribTour(){
+  dismissNotice();
+  tourGoPart('proposer');
+}
+
+/* initNotice() — au chargement : arme la disparition automatique à 30 s. Le
+   bandeau est présent par défaut dans le HTML → visible à chaque rechargement. */
+function initNotice(){
+  if(!document.getElementById('notice-banner')) return;
+  noticeTimer=setTimeout(dismissNotice,30000);
+}
+
+/* endTour() — termine la visite : masque le DOM, retire les écouteurs,
+   restaure le mode réel (un mode édition temporaire a pu être posé) et
+   mémorise que la visite a été vue (plus d'auto-affichage). */
+function endTour(){
+  document.removeEventListener('keydown',tourKey);
+  window.removeEventListener('resize',tourReposition);
+  clearTimeout(tourState.posT1); clearTimeout(tourState.posT2);   // annule les repositionnements en attente
+  if(tourState.dom){
+    tourState.dom.blocker.classList.remove('open','dim');
+    tourState.dom.spot.style.display='none';
+    tourState.dom.bubble.style.display='none';
+  }
+  tourState.i=-1;
+  tourCloseOverlays();                           // referme quiz/contribution ouverts par la visite
+  applyPhiloMode();                              // restaure le mode (édition tempo)
+  try{ localStorage.setItem('philo-tour-v1','1'); }catch(e){}
+  syncOnPrefsChange();                           // new (Phase 2) : « visite vue » suit le compte
+}
+
+/* tourNext() — avance dans la SÉQUENCE ACTIVE (tourSeq(), filtrée par le mode).
+   En fin de séquence : en mode « core » (1er passage), on propose la visite
+   détaillée via l'écran de décision ; sinon on termine. Ne fait rien pendant
+   l'écran de décision (qui a ses propres boutons). */
+function tourNext(){
+  if(tourState.decision) return;
+  const seq=tourSeq(), pos=seq.indexOf(tourState.i);
+  if(pos>=0 && pos<seq.length-1){ tourState.i=seq[pos+1]; renderTourStep(); return; }
+  if(tourState.mode==='core') return tourShowDecision();
+  endTour();
+}
+/* tourPrev() — recule d'une étape dans la séquence active (jamais sous la 1re). */
+function tourPrev(){
+  if(tourState.decision) return;
+  const seq=tourSeq(), pos=seq.indexOf(tourState.i);
+  if(pos>0){ tourState.i=seq[pos-1]; renderTourStep(); }
+}
+function tourSkipAll(){ endTour(); }
+/* tourSkipPart() — saute jusqu'à la 1re étape de la PARTIE SUIVANTE dans la
+   séquence active (ou propose la visite détaillée / termine s'il n'en reste pas). */
+function tourSkipPart(){
+  const curStep=TOUR_STEPS[tourState.i]; if(!curStep) return;
+  const seq=tourSeq(); let p=seq.indexOf(tourState.i)+1;
+  while(p<seq.length && TOUR_STEPS[seq[p]].part===curStep.part) p++;
+  if(p>=seq.length) return tourState.mode==='core' ? tourShowDecision() : endTour();
+  tourState.i=seq[p]; renderTourStep();
+}
+/* tourShowDecision() — fin du NOYAU (1er passage) : écran « Tu connais
+   l'essentiel — veux-tu la visite détaillée ? ». Voile uniforme (pas de
+   projecteur), bulle centrée. tourState.decision=true le temps de l'écran ;
+   ses boutons appellent tourContinueDetailed() (poursuivre) ou endTour(). */
+function tourShowDecision(){
+  tourState.decision=true;
+  const {blocker,spot,bubble}=buildTourDOM();
+  applyPhiloMode();                              // restaure le mode réel
+  tourCloseOverlays();                           // referme un overlay d'étape éventuel
+  if(window.innerWidth<=700) document.body.classList.remove('sb-open');
+  blocker.classList.add('open','dim');           // assombri uniforme, pas de spot
+  spot.style.display='none';
+  bubble.style.display='block';
+  bubble.innerHTML=tourBubbleHTML(null);         // la branche décision ignore l'argument
+  // Centrer après un frame (la bulle doit être remplie pour mesurer sa taille).
+  requestAnimationFrame(()=>{
+    const vw=window.innerWidth, vh=window.innerHeight;
+    bubble.style.left=Math.max(8,(vw-bubble.offsetWidth)/2)+'px';
+    bubble.style.top=Math.max(8,(vh-bubble.offsetHeight)/2)+'px';
+  });
+}
+/* tourContinueDetailed() — « Oui, voir le détail » : enchaîne sur la visite
+   détaillée (mode 'detail' = toutes les étapes HORS noyau) depuis sa 1re étape. */
+function tourContinueDetailed(){
+  tourState.decision=false;
+  tourState.mode='detail';
+  const seq=tourSeq();
+  if(!seq.length) return endTour();
+  tourState.i=seq[0];
+  renderTourStep();
+}
+/* tourKey(e) — Échap quitte la visite. */
+function tourKey(e){ if(e.key==='Escape') endTour(); }
+/* tourBlockerClick() — clic sur le voile sombre. Ne ferme la visite que
+   dans les cas voulus (sinon on ignore, pour ne pas sortir par accident
+   pendant le déroulé guidé) : sur la DERNIÈRE étape, ou en accès direct à
+   une partie (tourState.jumped). */
+function tourBlockerClick(){
+  if(tourState.i<0 || tourState.decision) return;     // décision : choisir via les boutons
+  if(tourState.jumped) return endTour();
+  const seq=tourSeq();
+  if(seq.indexOf(tourState.i)===seq.length-1)         // dernière étape de la séquence active
+    return tourState.mode==='core' ? tourShowDecision() : endTour();
+}
+/* tourReposition() — recalcule la position de l'élément courant (resize) :
+   la bulle de décision (recentrée) ou l'étape pointée (projecteur + bulle). */
+function tourReposition(){
+  if(tourState.decision){ tourShowDecision(); return; }
+  if(tourState.i>=0) positionTourStep();
+}
+
+/* renderTourStep() — affiche l'étape courante : prépare l'état de l'appli,
+   remplit la bulle, puis (au frame suivant, le rendu/scroll étant à jour)
+   positionne projecteur + bulle. */
+function renderTourStep(){
+  const step=TOUR_STEPS[tourState.i]; if(!step) return endTour();
+  const {blocker,bubble}=buildTourDOM();
+  // 1. Repartir du mode réel (annule un mode édition temporaire éventuel) et
+  //    refermer les fenêtres ouvertes par une étape précédente (quiz /
+  //    contribution) ; l'étape rouvrira la sienne via son `setup`. Puis gérer
+  //    le tiroir mobile selon la cible, et appliquer l'état propre à l'étape.
+  applyPhiloMode();
+  tourCloseOverlays();
+  if(window.innerWidth<=700){
+    if(step.side==='sidebar') document.body.classList.add('sb-open');
+    else document.body.classList.remove('sb-open');
+  }
+  if(step.setup) step.setup();
+  // 2. Construire la bulle (contenu + contrôles).
+  blocker.classList.add('open');
+  bubble.style.display='block';
+  bubble.innerHTML=tourBubbleHTML(step);
+  // 3. Positionner en PLUSIEURS passes (cf. tourSchedulePosition) : le tiroir
+  //    mobile (transform .25s) et l'ouverture d'un overlay glissent encore au
+  //    prochain frame, ce qui fausserait getBoundingClientRect (projecteur hors
+  //    champ). On repositionne donc aussi APRÈS ces transitions.
+  tourSchedulePosition();
+}
+
+/* tourSchedulePosition() — planifie plusieurs recalculs de position : tout de
+   suite (frame courant), puis après le glissement du tiroir mobile (~0,25 s) et
+   un dernier filet de sécurité pour un reflow tardif. Sans ces passes, une
+   cible dans la barre latérale (mode mobile) était mesurée pendant que le
+   tiroir glissait encore → projecteur invisible jusqu'au changement d'étape. */
+function tourSchedulePosition(){
+  clearTimeout(tourState.posT1); clearTimeout(tourState.posT2);
+  requestAnimationFrame(positionTourStep);
+  tourState.posT1=setTimeout(positionTourStep,140);  // milieu de transition
+  tourState.posT2=setTimeout(positionTourStep,340);  // après la fin (>250ms)
+}
+
+/* tourProgressHTML(curIdx) — pastilles de progression GROUPÉES par partie :
+   chaque thème forme un cadre arrondi à sa couleur (cf. TOUR_PART_COLORS),
+   fond très transparent + contour léger ; la partie en cours reçoit un
+   contour plus net (classe .cur). Une pastille par étape, à l'état
+   done / cur / à venir. Les couleurs translucides sont obtenues en suffixant
+   un alpha hexadécimal à la couleur de la partie (ex. #5b8def + "26"). */
+function tourProgressHTML(curIdx){
+  // 1. Ne montrer QUE les étapes de la séquence active (mode core/detail/full) :
+  //    en noyau, on n'affiche pas les pastilles des approfondissements (et vice
+  //    versa). Les regrouper par partie, en conservant l'ordre du tableau.
+  const seq=tourSeq();
+  const curPos=seq.indexOf(curIdx);            // position de l'étape courante DANS la séquence
+  const groups=[];
+  seq.forEach(k=>{
+    const s=TOUR_STEPS[k];
+    const last=groups[groups.length-1];
+    if(!last || last.part!==s.part) groups.push({part:s.part, dots:[k]});
+    else last.dots.push(k);
+  });
+  // 2. Un cadre coloré par groupe ; pastilles done/cur/à venir à l'intérieur.
+  //    Le cadre est CLIQUABLE (saute à cette partie) et porte data-label = nom
+  //    de la partie, affiché au survol/focus (cf. CSS .tour-pgroup::after).
+  //    role/tabindex/onkeydown rendent l'accès au clavier (Entrée/Espace) possible.
+  return groups.map(grp=>{
+    const c=TOUR_PART_COLORS[grp.part]||"#9aa0b5";
+    const isCur=grp.dots.indexOf(curIdx)>=0;
+    const label=TOUR_PARTS[grp.part]||'Fin';   // 'end' a un libellé vide → « Fin »
+    // Cadre : contour net + fond plus marqué pour la partie courante.
+    const frame=isCur ? `border:1px solid ${c};background:${c}26`
+                      : `border:0.5px solid ${c}59;background:${c}12`;
+    // done/cur/à venir : comparé sur la POSITION dans la séquence active, pas
+    // sur l'index brut (les deux divergent en mode core/detail).
+    const dots=grp.dots.map(k=>{ const p=seq.indexOf(k);
+      return `<span class="tour-dot${p<curPos?' done':p===curPos?' cur':''}"></span>`; }).join('');
+    return `<span class="tour-pgroup${isCur?' cur':''}" style="--pc:${c};${frame}" `
+      +`role="button" tabindex="0" data-label="${label}" aria-label="Aller à : ${label}" `
+      +`onclick="tourJumpPart('${grp.part}')" `
+      +`onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();tourJumpPart('${grp.part}')}">`
+      +`${dots}</span>`;
+  }).join('');
+}
+
+/* tourJumpPart(part) — depuis les pastilles de progression : va directement à
+   la 1re étape de la partie cliquée, SANS changer le contexte (tourState.jumped)
+   ni redémarrer la visite. Permet de circuler librement entre les parties. */
+function tourJumpPart(part){
+  if(tourState.i<0 || tourState.decision) return;   // visite fermée / écran de décision
+  // 1re étape de cette partie DANS la séquence active (les pastilles n'affichent
+  // que des parties présentes dans la séquence → l'index existe forcément).
+  const seq=tourSeq();
+  const idx=seq.find(k=>TOUR_STEPS[k].part===part);
+  if(idx!=null){ tourState.i=idx; renderTourStep(); }
+}
+
+/* tourBubbleHTML(step) — HTML de la bulle : en-tête de partie, titre, texte,
+   pastilles de progression (encadrées par thème, cf. tourProgressHTML) et
+   barre de contrôles. */
+function tourBubbleHTML(step){
+  // Écran de DÉCISION (entre noyau et détail) : choix binaire, pas d'étape.
+  if(tourState.decision) return tourDecisionHTML();
+  // Position dans la SÉQUENCE ACTIVE (et non l'index brut) : « premier » et
+  // « dernier » dépendent du mode (core/detail/full).
+  const seq=tourSeq(), pos=seq.indexOf(tourState.i);
+  const first=pos<=0, last=pos===seq.length-1;
+  const partLabel=TOUR_PARTS[step.part]||'';
+  const dots=tourProgressHTML(tourState.i);
+  // Existe-t-il une partie suivante DANS LA SÉQUENCE (pour « Passer cette partie ») ?
+  let hasNextPart=false;
+  for(let p=pos+1;p<seq.length;p++){ if(TOUR_STEPS[seq[p]].part!==step.part){ hasNextPart=true; break; } }
+  // En fin de NOYAU, « Suivant » mène à l'écran de décision → libellé adapté.
+  const nextDefault=last?(tourState.mode==='core'?'Continuer ▶':'Terminer'):'Suivant ▶';
+  const prevBtn=first?'':`<button class="tour-btn tour-btn-prev" onclick="tourPrev()">◀ Précédent</button>`;
+  const nextBtn=`<button class="tour-btn tour-btn-next" onclick="tourNext()">${step.nextLabel||nextDefault}</button>`;
+  const skipPart=(step.part!=='welcome'&&step.part!=='end'&&hasNextPart)
+    ?`<button class="tour-link" onclick="tourSkipPart()">Passer cette partie</button>`:'';
+  const skipAll=last?'':`<button class="tour-link" onclick="tourSkipAll()">${first?'Passer la visite':'Tout passer'}</button>`;
+  // Croix : seulement en accès direct à une partie (révision ciblée).
+  const closeBtn=tourState.jumped?`<button class="tour-close" onclick="endTour()" aria-label="Fermer la visite" title="Fermer">×</button>`:'';
+  return `${closeBtn}${partLabel?`<div class="tour-part">${partLabel}</div>`:''}
+    <div class="tour-title">${step.title}</div>
+    <div class="tour-text">${step.text}</div>
+    <div class="tour-progress">${dots}</div>
+    <div class="tour-ctrl">${prevBtn}${nextBtn}<span class="tour-skip">${skipPart}${skipAll}</span></div>`;
+}
+
+/* tourDecisionHTML() — bulle de l'écran de décision (fin du noyau) : on rassure
+   (« tu connais l'essentiel »), on rappelle où relancer la visite (bouton ?),
+   puis deux choix : poursuivre la visite détaillée, ou s'arrêter là. */
+function tourDecisionHTML(){
+  return `<div class="tour-part">Visite express terminée</div>
+    <div class="tour-title">Tu connais l’essentiel 👍</div>
+    <div class="tour-text">Tu sais maintenant <b>naviguer</b> (notions, auteurs, concepts, repères, méthodo) et <b>réviser</b>. Veux-tu poursuivre avec la <b>visite détaillée</b> ? Elle couvre les onglets d’une fiche, le <b>partage</b>, toutes les options du <b>quiz</b>, comment <b>proposer du contenu</b> et le <b>compte</b>. Tu pourras de toute façon la relancer à tout moment via le bouton <b>?</b> en haut à droite.</div>
+    <div class="tour-ctrl tour-ctrl-decision">
+      <button class="tour-btn tour-btn-next" onclick="tourContinueDetailed()">Oui, voir le détail ▶</button>
+      <button class="tour-link" onclick="endTour()">Non merci, j’ai compris</button>
+    </div>`;
+}
+
+/* positionTourStep() — place le projecteur autour de la cible et la bulle
+   à côté. Étape « center » (ou cible introuvable) : voile assombri uniforme
+   + bulle centrée. */
+function positionTourStep(){
+  const step=TOUR_STEPS[tourState.i]; if(!step) return;
+  const {blocker,spot,bubble}=tourState.dom;
+  const el=(!step.center&&step.target)?step.target():null;
+  if(el){ try{ el.scrollIntoView({block:'center',inline:'nearest'}); }catch(e){} }
+  const vw=window.innerWidth, vh=window.innerHeight;
+  const bw=bubble.offsetWidth, bh=bubble.offsetHeight;
+  if(!el){
+    // Carte centrée : pas de projecteur, voile uniforme.
+    blocker.classList.add('dim'); spot.style.display='none';
+    bubble.style.left=Math.max(8,(vw-bw)/2)+'px';
+    bubble.style.top=Math.max(8,(vh-bh)/2)+'px';
+    return;
+  }
+  blocker.classList.remove('dim');
+  const r=el.getBoundingClientRect();
+  const pad=6;
+  // Rectangle du projecteur, BORNÉ au viewport. Une cible plus grande que
+  // l'écran (ex. longue liste de filtres du quiz sur mobile) garderait sinon
+  // un projecteur débordant qui « éclaire tout » et pousse la bulle hors champ.
+  let st=r.top-pad, sl=r.left-pad, sw=r.width+pad*2, sh=r.height+pad*2;
+  if(st<6){ sh+=st-6; st=6; }
+  if(sl<6){ sw+=sl-6; sl=6; }
+  if(st+sh>vh-6) sh=vh-6-st;
+  if(sl+sw>vw-6) sw=vw-6-sl;
+  spot.style.display='block';
+  spot.style.top=st+'px'; spot.style.left=sl+'px';
+  spot.style.width=Math.max(0,sw)+'px'; spot.style.height=Math.max(0,sh)+'px';
+  // Placement de la bulle, calculé sur le rectangle BORNÉ (rl/rr/rt/rb) : à
+  // droite si la cible est à gauche (sidebar), sinon dessous, sinon dessus,
+  // sinon centré.
+  const gap=14;
+  let top, left;
+  const rl=sl, rr=sl+sw, rt=st, rb=st+sh;
+  const roomRight=rr+gap+bw<=vw-8, roomBelow=rb+gap+bh<=vh-8, roomAbove=rt-gap-bh>=8;
+  if(rl<vw*0.34 && roomRight){
+    left=rr+gap; top=tourClamp(rt,8,vh-bh-8);
+  } else if(roomBelow){
+    top=rb+gap; left=tourClamp(rl,8,vw-bw-8);
+  } else if(roomAbove){
+    top=rt-gap-bh; left=tourClamp(rl,8,vw-bw-8);
+  } else {
+    top=Math.max(8,(vh-bh)/2); left=Math.max(8,(vw-bw)/2);
+  }
+  bubble.style.top=top+'px';
+  bubble.style.left=left+'px';
+}
+function tourClamp(v,min,max){ return Math.max(min,Math.min(max,v)); }
+
+/* tourStartIfFirst() — auto-affichage de la visite à la toute 1re venue
+   (drapeau localStorage 'philo-tour-v1'). En navigation privée où l'accès
+   au stockage lève, on considère « déjà vu » pour ne pas gêner. */
+function tourStartIfFirst(){
+  let seen; try{ seen=localStorage.getItem('philo-tour-v1'); }catch(e){ seen='1'; }
+  // 1re venue : on joue d'abord le NOYAU (mode 'core'), puis on propose la
+  // visite détaillée. Une relance manuelle (bouton ?) part, elle, en mode complet.
+  if(!seen) startTour(0, false, 'core');
+}
+
+/* ── Bouton d'aide « ? » : ouvre/ferme le menu ─────────────────────── */
+function toggleHelpMenu(e){
+  if(e) e.stopPropagation();
+  const m=document.getElementById('help-menu');
+  if(m) m.classList.toggle('open');
+}
+function closeHelpMenu(){ const m=document.getElementById('help-menu'); if(m) m.classList.remove('open'); }
+// Un clic hors du menu (et hors du bouton) le referme.
+document.addEventListener('click',e=>{
+  const m=document.getElementById('help-menu');
+  if(m&&m.classList.contains('open')&&!m.contains(e.target)&&e.target.id!=='help-btn') closeHelpMenu();
+});
+(function initSidebarDrawer(){
+  document.getElementById('sb-burger').addEventListener('click',toggleSidebar);
+  document.getElementById('sb-backdrop').addEventListener('click',closeSidebar);
+  // Délégation des clics sur le fil d'Ariane (un seul écouteur).
+  document.getElementById('crumbs').addEventListener('click',e=>{
+    const c=e.target.closest('.crumb');
+    if(!c||c.classList.contains('current')) return;
+    const act=c.dataset.act, arg=c.dataset.arg||'';
+    pushHistory();
+    if(act==='mode') goMode(arg);
+    else if(act==='tab'){ curTab=arg; renderContent(); }
+    else if(act==='authortab'){ curAuthorTab=arg; renderAuthorContent(); }
+    else if(act==='subtab'){ curConceptSubTab=arg; renderContent(); }
+  });
+  // Délégation : sélection d'une notion/auteur/concept → ferme le tiroir
+  // (uniquement en mode mobile — on ne change rien sur desktop).
+  document.getElementById('sb').addEventListener('click',e=>{
+    if(window.innerWidth>700) return;
+    if(e.target.closest && e.target.closest('.nb,.ab,.cb')) closeSidebar();
+  });
+  document.addEventListener('keydown',e=>{
+    if(e.key==='Escape'&&document.body.classList.contains('sb-open')) closeSidebar();
+  });
+})();
+
+/* initSidebarSwipe() — ouvrir/fermer le tiroir au doigt (mobile).
+   Geste reconnu : un balayage horizontal franc.
+     • tiroir FERMÉ : le geste ne s'arme que s'il démarre tout au bord
+       gauche de l'écran (≤ EDGE px) — ainsi on n'interfère pas avec le
+       défilement ni les boutons ; un balayage vers la DROITE l'ouvre.
+     • tiroir OUVERT : n'importe quel départ compte ; un balayage vers la
+       GAUCHE le ferme.
+   Validation au touchend : amplitude |dx| ≥ MIN px ET mouvement surtout
+   horizontal (|dx| > |dy|) — sinon c'est un scroll vertical, on ignore.
+   Inactif sur grand écran (> 700 px) ou si une surcouche est ouverte
+   (quiz, modale de proposition, onboarding) pour ne pas voler le geste. */
+(function initSidebarSwipe(){
+  const EDGE=28, MIN=55;          // seuils en pixels : zone de bord / amplitude mini
+  let x0=0,y0=0,armed=false;      // origine du toucher + geste éligible ?
+  // Vrai si une surcouche plein écran capte déjà l'attention de l'utilisateur.
+  function overlayOpen(){
+    const q=document.getElementById('quiz-overlay');
+    const p=document.getElementById('proposal-overlay');
+    return (q&&q.classList.contains('open'))||(p&&p.classList.contains('open'))||
+           (typeof tourState!=='undefined'&&tourState&&tourState.i>=0);
+  }
+  document.addEventListener('touchstart',e=>{
+    armed=false;
+    if(window.innerWidth>700||overlayOpen()||e.touches.length!==1) return;
+    const t=e.touches[0], open=document.body.classList.contains('sb-open');
+    // Fermé : on n'arme qu'au bord gauche. Ouvert : n'importe où.
+    if(!open&&t.clientX>EDGE) return;
+    x0=t.clientX; y0=t.clientY; armed=true;
+  },{passive:true});
+  document.addEventListener('touchend',e=>{
+    if(!armed) return;
+    armed=false;
+    const t=e.changedTouches[0], dx=t.clientX-x0, dy=t.clientY-y0;
+    if(Math.abs(dx)<MIN||Math.abs(dx)<=Math.abs(dy)) return;   // pas assez franc / trop vertical
+    const open=document.body.classList.contains('sb-open');
+    if(!open&&dx>0) toggleSidebar();        // bord gauche → droite : ouvrir
+    else if(open&&dx<0) closeSidebar();     // vers la gauche : fermer
+  },{passive:true});
+})();
+/* js/09-compte.js — morceau du script du site. Le build (outils/construire.mjs)
+   recolle js/*.js dans l'ORDRE des noms en UN SEUL script, app.js : les
+   fonctions restent visibles d'un morceau à l'autre comme avant, et le code
+   « de premier niveau » s'exécute dans cet ordre. */
+/* ── K. COMPTES — authentification (Supabase) ───────────────────────
+   Couche « compte » FACULTATIVE : se connecter (Google ou e-mail + mot de
+   passe) pour, plus tard, synchroniser quiz/préférences et suivre ses
+   propositions. Si SB est null (CDN non chargé, hors-ligne…), rien ne
+   casse : le site reste pleinement utilisable en anonyme.
+
+   Quelques termes :
+     • OAuth   : « se connecter avec Google » sans confier son mot de passe
+                 au site ; Google nous renvoie un jeton de session.
+     • session : la preuve qu'on est connecté — un jeton que Supabase range
+                 dans le navigateur et renouvelle tout seul.
+   authUser : l'utilisateur courant (objet Supabase) ou null si déconnecté.
+   authView : onglet affiché dans la modale, 'signin' ou 'signup'.        */
+let authUser=null;
+let authView='signin';
+
+/* initAuth() — au démarrage : lit la session existante (si l'on était déjà
+   connecté), puis s'abonne aux changements (connexion, retour d'un login
+   Google, déconnexion, renouvellement de jeton). À chaque changement, on
+   rafraîchit le bouton de la sidebar. */
+async function initAuth(){
+  if(!SB) return;                       // pas de client → couche compte inactive
+  try{
+    const {data}=await SB.auth.getSession();
+    authUser=(data&&data.session)?data.session.user:null;
+  }catch(e){ authUser=null; }
+  renderAccountBtn();
+  maybeStartSync();                     // new (Phase 2) : si déjà connecté au chargement, on synchronise
+  SB.auth.onAuthStateChange((event,session)=>{
+    authUser=session?session.user:null;
+    renderAccountBtn();
+    if(authUser) maybeStartSync(); else syncResetState();   // new (Phase 2) : (dé)clenche la synchro selon l'état
+    const ov=document.getElementById('auth-overlay');
+    // new : retour d'un lien « mot de passe oublié ». L'évènement arrive en
+    // général alors que la modale est fermée (la page vient de s'ouvrir depuis
+    // l'e-mail) → on l'ouvre nous-mêmes sur l'écran « nouveau mot de passe ».
+    // À placer AVANT le test « modale fermée » ci-dessous.
+    if(event==='PASSWORD_RECOVERY'){
+      authView='newpw';
+      if(ov) ov.classList.add('open');
+      renderAuth();
+      return;
+    }
+    if(!ov||!ov.classList.contains('open')) return;   // modale fermée : rien à faire
+    // Modale ouverte : on ne ferme QUE sur une connexion réussie ; une
+    // déconnexion ramène au formulaire. Les autres événements (mise à jour
+    // du profil après un renommage, renouvellement de jeton…) laissent la
+    // modale telle quelle — sinon renommer fermerait la fenêtre.
+    if(event==='SIGNED_IN') closeAuth();
+    else if(event==='SIGNED_OUT') renderAuth();
+  });
+  // new (mot de passe oublié) : repli ROBUSTE. Si l'URL au chargement portait
+  // « type=recovery » mais que l'évènement PASSWORD_RECOVERY a pu passer AVANT
+  // notre abonnement (course expliquée à la déclaration d'AUTH_RECOVERY_IN_URL),
+  // on ouvre nous-mêmes l'écran « nouveau mot de passe ». À ce stade getSession
+  // a fini de traiter l'URL : la session de récupération est prête, et
+  // renderAuth() priorise l'écran 'newpw' sur le profil.
+  if(AUTH_RECOVERY_IN_URL){
+    authView='newpw';
+    const ovr=document.getElementById('auth-overlay');
+    if(ovr) ovr.classList.add('open');
+    renderAuth();
+  }
+  // new (Phase 2) : au retour sur l'onglet, on récupère ce qu'un autre appareil
+  // aurait pu écrire entre-temps (fusion non destructive).
+  // v4 : quand la page se CACHE (onglet changé, appli quittée, fermeture), on
+  // envoie aussitôt ce qui attendait (syncFlush) ; au retour du RÉSEAU, on
+  // refait une synchro complète, qui renvoie aussi ce qui avait échoué.
+  document.addEventListener('visibilitychange',()=>{
+    if(document.visibilityState==='visible') syncOnFocus(); else syncFlush();
+  });
+  window.addEventListener('pagehide',syncFlush);
+  window.addEventListener('online',()=>syncOnFocus());
+}
+
+/* authLabel() — nom lisible : prénom/nom Google si dispo, sinon la partie
+   avant « @ » de l'e-mail, sinon « Mon compte ». */
+function authLabel(){
+  if(!authUser) return '';
+  const m=authUser.user_metadata||{};
+  if(m.full_name) return m.full_name;
+  if(m.name) return m.name;
+  if(authUser.email) return authUser.email.split('@')[0];
+  return 'Mon compte';
+}
+
+/* renderAccountBtn() — remplit la zone .sb-account-wrap selon l'état :
+   masquée si SB indisponible ; DEUX boutons (Se connecter / Créer un
+   compte) si déconnecté ; un seul (nom → profil) si connecté. Pose aussi
+   body.is-signed-in (repère pour le CSS et les modules de synchro à venir). */
+function renderAccountBtn(){
+  const wrap=document.querySelector('.sb-account-wrap');
+  if(!wrap) return;
+  if(!SB){ wrap.style.display='none'; return; }   // aucun compte possible
+  wrap.style.display='';
+  document.body.classList.toggle('is-signed-in',!!authUser);
+  if(authUser){
+    // Connecté : un seul bouton (nom → ouvre le profil / la déconnexion).
+    wrap.innerHTML=`<button class="sb-account" title="Gérer le compte ou se déconnecter" onclick="openAuth()">👤 ${pEsc(authLabel())}</button>`;
+  }else{
+    // Déconnecté : deux boutons distincts (chacun ouvre le bon onglet).
+    wrap.innerHTML=`<button class="sb-account" title="Déjà un compte ? Se connecter" onclick="openAuth('signin')">Se connecter</button>`+
+      `<button class="sb-account" title="Pas encore de compte ? En créer un" onclick="openAuth('signup')">Créer un compte</button>`;
+  }
+}
+
+/* openAuth(view) — affiche la modale de compte sur l'onglet « signin »
+   (Se connecter, défaut) ou « signup » (Créer un compte). Les deux boutons
+   de la sidebar appellent l'un ou l'autre ; une fois connecté, c'est l'écran
+   profil qui s'affiche quel que soit `view`. */
+function openAuth(view){
+  authView=(view==='signup')?'signup':'signin';
+  renderAuth();
+  document.getElementById('auth-overlay').classList.add('open');
+}
+function closeAuth(){ document.getElementById('auth-overlay').classList.remove('open'); }
+
+/* renderAuth() — construit le corps de la modale (#auth-body) : connecté →
+   profil + « Se déconnecter » ; déconnecté → onglets Connexion/Création,
+   bouton Google, formulaire e-mail + mot de passe, et ligne de statut. */
+function renderAuth(){
+  const body=document.getElementById('auth-body');
+  const titleEl=document.getElementById('auth-title');
+  if(!body) return;
+  // ── Écran « définir un nouveau mot de passe » (retour d'un lien de
+  //    récupération). PRIORITAIRE même si une session de récupération est
+  //    déjà ouverte (sinon on afficherait le profil). ──
+  if(authView==='newpw'){
+    if(titleEl) titleEl.textContent='🔑 Nouveau mot de passe';
+    body.innerHTML=`
+      <div class="auth-intro">Choisis un nouveau mot de passe pour ton compte.</div>
+      <form class="auth-form" onsubmit="authSetNewPassword(event)">
+        <div class="auth-pw-wrap">
+          <input class="auth-input" id="auth-newpw" type="password" placeholder="Nouveau mot de passe (6 caractères min.)" autocomplete="new-password" minlength="6" required>
+          <button type="button" class="auth-pw-eye" title="Afficher / masquer le mot de passe" aria-label="Afficher le mot de passe" onclick="togglePwEye(this)">👁</button>
+        </div>
+        <button class="auth-btn auth-btn-primary" type="submit">Définir le mot de passe</button>
+      </form>
+      <div class="auth-status" id="auth-status"></div>`;
+    return;
+  }
+  if(authUser){                                  // ── déjà connecté : profil ──
+    if(titleEl) titleEl.textContent='👤 Mon compte';
+    const rawProv=(authUser.app_metadata&&authUser.app_metadata.provider)||'email';
+    // « google » s'affiche « Gmail » ; « email » → « e-mail / mot de passe ».
+    const prov=rawProv==='google'?'Gmail':(rawProv==='email'?'e-mail / mot de passe':rawProv);
+    const isEmailUser=rawProv==='email';         // seul un compte e-mail peut renommer
+    body.innerHTML=`<div class="auth-meta">
+        Connecté en tant que <b>${pEsc(authLabel())}</b>.<br>
+        ${authUser.email?('E-mail : <b>'+pEsc(authUser.email)+'</b><br>'):''}
+        Méthode de connexion : <b>${pEsc(prov)}</b>.
+      </div>
+      ${isEmailUser?`
+      <div class="auth-form" style="margin-top:14px">
+        <label class="auth-note" for="auth-rename" style="margin:0">Changer mon pseudo (nom affiché) :</label>
+        <div style="display:flex;gap:6px">
+          <input class="auth-input" id="auth-rename" type="text" maxlength="40" value="${pEsc(authLabel())}" style="flex:1">
+          <button class="auth-btn auth-btn-primary" style="width:auto;padding:10px 14px" onclick="authUpdateName()">Enregistrer</button>
+        </div>
+      </div>`:''}
+      <div class="auth-form" style="margin-top:14px">
+        <button class="auth-btn auth-btn-primary" onclick="authSignOut()">Se déconnecter</button>
+      </div>
+      <button class="auth-link-btn auth-danger" onclick="authDeleteAccount()" title="Supprimer définitivement le compte et toutes ses données">Supprimer mon compte</button>
+      <div class="auth-status" id="auth-status"></div>`;
+    return;
+  }
+  // ── Écran « mot de passe oublié » : demande l'e-mail, envoie le lien. ──
+  if(authView==='reset'){
+    if(titleEl) titleEl.textContent='🔑 Mot de passe oublié';
+    body.innerHTML=`
+      <div class="auth-intro">Saisis ton adresse e-mail : on t’envoie un <b>lien</b> pour choisir un nouveau mot de passe.</div>
+      <form class="auth-form" onsubmit="authResetSend(event)">
+        <input class="auth-input" id="auth-email" type="email" placeholder="Adresse e-mail" autocomplete="email" required>
+        <button class="auth-btn auth-btn-primary" type="submit">Envoyer le lien</button>
+      </form>
+      <button class="auth-link-btn" onclick="authSetView('signin')">← Retour à la connexion</button>
+      <div class="auth-status" id="auth-status"></div>`;
+    return;
+  }
+  if(titleEl) titleEl.textContent='👤 Créer un compte / se connecter';
+  const isSignup=authView==='signup';            // ── déconnecté : connexion ──
+  body.innerHTML=`
+    <div class="auth-tabs">
+      <div class="auth-tab${isSignup?'':' active'}" onclick="authSetView('signin')">Connexion</div>
+      <div class="auth-tab${isSignup?' active':''}" onclick="authSetView('signup')">Créer un compte</div>
+    </div>
+    <div class="auth-intro">Deux façons de t’identifier, au choix : avec ton compte <b>Google</b>, ou avec une <b>adresse e-mail + mot de passe</b>.</div>
+    <button class="auth-btn auth-btn-google" onclick="authSignInGoogle()"><span style="font-weight:700;color:#4285f4">G</span> Continuer avec Google</button>
+    <div class="auth-sep">ou avec un e-mail</div>
+    <form class="auth-form" onsubmit="authSubmit(event)">
+      ${isSignup?'<input class="auth-input" id="auth-name" type="text" placeholder="Pseudo (nom affiché)" autocomplete="nickname" maxlength="40">':''}
+      <input class="auth-input" id="auth-email" type="email" placeholder="Adresse e-mail" autocomplete="email" required>
+      <div class="auth-pw-wrap">
+        <input class="auth-input" id="auth-pw" type="password" placeholder="Mot de passe (6 caractères min.)" autocomplete="${isSignup?'new-password':'current-password'}" minlength="6" required>
+        <button type="button" class="auth-pw-eye" title="Afficher / masquer le mot de passe" aria-label="Afficher le mot de passe" onclick="togglePwEye(this)">👁</button>
+      </div>
+      <button class="auth-btn auth-btn-primary" type="submit">${isSignup?'Créer mon compte':'Se connecter'}</button>
+    </form>
+    ${isSignup?'':'<button class="auth-link-btn" onclick="authSetView(\'reset\')">Mot de passe oublié ?</button>'}
+    ${isSignup?'<div class="auth-note">En créant un compte, seuls ton <b>pseudo</b> et ton <b>adresse e-mail</b> sont enregistrés (chez Supabase, l’hébergeur), pour retrouver ta progression et tes propositions sur tous tes appareils. Rien d’autre n’est collecté.</div>':''}
+    <div class="auth-status" id="auth-status"></div>`;
+}
+
+/* authSetView() — bascule Connexion / Création puis re-rend. */
+function authSetView(v){ authView=v; renderAuth(); }
+
+/* togglePwEye(btn) — affiche/masque le mot de passe du champ voisin (bouton œil
+   dans .auth-pw-wrap) : bascule type password↔text, met à jour l'icône et le
+   libellé, puis redonne le focus au champ. */
+function togglePwEye(btn){
+  const inp=btn.parentNode.querySelector('input');
+  if(!inp) return;
+  const show=inp.type==='password';
+  inp.type=show?'text':'password';
+  btn.textContent=show?'🙈':'👁';
+  btn.setAttribute('aria-label', show?'Masquer le mot de passe':'Afficher le mot de passe');
+  inp.focus();
+}
+
+/* authStatus() — message sous le formulaire (kind : 'err' | 'ok' | ''). */
+function authStatus(msg,kind){
+  const el=document.getElementById('auth-status');
+  if(!el) return;
+  el.className='auth-status'+(kind?(' '+kind):'');
+  el.textContent=msg||'';
+}
+
+/* authSubmit() — soumission du formulaire e-mail : crée le compte (signUp)
+   ou connecte (signInWithPassword) selon l'onglet actif. */
+async function authSubmit(ev){
+  ev.preventDefault();
+  if(!SB){ authStatus('Service indisponible (hors-ligne ?).','err'); return; }
+  const email=(document.getElementById('auth-email')||{}).value||'';
+  const pw=(document.getElementById('auth-pw')||{}).value||'';
+  authStatus('Un instant…','');
+  try{
+    if(authView==='signup'){
+      // Pseudo facultatif → rangé dans user_metadata.full_name (le « nom
+      // affiché »), lu en priorité par authLabel().
+      const name=((document.getElementById('auth-name')||{}).value||'').trim();
+      const opts=name?{data:{full_name:name}}:{};
+      const {error}=await SB.auth.signUp({email,password:pw,options:opts});
+      if(error) throw error;
+      // Si la confirmation par e-mail est activée côté Supabase, pas encore
+      // de session : on invite à confirmer (et à regarder les spams, l'e-mail
+      // pouvant tarder ou y atterrir). Sinon, onAuthStateChange ferme.
+      authStatus('Compte créé. Si une confirmation par e-mail est demandée, valide-la (pense à vérifier tes spams) puis reviens te connecter.','ok');
+    }else{
+      const {error}=await SB.auth.signInWithPassword({email,password:pw});
+      if(error) throw error;             // succès → onAuthStateChange ferme la modale
+    }
+  }catch(e){ authStatus(authHumanError(e),'err'); }
+}
+
+/* authSignInGoogle() — connexion Google (OAuth) : le navigateur part sur
+   Google puis revient sur la même page (redirectTo). Au retour, le client
+   Supabase détecte la session dans l'URL et onAuthStateChange se déclenche. */
+async function authSignInGoogle(){
+  if(!SB){ authStatus('Service indisponible (hors-ligne ?).','err'); return; }
+  authStatus('Redirection vers Google…','');
+  try{
+    const {error}=await SB.auth.signInWithOAuth({provider:'google',options:{redirectTo:location.origin+location.pathname}});
+    if(error) throw error;
+  }catch(e){ authStatus(authHumanError(e),'err'); }
+}
+
+/* authResetSend() — écran « mot de passe oublié » : envoie un e-mail
+   contenant un lien de récupération. Le lien ramène sur la même page
+   (redirectTo) ; au retour, le client Supabase détecte le jeton dans l'URL
+   et déclenche l'évènement PASSWORD_RECOVERY (cf. onAuthStateChange), qui
+   bascule la modale sur l'écran « nouveau mot de passe ». */
+async function authResetSend(ev){
+  ev.preventDefault();
+  if(!SB){ authStatus('Service indisponible (hors-ligne ?).','err'); return; }
+  const email=((document.getElementById('auth-email')||{}).value||'').trim();
+  authStatus('Envoi du lien…','');
+  try{
+    const {error}=await SB.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname});
+    if(error) throw error;
+    authStatus('Si un compte existe pour cette adresse, un e-mail vient d’être envoyé. Ouvre le lien qu’il contient pour choisir un nouveau mot de passe.','ok');
+  }catch(e){ authStatus(authHumanError(e),'err'); }
+}
+
+/* authSetNewPassword() — écran « nouveau mot de passe » (atteint via le lien
+   de récupération) : enregistre le nouveau mot de passe sur la session de
+   récupération en cours, puis revient à l'écran de connexion. */
+async function authSetNewPassword(ev){
+  ev.preventDefault();
+  if(!SB){ authStatus('Service indisponible (hors-ligne ?).','err'); return; }
+  const pw=((document.getElementById('auth-newpw')||{}).value||'');
+  authStatus('Enregistrement…','');
+  try{
+    const {error}=await SB.auth.updateUser({password:pw});
+    if(error) throw error;
+    authStatus('Mot de passe mis à jour. Tu es maintenant connecté.','ok');
+    // La session de récupération vaut connexion : on quitte l'écran spécial
+    // et on referme la modale au bout d'un instant (laisse lire le message).
+    authView='signin';
+    setTimeout(closeAuth,1400);
+  }catch(e){ authStatus(authHumanError(e),'err'); }
+}
+
+/* authSignOut() — déconnexion ; onAuthStateChange remet l'UI à zéro. */
+async function authSignOut(){
+  if(!SB) return;
+  try{ await SB.auth.signOut(); }catch(e){}
+  authUser=null;                         // état déconnecté garanti même si l'event tarde
+  renderAccountBtn();
+  renderAuth();                          // retour à l'écran de connexion
+}
+
+/* authDeleteAccount() — suppression DÉFINITIVE du compte, à la demande de
+   l'utilisateur. Le SDK client ne peut pas supprimer un compte (cela exige la
+   clé secrète, qui ne doit jamais vivre dans le navigateur) : on appelle donc
+   une fonction PostgreSQL « delete_own_account » (SECURITY DEFINER) qui efface
+   les données de l'utilisateur (contributions, progression, préférences) puis
+   sa ligne auth.users — toujours bornée à auth.uid(), donc à SON seul compte.
+   Voir le SQL à exécuter une fois côté Supabase (communiqué séparément).
+   Après suppression : on nettoie la session locale et on revient au formulaire. */
+async function authDeleteAccount(){
+  if(!SB||!authUser) return;
+  // Confirmation explicite : action irréversible (double sécurité native).
+  if(!confirm("Supprimer définitivement ton compte ?\n\nTa progression de révision, tes préférences et tes propositions seront effacées. Cette action est IRRÉVERSIBLE.")) return;
+  authStatus('Suppression du compte…','');
+  try{
+    const {error}=await SB.rpc('delete_own_account');
+    if(error) throw error;
+    // Le compte n'existe plus côté serveur → on coupe la session locale (le
+    // jeton est devenu caduc ; on avale une éventuelle erreur de signOut).
+    try{ await SB.auth.signOut(); }catch(e){}
+    authUser=null;
+    syncResetState();                    // stoppe la synchro et oublie l'utilisateur
+    renderAccountBtn();
+    authView='signin';
+    renderAuth();
+    authStatus('Ton compte a été supprimé. À bientôt !','ok');
+  }catch(e){
+    // Cas le plus courant : la fonction SQL n'a pas (encore) été créée côté
+    // Supabase → message clair plutôt que l'erreur brute.
+    const msg=(e&&/function|not exist|delete_own_account|404/i.test(e.message||''))
+      ? "La suppression n'est pas encore activée côté serveur. Réessaie plus tard."
+      : authHumanError(e);
+    authStatus(msg,'err');
+  }
+}
+
+/* authUpdateName() — change le nom affiché (pseudo) d'un compte e-mail.
+   Écrit user_metadata.full_name via updateUser ; authLabel() le relira.
+   Réservé aux comptes e-mail : pour Google, le nom vient du fournisseur et
+   serait réécrit à la prochaine connexion. */
+async function authUpdateName(){
+  if(!SB||!authUser) return;
+  const inp=document.getElementById('auth-rename');
+  const name=((inp&&inp.value)||'').trim();
+  if(!name){ authStatus('Le pseudo ne peut pas être vide.','err'); return; }
+  authStatus('Enregistrement…','');
+  try{
+    const {error}=await SB.auth.updateUser({data:{full_name:name}});
+    if(error) throw error;
+    // On met aussi à jour l'objet local pour rafraîchir le bouton tout de suite.
+    authUser.user_metadata=Object.assign({},authUser.user_metadata,{full_name:name});
+    renderAccountBtn();
+    authStatus('Pseudo mis à jour.','ok');
+  }catch(e){ authStatus(authHumanError(e),'err'); }
+}
+
+/* authHumanError() — traduit les messages Supabase (anglais) en phrases
+   courtes ; repli sur le message brut si on ne reconnaît pas. */
+function authHumanError(e){
+  const m=((e&&e.message)||'').toLowerCase();
+  if(m.includes('invalid login')) return 'E-mail ou mot de passe incorrect.';
+  if(m.includes('already registered')||m.includes('already exists')) return 'Un compte existe déjà avec cet e-mail.';
+  if(m.includes('password')&&m.includes('6')) return 'Le mot de passe doit faire au moins 6 caractères.';
+  if(m.includes('confirm')) return 'E-mail non confirmé : vérifie ta boîte de réception.';
+  if(m.includes('rate limit')||m.includes('too many')) return 'Trop de tentatives, réessaie dans un moment.';
+  return (e&&e.message)?e.message:'Une erreur est survenue.';
+}
+
+/* Câblage des fermetures de la modale compte (une fois au chargement) —
+   même garde anti-fermeture-accidentelle que la modale de contribution. */
+(function initAuthUI(){
+  const closeBtn=document.getElementById('auth-close');
+  if(!closeBtn) return;                  // sécurité si le HTML est absent
+  closeBtn.addEventListener('click',closeAuth);
+  const _ov=document.getElementById('auth-overlay');
+  let _down=false;
+  _ov.addEventListener('mousedown',e=>{ _down=(e.target===_ov); });
+  _ov.addEventListener('click',e=>{ if(e.target===_ov&&_down) closeAuth(); });
+  document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeAuth(); });
+})();
+/* js/10-partage.js — morceau du script du site. Le build (outils/construire.mjs)
+   recolle js/*.js dans l'ORDRE des noms en UN SEUL script, app.js : les
+   fonctions restent visibles d'un morceau à l'autre comme avant, et le code
+   « de premier niveau » s'exécute dans cet ordre. */
+/* ══════════════════════════════════════════════════════════════════
+   PARTAGE DU SITE (bouton .topbar-share → modale #share-overlay)
+   ──────────────────────────────────────────────────────────────────
+   Le site est un simple lien : on le rend facile à diffuser. Approche
+   adaptative à l'appareil :
+   • Mobile / appareils compatibles → bouton « Partager… » qui ouvre la
+     feuille de partage native du système (navigator.share : SMS, mail,
+     messageries, AirDrop…). Affiché en tête seulement si supporté.
+   • Partout → un QR code (à scanner en personne) + le lien copiable en
+     un clic. Ces deux moyens marchent même hors-ligne (aucun compte
+     requis), le QR étant la seule ressource réseau (avec repli si KO).
+   ══════════════════════════════════════════════════════════════════ */
+
+// URL canonique à partager : origine + chemin, sans le hash de navigation
+// interne (#notion…) ni les paramètres, pour un lien propre et stable.
+function shareUrl(){ return location.origin + location.pathname; }
+
+// Ouverture / fermeture de la modale (même mécanique que les autres modales).
+function openShare(){ renderShare(); document.getElementById('share-overlay').classList.add('open'); }
+function closeShare(){ document.getElementById('share-overlay').classList.remove('open'); }
+
+/* renderShare() — construit le corps de la modale (#share-body).
+   Compose, dans l'ordre : intro, bouton de partage natif (si supporté),
+   QR code, lien copiable, ligne de statut. Tout est (re)généré à chaque
+   ouverture pour refléter l'URL courante. */
+function renderShare(){
+  const body=document.getElementById('share-body');
+  if(!body) return;
+  const url=shareUrl();
+  const urlAttr=url.replace(/"/g,'&quot;');                 // sûr en attribut HTML
+  // Le QR est rendu par un service externe (API publique) : pas de
+  // bibliothèque embarquée. onerror → on masque proprement le bloc.
+  const qr='https://api.qrserver.com/v1/create-qr-code/?size=200x200&margin=0&data='+encodeURIComponent(url);
+  // Bouton de partage natif : seulement si l'appareil le propose (mobiles
+  // surtout). Sinon on s'appuie sur le QR + la copie, toujours présents.
+  const nativeBtn = (typeof navigator!=='undefined' && navigator.share)
+    ? `<button class="share-btn share-btn-primary share-native" onclick="shareNative()">📲 Partager…</button>`
+    : '';
+  body.innerHTML=`
+    <div class="share-intro">Partage l'outil de révision à tes camarades : scanne le QR code, copie le lien, ou utilise le partage de ton appareil.</div>
+    ${nativeBtn}
+    <div class="share-qr-wrap">
+      <img class="share-qr" src="${qr}" alt="QR code vers le site" loading="lazy"
+        onerror="this.parentNode.style.display='none'">
+      <div class="share-qr-cap">Scanne pour ouvrir le site</div>
+    </div>
+    <div class="share-linkrow">
+      <input class="share-link" id="share-link" type="text" readonly value="${urlAttr}"
+        onclick="this.select()" aria-label="Lien du site">
+      <button class="share-btn share-btn-copy" id="share-copy" onclick="copyShareLink(this)">Copier</button>
+    </div>
+    <div class="share-status" id="share-status"></div>`;
+}
+
+/* shareNative() — ouvre la feuille de partage native du système.
+   Le rejet par annulation de l'utilisateur (AbortError) est silencieux ;
+   toute autre erreur retombe sur la copie du lien. */
+async function shareNative(){
+  const url=shareUrl();
+  try{
+    await navigator.share({ title:'Révision Philo — Terminale', text:'Outil de révision de philosophie (Terminale) : fiches, citations, dissertations et quiz.', url });
+  }catch(e){
+    if(e && e.name==='AbortError') return;   // l'utilisateur a simplement fermé la feuille
+    copyShareLink(document.getElementById('share-copy'));
+  }
+}
+
+/* copyShareLink(btn) — copie le lien dans le presse-papiers et confirme
+   visuellement (bouton « Copié ! » vert, 1,8 s). Repli execCommand pour les
+   navigateurs anciens ou les contextes non sécurisés (où clipboard est absent). */
+async function copyShareLink(btn){
+  const url=shareUrl();
+  let ok=false;
+  try{
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      await navigator.clipboard.writeText(url); ok=true;
+    } else throw new Error('no-clipboard-api');
+  }catch(e){
+    // Repli : sélection du champ + execCommand('copy').
+    const inp=document.getElementById('share-link');
+    if(inp){ inp.focus(); inp.select(); try{ ok=document.execCommand('copy'); }catch(_){ ok=false; } }
+  }
+  if(btn){
+    const old=btn.textContent;
+    btn.textContent = ok ? 'Copié !' : 'Échec';
+    btn.classList.toggle('ok', ok);
+    setTimeout(()=>{ btn.textContent=old; btn.classList.remove('ok'); }, 1800);
+  }
+}
+
+/* Câblage des fermetures de la modale de partage (croix, voile, Échap),
+   même garde anti-fermeture-accidentelle que les autres modales. */
+(function initShareUI(){
+  const closeBtn=document.getElementById('share-close');
+  if(!closeBtn) return;                  // sécurité si le HTML est absent
+  closeBtn.addEventListener('click',closeShare);
+  const _ov=document.getElementById('share-overlay');
+  let _down=false;
+  _ov.addEventListener('mousedown',e=>{ _down=(e.target===_ov); });
+  _ov.addEventListener('click',e=>{ if(e.target===_ov&&_down) closeShare(); });
+  document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeShare(); });
+})();
+/* js/11-synchro.js — morceau du script du site. Le build (outils/construire.mjs)
+   recolle js/*.js dans l'ORDRE des noms en UN SEUL script, app.js : les
+   fonctions restent visibles d'un morceau à l'autre comme avant, et le code
+   « de premier niveau » s'exécute dans cet ordre. */
+/* ══════════════════════════════════════════════════════════════════
+   L. SYNCHRONISATION DU COMPTE (Phase 2)
+   ──────────────────────────────────────────────────────────────────
+   Quand l'utilisateur est connecté, sa progression au quiz et ses
+   préférences (mode révision/édition, visite guidée déjà vue) sont
+   sauvegardées dans Supabase (deux tables : quiz_progress, preferences),
+   sous forme d'un « blob » JSON par utilisateur. Il retrouve ainsi sa
+   progression sur n'importe quel appareil.
+
+   Principes :
+   • À la PREMIÈRE connexion, on FUSIONNE le travail déjà fait hors-compte
+     (le localStorage anonyme) avec ce qui est éventuellement déjà en ligne,
+     pour ne RIEN perdre. Pour le quiz : fusion carte par carte (on garde la
+     révision la plus récente) ; pour l'XP et la série : on garde le meilleur.
+   • Ensuite, chaque changement local est repoussé en ligne (avec un petit
+     délai « anti-rafale » pour grouper les clics rapprochés). Ce qui n'a pas
+     pu partir (délai en cours, réseau coupé) est envoyé dès que la page se
+     cache, et au retour du réseau (syncDirty / syncFlush, v4).
+   • Au retour sur l'onglet, on relit l'en-ligne : si un AUTRE appareil a
+     progressé entre-temps, on FUSIONNE le quiz carte par carte (mergeQuiz),
+     puis on renvoie la fusion si elle apporte quelque chose (v4 ; avant, le
+     distant remplaçait le local).
+   • Les remises à zéro sont DATÉES (epoch pour tout, resetAt par rythme) :
+     la fusion oublie les révisions plus anciennes, sans quoi une carte
+     effacée sur un appareil reviendrait depuis l'autre.
+   • Préférences : « dernière écriture gagne » via la colonne updated_at.
+   • Non connecté / hors-ligne : tout continue de marcher en localStorage ;
+     la synchro est un PLUS, jamais un prérequis. La moindre erreur réseau
+     est avalée (console.warn) sans gêner l'usage.
+
+   Sécurité : les tables sont protégées par RLS côté Supabase (chaque
+   utilisateur ne lit et n'écrit que SA ligne, via auth.uid() = user_id).
+   La clé publique du site ne donne accès à rien d'autre.
+
+   [Notion hors-programme NSI] RLS (« Row Level Security ») = filtre de
+   sécurité au niveau de CHAQUE ligne d'une table : la base elle-même
+   refuse de renvoyer/modifier les lignes qui ne t'appartiennent pas, même
+   si quelqu'un trafiquait la requête. C'est la barrière côté serveur. */
+
+let syncReady=false;        // true une fois la fusion de 1re connexion faite
+let syncInFlight=false;     // évite deux fusions simultanées
+let syncSuspend=false;      // true pendant qu'on APPLIQUE le distant (ne pas re-pousser)
+const syncMeta={quiz:null,prefs:null};   // dernier updated_at serveur connu (anti-réapplication)
+let syncQuizTimer=null, syncPrefsTimer=null;
+const SYNC_DEBOUNCE=1500;   // ms : regroupe les écritures rapprochées avant l'envoi
+
+function syncUid(){ return authUser?authUser.id:null; }
+
+/* new (Phase 2 — correctif « dernière version gagne ») :
+   ── Le « marqueur de synchro » (persisté en localStorage) ───────────────
+   On retient, POUR CET APPAREIL, le dernier updated_at serveur qu'on a vu
+   pour chaque table, ET le compte (uid) auquel il appartient. Ce marqueur
+   permet de distinguer deux situations au chargement :
+     • le distant a un updated_at DIFFÉRENT du marqueur → un AUTRE appareil a
+       écrit depuis → on adopte le distant (plus récent) ;
+     • le distant a le MÊME updated_at que le marqueur → rien n'a bougé en
+       ligne depuis notre dernière synchro → c'est le LOCAL qui fait foi, y
+       compris une remise à zéro (sinon une suppression « reviendrait »).
+   Sans ce marqueur, l'ancienne version fusionnait à chaque chargement, ce
+   qui ressuscitait les cartes qu'on venait d'effacer. */
+function loadSyncMarker(){
+  try{ return JSON.parse(localStorage.getItem('philo-sync')||'null'); }catch(e){ return null; }
+}
+function saveSyncMarker(){
+  try{ localStorage.setItem('philo-sync',JSON.stringify({uid:syncUid(),quiz:syncMeta.quiz,prefs:syncMeta.prefs})); }catch(e){}
+}
+
+/* quizBlobForSync() — l'objet quiz à envoyer en ligne. On synchronise TOUT,
+   y compris la session en cours (« active »), pour pouvoir la reprendre sur
+   un autre appareil (téléphone → PC, etc.). */
+function quizBlobForSync(){
+  return Object.assign({},loadQuizState());
+}
+
+/* prefsBlobForSync() — préférences synchronisées (petites) + le brouillon de
+   proposition en cours (philo-drafts), qui voyage ici faute de table dédiée. */
+function prefsBlobForSync(){
+  let drafts=null,nav=null;
+  try{ drafts=JSON.parse(localStorage.getItem('philo-drafts')||'null'); }catch(e){}
+  try{ nav=JSON.parse(localStorage.getItem('philo-nav')||'null'); }catch(e){}
+  return {
+    mode: localStorage.getItem('philo-mode')||'revision',
+    tour: localStorage.getItem('philo-tour-v1')||'',
+    drafts: drafts,
+    nav: nav     // position courante (cross-plateforme : reprendre où l'on en était)
+  };
+}
+
+/* applyPrefsBlob() — applique mode + tour reçus du serveur. Le brouillon est
+   traité à part (adoptRemoteDrafts), pour pouvoir le CONSERVER à la 1re
+   connexion si l'utilisateur en avait déjà un en cours. */
+function applyPrefsBlob(p){
+  if(!p) return;
+  if(p.mode) localStorage.setItem('philo-mode',p.mode);
+  if(p.tour) localStorage.setItem('philo-tour-v1',p.tour);
+  applyPhiloMode();
+  // Position distante (cross-plateforme) : on ne l'adopte QUE si l'utilisateur
+  // n'a pas encore navigué sur cet appareil (navTouched). Sinon sa position
+  // locale fait foi — on ne le « téléporte » jamais en pleine lecture, et on
+  // n'écrase pas non plus son philo-nav local.
+  if(p.nav && !navTouched && !sameNav(p.nav, navStateNow())){
+    // Avant de basculer sur la page d'un AUTRE appareil, on empile la page
+    // LOCALE courante dans l'historique : ainsi « ← Retour » ramène à là où CET
+    // appareil en était (la page distante ne fait pas disparaître la locale).
+    // On n'effleure PAS navTouched : l'appareil reste un spectateur passif et
+    // continue d'adopter les mises à jour distantes suivantes.
+    const localBefore=navStateNow();
+    if(applyNavState(p.nav)){
+      try{ localStorage.setItem('philo-nav', JSON.stringify(p.nav)); }catch(e){}
+      const top=navHistory[navHistory.length-1];
+      if(navEntryValid(localBefore) && !sameNav(top,localBefore)){
+        navHistory.push(localBefore);
+        if(navHistory.length>50) navHistory.shift();
+      }
+      renderSB(); renderCurrentView(); updateBackBtn();
+    }
+  }
+}
+
+/* adoptRemoteDrafts() — recopie le brouillon du compte dans le stockage local
+   ET dans l'état d'exécution.
+   Cas délicat : la modale de proposition est OUVERTE sur cet appareil.
+     • si rien n'est saisi localement (draftIsEmpty) → on adopte quand même et on
+       RE-REND la modale, sinon le brouillon venu d'un autre appareil resterait
+       invisible (on ne voit le brouillon qu'en ouvrant la modale… qui bloquait
+       justement la mise à jour) ;
+     • si une saisie est en cours → on garde la saisie locale (on n'écrase pas
+       ce que le contributeur est en train d'écrire), le stockage local ayant
+       déjà reçu la copie distante pour un prochain chargement.
+   (Appelé sous syncSuspend : le draftChanged de renderProposal ne re-pousse pas.) */
+function adoptRemoteDrafts(p){
+  const d=p && p.drafts;
+  if(!d) return;
+  try{ localStorage.setItem('philo-drafts', JSON.stringify(d)); }catch(e){}
+  const modalOpen=proposalOpen();
+  if(modalOpen && !draftIsEmpty()) return;     // saisie en cours : on ne touche pas au runtime
+  applyDraftsBlob(d, modalOpen);               // force=true si modale ouverte mais vide
+  if(modalOpen && typeof renderProposal==='function') renderProposal();   // refléter à l'écran
+}
+
+/* mergeQuiz(a,b) — fusionne deux états de quiz sans rien perdre (a = local).
+   v4 : c'est désormais LA règle de synchro du quiz, à chaque retour sur
+   l'onglet et pas seulement à la 1re connexion (avant, le bloc distant
+   remplaçait le local : des réponses faites hors ligne sur un appareil
+   pouvaient disparaître). Les dates de remise à zéro empêchent la fusion de
+   ressusciter une progression effacée.
+   - les deux côtés passent d'abord par migrateQuizState (anciens ids) ;
+   - epoch (remise à zéro totale) : on garde la plus récente ; resetAt[h]
+     (remise à zéro d'un rythme) aussi. Une révision antérieure à l'une ou
+     l'autre est oubliée ;
+   - byHorizon : union carte par carte, on garde la révision la plus récente
+     (lastSeen le plus grand) ;
+   - gamif.xp : maximum des côtés qui datent de la DERNIÈRE remise à zéro
+     (l'XP d'avant une remise à zéro ne revient pas) ;
+   - daily : meilleure série conservée ; le reste suit la date la plus récente ;
+   - active : la session écrite en dernier (activeAt), y compris « aucune » ;
+   - prefs.dontWarnNewSession : vrai si vrai d'au moins un côté. */
+function mergeQuiz(a,b){
+  a=migrateQuizState(JSON.parse(JSON.stringify(a||{})));
+  b=migrateQuizState(JSON.parse(JSON.stringify(b||{})));
+  const out=JSON.parse(JSON.stringify(a));     // base = état local
+  const epoch=Math.max(a.epoch||0,b.epoch||0);
+  const ra=a.resetAt||{}, rb=b.resetAt||{};
+  out.epoch=epoch;
+  out.resetAt={};
+  out.byHorizon={};
+  ['sprint','long'].forEach(h=>{
+    out.resetAt[h]=Math.max(ra[h]||0,rb[h]||0);
+    const cutoff=Math.max(epoch,out.resetAt[h]);   // tout ce qui précède est oublié
+    const merged={};
+    [a,b].forEach(side=>{
+      const src=(side.byHorizon&&side.byHorizon[h])||{};
+      for(const id in src){
+        const cand=src[id], seen=(cand&&cand.lastSeen)||0;
+        if(seen<=cutoff) continue;
+        if(!merged[id] || seen>(merged[id].lastSeen||0)) merged[id]=cand;
+      }
+    });
+    out.byHorizon[h]=merged;
+  });
+  const xpOf=s=>((s.epoch||0)===epoch && s.gamif && s.gamif.xp)||0;
+  const mx=Math.max(xpOf(a),xpOf(b));
+  out.gamif={xp:mx, level:quizLevel(mx)};
+  // Un côté antérieur à la dernière remise à zéro totale ne compte pas pour le jour/la série.
+  const ad=(a.epoch||0)===epoch?(a.daily||{}):{}, bd=(b.epoch||0)===epoch?(b.daily||{}):{};
+  // On garde le « daily » du jour le plus récent. ATTENTION : le quiz
+  // renseigne .date (le dernier jour actif), pas .lastDate (champ historique
+  // resté vide) — c'est donc bien .date qui sert d'arbitre. Puis on conserve
+  // la meilleure série (streak), pour ne jamais la faire reculer à la fusion.
+  out.daily=((bd.date||'')>(ad.date||'')) ? Object.assign({},ad,bd) : Object.assign({},bd,ad);
+  out.daily.streak=Math.max(ad.streak||0, bd.streak||0);
+  if(!out.daily.goal) out.daily.goal=(a.daily&&a.daily.goal)||(b.daily&&b.daily.goal)||QUIZ_DEFAULT_GOAL;
+  // Session en cours : celle qui a été écrite en dernier ; à égalité (états
+  // d'avant v4, sans date), celle de cet appareil, sinon la distante.
+  const aAt=a.activeAt||0, bAt=b.activeAt||0;
+  out.active=bAt>aAt?(b.active||null):aAt>bAt?(a.active||null):(a.active||b.active||null);
+  out.activeAt=Math.max(aAt,bAt);
+  out.prefs=out.prefs||{};
+  out.prefs.dontWarnNewSession=!!(((a.prefs||{}).dontWarnNewSession)||((b.prefs||{}).dontWarnNewSession));
+  if(!out.horizon) out.horizon=b.horizon||'sprint';
+  return out;
+}
+
+function quizOverlayOpen(){
+  const o=document.getElementById('quiz-overlay');
+  return !!(o && o.classList.contains('open'));
+}
+
+/* syncOnLogin() — au moment où l'on devient connecté : lit le distant, puis
+   décide quoi faire selon le « marqueur de synchro » de cet appareil :
+
+     • AUCUN marqueur (vraie 1re connexion / appareil tout neuf) → on FUSIONNE
+       une fois les données anonymes locales avec le compte (rien n'est perdu).
+     • marqueur présent ET distant inchangé depuis (même updated_at) → le LOCAL
+       fait foi (y compris une remise à zéro) → on POUSSE le local.
+     • marqueur présent MAIS distant différent (autre appareil) OU compte
+       différent (changement de session) → on ADOPTE le distant tel quel.
+
+   C'est ce qui fait que « la version la plus récente gagne » : on ne fusionne
+   plus à chaque chargement (ce qui ressuscitait les cartes effacées). */
+async function syncOnLogin(){
+  if(!SB||!authUser) return;
+  const uid=syncUid();
+  const marker=loadSyncMarker();
+  const firstEver = !marker;                          // jamais synchronisé sur cet appareil
+  const sameAccount = !!marker && marker.uid===uid;   // même compte qu'au dernier passage
+  try{
+    const [q,p]=await Promise.all([
+      SB.from('quiz_progress').select('data,updated_at').eq('user_id',uid).maybeSingle(),
+      SB.from('preferences').select('data,updated_at').eq('user_id',uid).maybeSingle()
+    ]);
+    if(q.error) throw q.error;
+    if(p.error) throw p.error;
+
+    syncSuspend=true;   // on écrit en localStorage sans déclencher de push en retour
+
+    // ── QUIZ ──
+    const remoteQ=q.data&&q.data.data;
+    const remoteQAt=(q.data&&q.data.updated_at)||null;
+    if(firstEver || (sameAccount && remoteQAt!==marker.quiz)){
+      // 1re synchro sur cet appareil (on combine l'anonyme local et le compte),
+      // OU un autre appareil du même compte a écrit depuis notre dernier
+      // passage : on FUSIONNE carte par carte (mergeQuiz). Rien n'est perdu,
+      // et une remise à zéro faite ailleurs est respectée grâce à ses dates.
+      // (Avant v4, le second cas ADOPTAIT le distant tel quel : les réponses
+      // faites ici sans réseau disparaissaient.)
+      if(remoteQ && remoteQ.byHorizon) saveQuizState(mergeQuiz(loadQuizState(), remoteQ));
+      // (si le distant est vide : on garde le local, il sera poussé ci-dessous)
+    } else if(sameAccount){
+      // Rien n'a changé en ligne depuis notre dernier passage → le local fait
+      // foi (on ne touche à rien ; on poussera l'état local plus bas).
+    } else {
+      // Changement de COMPTE sur cet appareil → on adopte le distant TEL QUEL :
+      // on ne mélange pas la progression de deux personnes.
+      if(remoteQ){ saveQuizState(remoteQ); }
+      else { localStorage.removeItem('philo-quiz'); }
+    }
+    syncMeta.quiz=remoteQAt;
+
+    // ── PRÉFÉRENCES ── (même logique, en plus simple : pas de fusion fine)
+    const remoteP=p.data&&p.data.data;
+    const remotePAt=(p.data&&p.data.updated_at)||null;
+    if(firstEver){
+      if(remoteP){
+        applyPrefsBlob(remoteP);
+        // Brouillon : on n'adopte celui du compte que si le local est vide
+        // (sinon on garderait ce que l'utilisateur était en train d'écrire).
+        if(draftIsEmpty()) adoptRemoteDrafts(remoteP);
+      }
+    } else if(sameAccount && remotePAt===marker.prefs){
+      // local fait foi (mode, tour ET brouillon local conservés)
+    } else if(remoteP){
+      applyPrefsBlob(remoteP);
+      adoptRemoteDrafts(remoteP);
+    }
+    syncMeta.prefs=remotePAt;
+
+    syncSuspend=false;
+
+    // On pousse l'état local courant : il devient la référence partagée. Le push
+    // met à jour syncMeta puis persiste le marqueur (cf. syncPushQuiz/Prefs).
+    await syncPushQuiz(true);
+    await syncPushPrefs(true);
+
+    syncReady=true;
+    applyPhiloMode();
+    // Aligner le runtime du quiz sur l'état (fusionné/adopté) : horizon + session
+    // reprenable, pour que « Reprendre » apparaisse sans rouvrir l'overlay.
+    syncRuntimeQuizFromStorage({keepLive:true});
+    if(quizOverlayOpen()){ try{ renderQuiz(); }catch(e){} }
+  }catch(e){
+    syncSuspend=false;
+    console.warn("[sync] synchro initiale impossible :", (e&&e.message)||e);
+    // syncReady reste false : on réessaiera à la prochaine connexion ; entre-temps
+    // tout fonctionne en local (la synchro n'est jamais un prérequis).
+  }
+}
+
+/* syncPushQuiz(immediate) — envoie le quiz en ligne (upsert sur user_id). En
+   mode différé, regroupe les appels rapprochés (anti-rafale).
+   [Notion hors-programme NSI] « upsert » = UPDATE-or-INSERT : si la ligne de
+   cet utilisateur existe déjà on la met à jour, sinon on la crée — en une
+   seule requête, sans avoir à tester l'existence au préalable. */
+/* syncDirty — v4 : « il reste quelque chose à envoyer ». Un compteur par
+   table, augmenté à chaque changement local, remis à 0 seulement quand un
+   envoi a RÉUSSI sans qu'un nouveau changement soit arrivé entre-temps. Tant
+   qu'il n'est pas nul, l'envoi est retenté : quand la page se cache (on
+   ferme l'onglet ou on change d'appli pendant le délai anti-rafale) et au
+   retour du réseau (cf. initAuth). Avant v4, un envoi raté n'était jamais
+   refait. */
+const syncDirty={quiz:0,prefs:0};
+
+async function syncPushQuiz(immediate){
+  if(!SB||!authUser) return;
+  if(!immediate) syncDirty.quiz++;
+  const doPush=async()=>{
+    const uid=syncUid(); if(!uid) return;
+    const now=new Date().toISOString(), v=syncDirty.quiz;
+    try{
+      const {error}=await SB.from('quiz_progress')
+        .upsert({user_id:uid,data:quizBlobForSync(),updated_at:now},{onConflict:'user_id'});
+      if(error){ console.warn("[sync] envoi du quiz :", error.message); syncDirty.quiz=Math.max(syncDirty.quiz,1); return; }
+      syncMeta.quiz=now; saveSyncMarker();   // notre local devient la dernière version connue
+      if(syncDirty.quiz===v) syncDirty.quiz=0;
+    }catch(e){ console.warn("[sync] envoi du quiz :", (e&&e.message)||e); syncDirty.quiz=Math.max(syncDirty.quiz,1); }
+  };
+  clearTimeout(syncQuizTimer);
+  if(immediate){ await doPush(); }
+  else { syncQuizTimer=setTimeout(doPush, SYNC_DEBOUNCE); }
+}
+
+async function syncPushPrefs(immediate){
+  if(!SB||!authUser) return;
+  if(!immediate) syncDirty.prefs++;
+  const doPush=async()=>{
+    const uid=syncUid(); if(!uid) return;
+    const now=new Date().toISOString(), v=syncDirty.prefs;
+    try{
+      const {error}=await SB.from('preferences')
+        .upsert({user_id:uid,data:prefsBlobForSync(),updated_at:now},{onConflict:'user_id'});
+      if(error){ console.warn("[sync] envoi des préférences :", error.message); syncDirty.prefs=Math.max(syncDirty.prefs,1); return; }
+      syncMeta.prefs=now; saveSyncMarker();   // notre local devient la dernière version connue
+      if(syncDirty.prefs===v) syncDirty.prefs=0;
+    }catch(e){ console.warn("[sync] envoi des préférences :", (e&&e.message)||e); syncDirty.prefs=Math.max(syncDirty.prefs,1); }
+  };
+  clearTimeout(syncPrefsTimer);
+  if(immediate){ await doPush(); }
+  else { syncPrefsTimer=setTimeout(doPush, SYNC_DEBOUNCE); }
+}
+
+/* syncFlush() — v4 : envoie tout de suite ce qui attendait (délai anti-rafale
+   en cours, ou envoi raté). Appelé quand la page se cache ou va être fermée,
+   pour qu'une réponse donnée juste avant de quitter ne reste pas en local. */
+function syncFlush(){
+  if(!syncReady || syncSuspend) return;
+  if(syncDirty.quiz) syncPushQuiz(true);
+  if(syncDirty.prefs) syncPushPrefs(true);
+}
+
+/* quizDiffers(x, y) — v4 : vrai si l'état fusionné x apporte quelque chose
+   que l'état distant y n'a pas (une carte, une révision plus récente, de
+   l'XP, une autre session, une remise à zéro). Sert à ne renvoyer la fusion
+   en ligne que si elle change quelque chose : sinon deux appareils se
+   renverraient le même état à chaque retour sur l'onglet. */
+function quizDiffers(x,y){
+  y=migrateQuizState(JSON.parse(JSON.stringify(y||{})));
+  if((x.epoch||0)!==(y.epoch||0)) return true;
+  for(const h of ['sprint','long']){
+    if(((x.resetAt||{})[h]||0)!==((y.resetAt||{})[h]||0)) return true;
+    const xs=(x.byHorizon&&x.byHorizon[h])||{}, ys=(y.byHorizon&&y.byHorizon[h])||{};
+    if(Object.keys(xs).length!==Object.keys(ys).length) return true;
+    for(const id in xs){ const p=ys[id]; if(!p || (p.lastSeen||0)!==(xs[id].lastSeen||0)) return true; }
+  }
+  if(((x.gamif||{}).xp||0)!==((y.gamif||{}).xp||0)) return true;
+  if((x.activeAt||0)!==(y.activeAt||0)) return true;
+  return false;
+}
+
+/* Hooks appelés depuis le code existant après une écriture locale. Ils ne
+   font rien tant que la fusion de 1re connexion n'est pas finie (syncReady),
+   ni pendant qu'on applique le distant (syncSuspend). */
+function syncOnQuizChange(){ if(syncReady && !syncSuspend) syncPushQuiz(false); }
+function syncOnPrefsChange(){ if(syncReady && !syncSuspend) syncPushPrefs(false); }
+
+/* syncOnFocus() — au retour sur l'onglet (et au retour du réseau) : si un
+   autre appareil a écrit depuis (updated_at différent du dernier connu), on
+   FUSIONNE son quiz avec le nôtre carte par carte (v4 ; avant, on adoptait le
+   distant tel quel et ce qui avait été fait ici entre-temps était perdu). Les
+   remises à zéro datées (epoch, resetAt) empêchent de ressusciter des cartes
+   effacées ailleurs. Si la fusion apporte quelque chose au distant, on la
+   renvoie aussitôt, pour que les appareils convergent. Les préférences, elles,
+   suivent toujours la dernière écriture. Enfin, ce qui attendait d'être
+   envoyé (syncDirty) part. */
+async function syncOnFocus(){
+  if(!SB||!authUser||!syncReady) return;
+  const uid=syncUid();
+  try{
+    const [q,p]=await Promise.all([
+      SB.from('quiz_progress').select('data,updated_at').eq('user_id',uid).maybeSingle(),
+      SB.from('preferences').select('data,updated_at').eq('user_id',uid).maybeSingle()
+    ]);
+    syncSuspend=true;
+    let pushQuiz=false;
+    if(q.data && q.data.updated_at && q.data.updated_at!==syncMeta.quiz){
+      if(q.data.data){
+        const merged=mergeQuiz(loadQuizState(), q.data.data);
+        saveQuizState(merged);
+        pushQuiz=quizDiffers(merged, q.data.data);
+      } else pushQuiz=true;                   // ligne vide en ligne : le local fait foi
+      syncMeta.quiz=q.data.updated_at; saveSyncMarker();
+      // Aligner le runtime sur l'état fusionné (horizon + session reprenable) afin
+      // que « Reprendre » et le bon rythme apparaissent même overlay déjà ouvert.
+      syncRuntimeQuizFromStorage({keepLive:true});
+      if(quizOverlayOpen()){ try{ renderQuiz(); }catch(e){} }
+    }
+    if(p.data && p.data.updated_at && p.data.updated_at!==syncMeta.prefs){
+      applyPrefsBlob(p.data.data||{});
+      adoptRemoteDrafts(p.data.data||{});   // brouillon écrit depuis un autre appareil
+      syncMeta.prefs=p.data.updated_at; saveSyncMarker();
+    }
+    syncSuspend=false;
+    if(pushQuiz || syncDirty.quiz) await syncPushQuiz(true);
+    if(syncDirty.prefs) await syncPushPrefs(true);
+  }catch(e){ syncSuspend=false; }
+}
+
+/* maybeStartSync() — lance la fusion initiale une seule fois, dès qu'on est
+   connecté. Appelé après getSession et à chaque événement « connecté ». */
+function maybeStartSync(){
+  if(!SB||!authUser||syncReady||syncInFlight) return;
+  syncInFlight=true;
+  syncOnLogin().finally(()=>{ syncInFlight=false; });
+}
+
+/* syncResetState() — à la déconnexion : on coupe la synchro. Le localStorage
+   reste intact (l'utilisateur peut continuer en mode anonyme). */
+function syncResetState(){
+  syncReady=false;
+  syncMeta.quiz=null; syncMeta.prefs=null;
+  syncDirty.quiz=0; syncDirty.prefs=0;
+  clearTimeout(syncQuizTimer); clearTimeout(syncPrefsTimer);
+}
+/* js/12-demarrage.js — morceau du script du site. Le build (outils/construire.mjs)
+   recolle js/*.js dans l'ORDRE des noms en UN SEUL script, app.js : les
+   fonctions restent visibles d'un morceau à l'autre comme avant, et le code
+   « de premier niveau » s'exécute dans cet ordre. */
+/* ── I. INITIALISATION ───────────────────────────────────────────────
+   Appel initial au chargement de la page :
+   renderSB()      → construit la sidebar avec la première notion active
+   renderContent() → affiche le contenu de cette première notion        */
+restoreDraftsFromStorage();   // new (Phase 3) : recharge le brouillon de proposition local
+restoreNavFromStorage();      // position survit à l'actualisation (philo-nav)
+restoreNavHistory();          // pile « ← Retour » survit aussi (philo-navhist)
+renderSB();renderCurrentView();
+initAuth();           // new (comptes) : récupère la session + s'abonne aux changements d'état
+tourStartIfFirst();   // visite guidée auto à la 1re venue (cf. module « Visite guidée »)
+initNotice();         // bandeau « contenu en construction » (auto-fermeture à 1 min)
+
+/* ── PWA — enregistrement du service worker + mise à jour automatique ──
+   Le service worker rend le site installable et utilisable hors-ligne.
+   Désormais il sert le HTML/JS en « réseau d'abord » (cf. sw.js) : une
+   simple actualisation récupère la dernière version déployée, sans la
+   manip manuelle de vidage de cache.
+
+   Mise à jour transparente : quand un nouveau service worker prend le
+   contrôle de la page (événement `controllerchange`), on recharge UNE
+   seule fois pour basculer sur la nouvelle version. Le garde
+   `navigator.serviceWorker.controller` évite de recharger à la toute
+   première visite (aucun contrôleur encore actif = rien à remplacer).
+   `reg.update()` force la vérification d'une nouvelle version à chaque
+   chargement. Aucune erreur si le navigateur ne supporte pas. */
+if('serviceWorker' in navigator){
+  let swReloading=false;        // garde anti-boucle de rechargement
+  // Un contrôleur déjà présent = on a une version installée susceptible
+  // d'être remplacée → on s'autorise le rechargement auto à la bascule.
+  if(navigator.serviceWorker.controller){
+    navigator.serviceWorker.addEventListener('controllerchange',()=>{
+      if(swReloading) return;
+      swReloading=true;
+      window.location.reload();
+    });
+  }
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('sw.js')
+      .then(reg=>{ reg.update().catch(()=>{}); })   // cherche une MAJ dès le chargement
+      .catch(()=>{});
+  });
+}
+/* js/13-quiz.js — morceau du script du site. Le build (outils/construire.mjs)
+   recolle js/*.js dans l'ORDRE des noms en UN SEUL script, app.js : les
+   fonctions restent visibles d'un morceau à l'autre comme avant, et le code
+   « de premier niveau » s'exécute dans cet ordre. */
+/* ══════════════════════════════════════════════════════════════════
+   K. MODE QUIZ — révision active (répétition espacée, type Leitner)
+   ──────────────────────────────────────────────────────────────────
+   Tout est dérivé des données existantes (CONCEPTS / D / AI) : aucune
+   redite de contenu. Le quiz vit dans un overlay plein écran (#quiz-overlay)
+   séparé de renderContent/crumbs/tabs.
+
+   Vues : 'dashboard' (accueil) · 'session' (cartes) · 'end' (score).
+   Persistance : localStorage 'philo-quiz' (voir loadQuizState).
+   ══════════════════════════════════════════════════════════════════ */
+
+/* stripHtml(s) — retire les balises HTML d'une définition/idée pour
+   l'afficher en texte brut sur une carte (les def contiennent du <strong>,
+   <details>… qu'on ne veut pas montrer tels quels au recto/verso). */
+function stripHtml(s){
+  const d=document.createElement('div');
+  d.innerHTML=String(s||'');
+  // On ignore le contenu des <details> profonds : on ne garde que le 1er niveau lisible.
+  d.querySelectorAll('details').forEach(x=>x.remove());
+  return (d.textContent||'').replace(/\s+/g,' ').trim();
+}
+
+/* ── K.1 DONNÉES — buildQuizCards() ──────────────────────────────────
+   Construit la liste des cartes une fois pour toutes. 4 types :
+     C1 'concept-def'    : recto = terme,        verso = définition
+     C2 'def-concept'    : recto = définition (terme MASQUÉ), verso = terme (bon QCM)
+     C3 'cite-author'    : recto = citation,     verso = auteur — œuvre
+     C3 'author-cite'    : recto = auteur — œuvre, verso = citation
+     C4 'notion-authors' : recto = notion,       verso = 4 auteurs majeurs + thèse courte
+   Chaque carte : {id stable, type, notion (1re), notions (toutes), recto,
+   verso, qLabel, meta, pair}. L'id sert de clé de progression : il doit
+   rester STABLE quand on modifie les données.
+
+   v4 (octobre 2026) — corrections issues du diagnostic (docs/diagnostic-2026-10.md § 2.1) :
+   • l'id d'une carte de citation vient du TEXTE de la citation (empreinte
+     quizHash) et non plus de sa position (n° d'idée, n° de citation) : ajouter
+     ou réordonner une idée ne fait plus glisser la mémoire d'une carte à une
+     autre. QUIZ_LEGACY garde la table « ancien id → nouvel id » pour migrer la
+     progression existante (migrateQuizState) ;
+   • une même citation rangée sous plusieurs notions ne donne plus qu'UNE carte
+     (son champ notions les liste toutes) ;
+   • seules les citations EXACTES (entre guillemets « … ») font des cartes : une
+     reformulation sans guillemets n'est pas une citation ;
+   • la carte « Quel concept ? » n'existe que si le terme a pu être masqué dans
+     la définition (avant : 56 % des définitions contenaient la réponse). */
+
+/* quizHash(s) — empreinte courte et stable d'un texte (FNV-1a 32 bits, en base 36). */
+function quizHash(s){
+  let h=0x811c9dc5;
+  for(let i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,0x01000193)>>>0; }
+  return h.toString(36);
+}
+/* quizFold(s) — texte normalisé pour comparer : minuscules, sans accents, sans
+   guillemets ni ponctuation, espaces réduits. Sert à l'empreinte des citations
+   (une retouche typographique ne change pas l'id) et au contrôle du masquage. */
+function quizFold(s){
+  return String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'')
+    .replace(/[«»“”"'’.,;:!?…()\[\]—–-]/g,' ').replace(/\s+/g,' ').trim();
+}
+/* quizQuoted(txt) — extrait la ou les parties CITÉES (« … » ou “ … ”) d'un
+   texte de citation, sans le commentaire qui les suit. Renvoie '' s'il n'y a
+   aucune citation exacte (simple reformulation) : pas de carte dans ce cas. */
+function quizQuoted(txt){
+  return (String(txt||'').match(/«[^»]+»|“[^”]+”/g)||[]).map(p=>p.trim()).join(' / ');
+}
+/* quizMaskTerm(def, term) — remplace le terme (et ses variantes : pôles d'un
+   repère « A / B », mot entre parenthèses) par un blanc dans une définition
+   en texte brut. Les mots de la MÊME FAMILLE sont masqués aussi, sinon ils
+   trahissent la réponse (« légitimité », « illégitime » pour Légitime) :
+   • un mot de 7 lettres ou plus perd sa dernière lettre et accepte toute
+     terminaison (transcendant → transcendance, immanent → immanence) ;
+   • un mot de 4 lettres ou plus accepte un préfixe négatif (in-, im-, il-,
+     ir-) et toute terminaison (légal → illégalité) ;
+   • un mot plus court n'accepte que le pluriel (« fin » ne masque pas « infini »).
+   Renvoie {html, leaked} : html est échappé et prêt à afficher ; leaked=true
+   si le terme reste lisible malgré tout (par ex. écrit avec d'autres accents) :
+   la carte « Quel concept ? » est alors écartée, la carte inverse reste. */
+function quizMaskTerm(def, term){
+  const L='A-Za-zÀ-ÖØ-öø-ÿ0-9', W='a-zà-öø-ÿ';
+  const variants=String(term||'').split(/\s*\/\s*|\s*[()]\s*/).map(v=>v.trim()).filter(v=>v.length>=3);
+  if(!variants.includes(term)) variants.unshift(term);
+  variants.sort((a,b)=>b.length-a.length);   // « en puissance » avant « puissance »
+  const wordPat=w=>{
+    const bare=w.replace(/\\/g,'');           // longueur sans les échappements
+    if(!/[A-Za-zÀ-ÖØ-öø-ÿ]$/.test(w)) return w;   // finit par « ) » ou autre : tel quel
+    if(bare.length>=7) return '(?:in|im|il|ir)?'+w.slice(0,-1)+'['+W+']*';
+    if(bare.length>=4) return '(?:in|im|il|ir)?'+w+'['+W+']*';
+    return w+'(?:s|x|es)?';
+  };
+  const reOf=v=>new RegExp('(?<!['+L+'])'+v.replace(/[.*+?^${}()|[\]\\]/g,'\\$&').split(/\s+/).map(wordPat).join('\\s+')+'(?!['+L+'])','gi');
+  let out=def;
+  variants.forEach(v=>{ out=out.replace(reOf(v),'\u0001'); });
+  // Contrôle : le terme se lit-il encore, une fois accents et casse effacés ?
+  const folded=quizFold(out);
+  const leaked=variants.filter(v=>v.length>=4).some(v=>reOf(quizFold(v)).test(folded));
+  const esc=out.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+  return {html:esc.replace(/\u0001/g,'<span class="quiz-mask" aria-label="mot masqué"></span>'), leaked};
+}
+/* quizThesis(it) — la thèse d'une idée en une phrase courte (texte brut) :
+   la synthèse rédigée (it.fiche) si elle existe, sinon la 1re phrase de
+   l'idée ; coupée à ~150 caractères pour que la carte reste lisible. */
+function quizThesis(it){
+  let s=stripHtml((it&&(it.fiche||it.i))||'');
+  const m=s.match(/^(.{40,}?[.!?])(\s|$)/);
+  if(m) s=m[1];
+  return s.length>150?s.slice(0,149).replace(/\s+\S*$/,'')+'…':s;
+}
+
+const QUIZ_LEGACY={};   // ancien id de carte C3 (positionnel, avant v4) → nouvel id stable
+function buildQuizCards(){
+  const cards=[];
+  // C1 + C2 : concept ↔ définition. Les DEUX sens partagent la même « paire »
+  // (pair = même concept sous-jacent) ; pickSession n'en gardera qu'un par
+  // session pour ne pas montrer le concept ET sa définition d'affilée.
+  CONCEPTS.forEach(c=>{
+    const def=stripHtml(c.def);
+    if(!c.term||!def) return;
+    const notions=(c.notions||[]).filter(k=>D[k]);
+    const notion=notions[0];
+    const pair='cpt:'+c.id, meta={cat:c.cat,conceptId:c.id};
+    cards.push({id:'c1:'+c.id,type:'concept-def',notion,notions,recto:c.term,verso:def,
+      qLabel:'Définis ce concept',meta,pair});
+    const masked=quizMaskTerm(def,c.term);   // la question ne doit pas contenir la réponse
+    if(!masked.leaked) cards.push({id:'c2:'+c.id,type:'def-concept',notion,notions,recto:masked.html,verso:c.term,
+      qLabel:'Quel concept ?',meta,pair});
+  });
+  // C3 : citation ↔ auteur (LES DEUX sens) depuis AI[name].entries[k].ideas[].citations[].
+  // Les deux sens d'une même citation partagent la même « paire » (base) :
+  // une seule direction par session (cf. retour « les cartes se répètent »).
+  const byBase={};
+  Object.keys(AI).forEach(name=>{
+    const ent=AI[name].entries;
+    Object.keys(ent).forEach(k=>{
+      (ent[k].ideas||[]).forEach((idea,ii)=>{
+        const work=idea.w||'';
+        const who=name+(work?' — '+work:'');
+        (idea.citations||[]).forEach((cit,ci)=>{
+          const oldBase='c3:'+name+':'+k+':'+ii+':'+ci;   // id d'avant v4 (position)
+          const txt=quizQuoted(stripHtml(cit));
+          if(!txt) return;                                // reformulation : pas une citation exacte
+          const base='c3:'+name+':'+quizHash(quizFold(txt));
+          QUIZ_LEGACY[oldBase+':a']=base+':a'; QUIZ_LEGACY[oldBase+':b']=base+':b';
+          if(byBase[base]){                               // même citation sous une autre notion
+            byBase[base].forEach(c=>{ if(!c.notions.includes(k)) c.notions.push(k); });
+            return;
+          }
+          const meta={author:name,work};
+          const a={id:base+':a',type:'cite-author',notion:k,notions:[k],recto:txt,verso:who,
+            qLabel:'Qui a dit cela ?',meta,pair:base};
+          const b={id:base+':b',type:'author-cite',notion:k,notions:[k],recto:who,verso:txt,
+            qLabel:'Cite une de ses formules',meta,pair:base};
+          byBase[base]=[a,b]; cards.push(a,b);
+        });
+      });
+    });
+  });
+  // C4 : notion → auteurs majeurs et leur thèse (auto-évaluation). Avant v4 :
+  // 5 auteurs avec leur idée ENTIÈRE, une réponse de 900 px sur téléphone.
+  // Désormais 4 auteurs au plus, dans l'ordre des cartes de la notion
+  // (compareAuthors), avec une thèse courte (quizThesis).
+  KEYS.forEach(k=>{
+    const names=[];
+    (D[k].auteurs||[]).forEach(a=>{ if(!names.includes(a.n)) names.push(a.n); });
+    names.sort(compareAuthors);
+    const auts=names.slice(0,4).map(n=>{
+      const idea=((AI[n]&&AI[n].entries[k]&&AI[n].entries[k].ideas)||[])[0]||{};
+      const th=quizThesis(idea);
+      return '<b>'+n+'</b>'+(idea.w?' ('+idea.w+')':'')+(th?' : '+th:'');
+    });
+    if(auts.length) cards.push({id:'c4:'+k,type:'notion-authors',notion:k,notions:[k],
+      recto:D[k].l+(D[k].s?' — '+D[k].s:''),verso:auts.join('<br><br>'),
+      qLabel:'Auteurs majeurs et leur thèse',meta:{},pair:'c4:'+k});
+  });
+  return cards;
+}
+const QUIZ_CARDS=buildQuizCards();
+// Index id→carte pour retrouver une carte par sa clé de progression.
+const QUIZ_BY_ID={}; QUIZ_CARDS.forEach(c=>QUIZ_BY_ID[c.id]=c);
+
+/* ── K.2 MOTEUR LEITNER — double horizon ─────────────────────────────
+   2 horizons indépendants, chacun conservant SA progression :
+     sprint (≈2 sem) : intervalles [0,1,2,4,7] jours pour boîtes 1→5
+     long   (≈2 mois): intervalles [0,2,5,14,30] jours
+   Une carte « due » = jours depuis lastSeen ≥ intervalle de sa boîte.
+   « Maîtrisé » = boîte ≥ 4. */
+const QUIZ_INTERVALS={sprint:[0,1,2,4,7],long:[0,2,5,14,30]};
+const QUIZ_SESSION_N=15;      // taille de session par défaut
+const QUIZ_DEFAULT_GOAL=20;   // objectif quotidien par défaut (v3 le rendra réglable)
+const DAY_MS=86400000;
+
+// État runtime de l'overlay. La SESSION en cours est aussi sauvegardée dans
+// localStorage (philo-quiz.active) pour survivre à un refresh ; ici on garde
+// en plus l'objet carte reconstruit + l'état d'affichage (révélé, QCM…).
+// Filtres MULTIPLES : deux ensembles (notions, types) + drapeau « ratés ».
+let quizState={view:'dashboard',horizon:'sprint',mode:'cards',
+  notionFilters:new Set(),typeFilters:new Set(),wrongOnly:false,
+  session:null,idx:0,results:null,revealed:false,
+  qcmData:null,qcmAnswered:false,qcmChosen:null,confirmNew:false};
+
+/* migrateQuizState(s) — v4 : remplace les anciens ids de cartes de citation
+   (positionnels) par les ids stables (table QUIZ_LEGACY) dans la progression
+   des deux rythmes, dans la session en cours et dans ses ratés. Si deux
+   anciens ids mènent à la même carte (citation rangée sous deux notions), on
+   garde la révision la plus récente. Idempotent (marqueur s.idv=2) ; appelé à
+   chaque lecture (loadQuizState) et sur le bloc distant avant une fusion
+   (mergeQuiz), pour qu'un état venu d'une ancienne version soit converti aussi.
+   Modifie s et le renvoie. */
+function migrateQuizState(s){
+  if(!s || s.idv===2) return s;
+  const mapId=id=>QUIZ_LEGACY[id]||id;
+  if(s.byHorizon) ['sprint','long'].forEach(h=>{
+    const src=s.byHorizon[h]||{}, out={};
+    Object.keys(src).forEach(id=>{
+      const nid=mapId(id), p=src[id], cur=out[nid];
+      if(!cur || ((p&&p.lastSeen)||0)>(cur.lastSeen||0)) out[nid]=p;
+    });
+    s.byHorizon[h]=out;
+  });
+  if(s.active && Array.isArray(s.active.ids)){
+    s.active.ids=s.active.ids.map(mapId);
+    const r=s.active.results;
+    if(r && Array.isArray(r.wrongIds)) r.wrongIds=r.wrongIds.map(mapId);
+  }
+  s.idv=2;
+  return s;
+}
+
+/* loadQuizState() — lit/garantit la structure persistée 'philo-quiz'.
+   Champs : byHorizon (progression Leitner par horizon), daily (objectif+streak),
+   gamif (XP + niveau, transversal aux horizons), prefs (ne plus avertir),
+   active (session en cours sérialisée : ids + position).
+   v4 — champs de synchro : activeAt (date de la dernière écriture de
+   « active », pour savoir quelle session garder à la fusion), resetAt
+   (date de remise à zéro de chaque rythme) et epoch (date de la dernière
+   remise à zéro TOTALE) : à la fusion de deux appareils, toute révision plus
+   ancienne qu'une remise à zéro est oubliée, au lieu de ressusciter.
+   Chaque appel relit et décode le stockage : les fonctions de lecture
+   (isDue, pickSession, quizStats…) reçoivent donc l'état en paramètre au lieu
+   de le relire carte par carte (864 décodages par affichage avant v4). */
+function loadQuizState(){
+  let s={};
+  try{ s=JSON.parse(localStorage.getItem('philo-quiz')||'{}'); }catch(e){ s={}; }
+  if(!s.byHorizon) s.byHorizon={};
+  if(!s.byHorizon.sprint) s.byHorizon.sprint={};
+  if(!s.byHorizon.long) s.byHorizon.long={};
+  if(!s.horizon) s.horizon='sprint';
+  if(!s.daily) s.daily={date:'',count:0,goal:QUIZ_DEFAULT_GOAL,streak:0,lastDate:''};
+  if(!s.gamif) s.gamif={xp:0,level:1};                 // gamification (v3)
+  if(!s.prefs) s.prefs={dontWarnNewSession:false};     // préférences
+  if(s.active===undefined) s.active=null;              // session reprenable
+  if(!s.activeAt) s.activeAt=0;                        // v4 : date d'écriture de « active »
+  if(!s.resetAt) s.resetAt={sprint:0,long:0};          // v4 : remise à zéro d'un rythme
+  if(!s.epoch) s.epoch=0;                              // v4 : remise à zéro totale
+  return migrateQuizState(s);                          // v4 : anciens ids de cartes → ids stables
+}
+function saveQuizState(s){ localStorage.setItem('philo-quiz',JSON.stringify(s)); syncOnQuizChange(); }   // new (Phase 2) : reporte la progression vers le compte si connecté
+/* todayStr() — date LOCALE du jour (AAAA-MM-JJ). Avant v4 : toISOString(),
+   c'est-à-dire la date en temps universel ; en France, le « jour » changeait
+   donc à 1 h ou 2 h du matin (objectif du jour et série faussés). */
+function todayStr(){
+  const d=new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+
+/* ── Gamification : XP → niveau (100 XP par niveau). ──────────────── */
+function quizLevel(xp){ return Math.floor((xp||0)/100)+1; }      // niveau courant
+function quizXpInLevel(xp){ return (xp||0)%100; }                // XP dans le niveau (0..99)
+
+/* quizSessionActive() — true s'il reste des cartes à jouer dans la session. */
+function quizSessionActive(){
+  return !!(quizState.session && quizState.idx < quizState.session.length);
+}
+/* persistActive() — sérialise (ou efface) la session en cours dans localStorage,
+   pour pouvoir la REPRENDRE après un refresh / une réouverture de l'overlay.
+   activeAt date l'écriture (v4) : à la fusion de deux appareils, c'est la
+   session écrite en dernier qui gagne, y compris une session TERMINÉE (null). */
+function persistActive(){
+  const st=loadQuizState();
+  st.active=quizSessionActive()
+    ? {ids:quizState.session.map(c=>c.id),idx:quizState.idx,mode:quizState.mode,
+       horizon:quizState.horizon,results:quizState.results}
+    : null;
+  st.activeAt=Date.now();
+  saveQuizState(st);
+}
+
+/* isDue(card, horizon, st) — true si la carte (déjà vue) est à réviser
+   aujourd'hui. Une carte jamais vue n'est pas « due » ici : pickSession
+   l'ajoute via le quota de nouvelles cartes. st = état déjà lu (v4 : évite de
+   relire le stockage pour chaque carte) ; relu s'il est absent. */
+function isDue(card,horizon,st){
+  st=st||loadQuizState();
+  const p=st.byHorizon[horizon][card.id];
+  if(!p) return false;
+  const box=Math.min(Math.max(p.box||1,1),5);
+  const days=(Date.now()-(p.lastSeen||0))/DAY_MS;
+  return days>=QUIZ_INTERVALS[horizon][box-1];
+}
+
+/* onAnswer(id, ok) — enregistre une réponse : succès → boîte+1 (max 5),
+   échec → boîte 1 ; met à jour lastSeen/seen/correct + compteur quotidien +
+   XP/niveau (gamification). RENVOIE {gain, promoted, newlyMastered, box,
+   leveledUp} pour que l'écran de fin montre la progression de la session. */
+function onAnswer(id,ok){
+  const st=loadQuizState();
+  const h=quizState.horizon;
+  const p=st.byHorizon[h][id]||{box:1,lastSeen:0,seen:0,correct:0};
+  const oldBox=p.box||1;
+  p.box=ok?Math.min(oldBox+1,5):1;
+  p.lastSeen=Date.now();
+  p.seen=(p.seen||0)+1;
+  if(ok) p.correct=(p.correct||0)+1;
+  st.byHorizon[h][id]=p;
+  // ── XP : 10 pour une bonne réponse (1 pour l'effort sinon), + bonus de
+  //    promotion de boîte (+5), + bonus de 1re maîtrise (+25) et de boîte 5 (+25).
+  const promoted=ok&&p.box>oldBox;
+  const newlyMastered=ok&&oldBox<4&&p.box>=4;
+  const newlyBox5=ok&&oldBox<5&&p.box===5;
+  let gain=ok?10:1;
+  if(promoted) gain+=5;
+  if(newlyMastered) gain+=25;
+  if(newlyBox5) gain+=25;
+  const lvlBefore=quizLevel(st.gamif.xp);
+  st.gamif.xp=(st.gamif.xp||0)+gain;
+  st.gamif.level=quizLevel(st.gamif.xp);
+  const leveledUp=st.gamif.level>lvlBefore;
+  // ── Compteur quotidien + streak (réinitialisé chaque jour).
+  const t=todayStr();
+  if(st.daily.date!==t){
+    // Nouveau jour : streak +1 si le dernier jour actif était hier, sinon reset à 1.
+    const wasYesterday=st.daily.date && (new Date(t)-new Date(st.daily.date))<=DAY_MS*1.5;
+    st.daily.streak=wasYesterday?(st.daily.streak||0)+1:1;
+    st.daily.date=t; st.daily.count=0;
+  }
+  st.daily.count=(st.daily.count||0)+1;
+  saveQuizState(st);
+  return {gain,promoted,newlyMastered,box:p.box,leveledUp};
+}
+
+/* cardsForFilter() — applique les filtres MULTIPLES du dashboard.
+   Logique : OU à l'intérieur d'une catégorie (plusieurs notions = l'une OU
+   l'autre), ET entre catégories (notion(s) ET type(s) ET « ratés »).
+   Ensembles vides = pas de restriction sur cette catégorie.
+   Une carte appartient à TOUTES ses notions (c.notions, v4) : un concept ou
+   une citation rangés sous deux notions répondent aux deux filtres.
+   st = état déjà lu (relu s'il est absent). */
+function cardsForFilter(st){
+  st=st||loadQuizState(); const h=quizState.horizon;
+  const nf=quizState.notionFilters, tf=quizState.typeFilters;
+  return QUIZ_CARDS.filter(c=>{
+    if(nf.size && !(c.notions||[c.notion]).some(k=>nf.has(k))) return false;
+    if(tf.size && !tf.has(c.type)) return false;
+    if(quizState.wrongOnly){ const p=st.byHorizon[h][c.id]; if(!(p&&p.box<=1&&p.seen>0)) return false; }
+    return true;
+  });
+}
+/* Helpers de bascule des filtres (un clic = ajout/retrait). */
+function clearQuizFilters(){ quizState.notionFilters.clear(); quizState.typeFilters.clear(); quizState.wrongOnly=false; renderQuiz(); }
+function toggleQuizWrong(){ quizState.wrongOnly=!quizState.wrongOnly; renderQuiz(); }
+function toggleNotionFilter(k){ const s=quizState.notionFilters; s.has(k)?s.delete(k):s.add(k); renderQuiz(); }
+function toggleTypeFilter(t){ const s=quizState.typeFilters; s.has(t)?s.delete(t):s.add(t); renderQuiz(); }
+function quizFiltersEmpty(){ return quizState.notionFilters.size===0 && quizState.typeFilters.size===0 && !quizState.wrongOnly; }
+
+/* pickSession(n, st) — construit une session de n cartes :
+   1) les cartes DUES, triées par boîte ascendante (priorité aux fragiles),
+      au hasard à boîte égale ;
+   2) complétées par des cartes JAMAIS VUES, TIRÉES AU HASARD dans tout le
+      filtre (v4). Avant, elles venaient dans l'ordre du fichier : chaque
+      nouvelle session reprenait les 15 mêmes concepts, et il fallait une
+      quinzaine de sessions avant de voir une citation. Le tirage au hasard
+      mélange d'office les notions et les types, au prorata de leur nombre ;
+   en ne gardant qu'UNE carte par « paire » (pair) : on évite ainsi de voir
+   les deux sens d'un même concept/citation dans la même session (retour
+   « les cartes se répètent »). La 1re rencontrée gagne = la plus prioritaire
+   (boîte la plus basse, due avant fraîche). Léger mélange final.
+   st = état déjà lu (relu s'il est absent). */
+function pickSession(n,st){
+  n=n||QUIZ_SESSION_N;
+  st=st||loadQuizState(); const h=quizState.horizon, prog=st.byHorizon[h];
+  const pool=cardsForFilter(st);
+  const shuffle=a=>{ for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; };
+  // sort() est stable : mélanger AVANT de trier laisse le hasard départager une même boîte.
+  const due=shuffle(pool.filter(c=>isDue(c,h,st)))
+    .sort((a,b)=>((prog[a.id].box||1)-(prog[b.id].box||1)));
+  const fresh=shuffle(pool.filter(c=>!prog[c.id]));
+  // Dédup DOUBLE pour ne jamais montrer deux fois « la même carte » dans une
+  // session (retours BOX 14 puis BOX 33) :
+  //   1. par PAIRE  → écarte le sens inverse d'un même item (recto/verso) ;
+  //   2. par CONTENU → écarte une carte dont la QUESTION (type + recto) est
+  //      déjà présente sous une AUTRE paire. Indispensable : une même citation
+  //      rangée sous plusieurs notions (ex. Descartes « maîtres et possesseurs
+  //      de la nature » en nature ET technique), ou deux fiches concept de même
+  //      terme, produisent des cartes au contenu identique mais de paires
+  //      différentes — que la seule dédup par paire laissait passer.
+  const norm=s=>(s||'').replace(/\s+/g,' ').trim().toLowerCase();
+  // En mode QCM, seules certaines directions donnent un vrai QCM (déf→concept,
+  // citation→auteur). Sans ce correctif, la dédup par paire gardait la direction
+  // « retournement » (concept→déf) et le QCM n'apparaissait JAMAIS. On PRÉFÈRE
+  // donc la variante éligible AU SEIN d'une paire (même item, même priorité de
+  // révision : on échange juste le SENS), par remplacement de l'entrée déjà prise.
+  const qcm=quizState.mode==='qcm';
+  const QCM_OK=c=>c.type==='def-concept'||c.type==='cite-author';
+  const seenPairs={}, seenContent={}, pick=[];
+  due.concat(fresh).forEach(c=>{
+    const pkey=c.pair||c.id;
+    const ckey=c.type+'|'+norm(c.recto);
+    if(pkey in seenPairs){
+      // Paire déjà retenue : en QCM, si cette variante est éligible et que celle
+      // gardée ne l'est pas, on échange (la carte devient un QCM, sans changer
+      // l'item ni sa place dans la file).
+      if(qcm && QCM_OK(c)){
+        const idx=seenPairs[pkey], old=pick[idx];
+        if(old && !QCM_OK(old) && !seenContent[ckey]){
+          delete seenContent[old.type+'|'+norm(old.recto)];
+          pick[idx]=c; seenContent[ckey]=1;
+        }
+      }
+      return;
+    }
+    if(pick.length>=n) return;
+    if(seenContent[ckey]) return;
+    seenPairs[pkey]=pick.length; seenContent[ckey]=1; pick.push(c);
+  });
+  // Léger mélange (Fisher-Yates partiel).
+  for(let i=pick.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[pick[i],pick[j]]=[pick[j],pick[i]];}
+  return pick;
+}
+
+/* quizStats(st) — % de maîtrise (boîte≥4) sur le filtre courant + comptes.
+   sessionN = taille RÉELLE de la prochaine session (après dédoublonnage des
+   paires), et non plus due+fresh plafonné, qui annonçait parfois plus de
+   cartes qu'il n'en venait. st = état déjà lu (relu s'il est absent). */
+function quizStats(st){
+  st=st||loadQuizState(); const h=quizState.horizon;
+  const pool=cardsForFilter(st);
+  let mastered=0,seen=0;
+  pool.forEach(c=>{const p=st.byHorizon[h][c.id];if(p){seen++;if(p.box>=4)mastered++;}});
+  const due=pool.filter(c=>isDue(c,h,st)).length;
+  const fresh=pool.filter(c=>!st.byHorizon[h][c.id]).length;
+  const pct=pool.length?Math.round(mastered/pool.length*100):0;
+  return {total:pool.length,mastered,seen,due,fresh,pct,
+    sessionN:pickSession(QUIZ_SESSION_N,st).length};
+}
+
+/* ── K.3 OUVERTURE / FERMETURE ───────────────────────────────────── */
+/* syncRuntimeQuizFromStorage(opts) — aligne l'état RUNTIME du quiz (quizState)
+   sur ce qui est en localStorage : horizon courant + RECONSTRUCTION de la
+   session en cours (« active »).
+   Indispensable après une ADOPTION distante (un autre appareil a poussé sa
+   progression) : sans cela, la session reprise et le bon horizon n'apparaissent
+   qu'après avoir refermé puis rouvert l'overlay (seul openQuiz reconstruisait).
+   opts.keepLive : ne casse PAS une session déjà en cours de lecture sur CET
+   appareil (on n'interrompt pas le joueur). */
+function syncRuntimeQuizFromStorage(opts){
+  opts=opts||{};
+  if(opts.keepLive && quizSessionActive()) return;   // une partie est jouée ici : on n'y touche pas
+  const st=loadQuizState();
+  quizState.horizon=st.horizon||'sprint';
+  const a=st.active;
+  if(a && a.ids && a.idx<a.ids.length){
+    // Session reprenable (la nôtre après refresh, ou celle d'un autre appareil).
+    quizState.session=a.ids.map(id=>QUIZ_BY_ID[id]).filter(Boolean);
+    quizState.idx=Math.min(a.idx,quizState.session.length);
+    quizState.mode=a.mode||quizState.mode;
+    quizState.horizon=a.horizon||quizState.horizon;
+    quizState.results=a.results||{ok:0,ko:0,wrongIds:[],xp:0,promoted:0,mastered:0,leveledUp:false};
+  } else {
+    // Plus rien à reprendre (session terminée / effacée ailleurs) : on nettoie
+    // le runtime pour ne pas afficher un « Reprendre » fantôme.
+    quizState.session=null; quizState.idx=0;
+  }
+}
+/* openQuiz() — ouvre l'overlay sur le dashboard. Si une session était en
+   cours (sauvegardée dans philo-quiz.active), elle est RECONSTRUITE pour
+   pouvoir être reprise — y compris après un refresh de la page. */
+function openQuiz(){
+  quizState.confirmNew=false;
+  syncRuntimeQuizFromStorage();   // horizon + reconstruction de la session en cours
+  quizState.view='dashboard';
+  document.getElementById('quiz-overlay').classList.add('open');
+  renderQuiz();
+}
+function closeQuiz(){ document.getElementById('quiz-overlay').classList.remove('open'); }
+
+/* ── K.4 RENDU (dispatch par vue) ─────────────────────────────────── */
+function renderQuiz(){
+  const b=document.getElementById('quiz-body');
+  if(quizState.view==='session') b.innerHTML=renderQuizSession();
+  else if(quizState.view==='end') b.innerHTML=renderQuizEnd();
+  else b.innerHTML=renderQuizDashboard();
+}
+
+/* renderQuizDashboard() — accueil : niveau/XP (gamification v3), maîtrise
+   globale, horizon, format (Cartes/QCM), filtres MULTI-SÉLECTION, lancement
+   (reprise OU nouvelle session avec avertissement), objectif du jour (v3),
+   barres de maîtrise par notion (v2) et badges (v3). */
+function renderQuizDashboard(){
+  const st=loadQuizState();   // lu UNE fois, puis transmis (v4)
+  const s=quizStats(st);
+  const nf=quizState.notionFilters, tf=quizState.typeFilters;   // filtres actifs (Sets)
+  // Filtres multi-sélection : un bouton est « active » s'il est dans l'ensemble.
+  const notionBtns=KEYS.map(k=>`<button class="${nf.has(k)?'active':''}" onclick="toggleNotionFilter('${k}')">${D[k].l}</button>`).join('');
+  const typeLabels={'concept-def':'Concept→déf','def-concept':'Déf→concept','cite-author':'Citation→auteur','author-cite':'Auteur→citation','notion-authors':'Notion→auteurs'};
+  const typeBtns=Object.keys(typeLabels).map(t=>`<button class="${tf.has(t)?'active':''}" onclick="toggleTypeFilter('${t}')">${typeLabels[t]}</button>`).join('');
+  // v3 — gamification : niveau courant + XP dans le niveau (0..99).
+  const xp=st.gamif.xp||0, lvl=quizLevel(xp), inLvl=quizXpInLevel(xp);
+  // v3 — objectif quotidien (réglable) + barre de progression du jour.
+  const goal=st.daily.goal||QUIZ_DEFAULT_GOAL;
+  const dayCount=st.daily.date===todayStr()?(st.daily.count||0):0;
+  const dayPct=Math.min(100,Math.round(dayCount/goal*100));
+  // v2 — barres de maîtrise par notion (triées décroissant).
+  const nm=notionMastery(st).sort((a,b)=>b.pct-a.pct);
+  const nmHtml=nm.map(x=>`<div class="quiz-ns-row">
+      <span class="quiz-ns-name">${D[x.k].l}</span>
+      <span class="quiz-ns-bar"><span class="quiz-ns-fill" style="width:${x.pct}%;background:${D[x.k].c}"></span></span>
+      <span class="quiz-ns-pct">${x.pct}%</span>
+    </div>`).join('');
+  // v3 — badges (1 par notion ; acquis à 80 % de cartes mémorisées depuis v4).
+  const badges=quizBadges(st);
+  const earned=badges.filter(b=>b.earned);
+  const badgesHtml=(earned.length?earned:badges).slice(0,12).map(b=>`<span class="quiz-badge${b.earned?' earned':''}">${b.earned?'🏅':'🔒'} ${b.label}</span>`).join('');
+  // Bloc de lancement adaptatif : avertissement, ou reprise + nouvelle, ou simple lancement.
+  const canResume=quizSessionActive();
+  const launchHtml = quizState.confirmNew
+    ? renderNewSessionWarning()
+    : (canResume
+       ? `<button class="quiz-start" onclick="resumeQuizSession()">▶ Reprendre la session (${quizState.idx+1}/${quizState.session.length})</button>
+          <button class="quiz-start quiz-start-alt" onclick="requestNewSession()">🆕 Nouvelle session${s.sessionN<1?'':' ('+s.sessionN+' cartes)'}</button>`
+       : `<button class="quiz-start" ${s.sessionN<1?'disabled':''} onclick="requestNewSession()">
+            ${s.sessionN<1?'Rien à réviser ici 🎉':'Session du jour ('+s.sessionN+' cartes)'}
+          </button>`);
+  return `
+  <div class="quiz-top">
+    <div class="quiz-title">🎯 Réviser</div>
+    <button class="quiz-close" onclick="closeQuiz()" aria-label="Fermer">×</button>
+  </div>
+  <div class="quiz-level">
+    <div class="quiz-level-top">
+      <span class="quiz-level-badge">⭐ Niveau ${lvl}</span>
+      <span class="quiz-level-xp">${xp} XP · ${inLvl}/100 vers le niveau ${lvl+1}</span>
+    </div>
+    <div class="quiz-level-bar"><div class="quiz-level-fill" style="width:${inLvl}%"></div></div>
+  </div>
+  <div class="quiz-mastery">
+    <div class="quiz-mastery-pct">${s.pct}%</div>
+    <div class="quiz-mastery-lbl">mémorisé (${s.mastered}/${s.total} cartes bien ancrées)</div>
+    <div class="quiz-bar"><div class="quiz-bar-fill" style="width:${s.pct}%"></div></div>
+  </div>
+  <details class="quiz-help"><summary>❓ Comment fonctionne la révision&nbsp;?</summary>
+    <div class="quiz-help-body">
+      <p>Chaque carte gravit <b>5 paliers de mémorisation</b>. Quand tu réponds «&nbsp;je savais&nbsp;», la carte <b>monte d'un palier</b> et reviendra <b>moins souvent</b>&nbsp;; si tu te trompes, elle <b>redescend au palier&nbsp;1</b> et revient vite. C'est la <b>répétition espacée</b>&nbsp;: on revoit surtout ce qu'on maîtrise mal, et de plus en plus rarement ce qu'on connaît.</p>
+      <p>Une carte est comptée comme <b>mémorisée</b> à partir du palier&nbsp;4. Le pourcentage en haut = la part de tes cartes aux paliers&nbsp;4-5.</p>
+      <p>Deux rythmes au choix&nbsp;: <b>⚡ Sprint</b> (révisions resserrées sur ≈2&nbsp;semaines, avant un contrôle) et <b>📅 Long terme</b> (espacées sur ≈2&nbsp;mois, pour ancrer durablement). Chaque rythme garde sa propre progression.</p>
+    </div>
+  </details>
+  <div>
+    <div class="quiz-section-lbl">Horizon de révision</div>
+    <div class="quiz-horizon">
+      <button class="${quizState.horizon==='sprint'?'active':''}" onclick="setQuizHorizon('sprint')">⚡ Sprint <span style="opacity:.7">(≈2 sem.)</span></button>
+      <button class="${quizState.horizon==='long'?'active':''}" onclick="setQuizHorizon('long')">📅 Long terme <span style="opacity:.7">(≈2 mois)</span></button>
+    </div>
+  </div>
+  <div>
+    <div class="quiz-section-lbl">Format</div>
+    <div class="quiz-mode-toggle quiz-horizon">
+      <button class="${quizState.mode==='cards'?'active':''}" onclick="setQuizMode('cards')">🃏 Cartes</button>
+      <button class="${quizState.mode==='qcm'?'active':''}" onclick="setQuizMode('qcm')">📝 QCM</button>
+    </div>
+    ${quizState.mode==='qcm'?`<div class="quiz-meta-lbl" style="margin-top:5px">En QCM, la session privilégie les cartes à choix (Définition→concept, Citation→auteur) ; les rares autres restent à retourner.</div>`:''}
+  </div>
+  <div>
+    <div class="quiz-section-lbl">Filtrer ${quizFiltersEmpty()?'':`<button class="quiz-reset" style="float:right;margin:0" onclick="clearQuizFilters()">tout effacer</button>`}</div>
+    <div class="quiz-filters">
+      <button class="${quizState.wrongOnly?'active':''}" onclick="toggleQuizWrong()">Mes ratés</button>
+      ${notionBtns}${typeBtns}
+    </div>
+  </div>
+  ${launchHtml}
+  <div>
+    <div class="quiz-goal-row">
+      <div class="quiz-section-lbl">Objectif du jour</div>
+      <div class="quiz-goal-pick">
+        ${[10,20,50].map(n=>`<button class="${goal===n?'active':''}" onclick="setQuizGoal(${n})">${n}</button>`).join('')}
+      </div>
+    </div>
+    <div class="quiz-day-bar"><div class="quiz-day-fill" style="width:${dayPct}%"></div></div>
+    <div class="quiz-meta-lbl" style="text-align:center;margin-top:5px">${dayCount}/${goal} cartes aujourd'hui · 🔥 ${st.daily.streak||0} j d'affilée</div>
+  </div>
+  <div class="quiz-meta-row">
+    <div><div class="quiz-meta-num">${s.due}</div><div class="quiz-meta-lbl">à revoir</div></div>
+    <div><div class="quiz-meta-num">${s.fresh}</div><div class="quiz-meta-lbl">nouvelles</div></div>
+    <div><div class="quiz-meta-num">${s.seen}</div><div class="quiz-meta-lbl">déjà vues</div></div>
+  </div>
+  <details><summary class="quiz-section-lbl" style="cursor:pointer">Maîtrise par notion</summary>
+    <div class="quiz-notion-stats" style="margin-top:8px">${nmHtml||'<div class="quiz-meta-lbl">Pas encore de données.</div>'}</div>
+  </details>
+  <details><summary class="quiz-section-lbl" style="cursor:pointer">Badges (${earned.length}/${badges.length})</summary>
+    <div class="quiz-badges" style="margin-top:8px">${badgesHtml}</div>
+  </details>
+  <details class="quiz-help"><summary>💾 Ma progression est-elle sauvegardée&nbsp;?</summary>
+    <div class="quiz-help-body">
+      ${authUser ? `
+      <p><b>Oui — et surtout, elle te suit d'un appareil à l'autre&nbsp;!</b> Tu es connecté&nbsp;: ta progression complète (niveau, cartes, série, objectif <b>et même la session en cours</b>) est enregistrée <b>sur ton compte</b> à chaque réponse.</p>
+      <p>📱➡️💻 C'est tout l'intérêt du compte&nbsp;: commence à réviser sur ton <b>téléphone</b> dans le bus, reprends <b>exactement où tu en étais</b> sur l'<b>ordinateur</b> à la maison — il suffit d'être connecté avec le même compte. Une copie reste aussi sur cet appareil, donc <b>même hors-ligne tout fonctionne</b>&nbsp;: la synchro se fait dès le retour en ligne, et c'est <b>la version la plus récente qui gagne</b>.</p>
+      <p>👉 Pareil pour tes <b>brouillons de proposition</b> et tes <b>réglages</b> (mode, objectif)&nbsp;: ils voyagent avec ton compte.</p>
+      ` : `
+      <p><b>Oui — mais pour l'instant sur cet appareil uniquement</b> (ce navigateur). Elle est enregistrée <b>à chaque réponse</b> et survit si tu actualises la page, fermes l'onglet ou éteins l'appareil.</p>
+      <p>📱➡️💻 <b>Pour la retrouver sur TOUS tes appareils</b> — réviser sur le téléphone puis continuer sur l'ordinateur, sans rien reperdre — il n'y a qu'une chose à faire&nbsp;: <b>crée un compte ou connecte-toi</b> (boutons en bas de la barre latérale). Ta progression complète (cartes, série, session en cours), tes brouillons et tes réglages sont alors <b>sauvegardés en ligne et synchronisés partout</b>. Bonne nouvelle&nbsp;: ta progression actuelle sera <b>fusionnée</b> avec ton compte — rien n'est perdu.</p>
+      <p>⚠️ Sans compte, tu perdrais ta progression en cas d'effacement des données de navigation, de <b>navigation privée</b>, ou de changement de navigateur/appareil.</p>
+      `}
+    </div>
+  </details>
+  <button class="quiz-reset" onclick="resetQuizHorizon()">Réinitialiser le rythme «&nbsp;${quizState.horizon==='sprint'?'Sprint':'Long terme'}&nbsp;»</button>
+  <button class="quiz-reset" onclick="resetAllQuiz()">Tout réinitialiser (niveau, XP &amp; les 2 rythmes)</button>
+  `;
+}
+
+/* setQuizHorizon(h) — change l'horizon courant et le persiste. */
+function setQuizHorizon(h){
+  quizState.horizon=h;
+  const st=loadQuizState(); st.horizon=h; saveQuizState(st);
+  renderQuiz();
+}
+/* resetQuizHorizon() — efface la progression de CARTES de l'horizon courant
+   uniquement (l'autre rythme, le niveau et les XP sont conservés). Si une
+   session de ce rythme est en cours, on l'abandonne (devenue incohérente).
+   v4 : la date de remise à zéro (resetAt) est gardée, pour que la fusion avec
+   un autre appareil oublie les révisions antérieures au lieu de les ramener. */
+function resetQuizHorizon(){
+  const lbl=quizState.horizon==='sprint'?'Sprint':'Long terme';
+  if(!confirm('Réinitialiser la progression des cartes du rythme « '+lbl+' » ?\n(Ton niveau, tes XP et l\'autre rythme sont conservés.)')) return;
+  const st=loadQuizState();
+  st.byHorizon[quizState.horizon]={};
+  st.resetAt[quizState.horizon]=Date.now();
+  if(quizState.horizon===(st.active&&st.active.horizon)){ st.active=null; st.activeAt=Date.now(); }   // session de ce rythme invalidée
+  saveQuizState(st);
+  quizState.session=null; quizState.idx=0; quizState.results=null;
+  quizState.view='dashboard';                                             // jamais rester sur une session vidée
+  renderQuiz();
+}
+/* resetAllQuiz() — remet TOUT à zéro : cartes des DEUX rythmes, niveau, XP,
+   série, objectif et session en cours. Action irréversible.
+   v4 : au lieu d'effacer simplement la clé 'philo-quiz', on écrit un état
+   VIERGE daté (epoch = maintenant). La synchro fusionne désormais carte par
+   carte : sans cette date, la progression d'un autre appareil reviendrait à
+   la prochaine fusion ; avec elle, tout ce qui précède est oublié partout.
+   saveQuizState() propage aussi la remise à zéro au compte. */
+function resetAllQuiz(){
+  if(!confirm('Tout réinitialiser ?\nCela efface ta progression sur les DEUX rythmes, ton niveau, tes XP, ta série et tes objectifs. Action irréversible.')) return;
+  localStorage.removeItem('philo-quiz');                 // loadQuizState() recréera les valeurs par défaut
+  const now=Date.now(), st=loadQuizState();
+  st.epoch=now; st.resetAt={sprint:now,long:now}; st.activeAt=now;
+  saveQuizState(st);                                     // écrit l'état vierge daté + synchro
+  quizState.session=null; quizState.idx=0; quizState.results=null; quizState.confirmNew=false;
+  quizState.notionFilters.clear(); quizState.typeFilters.clear(); quizState.wrongOnly=false;
+  quizState.horizon='sprint'; quizState.mode='cards'; quizState.revealed=false;
+  quizState.view='dashboard';
+  renderQuiz();
+}
+
+/* renderNewSessionWarning() — panneau d'avertissement avant d'écraser une
+   session en cours par une nouvelle. La progression Leitner déjà enregistrée
+   (carte par carte) est conservée ; seul le SCORE de la session est perdu.
+   Case « ne plus afficher » → mémorisée dans prefs.dontWarnNewSession. */
+function renderNewSessionWarning(){
+  return `<div class="quiz-warn">
+    <div class="quiz-warn-txt">⚠️ Une session est en cours. En démarrer une nouvelle l'abandonnera. Rassure-toi : ta progression déjà enregistrée (carte par carte) est conservée — seul le score de cette session-ci sera remis à zéro.</div>
+    <label class="quiz-warn-check"><input type="checkbox" id="quiz-dontwarn"> Ne plus afficher cet avertissement</label>
+    <div class="quiz-warn-btns">
+      <button class="quiz-no" onclick="cancelNewSession()">Annuler</button>
+      <button class="quiz-yes" onclick="confirmNewSession()">Nouvelle session</button>
+    </div>
+  </div>`;
+}
+
+/* beginSession() — tire une nouvelle session et bascule en vue 'session'.
+   Cœur du démarrage : appelé directement (pas de session en cours) ou après
+   confirmation de l'avertissement. Initialise le récap (XP, progressions…)
+   et persiste la session pour qu'elle survive à un refresh. */
+function beginSession(){
+  const sess=pickSession();
+  if(!sess.length) return;
+  quizState.session=sess; quizState.idx=0; quizState.revealed=false;
+  quizState.results={ok:0,ko:0,wrongIds:[],xp:0,promoted:0,mastered:0,leveledUp:false};
+  quizState.confirmNew=false;
+  quizState.view='session';
+  persistActive();        // sauvegarde la session (reprenable après refresh)
+  prepareCard();          // pré-calcule le QCM de la 1re carte si besoin
+  renderQuiz();
+}
+
+/* requestNewSession() — demande de nouvelle session. Si une session est en
+   cours ET que l'avertissement n'est pas désactivé, on affiche d'abord le
+   panneau de confirmation ; sinon on démarre directement. */
+function requestNewSession(){
+  const st=loadQuizState();
+  if(quizSessionActive() && !st.prefs.dontWarnNewSession){
+    quizState.confirmNew=true; renderQuiz(); return;
+  }
+  beginSession();
+}
+
+/* confirmNewSession() — confirme l'abandon : mémorise éventuellement
+   « ne plus afficher » (case cochée), puis démarre la nouvelle session. */
+function confirmNewSession(){
+  const cb=document.getElementById('quiz-dontwarn');
+  if(cb&&cb.checked){ const st=loadQuizState(); st.prefs.dontWarnNewSession=true; saveQuizState(st); }
+  beginSession();
+}
+
+/* cancelNewSession() — referme le panneau d'avertissement (retour dashboard). */
+function cancelNewSession(){ quizState.confirmNew=false; renderQuiz(); }
+
+/* resumeQuizSession() — reprend la session en cours là où on l'avait laissée. */
+function resumeQuizSession(){
+  if(!quizSessionActive()) return;
+  quizState.view='session'; quizState.revealed=false;
+  prepareCard(); renderQuiz();
+}
+
+/* quitSession() — quitte la session (retour dashboard) SANS la perdre :
+   elle reste reprenable (persistActive l'a déjà sauvegardée). */
+function quitSession(){
+  quizState.view='dashboard';
+  persistActive();
+  renderQuiz();
+}
+
+/* prepareCard() — prépare la carte courante : en mode QCM, et si le type
+   s'y prête (def→concept ou citation→auteur), génère 4 choix une fois pour
+   toutes (évite de re-mélanger à chaque re-rendu). Sinon qcmData=null. */
+function prepareCard(){
+  const card=quizState.session[quizState.idx];
+  quizState.qcmAnswered=false; quizState.qcmChosen=null;
+  const isQCM=quizState.mode==='qcm'&&(card.type==='def-concept'||card.type==='cite-author');
+  quizState.qcmData=isQCM?buildQCMChoices(card):null;
+}
+
+/* buildQCMChoices(card) — construit {choices[4], correct} : la bonne réponse
+   + 3 distracteurs tirés d'autres cartes DU MÊME TYPE.
+   RÈGLE (retour contributeur) : les 4 propositions doivent appartenir à la
+   même FAMILLE de réponse. Pour def-concept, on ne mélange jamais un repère
+   (paire « A / B ») avec un concept simple : distracteurs du même côté de la
+   partition repère/concept, en privilégiant la même catégorie (cat).
+   Pour cite-author (v4) : les choix sont des NOMS d'auteurs seuls (l'œuvre et
+   la date allongeaient les choix et aidaient à deviner ; elles s'affichent
+   après la réponse), et un distracteur n'est JAMAIS le même auteur : avant,
+   « Freud, une œuvre » pouvait côtoyer « Freud, une autre œuvre », soit deux
+   bonnes réponses dont une seule comptée. On privilégie les auteurs d'une
+   même notion. */
+function buildQCMChoices(card){
+  let correct, answers;
+  if(card.type==='cite-author'){
+    correct=card.meta.author;
+    const others=QUIZ_CARDS.filter(c=>c.type==='cite-author'&&c.meta.author!==correct);
+    const near=others.filter(c=>c.notions.some(k=>card.notions.includes(k)));
+    const names=list=>[...new Set(list.map(c=>c.meta.author))];
+    answers=names(near).length>=3?names(near):names(others);
+  } else {
+    correct=card.verso;
+    // Cartes du même TYPE (même sens de question) avec une réponse différente.
+    const same=QUIZ_CARDS.filter(c=>c.type===card.type&&c.verso!==correct);
+    // Famille = même côté de la partition repère / non-repère (jamais croisée).
+    const isRep=!!(card.meta&&card.meta.cat==='Repère');
+    const family=same.filter(c=>(!!(c.meta&&c.meta.cat==='Repère'))===isRep);
+    // Plus fin : même catégorie exacte si on en a assez ; sinon, reste la famille.
+    const near=family.filter(c=>c.meta&&c.meta.cat===card.meta.cat);
+    answers=[...new Set((near.length>=3?near:family).map(c=>c.verso))];
+  }
+  // Distracteurs uniques, différents de la bonne réponse, tirés au hasard.
+  const uniq=answers.filter(a=>a!==correct);
+  for(let i=uniq.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[uniq[i],uniq[j]]=[uniq[j],uniq[i]];}
+  const choices=[correct].concat(uniq.slice(0,3));
+  for(let i=choices.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[choices[i],choices[j]]=[choices[j],choices[i]];}
+  return {choices,correct};
+}
+
+/* renderQuizSession() — dispatch carte : QCM (si qcmData) ou carte flip 3D. */
+function renderQuizSession(){
+  const sess=quizState.session, i=quizState.idx, card=sess[i];
+  const isQCM=!!quizState.qcmData;
+  return `
+  <div class="quiz-top">
+    <div class="quiz-title">🎯 Réviser</div>
+    <button class="quiz-close" onclick="closeQuiz()" aria-label="Fermer">×</button>
+  </div>
+  <div class="quiz-progress">Carte ${i+1} / ${sess.length}${isQCM?' · QCM':''}</div>
+  ${isQCM?renderQCMBody(card):renderFlipBody(card)}
+  <button class="quiz-quit" onclick="quitSession()">Quitter la session</button>
+  `;
+}
+
+/* renderFlipBody(card) — carte à retournement 3D : face avant (recto +
+   « Révéler »), face arrière (verso + « ↩ Revoir la question »). Les 2 faces
+   sont empilées ; revealQuiz()/flipToQuestion() (dé)posent .flipped sur
+   l'élément existant → animation rotateY, sans re-rendu.
+   Les boutons ❌/✅ sont placés SOUS la carte (`.quiz-answer-row`) : ils
+   apparaissent une fois la réponse révélée et RESTENT visibles même si on
+   retourne la carte pour relire la question.
+   v4 : la face réponse propose aussi « Relire la fiche » (quizReread). */
+function renderFlipBody(card){
+  const notionLbl=card.notion&&D[card.notion]?D[card.notion].l:'';
+  const rev=quizState.revealed;                          // réponse déjà vue ?
+  const flipped=rev?' flipped':'';                       // face affichée au (re)rendu
+  return `<div class="quiz-flip"><div class="quiz-flip-inner${flipped}">
+    <div class="quiz-card quiz-face-front">
+      <div class="quiz-card-qlabel">${card.qLabel}</div>
+      <div class="quiz-card-recto">${card.recto}</div>
+      ${notionLbl?`<div class="quiz-card-notion">${notionLbl}</div>`:''}
+      <div class="quiz-actions"><button class="quiz-reveal" onclick="revealQuiz()">${rev?'Voir la réponse →':'Révéler'}</button></div>
+    </div>
+    <div class="quiz-card quiz-face-back">
+      <div class="quiz-card-qlabel">Réponse</div>
+      <div class="quiz-card-verso" style="border-top:none;padding-top:0">${card.verso}</div>
+      <div class="quiz-actions"><button class="quiz-reveal quiz-reflip" onclick="flipToQuestion()">↩ Revoir la question</button><button class="quiz-reveal quiz-reflip" onclick="quizReread()">📖 Relire la fiche</button></div>
+    </div>
+  </div></div>
+  <div class="quiz-actions quiz-answer-row${rev?'':' hidden'}">
+    <button class="quiz-no" onclick="answerQuiz(false)">❌ Je ne savais pas</button>
+    <button class="quiz-yes" onclick="answerQuiz(true)">✅ Je savais</button>
+  </div>`;
+}
+
+/* renderQCMBody(card) — question + 4 choix. Après réponse : surligne la
+   bonne (vert) et, si erreur, le choix cliqué (rouge) ; bouton « Suivant ».
+   v4 : après une réponse à « Qui a dit cela ? », la source complète
+   (auteur — œuvre) s'affiche, et « Relire la fiche » mène à la fiche. */
+function renderQCMBody(card){
+  const q=quizState.qcmData, answered=quizState.qcmAnswered, chosen=quizState.qcmChosen;
+  const notionLbl=card.notion&&D[card.notion]?D[card.notion].l:'';
+  const choicesHtml=q.choices.map((ch,ix)=>{
+    let cls='quiz-choice';
+    if(answered){ if(ch===q.correct) cls+=' good'; else if(ix===chosen) cls+=' bad'; }
+    return `<button class="${cls}" ${answered?'disabled':''} onclick="qcmAnswer(${ix})">${ch}</button>`;
+  }).join('');
+  const src=(answered&&card.type==='cite-author')?`<div class="quiz-card-notion">${card.verso}</div>`:'';
+  return `<div class="quiz-card">
+    <div class="quiz-card-qlabel">${card.qLabel}</div>
+    <div class="quiz-card-recto" style="font-size:15px">${card.recto}</div>
+    ${notionLbl?`<div class="quiz-card-notion">${notionLbl}</div>`:''}
+    <div class="quiz-choices">${choicesHtml}</div>
+    ${src}
+    ${answered?`<button class="quiz-next" onclick="advanceQuiz()">Suivant →</button>
+      <button class="quiz-quit" onclick="quizReread()">📖 Relire la fiche</button>`:''}
+  </div>`;
+}
+
+/* quizReread() — « Relire la fiche » (v4, idée reprise du quiz de Fiches
+   BUT) : ferme le quiz SANS perdre la session, qui reste reprenable, et ouvre
+   la fiche d'où vient la carte : le concept, l'onglet Citations de l'auteur,
+   ou la notion. Une carte QCM déjà répondue est comptée : on passe à la
+   suivante avant de sortir, pour ne pas la jouer deux fois à la reprise. */
+function quizReread(){
+  const card=quizState.session&&quizState.session[quizState.idx];
+  if(!card) return;
+  if(quizState.qcmAnswered){ quizState.idx++; quizState.qcmAnswered=false; }
+  quizState.revealed=false; quizState.view='dashboard';
+  persistActive(); closeQuiz();
+  if(card.meta&&card.meta.conceptId) openConcept(card.meta.conceptId);
+  else if(card.meta&&card.meta.author){ openAuthor(card.meta.author); curAuthorTab='citations'; renderAuthorContent(); }
+  else if(card.notion) openNotion(card.notion);
+}
+
+/* revealQuiz() — montre la réponse (face arrière) : .flipped sur l'élément
+   existant → animation rotateY. À la 1re révélation, on bascule le libellé du
+   bouton avant en « Voir la réponse → » et on affiche les boutons ❌/✅ sous
+   la carte. Idempotent : rejoue le retournement quand on était revenu sur la
+   question (sert alors de « Voir la réponse → »). */
+function revealQuiz(){
+  const wasRevealed=quizState.revealed;
+  quizState.revealed=true;
+  const inner=document.querySelector('.quiz-flip-inner');
+  if(!inner){ renderQuiz(); return; }
+  inner.classList.add('flipped');
+  if(!wasRevealed){
+    const fb=document.querySelector('.quiz-face-front .quiz-reveal'); if(fb) fb.textContent='Voir la réponse →';
+    const row=document.querySelector('.quiz-answer-row'); if(row) row.classList.remove('hidden');
+  }
+}
+/* flipToQuestion() — retourne la carte côté question pour la RELIRE, sans
+   masquer les boutons ❌/✅ déjà révélés (simple retrait de .flipped). */
+function flipToQuestion(){
+  const inner=document.querySelector('.quiz-flip-inner'); if(inner) inner.classList.remove('flipped');
+}
+
+/* answerQuiz(ok) — réponse en mode flip : enregistre puis avance. */
+function answerQuiz(ok){
+  const card=quizState.session[quizState.idx];
+  recordResult(card,ok);
+  advanceQuiz();
+}
+
+/* qcmAnswer(ix) — réponse en mode QCM : compare au correct, enregistre,
+   re-rend pour afficher le feedback (vert/rouge). N'avance PAS tout de
+   suite (l'élève voit la correction, puis clique « Suivant »). */
+function qcmAnswer(ix){
+  if(quizState.qcmAnswered) return;
+  quizState.qcmChosen=ix; quizState.qcmAnswered=true;
+  const card=quizState.session[quizState.idx];
+  recordResult(card, quizState.qcmData.choices[ix]===quizState.qcmData.correct);
+  renderQuiz();
+}
+
+/* recordResult(card,ok) — met à jour le moteur Leitner (via onAnswer) ET
+   cumule le récap de session : score, XP gagnés, cartes progressées de boîte,
+   nouvelles cartes maîtrisées, montée de niveau. */
+function recordResult(card,ok){
+  const r=onAnswer(card.id,ok);
+  const res=quizState.results;
+  if(ok) res.ok++; else { res.ko++; res.wrongIds.push(card.id); }
+  res.xp+=r.gain;
+  if(r.promoted) res.promoted++;
+  if(r.newlyMastered) res.mastered++;
+  if(r.leveledUp) res.leveledUp=true;
+}
+
+/* advanceQuiz() — passe à la carte suivante (prépare son QCM) ou termine.
+   persistActive() sauvegarde la nouvelle position (reprise après refresh) ;
+   en fin de session, elle efface l'« active » car plus rien n'est reprenable. */
+function advanceQuiz(){
+  quizState.idx++; quizState.revealed=false;
+  if(quizState.idx>=quizState.session.length){ quizState.view='end'; persistActive(); renderQuiz(); return; }
+  persistActive(); prepareCard(); renderQuiz();
+}
+
+/* setQuizMode(m) — bascule Cartes ↔ QCM (runtime, non persisté). */
+function setQuizMode(m){ quizState.mode=m; renderQuiz(); }
+/* setQuizGoal(n) — règle l'objectif quotidien (persisté). */
+function setQuizGoal(n){ const st=loadQuizState(); st.daily.goal=n; saveQuizState(st); renderQuiz(); }
+
+/* notionMastery(st) — % de cartes maîtrisées (boîte≥4) par notion, horizon
+   courant. Une carte compte pour chacune de ses notions (c.notions, v4). */
+function notionMastery(st){
+  st=st||loadQuizState(); const h=quizState.horizon;
+  return KEYS.map(k=>{
+    const cards=QUIZ_CARDS.filter(c=>(c.notions||[c.notion]).includes(k));
+    let m=0; cards.forEach(c=>{const p=st.byHorizon[h][c.id]; if(p&&p.box>=4)m++;});
+    return {k,total:cards.length,pct:cards.length?Math.round(m/cards.length*100):0};
+  }).filter(x=>x.total>0);
+}
+
+/* quizBadges(st) — 1 badge par notion, pour l'horizon courant : acquis quand
+   80 % de ses cartes sont MÉMORISÉES (palier ≥ 4). Avant v4, il fallait
+   TOUTES les cartes au palier 5, soit une cinquantaine par notion : badge
+   hors d'atteinte, donc sans effet. */
+const QUIZ_BADGE_PCT=80;
+function quizBadges(st){
+  const nm=notionMastery(st);
+  return KEYS.map(k=>{
+    const x=nm.find(m=>m.k===k);
+    return {k,label:D[k].l,earned:!!(x&&x.pct>=QUIZ_BADGE_PCT)};
+  });
+}
+
+/* renderQuizEnd() — écran de fin GAMIFIÉ : score + récap de progression
+   (XP gagnés, cartes progressées, nouvelles maîtrisées), montée de niveau
+   éventuelle, barres niveau + objectif du jour, refaire les ratés + retour.
+   Objectif : donner le sentiment d'avoir avancé sur quelque chose. */
+function renderQuizEnd(){
+  const r=quizState.results, tot=r.ok+r.ko;
+  const hasWrong=r.wrongIds.length>0;
+  const st=loadQuizState();
+  const xp=st.gamif.xp||0, lvl=quizLevel(xp), inLvl=quizXpInLevel(xp);
+  const goal=st.daily.goal||QUIZ_DEFAULT_GOAL;
+  const dayCount=st.daily.date===todayStr()?(st.daily.count||0):0;
+  const dayPct=Math.min(100,Math.round(dayCount/goal*100));
+  const goalReached=dayCount>=goal;
+  return `
+  <div class="quiz-top">
+    <div class="quiz-title">🎯 Session terminée</div>
+    <button class="quiz-close" onclick="closeQuiz()" aria-label="Fermer">×</button>
+  </div>
+  <div class="quiz-end">
+    <div class="quiz-end-score">${r.ok} / ${tot}</div>
+    <div class="quiz-end-lbl">${r.ok===tot?'Sans-faute, bravo ! 🎉':'Continue, la répétition fait le maître.'}</div>
+    ${r.leveledUp?`<div class="quiz-levelup">🎉 Niveau ${lvl} atteint !</div>`:''}
+    <div class="quiz-end-stats">
+      <div class="quiz-end-stat"><div class="quiz-end-num">+${r.xp}</div><div class="quiz-meta-lbl">XP gagnés</div></div>
+      <div class="quiz-end-stat"><div class="quiz-end-num">${r.promoted}</div><div class="quiz-meta-lbl">cartes en progrès</div></div>
+      <div class="quiz-end-stat"><div class="quiz-end-num">${r.mastered}</div><div class="quiz-meta-lbl">nouvelles maîtrisées</div></div>
+    </div>
+    <div class="quiz-end-level">
+      <div class="quiz-meta-lbl" style="text-align:center">⭐ Niveau ${lvl} · ${inLvl}/100 XP</div>
+      <div class="quiz-day-bar"><div class="quiz-day-fill" style="width:${inLvl}%;background:var(--color-accent-quiz)"></div></div>
+    </div>
+    <div class="quiz-end-level">
+      <div class="quiz-meta-lbl" style="text-align:center">${goalReached?'🎯 Objectif du jour atteint ! ':''}${dayCount}/${goal} cartes aujourd'hui · 🔥 ${st.daily.streak||0} j d'affilée</div>
+      <div class="quiz-day-bar"><div class="quiz-day-fill" style="width:${dayPct}%"></div></div>
+    </div>
+    ${hasWrong?`<button class="quiz-start" onclick="redoWrong()">Refaire les ${r.wrongIds.length} ratés</button>`:''}
+    <button class="quiz-reveal" onclick="quitSession()">Retour</button>
+  </div>
+  `;
+}
+/* redoWrong() — relance une session limitée aux cartes ratées (récap remis à
+   zéro, session persistée pour rester reprenable). */
+function redoWrong(){
+  const ids=quizState.results.wrongIds;
+  const sess=ids.map(id=>QUIZ_BY_ID[id]).filter(Boolean);
+  quizState.session=sess; quizState.idx=0; quizState.revealed=false;
+  quizState.results={ok:0,ko:0,wrongIds:[],xp:0,promoted:0,mastered:0,leveledUp:false};
+  quizState.view='session'; persistActive(); prepareCard(); renderQuiz();
+}
+
+/* Câblage : touche Échap ferme l'overlay quiz s'il est ouvert. */
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'&&document.getElementById('quiz-overlay').classList.contains('open')) closeQuiz();
+});
+/* js/14-recherche.js — morceau du script du site. Le build (outils/construire.mjs)
+   recolle js/*.js dans l'ORDRE des noms en UN SEUL script, app.js : les
+   fonctions restent visibles d'un morceau à l'autre comme avant, et le code
+   « de premier niveau » s'exécute dans cet ordre. */
+/* ══════════════════════════════════════════════════════════════════
+   L. PALETTE DE RECHERCHE GLOBALE (Ctrl/⌘+K)
+   ──────────────────────────────────────────────────────────────────
+   Recherche transversale et instantanée sur les notions (D), les auteurs
+   (AI) et les concepts (CONCEPTS). Ouverte par le bouton .topbar-search ou
+   le raccourci Ctrl/⌘+K ; navigation clavier ↑/↓/Entrée/Échap. Activer un
+   résultat route vers openNotion / openAuthor / openConcept puis ferme la
+   palette. Elle COMPLÈTE la recherche par mode de la sidebar (conservée
+   telle quelle, avec ses filtres et ses modes de circulation).
+   ══════════════════════════════════════════════════════════════════ */
+
+/* paletteNorm(s) — normalise pour comparaison : minuscules + accents
+   retirés (NFD), espaces conservés. Même principe que slugify, sans
+   compacter les espaces (on veut comparer « jean paul sartre »). */
+function paletteNorm(s){
+  return String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+}
+
+/* paletteEsc(s) — échappe les caractères HTML sensibles avant injection
+   via innerHTML (les libellés sont des données de confiance, mais on
+   reste prudent pour & < > et les guillemets dans un attribut). */
+function paletteEsc(s){
+  return String(s==null?'':s).replace(/[&<>"']/g,
+    c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+/* PALETTE_INDEX — index plat construit UNE fois au chargement : une entrée
+   par notion / auteur / concept, avec libellé, sous-titre, pastille de
+   couleur et chaîne de recherche normalisée (norm). */
+const PALETTE_INDEX=(function(){
+  const out=[];
+  // Notions : couleur = D[k].c ; sous-titre = question d'accroche (texte nu).
+  KEYS.forEach(k=>{
+    const sub=stripHtml(D[k].s||'');
+    out.push({type:'notion', id:k, label:D[k].l, sub:sub,
+      color:D[k].c, norm:paletteNorm(D[k].l+' '+sub)});
+  });
+  // Auteurs : couleur = courant (CC) ; sous-titre = courant philosophique.
+  Object.keys(AI).forEach(name=>{
+    const courant=(AM[name]||{}).courant||'';
+    out.push({type:'auteur', id:name, label:name, sub:courant,
+      color:CC[courant]||'#888', norm:paletteNorm(name+' '+courant)});
+  });
+  // Concepts : couleur = 1re notion liée (si fichée) ; sous-titre = catégorie.
+  CONCEPTS.forEach(c=>{
+    const col=(c.notions&&c.notions[0]&&D[c.notions[0]])?D[c.notions[0]].c:'#888';
+    out.push({type:'concept', id:c.id, label:c.term, sub:c.cat||'',
+      color:col, norm:paletteNorm(c.term+' '+(c.cat||''))});
+  });
+  // Accroches : phrases d'ouverture rangées dans l'onglet Exemples > Accroches
+  //   de chaque notion. id = "clé#index" (la clé ne contient pas de '#') →
+  //   paletteActivate route vers openNotionAccroche(clé, index). Label = texte
+  //   nu de l'accroche ; sous-titre = notion + type ; recherche = texte+source.
+  KEYS.forEach(k=>{
+    (D[k].accroches||[]).forEach((a,ai)=>{
+      const txt=stripHtml(a.t||'');
+      // Libellé affiché tronqué (les accroches sont de vraies phrases) ; la
+      // chaîne de recherche (norm) garde le texte complet + source.
+      const label=txt.length>88?txt.slice(0,87)+'…':txt;
+      out.push({type:'accroche', id:k+'#'+ai, label:label, sub:D[k].l+(a.type?' · '+a.type:''),
+        color:D[k].c, norm:paletteNorm(txt+' '+(a.src||'')+' '+D[k].l+' '+(a.type||''))});
+    });
+  });
+  return out;
+})();
+
+const PALETTE_GROUPS={notion:'Notions', auteur:'Auteurs', concept:'Concepts', accroche:'Accroches'};
+const PALETTE_ORDER={notion:0, auteur:1, concept:2, accroche:3};
+
+/* État runtime. paletteResults = liste à plat des résultats affichés (dans
+   l'ordre des groupes) ; paletteSel = index sélectionné au clavier. */
+let paletteResults=[]; let paletteSel=0;
+
+/* paletteQuery() — lit la saisie courante du champ. */
+function paletteQuery(){ const i=document.getElementById('palette-input'); return i?i.value:''; }
+
+/* paletteSearch(q) — entrées correspondant à q, classées par pertinence
+   (libellé qui COMMENCE par q, puis match en tête de la chaîne, puis
+   simple inclusion), regroupées par type (notion → auteur → concept).
+   Sans requête : tout l'index, dans son ordre naturel. Plafonné à 40. */
+function paletteSearch(q){
+  const n=paletteNorm(q.trim());
+  let hits;
+  if(!n){
+    hits=PALETTE_INDEX.slice();
+  } else {
+    hits=PALETTE_INDEX
+      .map(e=>{ const i=e.norm.indexOf(n);
+        return i<0?null:{e, rank:(paletteNorm(e.label).startsWith(n)?0:(i===0?1:2))}; })
+      .filter(Boolean)
+      .sort((a,b)=>a.rank-b.rank)   // sort stable : conserve l'ordre d'index à rang égal
+      .map(x=>x.e);
+  }
+  // Regroupe par type (sort stable → pertinence conservée dans chaque groupe).
+  return hits.sort((a,b)=>PALETTE_ORDER[a.type]-PALETTE_ORDER[b.type]).slice(0,40);
+}
+
+/* renderPalette() — recalcule les résultats selon la saisie et peint la
+   liste groupée ; borne la sélection et fait défiler l'élément choisi. */
+function renderPalette(){
+  const box=document.getElementById('palette-results');
+  paletteResults=paletteSearch(paletteQuery());
+  if(paletteSel>=paletteResults.length) paletteSel=paletteResults.length-1;
+  if(paletteSel<0) paletteSel=0;
+  if(!paletteResults.length){
+    box.innerHTML='<div class="cmdp-empty">Aucun résultat.</div>';
+    return;
+  }
+  let html=''; let lastType=null;
+  paletteResults.forEach((e,ix)=>{
+    if(e.type!==lastType){ html+=`<div class="cmdp-group">${PALETTE_GROUPS[e.type]}</div>`; lastType=e.type; }
+    const sel=ix===paletteSel?' sel':'';
+    const sub=e.sub?`<span class="cmdp-sub">${paletteEsc(e.sub)}</span>`:'';
+    html+=`<div class="cmdp-item${sel}" role="option" data-ix="${ix}" aria-selected="${ix===paletteSel}">`
+      +`<span class="cmdp-dot" style="background:${paletteEsc(e.color)}"></span>`
+      +`<span class="cmdp-label">${paletteEsc(e.label)}</span>${sub}</div>`;
+  });
+  box.innerHTML=html;
+  const cur=box.querySelector('.cmdp-item.sel');
+  if(cur) cur.scrollIntoView({block:'nearest'});
+}
+
+/* openPalette() — ouvre la palette : reset saisie + sélection, rend la
+   liste (tout l'index au départ), focus le champ. */
+function openPalette(){
+  const ov=document.getElementById('palette-overlay');
+  const inp=document.getElementById('palette-input');
+  inp.value=''; paletteSel=0;
+  ov.classList.add('open');
+  renderPalette();
+  paletteSyncClear();   // champ vidé → croix masquée
+  inp.focus();
+}
+
+/* closePalette() — referme la palette. */
+function closePalette(){ document.getElementById('palette-overlay').classList.remove('open'); }
+
+/* paletteSyncClear() — affiche/masque la croix d'effacement selon que le champ
+   contient ou non du texte. */
+function paletteSyncClear(){
+  const inp=document.getElementById('palette-input'); const btn=document.getElementById('palette-clear');
+  if(inp&&btn) btn.style.display=inp.value?'flex':'none';
+}
+
+/* clearPaletteSearch() — vide la recherche globale (croix ou clic droit),
+   recalcule la liste (tout l'index) et redonne le focus pour ressaisir. */
+function clearPaletteSearch(){
+  const inp=document.getElementById('palette-input'); if(!inp) return;
+  inp.value=''; paletteSel=0; renderPalette(); paletteSyncClear(); inp.focus();
+}
+
+/* paletteIsOpen() — la palette est-elle visible ? */
+function paletteIsOpen(){ return document.getElementById('palette-overlay').classList.contains('open'); }
+
+/* paletteMove(d) — déplace la sélection clavier de d (±1), avec bouclage. */
+function paletteMove(d){
+  if(!paletteResults.length) return;
+  paletteSel=(paletteSel+d+paletteResults.length)%paletteResults.length;
+  renderPalette();
+}
+
+/* paletteActivate() — ouvre le résultat sélectionné via le bon point
+   d'entrée (notion / auteur / concept) puis ferme la palette. */
+function paletteActivate(){
+  const e=paletteResults[paletteSel];
+  if(!e) return;
+  closePalette();
+  if(e.type==='notion') openNotion(e.id);
+  else if(e.type==='auteur') openAuthor(e.id);
+  else if(e.type==='concept') openConcept(e.id);
+  else if(e.type==='accroche'){
+    // id = "clé#index" → ouvre la notion sur Exemples > Accroches et fait
+    // briller la carte ciblée.
+    const h=e.id.lastIndexOf('#');
+    openNotionAccroche(e.id.slice(0,h), +e.id.slice(h+1));
+  }
+}
+
+/* Câblage des interactions de la palette (saisie, clavier, clic, raccourci). */
+(function(){
+  const inp=document.getElementById('palette-input');
+  const res=document.getElementById('palette-results');
+  const ov=document.getElementById('palette-overlay');
+  if(!inp||!res||!ov) return;   // garde-fou si le DOM change
+  // Saisie : recalcule, repart du 1er résultat et affiche la croix si non vide.
+  inp.addEventListener('input',()=>{ paletteSel=0; renderPalette(); paletteSyncClear(); });
+  // Clic droit dans le champ : pas de menu natif, on vide la recherche.
+  inp.addEventListener('contextmenu',e=>{ e.preventDefault(); clearPaletteSearch(); });
+  // Clavier DANS le champ : flèches, Entrée, Échap.
+  inp.addEventListener('keydown',e=>{
+    if(e.key==='ArrowDown'){ e.preventDefault(); paletteMove(1); }
+    else if(e.key==='ArrowUp'){ e.preventDefault(); paletteMove(-1); }
+    else if(e.key==='Enter'){ e.preventDefault(); paletteActivate(); }
+    else if(e.key==='Escape'){ e.preventDefault(); closePalette(); }
+  });
+  // Clic sur un résultat (délégué) : sélectionne puis active.
+  res.addEventListener('click',e=>{
+    const it=e.target.closest('.cmdp-item'); if(!it) return;
+    paletteSel=+it.dataset.ix; paletteActivate();
+  });
+  // Clic sur le voile (hors panneau) : ferme.
+  ov.addEventListener('click',e=>{ if(e.target===ov) closePalette(); });
+  // Raccourci global Ctrl/⌘+K : bascule l'ouverture de la palette.
+  document.addEventListener('keydown',e=>{
+    if((e.ctrlKey||e.metaKey)&&(e.key==='k'||e.key==='K')){
+      e.preventDefault();
+      paletteIsOpen()?closePalette():openPalette();
+    }
+  });
+})();

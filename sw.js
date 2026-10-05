@@ -10,8 +10,8 @@
 // La version du cache (CACHE) est une empreinte du contenu des fichiers
 // précachés, recalculée par outils/construire.mjs : ne pas l'éditer à la main.
 
-const CACHE = 'philo-e5188fc43c';   // version calculée par outils/construire.mjs : ne pas éditer
-const PRECACHE = ['./', './index.html', './data.js', './manifest.json', './icon.svg'];
+const CACHE = 'philo-964d1560f7';   // version calculée par outils/construire.mjs : ne pas éditer
+const PRECACHE = ['./', './index.html', './app.css', './app.js', './data.js', './manifest.json', './icon.svg'];
 
 // Installation : on précache les ressources critiques.
 self.addEventListener('install', e => {

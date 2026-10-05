@@ -1,0 +1,302 @@
+/* css/01-base.css — morceau de la feuille de style du site. Le build
+   (outils/construire.mjs) recolle css/*.css dans l'ORDRE des noms pour
+   produire app.css : l'ordre compte (cascade CSS). */
+/* ══════════════════════════════════════════════════════════════════
+   CSS — TABLE DES MATIÈRES
+   ──────────────────────────────────────────────────────────────────
+   1. Variables globales (:root)
+   2. Layout de base  — body, .wrap, .sidebar, .main
+   3. Sidebar         — items de notion (.nb), titre (.stitle)
+   4. Tabs            — barre d'onglets (.tab)
+   5. En-tête notion  — .notion-head, .ntitle, .nsub, .def-box
+   6. Contenu notion  — .ag/.ac (auteurs), .tbox (textes),
+                        .axe-card (axes), .ex-card (exemples),
+                        .lpill/.dq (liens & dissertations)
+   7. Badges          — .new-badge (nouveau), .modified-badge (modifié)
+   8. Bouton retour   — .back-btn
+   9. Définition enrichie — .def-box details/summary
+  10. Sidebar Auteurs — onglets (.sb-tab), recherche/filtre
+  11. Liste auteurs   — .ab, .ab-badges
+  12. Fiche auteur    — .author-title, .idea-card, .cit-card,
+                        .oeuvre-card, .dial-card
+  13. Sidebar Concepts — .cb
+  14. Fiche concept   — .concept-title, .tension-item
+  15. Liens inline    — .cterm/.aterm/.nterm (liens typés), .an-link (auteur)
+   ══════════════════════════════════════════════════════════════════ */
+
+/* ── 1. Variables globales ───────────────────────────────────────── */
+:root{
+  --color-background-primary:#1e1e1e;
+  --color-background-secondary:#2a2a2a;
+  --color-text-primary:#f5f5f5;
+  --color-text-secondary:#d4d4d4;
+  --color-text-tertiary:#a0a0a0;
+  --color-border-tertiary:#3a3a3a;
+  --color-border-secondary:#555555;
+  --color-background-info:#1e2d1e;
+  --color-border-info:#2d5a2d;
+  --color-text-info:#6abf6a;
+  /* Thème BLEU dédié au mode quiz (bouton sidebar + accent de l'overlay) */
+  --color-background-quiz:#1c2533;
+  --color-border-quiz:#2f4d7a;
+  --color-text-quiz:#6aa8e0;
+  --color-accent-quiz:#3b82d6;
+  --border-radius-lg:12px;
+  --border-radius-md:8px;
+}
+/* ── 2. Layout de base ───────────────────────────────────────────── */
+body{font-family:'Inter',system-ui,sans-serif;background:#121212;height:100vh;height:100dvh;padding:16px;overflow:hidden;}
+*{box-sizing:border-box;margin:0;padding:0}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+/* Accessibilité clavier : anneau de focus visible UNIQUEMENT lors de la
+   navigation au clavier (:focus-visible). Les nombreux `outline:none` du
+   CSS suppriment l'anneau disgracieux au clic souris ; cette règle le
+   rétablit pour qui tabule, sans rien changer à l'apparence à la souris. */
+:focus-visible{outline:2px solid var(--color-text-quiz);outline-offset:2px}
+.wrap{height:calc(100vh - 32px);height:calc(100dvh - 32px);display:flex;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);overflow:hidden;}
+.sidebar{width:155px;flex-shrink:0;background:var(--color-background-secondary);border-right:0.5px solid var(--color-border-tertiary);display:flex;flex-direction:column;overflow:hidden;}
+.sb-fixed{flex-shrink:0;padding:0 7px;}
+.sidebar-list{flex:1;overflow-y:auto;padding:0 7px 8px;padding-bottom:calc(8px + env(safe-area-inset-bottom,0px));height:0;min-height:0;}
+/* ── 3. Sidebar — liste des notions ─────────────────────────────── */
+.stitle{font-size:10px;font-weight:500;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:.06em;padding:0 6px 8px;flex-shrink:0;}
+.nb{padding:7px 9px;border-radius:var(--border-radius-md);cursor:pointer;font-size:12px;color:var(--color-text-secondary);border:0.5px solid transparent;transition:all .15s;line-height:1.3;display:flex;align-items:center;gap:6px;flex-shrink:0;}
+.nb:hover{background:var(--color-background-primary);color:var(--color-text-primary)}
+.nb.active{background:var(--color-background-primary);color:var(--color-text-primary);border-color:var(--color-border-secondary);font-weight:500}
+.dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.main-content{flex:1;overflow-y:auto;padding:18px 22px 24px;padding-bottom:calc(24px + env(safe-area-inset-bottom,0px));height:0;min-height:0;}
+
+/* ── 3b. Fil d'Ariane (« crumbs ») — style explorateur ──────────────
+   Affiché au-dessus de la barre d'onglets. Chaque segment est cliquable
+   (sauf le dernier, « current ») et ramène à son niveau de hiérarchie. */
+.crumbs{padding:10px 22px 0;font-size:11px;color:var(--color-text-tertiary);
+  display:flex;flex-wrap:wrap;align-items:center;gap:3px;min-height:14px}
+.crumb{cursor:pointer;color:var(--color-text-tertiary);padding:3px 7px;
+  border-radius:var(--border-radius-md);transition:color .15s,background .15s;
+  white-space:nowrap}
+.crumb:hover{color:var(--color-text-info);background:var(--color-background-info)}
+.crumb.current{color:var(--color-text-primary);font-weight:500;cursor:default}
+.crumb.current:hover{color:var(--color-text-primary);background:transparent}
+.crumb-sep{color:var(--color-text-tertiary);opacity:.45;font-size:11px;padding:0 1px}
+
+/* ── 4. Tabs — barre d'onglets principale ────────────────────────── */
+.tabs{display:flex;gap:2px;border-bottom:0.5px solid var(--color-border-tertiary);padding:10px 22px 0;flex-shrink:0;}
+.tab{padding:7px 14px;font-size:12px;cursor:pointer;color:var(--color-text-secondary);border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s;border-radius:0}
+.tab:hover{color:var(--color-text-primary)}
+.tab.active{color:var(--color-text-primary);font-weight:500;border-bottom-color:currentColor}
+
+.notion-head{display:flex;align-items:center;gap:10px;margin-bottom:14px;margin-top:18px}
+.nbadge{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.ntitle{font-size:17px;font-weight:500;color:var(--color-text-primary)}
+.nsub{font-size:12px;color:var(--color-text-secondary);margin-top:2px}
+
+.def-box{background:var(--color-background-secondary);border-left:2.5px solid var(--color-border-secondary);padding:11px 13px;border-radius:0 var(--border-radius-md) var(--border-radius-md) 0;margin-bottom:16px;font-size:13px;color:var(--color-text-secondary);line-height:1.65}
+.kw{font-weight:500;color:var(--color-text-primary)}
+
+.slabel{font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.06em;color:var(--color-text-tertiary);margin-bottom:8px}
+
+/* ── 6. Contenu notion — onglet Auteurs (.ag/.ac) ────────────────── */
+.ag{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:9px;margin-bottom:16px}
+.ac{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:10px 12px}
+.an{font-size:12px;font-weight:500;margin-bottom:2px}
+.aw{font-size:11px;color:var(--color-text-tertiary);font-style:italic;margin-bottom:4px}
+.ai{font-size:12px;color:var(--color-text-secondary);line-height:1.5}
+.aq{font-size:11px;color:var(--color-text-tertiary);font-style:italic;margin-top:5px;border-left:2px solid var(--color-border-tertiary);padding-left:7px;line-height:1.4}
+/* Carte auteur multi-idées : chaque idée est une ZONE autonome (.a-idea) avec
+   sa propre couleur (is-new / is-modified) et ses badges ; les zones se
+   disposent HORIZONTALEMENT (flex-wrap) au lieu d'être empilées. */
+.a-ideas{display:flex;flex-wrap:wrap;gap:8px}
+.a-idea{flex:1 1 200px;min-width:0;padding:7px 9px;border-radius:var(--border-radius-md);
+        border:0.5px solid transparent}
+/* Plusieurs idées dans une carte → on matérialise les zones par un liseré
+   discret (les zones colorées, elles, l'emportent ci-dessous). */
+.ac-multi .a-idea{border-color:var(--color-border-tertiary)}
+.a-idea.is-new{border-color:var(--color-new-border);background:var(--color-new-bg)}
+.a-idea.is-new .aw{color:var(--color-new)}
+.a-idea.is-modified{border-color:var(--color-mod-border);background:var(--color-mod-bg)}
+.a-idea.is-modified .aw{color:var(--color-mod)}
+/* Carte d'un auteur à plusieurs idées : s'élargit sur 2 colonnes (au lieu de
+   toute la rangée) pour que les zones d'idées tiennent côte à côte SANS laisser
+   de grands vides dans la grille — un span pleine-rangée cassait le flux et
+   laissait les colonnes restantes vides. (≤700px : retour à 1 colonne.) */
+.ac-multi{grid-column:span 2}
+/* « Mode fiche » (Réglages) : lecture RAPIDE façon fiche de révision. Chaque
+   boîte d'auteur des notions affiche la SYNTHÈSE (.ai-fiche = la thèse en une
+   phrase, cf. ideaSynthese) à la place du texte complet (.ai), masque les
+   citations, et resserre les zones. .ai-fiche est cachée hors mode fiche. */
+.ai-fiche{display:none}
+body.mode-fiche .ac{padding:7px 9px}
+body.mode-fiche .a-idea{padding:4px 7px}
+body.mode-fiche .aw{margin-bottom:2px}
+body.mode-fiche .ai{display:none}
+body.mode-fiche .ai-fiche{display:block;font-size:12px;line-height:1.45;color:var(--color-text-secondary)}
+body.mode-fiche .a-idea .aq,
+body.mode-fiche .a-idea .aq-details{display:none}
+/* Citations multiples d'une idée : la 1re est visible, les autres dans un déroulant. */
+.aq-details{margin-top:3px}
+.aq-details>summary{font-size:10px;color:var(--color-text-tertiary);cursor:pointer;list-style:none;padding-left:7px}
+.aq-details>summary::-webkit-details-marker{display:none}
+.aq-details>summary:hover{color:var(--color-text-secondary)}
+.aq-more{margin-top:4px}
+
+/* ── 6b. Contenu notion — onglet Textes (.tbox/.ti2) ─────────────── */
+.tbox{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:11px 13px;margin-bottom:16px}
+.ti2{display:flex;flex-direction:column;gap:3px;padding:8px 0;border-bottom:0.5px solid var(--color-border-tertiary);font-size:12px;line-height:1.5}
+.ti2:last-child{border-bottom:none;padding-bottom:0}
+.tinum{font-weight:500;color:var(--color-text-primary);flex-shrink:0}
+.titxt{color:var(--color-text-secondary)}
+
+/* ── 6c. Contenu notion — onglet Axes (.axe-card/.sp) ───────────── */
+.axe-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:12px 14px;margin-bottom:10px}
+.axe-head{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.axe-num{font-size:10px;font-weight:500;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:.05em}
+.axe-title{font-size:13px;font-weight:500;color:var(--color-text-primary)}
+.axe-pb{font-size:11px;color:var(--color-text-secondary);margin-bottom:8px;font-style:italic}
+.sp{margin:4px 0 0 0;padding:0}
+.sp-item{display:flex;gap:7px;font-size:12px;color:var(--color-text-secondary);padding:3px 0;line-height:1.45;border-bottom:0.5px solid var(--color-border-tertiary)}
+.sp-item:last-child{border-bottom:none}
+.sp-letter{font-weight:500;color:var(--color-text-primary);flex-shrink:0;min-width:14px}
+.sp-content{color:var(--color-text-secondary)}
+.sp-ref{font-size:10px;color:var(--color-text-tertiary);display:block;margin-top:1px}
+
+/* ── Plans de dissertation (onglet Dissertations) ──────────────────
+   .plan-card : carte d'un plan complet (1 sujet + 3 axes I/II/III), elle-
+   même DÉROULABLE (<details>) — on ne voit que le sujet (summary .plan-q)
+   et on déplie le plan qu'on veut travailler (divulgation progressive).
+   .plan-axe  : un axe ; .plan-sp : une sous-partie DÉROULABLE (<details>)
+   Les « limites » marquent les transitions : la limite de sous-partie est
+   discrète, la limite d'axe (transition vers l'axe suivant) est plus
+   marquée (encadré coloré).                                            */
+.plan-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:13px 15px;margin-bottom:12px}
+.plan-q{font-size:13.5px;font-weight:600;color:var(--color-text-primary);line-height:1.4;margin-bottom:9px}
+/* Sujet = résumé cliquable du plan déroulable. Marqueur ▶/▼ maison (comme
+   .plan-sp), puce native masquée ; pas de marge sous le sujet quand replié. */
+.plan-card>summary{list-style:none;cursor:pointer;margin-bottom:0}
+.plan-card>summary::-webkit-details-marker{display:none}
+.plan-card>summary::before{content:"▶ ";color:var(--color-text-tertiary);font-size:9px}
+.plan-card[open]>summary::before{content:"▼ "}
+.plan-card[open]>summary{margin-bottom:9px}
+.plan-card>summary:hover{color:var(--color-text-primary)}
+.plan-intro,.plan-pb{font-size:12px;color:var(--color-text-secondary);line-height:1.55;margin-bottom:6px}
+.plan-lbl{font-weight:600;color:var(--color-text-primary)}
+.plan-pb{margin-bottom:11px}
+.plan-axe{margin:0 0 11px 0;padding:9px 0 0 0;border-top:0.5px solid var(--color-border-tertiary)}
+.plan-axe-head{font-size:12.5px;font-weight:600;color:var(--color-text-primary);margin-bottom:6px}
+.plan-todo{color:var(--color-text-tertiary);font-weight:400;font-style:italic}
+.plan-sp{margin:4px 0;border-left:2px solid var(--color-border-tertiary);padding-left:9px}
+.plan-sp>summary{font-size:12px;color:var(--color-text-secondary);cursor:pointer;line-height:1.45;list-style:none;padding:2px 0}
+.plan-sp>summary::-webkit-details-marker{display:none}
+.plan-sp>summary::before{content:"▸ ";color:var(--color-text-tertiary);font-size:10px}
+.plan-sp[open]>summary::before{content:"▾ "}
+.plan-sp>summary:hover{color:var(--color-text-primary)}
+.plan-sp[open]>summary{font-weight:600;color:var(--color-text-primary);margin-bottom:4px}
+.plan-sp-letter{font-weight:600;color:var(--color-text-primary)}
+/* Sous-partie sans titre (plan migré) : affichée en entier, lettre flottante. */
+.plan-sp-flat{margin:6px 0}
+.plan-sp-flat .plan-sp-letter{float:left;margin-right:5px}
+.plan-sp-flat .plan-sp-body{overflow:hidden}
+.plan-sp-body{font-size:12px;color:var(--color-text-secondary);line-height:1.55;padding:2px 0 6px 4px}
+.plan-sp-args{margin-bottom:5px}
+.plan-sp-meta,.plan-sp-ref{font-size:11px;color:var(--color-text-tertiary);margin-top:3px}
+.plan-sp-limite{font-size:11px;color:var(--color-text-secondary);margin-top:5px;padding:4px 8px;background:var(--color-background-secondary);border-radius:var(--border-radius-md)}
+.plan-axe-limite{font-size:11.5px;color:var(--color-text-secondary);line-height:1.5;margin-top:7px;padding:7px 10px;background:var(--color-background-secondary);border-left:3px solid var(--color-border-secondary);border-radius:0 var(--border-radius-md) var(--border-radius-md) 0}
+.plan-migr{font-size:9.5px;font-weight:600;color:var(--color-text-tertiary);border:0.5px dashed var(--color-border-tertiary);border-radius:20px;padding:1px 7px;white-space:nowrap}
+
+/* ── 6d. Contenu notion — onglet Exemples (.ex-card) ─────────────── */
+.ex-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:11px 13px;margin-bottom:9px}
+.ex-head{display:flex;align-items:center;gap:7px;margin-bottom:5px}
+.ex-tag{font-size:10px;font-weight:500;padding:2px 8px;border-radius:20px;flex-shrink:0}
+.ex-title{font-size:12px;font-weight:500;color:var(--color-text-primary)}
+.ex-body{font-size:12px;color:var(--color-text-secondary);line-height:1.55}
+.ex-lien{font-size:10px;color:var(--color-text-tertiary);margin-top:4px;font-style:italic}
+/* Sous-onglet « Accroches » : amorces rédigées prêtes à recopier. Plus
+   explicites/lisibles que les exemples (corps plus grand, liséré accentué),
+   façon « fiche concept » mais centrée sur la phrase d'ouverture. */
+.accroche-card{background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-left:3px solid var(--color-accent);border-radius:var(--border-radius-md);padding:12px 15px;margin-bottom:10px}
+.accroche-head{display:flex;align-items:center;gap:7px;margin-bottom:7px}
+.accroche-type{font-size:10px;font-weight:600;letter-spacing:.03em;text-transform:uppercase;color:var(--color-accent);background:var(--color-accent-soft,rgba(120,120,255,.10));padding:2px 9px;border-radius:20px;flex-shrink:0}
+.accroche-body{font-size:13.5px;color:var(--color-text-primary);line-height:1.6}
+.accroche-src{font-size:11px;color:var(--color-text-tertiary);margin-top:6px;font-style:italic;text-align:right}
+.accroche-card.is-new{border-color:var(--color-new-border);border-left-color:var(--color-new);background:var(--color-new-bg)}
+.accroche-card.is-modified{border-color:var(--color-mod-border);border-left-color:var(--color-mod);background:var(--color-mod-bg)}
+
+/* ── 6e. Contenu notion — onglets Liens & Dissertations ──────────── */
+.liens-row{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:14px}
+.lpill{font-size:11px;padding:4px 10px;border-radius:20px;cursor:pointer;border:0.5px solid;color:inherit;background:transparent;transition:opacity .15s}
+.lpill:hover{opacity:.7}
+.diss-list{margin-bottom:4px}
+.dq{font-size:12px;color:var(--color-text-secondary);padding:5px 0 5px 12px;position:relative;line-height:1.4;border-bottom:0.5px solid var(--color-border-tertiary)}
+.dq:last-child{border-bottom:none}
+.dq::before{content:"?";position:absolute;left:0;color:var(--color-text-tertiary);font-size:11px;top:6px}
+
+/* ── Éléments nouveaux ────────────────────────────────────────── */
+:root{
+  --color-new:#C8923A;
+  --color-new-bg:#2a2210;
+  --color-new-border:#5a3e1a;
+}
+.new-badge{
+  display:inline-flex;align-items:center;gap:3px;
+  font-size:9px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
+  background:var(--color-new-bg);color:var(--color-new);
+  border:0.5px solid var(--color-new-border);
+  border-radius:4px;padding:1px 6px;flex-shrink:0;
+}
+.ac.is-new{border-color:var(--color-new-border);background:var(--color-new-bg)}
+.ac.is-new .an{position:relative}
+.ti2.is-new{background:var(--color-new-bg);border-radius:4px;padding:5px 7px;margin-bottom:2px;border-bottom:none!important}
+.ti2.is-new .tinum{color:var(--color-new)}
+.axe-card.is-new{border-color:var(--color-new-border);background:var(--color-new-bg)}
+.axe-card.is-new .axe-num{color:var(--color-new)}
+.ex-card.is-new{border-color:var(--color-new-border);background:var(--color-new-bg)}
+.dq.is-new{color:var(--color-new);border-bottom-color:var(--color-new-border)}
+.dq.is-new::before{color:var(--color-new)}
+
+/* ── Éléments modifiés ────────────────────────────────────────── */
+:root{
+  --color-mod:#4A9CC8;
+  --color-mod-bg:#0d1e2a;
+  --color-mod-border:#1d4c6e;
+}
+.modified-badge{
+  display:inline-flex;align-items:center;gap:3px;
+  font-size:9px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
+  background:var(--color-mod-bg);color:var(--color-mod);
+  border:0.5px solid var(--color-mod-border);
+  border-radius:4px;padding:1px 6px;flex-shrink:0;
+}
+.ac.is-modified{border-color:var(--color-mod-border);background:var(--color-mod-bg)}
+.ac.is-modified .an{color:var(--color-mod)!important}
+.ti2.is-modified{background:var(--color-mod-bg);border-radius:4px;padding:5px 7px;margin-bottom:2px;border-bottom:none!important}
+.ti2.is-modified .tinum{color:var(--color-mod)}
+.axe-card.is-modified{border-color:var(--color-mod-border);background:var(--color-mod-bg)}
+.axe-card.is-modified .axe-num{color:var(--color-mod)}
+.ex-card.is-modified{border-color:var(--color-mod-border);background:var(--color-mod-bg)}
+.dq.is-modified{color:var(--color-mod);border-bottom-color:var(--color-mod-border)}
+.dq.is-modified::before{color:var(--color-mod)}
+.idea-card.is-modified{border-color:var(--color-mod-border);background:var(--color-mod-bg)}
+
+/* ── Bouton retour ───────────────────────────────────────────── */
+.back-btn{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:5px 10px;font-size:11px;font-weight:500;
+  color:var(--color-text-tertiary);background:transparent;
+  border:0.5px solid var(--color-border-tertiary);
+  border-radius:var(--border-radius-md);cursor:pointer;
+  font-family:inherit;transition:all .15s;flex-shrink:0;
+  margin-right:6px;line-height:1;
+}
+.back-btn:hover{color:var(--color-text-primary);border-color:var(--color-border-secondary);background:var(--color-background-primary)}
+.back-btn:disabled{opacity:.3;cursor:default;pointer-events:none}
+
+/* ── Définition enrichie ─────────────────────────────────────── */
+.def-box details{margin-top:10px;border-top:0.5px solid var(--color-border-tertiary);padding-top:8px}
+.def-box summary{cursor:pointer;font-size:11px;font-weight:600;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:.07em;list-style:none;display:flex;align-items:center;gap:5px;user-select:none}
+.def-box summary::-webkit-details-marker{display:none}
+.def-box summary::before{content:'▶';font-size:8px;transition:transform .2s}
+.def-box details[open] summary::before{content:'▼'}
+.def-box details[open] summary{color:var(--color-text-secondary)}
+.def-sec{margin-top:9px}
+.def-sec-title{font-size:10px;font-weight:600;color:var(--color-text-primary);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
+.def-sec-body{font-size:12px;color:var(--color-text-secondary);line-height:1.65;padding-left:9px;border-left:2px solid var(--color-border-secondary);margin-bottom:7px}
+.def-sec-body strong{color:var(--color-text-primary);font-weight:500}

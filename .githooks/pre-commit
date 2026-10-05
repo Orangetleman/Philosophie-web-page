@@ -18,12 +18,12 @@
 command -v node >/dev/null 2>&1 || exit 0
 ROOT="$(git rev-parse --show-toplevel)" || exit 0
 
-# 0. BUILD À JOUR (bloquant) : data.js et sw.js sont générés par
-#    outils/construire.mjs. Si le contenu, le site ou le build changent, ils
-#    doivent avoir été reconstruits avant le commit.
-if git diff --cached --name-only | grep -qE '^(contenu/|outils/|data\.js|sw\.js|index\.html|manifest\.json|icon\.svg)'; then
+# 0. BUILD À JOUR (bloquant) : data.js, app.js, app.css, sw.js et les refs
+#    de la carte sont produits par outils/construire.mjs. Si le contenu, le
+#    code ou le build changent, ils doivent avoir été reconstruits avant le commit.
+if git diff --cached --name-only | grep -qE '^(contenu/|js/|css/|outils/|docs/carte/|data\.js|app\.js|app\.css|sw\.js|index\.html|manifest\.json|icon\.svg)'; then
   if ! node "$ROOT/outils/construire.mjs" --controle >&2; then
-    echo "pre-commit : lancer « node outils/construire.mjs », puis ajouter data.js et sw.js au commit." >&2
+    echo "pre-commit : lancer « node outils/construire.mjs », puis ajouter les fichiers produits au commit." >&2
     exit 1
   fi
 fi

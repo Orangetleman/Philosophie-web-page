@@ -43,8 +43,14 @@ function charger() {
   const bac = {};
   vm.createContext(bac);
   const data = vm.runInContext(src + '\n;({D, KEYS, AM, CONCEPTS})', bac, { filename: 'data.js' });
-  const html = fs.readFileSync(path.join(RACINE, 'index.html'), 'utf8');
-  const m = html.match(/const AUTHOR_ALIASES=(\{[\s\S]*?\n\});/);
+  // AUTHOR_ALIASES vit dans le code du site : js/*.js depuis l'étape 3 (avant,
+  // dans index.html, encore lu pour contrôler une ancienne copie via --racine).
+  const dJs = path.join(RACINE, 'js');
+  const code = fs.existsSync(dJs)
+    ? fs.readdirSync(dJs).filter(f => f.endsWith('.js')).map(f => fs.readFileSync(path.join(dJs, f), 'utf8')).join('\n')
+    : fs.readFileSync(path.join(RACINE, 'index.html'), 'utf8');
+  const m = code.replace(/\r\n/g, '\n').match(/const AUTHOR_ALIASES=(\{[\s\S]*?\n\});/);
+  if (!m) throw new Error('AUTHOR_ALIASES introuvable dans js/ (ou index.html)');
   data.ALIASES = m ? vm.runInNewContext('(' + m[1] + ')') : {};
   return data;
 }
