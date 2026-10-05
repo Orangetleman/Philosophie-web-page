@@ -1,0 +1,10 @@
+{
+  "name": "philo-banc-schema",
+  "private": true,
+  "type": "module",
+  "description": "Banc d'essai des règles d'accès Supabase (PGlite). Lancer : npm ci && node banc_schema.mjs",
+  "engines": { "node": ">=20.19" },
+  "dependencies": {
+    "@electric-sql/pglite": "0.5.8"
+  }
+}

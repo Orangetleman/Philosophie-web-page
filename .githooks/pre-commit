@@ -1,19 +1,31 @@
 #!/bin/sh
 # ════════════════════════════════════════════════════════════════════
-# pre-commit — régénère la frise des commits (doc) avant chaque commit.
+# pre-commit — deux tâches avant chaque commit.
 #
-# Régénère docs/carte/frise.data.js depuis `git log` puis le stage, pour
-# que la frise reste à jour automatiquement. NON BLOQUANT : si Node n'est
-# pas disponible (ou si la génération échoue), le commit se fait quand même.
+# 1. CONTRÔLE DU CONTENU (bloquant, oct. 2026) : si data.js ou le
+#    vérificateur font partie du commit, outils/verifier_contenu.mjs doit
+#    répondre « cohérent ». Sinon le commit est refusé et la liste des
+#    erreurs s'affiche : on corrige, puis on recommence.
+#
+# 2. FRISE DES COMMITS (non bloquant) : régénère docs/carte/frise.data.js
+#    depuis `git log` puis le stage. Si Node manque ou si la génération
+#    échoue, le commit se fait quand même. La frise reflète l'historique
+#    jusqu'au commit PRÉCÉDENT (le commit courant apparaîtra au prochain).
+#    Rafraîchissement complet : node docs/carte/frise.gen.mjs
 #
 # Activé via :  git config core.hooksPath .githooks   (déjà fait dans ce dépôt)
-#
-# Note : exécuté AVANT la création du commit, la frise reflète donc
-# l'historique jusqu'au commit PRÉCÉDENT (le commit courant apparaîtra au
-# prochain). Pour forcer un rafraîchissement complet : node docs/carte/frise.gen.mjs
 # ════════════════════════════════════════════════════════════════════
 command -v node >/dev/null 2>&1 || exit 0
 ROOT="$(git rev-parse --show-toplevel)" || exit 0
+
+if git diff --cached --name-only | grep -qE '^(data\.js|outils/verifier_contenu\.mjs)$'; then
+  if ! node "$ROOT/outils/verifier_contenu.mjs" > /tmp/philo-verif.txt 2>&1; then
+    echo "pre-commit : le contenu n'est pas cohérent, commit refusé." >&2
+    grep -A200 "À CORRIGER" /tmp/philo-verif.txt >&2
+    exit 1
+  fi
+fi
+
 node "$ROOT/docs/carte/frise.gen.mjs" >/dev/null 2>&1 || exit 0
 git add "$ROOT/docs/carte/frise.data.js" >/dev/null 2>&1 || true
 exit 0
