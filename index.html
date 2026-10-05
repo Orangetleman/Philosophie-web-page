@@ -32,10 +32,12 @@
                      textes / concepts / dissertations / exemples (l'ancien
                      onglet « axes » est migré en « plans » au chargement).
   · const KEYS     — Object.keys(D) (ordre des notions)
-  · const AM       — Métadonnées des ~77 auteurs : bio, courant, période,
-                     thèmes, dialogues (oppose / prolonge / répond, + sujet)
-  · const CONCEPTS — Glossaire de ~165 concepts : def, cat, auteur, notions,
-                     liens (par notion), relations unifiées (ex-« tensions »)
+  · const AM       — Métadonnées des auteurs (une entrée par auteur de D, sous
+                     le MÊME nom) : bio, courant, période, thèmes, dialogues
+                     (oppose / prolonge / répond, + sujet)
+  · const CONCEPTS — Glossaire (~172 concepts + 31 repères cat:'Repère') : def,
+                     cat, auteur, notions, liens (par notion), relations
+                     unifiées (ex-« tensions »)
   · const CC       — (resté dans index.html) couleurs par courant philosophique
 
   NORMALISATION au chargement (rétro-compat des anciens formats de source) :
@@ -48,9 +50,10 @@
   · Index & liens   buildAI() (auteur → notions/idées) ; linkTerms() rend
                     cliquables notions/concepts/auteurs cités dans tout texte
                     (.nterm notion · .cterm concept · .aterm auteur)
-  · Rendu           renderSB (sidebar, 3 modes notions/auteurs/concepts),
-                    renderContent (notion, 5 onglets), renderAuthorContent,
-                    renderConceptContent
+  · Rendu           renderSB (sidebar, 5 modes notions/auteurs/concepts/
+                    reperes/methodo), renderContent (notion, 5 onglets),
+                    renderAuthorContent, renderConceptContent,
+                    renderMethodoContent
   · Navigation      fil d'Ariane cliquable (renderCrumbs / goMode), pile
                     d'historique, openNotion / openAuthor / openConcept
   · Affichage       mode révision / édition (localStorage philo-mode : épuré
@@ -58,16 +61,20 @@
                     onboarding 1re visite (.onb-overlay, flag philo-onboarded)
   · Contribution    modale « Proposer du contenu » : boîtes empilables
     (section J.)    (catégorie × cible × type) ; génère un texte lisible + un
-                    bloc JSON v3 ; envoi EN LIGNE (Supabase si connecté, sinon
-                    boîte anonyme PythonAnywhere) avec repli mailto automatique
+                    bloc JSON v3 ; envoi EN LIGNE dans Supabase (connecté, ou
+                    anonyme avec user_id NULL) avec repli mailto automatique
   · Quiz (sect. K.) révision active par cartes : Leitner (2 horizons), QCM,
                     gamification XP/niveau, filtres, reprise de session ; tout
                     est DÉRIVÉ de CONCEPTS / D / AI ; état localStorage philo-quiz
+                    (v4, oct. 2026 : ids stables, terme masqué, citations
+                    exactes seules, tirage au hasard, « Relire la fiche »)
   · Compte & sync   Supabase : authentification (e-mail + mot de passe, ou
-                    Google) ; synchronisation cross-appareil du quiz, des
-                    préférences et des brouillons de proposition ; suivi du
-                    statut des contributions dans « Mes propositions »
-  · PWA             manifest.json + sw.js (cache-first, hors-ligne) + icon.svg
+                    Google) ; synchronisation cross-appareil du quiz (fusion
+                    carte par carte), des préférences et des brouillons de
+                    proposition ; suivi du statut des contributions dans
+                    « Mes propositions »
+  · PWA             manifest.json + sw.js (réseau d'abord pour HTML/JS, cache
+                    d'abord pour le reste ; hors-ligne) + icon.svg
 -->
 <html lang="fr"><head><meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -1557,8 +1564,14 @@ body.sb-open .sb-backdrop{display:block;opacity:1}
 <!-- new (comptes) : bibliothèque cliente Supabase (authentification +
      base en ligne). Chargée AVANT le script principal pour exposer le
      global « supabase » (porteur de createClient), dont on se sert plus
-     bas pour créer le client SB. Build UMD via le CDN jsDelivr. -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+     bas pour créer le client SB. Build UMD via le CDN jsDelivr.
+     Version FIGÉE (oct. 2026) + empreinte d'intégrité (attribut integrity,
+     « SRI ») : le navigateur refuse le fichier si son contenu change. Avant,
+     « @2 » suivait toute nouvelle version 2.x dès sa publication. Pour
+     monter de version : changer le numéro ET recalculer l'empreinte
+     (sha384 du fichier dist/umd/supabase.js, encodée en base64). Garder la
+     même ligne dans triage/index.html. -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js" integrity="sha384-Rj26LVGvoeRVR6+mwQmFfcR3QOBEwT+ZmuCWpuiqeTzJpCs0ER4ITAWGb4Hiy3Ok" crossorigin="anonymous"></script>
 <script>
 /* ══════════════════════════════════════════════════════════════════
    A. DONNÉES — chargées depuis data.js (script classique, globales)

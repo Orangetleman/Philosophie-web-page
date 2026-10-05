@@ -1,8 +1,17 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
-  "genere_le": "2026-10-05T17:59:40.672Z",
+  "genere_le": "2026-10-05T17:59:48.415Z",
   "commits": [
+    {
+      "hash": "bd038368b4a969bbea45795932275d81d81ca0a6",
+      "short": "bd03836",
+      "auteur": "Orangentleman",
+      "date": "2026-10-05T19:59:40+02:00",
+      "sujet": "Données : doublons fusionnés, bios rattachées, citations entre guillemets",
+      "corps": "Erreurs relevées par le diagnostic (docs/diagnostic-2026-10.md, § 2.2-2.3) :\n\n- 4 identifiants de concept en double (scepticisme, sophisme,\n  falsifiabilité, obstacle épistémologique) et 2 quasi-doublons\n  (eudaimonia2, elan-vital2) fusionnés dans l'entrée la plus riche ;\n- la fiche « Langage » (langage-def) doublonnait la notion et attribuait la\n  double articulation à Saussure : fondue dans « Double articulation »\n  (Martinet) ;\n- bios de Simone Weil, Robert Nozick et Gunther Anders rangées sous le nom\n  court : clés d'AM renommées, formes courtes ajoutées à AUTHOR_ALIASES ;\n- 9 biographies manquantes écrites (Ellul, Darwin, Frans de Waal,\n  Christopher Stone, Baptiste Morizot, Michel Serres, François Ost,\n  Val Plumwood, Srdja Popovic) ;\n- dialogue vers « Gaston Bachelard » rattaché à Bachelard ;\n- Descartes : « je pense, donc je suis » rendu au Discours de la méthode ;\n  titre français du livre de Frans de Waal corrigé ;\n- 142 citations passées des apostrophes droites aux guillemets « ».\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": "Données"
+    },
     {
       "hash": "2977db2528f0c450a4d4b510340a685d506eb8f9",
       "short": "2977db2",
