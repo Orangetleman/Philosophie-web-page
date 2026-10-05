@@ -31,6 +31,12 @@ commit**, puis lancer `node docs/carte/verifie.mjs` (anti-drift, 0 périmé). Vo
 5. `<script>` — toute la logique JS et le rendu (consomme les données globales)
 
 ### Données (dans `data.js`, globales)
+
+`data.js` ne contient QUE des données (plus aucune variable d'état depuis
+oct. 2026 : `cur`, `curTab`, `sbMode`… sont déclarées en tête du script
+d'`index.html`, section B). Les renvois au recueil de textes d'un cours
+(« TEXTE 9 ») ont été retirés : ne pas en réintroduire, une source se cite
+par son œuvre.
 - `const D` — les notions du programme (conscience, nature, science…)
 - `const KEYS` — `Object.keys(D)` (ordre des notions)
 - `const AM` — métadonnées des auteurs (bio, courant, période, thèmes, dialogues)
@@ -84,8 +90,8 @@ version périmée.
 (« Dissertations »), `exemples`. L'ancien onglet `axes` a été supprimé,
 remplacé par les **plans** dans l'onglet Dissertations.
 
-**Onglet « Exemples » — deux sous-onglets (`curExempleSubTab`, dans
-`data.js`).** « Exemples » (`exemples:[]`, cartes `.ex-card` — vue historique
+**Onglet « Exemples » — deux sous-onglets (`curExempleSubTab`, état
+déclaré en tête du script d'`index.html`).** « Exemples » (`exemples:[]`, cartes `.ex-card` — vue historique
 inchangée) et « Accroches » (`accroches:[]`, cartes `.accroche-card`). Une
 **accroche** = une **phrase d'ouverture rédigée, prête à recopier** pour
 amorcer une dissertation : `{type, t, src?, new?, modified?}` où `type` est un

@@ -1604,6 +1604,20 @@ body.sb-open .sb-backdrop{display:block;opacity:1}
    ══════════════════════════════════════════════════════════════════ */
 
 
+/* ── B. ÉTAT GLOBAL DE L'AFFICHAGE ───────────────────────────────────
+   Ces variables mémorisent ce qui est affiché à l'écran. Toute
+   modification doit être suivie d'un appel à renderSB() et/ou
+   renderContent() / renderAuthorContent() pour mettre à jour l'UI.
+   (Déclarées dans data.js jusqu'en oct. 2026 ; data.js ne garde plus que
+   les données. KEYS, l'ordre des notions, y reste.) */
+let cur=KEYS[0];             // notion active (ex: "conscience")
+let curTab='auteurs';        // onglet actif dans la vue notion
+let curConceptSubTab='concepts'; // sous-onglet de l'onglet Concepts : 'concepts' | 'liens'
+let curExempleSubTab='exemples';  // sous-onglet de l'onglet Exemples : 'exemples' | 'accroches'
+let sbMode='notions';        // mode sidebar : 'notions' | 'auteurs' | 'concepts' | 'reperes' | 'methodo'
+let curAuthor=null;          // auteur actif (chaîne = nom exact dans AM/AI)
+let curAuthorTab='idees';    // onglet actif dans la fiche auteur
+
 /* ── Concept state ───────────────────────────────────────────── */
 let curConcept=null;
 let conceptSearch='';

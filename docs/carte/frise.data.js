@@ -1,11 +1,11 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
-  "genere_le": "2026-10-05T18:07:04.447Z",
+  "genere_le": "2026-10-05T18:08:50.319Z",
   "commits": [
     {
-      "hash": "877e627500892786c59e4c88f11af53b6f7f4d9f",
-      "short": "877e627",
+      "hash": "8bf2de67d8b2f06dc4f16713714bf3959d92e9fe",
+      "short": "8bf2de6",
       "auteur": "Orangentleman",
       "date": "2026-10-05T20:06:58+02:00",
       "sujet": "Agrégateur : passage au SDK google-genai pour la relecture Gemini",
