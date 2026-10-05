@@ -1,8 +1,17 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
-  "genere_le": "2026-10-05T19:42:30.735Z",
+  "genere_le": "2026-10-05T19:48:11.755Z",
   "commits": [
+    {
+      "hash": "39b320120bc3eee4b42f2dbba73a1f2a5a564387",
+      "short": "39b3201",
+      "auteur": "Orangentleman",
+      "date": "2026-10-05T21:42:30+02:00",
+      "sujet": "Migrations : la photographie de la base réelle confirme le défaut, et en montre un second",
+      "corps": "Requête 6 de 2026_schema_lecture.sql lancée par l'auteur : authenticated lit\ntoutes les colonnes de contributions (aggregator_state comprise) et n'a aucun\ndroit UPDATE, donc « Modifier » une proposition en attente devait échouer.\n2026_contributions_colonnes.sql corrige les deux ; commentaires mis à jour.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": "Migrations"
+    },
     {
       "hash": "c77ba9aecc1b7a608f4b71bd78beac4a6f4c41f0",
       "short": "c77ba9a",

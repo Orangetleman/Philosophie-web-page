@@ -17,6 +17,8 @@
    lire D, KEYS, AM et CONCEPTS. index.html n'est lu que pour la table
    AUTHOR_ALIASES (formes de noms acceptées dans les dialogues).
 
+   Depuis l'étape 3, data.js est GÉNÉRÉ par outils/construire.mjs (qui lance
+   ce contrôle à la fin) ; la question 10 vérifie qu'il l'a bien été.
    Les règles viennent de CLAUDE.md et de docs/protocole-contenu.md. Une
    règle nouvelle = une question nouvelle ici, avec son témoin.
    ════════════════════════════════════════════════════════════════════ */
@@ -168,6 +170,20 @@ const QUESTIONS = [
       }));
       return { err, warn: [] };
     } },
+  { n: 10, titre: "data.js est au format canonique (produit par le build)",
+    f({ D, KEYS, CONCEPTS }) {
+      const err = [];
+      KEYS.filter(k => D[k]).forEach(k => {
+        if (D[k].axes) err.push(`${k} : champ « axes » (ancien format, à convertir en plans)`);
+        (D[k].auteurs || []).forEach(a => {
+          if (!Array.isArray(a.ideas)) err.push(`${k} / ${a.n} : entrée d'auteur à plat (sans ideas)`);
+          else a.ideas.forEach(i => { if (!Array.isArray(i.citations) || i.q !== undefined) err.push(`${k} / ${a.n} : idée sans citations[] ou avec l'ancien q`); });
+        });
+      });
+      CONCEPTS.forEach(c => { if (c.tensions) err.push(`${c.id} : champ « tensions » (ancien format)`); });
+      if (err.length) err.push('data.js doit être produit par « node outils/construire.mjs », pas édité à la main');
+      return { err, warn: [] };
+    } },
 ];
 
 /* ── Les témoins : une faute par question, glissée dans une COPIE ────── */
@@ -181,6 +197,7 @@ const TEMOINS = {
   7: d => { Object.values(d.AM)[0].dialogues = [{ dir: 'ignore', auteur: 'Kant', sujet: '', desc: '' }]; },
   8: d => { d.D[d.KEYS[0]].auteurs.push({ n: 'Kant', w: '', i: 'x', q: "'Une citation mal guillemetée'" }); },
   9: d => { d.D[d.KEYS[0]].auteurs[0].w = 'Une œuvre, 1900 (TEXTE 4)'; },
+  10: d => { d.CONCEPTS[0].tensions = ['A ≠ B']; },
 };
 
 function lancer(data) {

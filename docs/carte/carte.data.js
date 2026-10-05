@@ -30,11 +30,12 @@ window.CARTE = {
               "Du parcours élève jusqu'au nom des variables/fonctions. Édite ce fichier, pas carte.html.",
     fichiers: {
       "index.html": "Page unique : <style> + HTML + gros <script> (rendu, navigation, quiz, contribution, sync, PWA).",
-      "data.js":    "Données globales : D (notions), KEYS, AM (auteurs), CONCEPTS (glossaire + repères), CC (couleurs).",
+      "data.js":    "GÉNÉRÉ par outils/construire.mjs depuis contenu/ : D (notions), KEYS, AM (auteurs), CONCEPTS (glossaire + repères). Ne pas éditer.",
       "sw.js":      "Service Worker PWA (cache, hors-ligne).",
       "manifest.json": "Métadonnées d'installation PWA.",
       "philo-aggregator/": "Pipeline Python local : ingest des propositions, relecture Gemini, dashboard, export.",
-      "outils/":           "Outillage Node : verifier_contenu.mjs (contrôle de data.js, avec témoins, sans dépendance) ; banc/ (règles d'accès Supabase sur PGlite)."
+      "contenu/":          "SOURCES du contenu : un fichier par notion (notions/), par auteur (auteurs/), concepts.js, reperes.js, ordre.js. On édite ici.",
+      "outils/":           "Outillage Node : construire.mjs (build → data.js, sw.js), verifier_contenu.mjs (contrôle, avec témoins), lib/ (formats, écriture), banc/ (règles d'accès Supabase sur PGlite)."
     }
   },
 
@@ -197,10 +198,10 @@ window.CARTE = {
         ingenieur:"CC = { 'Courant': '#couleur' }. Resté dans index.html (et non data.js).",
         symbols:[{kind:"var",name:"CC",ref:"index.html:1763"}] },
 
-    { id:"donnees.normalize", label:"Normalisation au chargement", niveau:1, parent:"donnees", domaine:"donnees",
-      novice:"Au démarrage, le site remet le contenu ancien au format actuel, sans réécrire les fichiers.",
-      ingenieur:"Rétro-compatibilité : convertit les anciens formats à plat (auteur {n,w,i,q}, axes→plans, tensions→relations) en mémoire, au chargement.",
-      symbols:[{kind:"fn",name:"normalizeD",ref:"index.html:1632"},{kind:"fn",name:"normalizeAuthor",ref:"index.html:1583"},{kind:"fn",name:"normalizeConcepts",ref:"index.html:1655"}] },
+    { id:"donnees.normalize", label:"Build : sources → data.js", niveau:1, parent:"donnees", domaine:"donnees",
+      novice:"Le contenu s'écrit dans des fichiers rangés (un par notion, un par auteur) ; un petit programme les assemble dans le fichier que le site charge, en remettant au passage l'ancien contenu au format actuel.",
+      ingenieur:"Étape 3 (oct. 2026) : outils/construire.mjs charge contenu/ (NOTION, AUTEUR, CONCEPT, REPERE, ORDRE dans un bac à sable vm), convertit les anciens formats (outils/lib/formats.mjs : auteur à plat → ideas, axes → plans, tensions → relations), écrit data.js (généré, versionné), recalcule CACHE et PRECACHE de sw.js (empreinte du contenu), puis lance verifier_contenu.mjs. --controle : vérifie sans écrire (hook de commit). Le site ne convertit plus rien au chargement.",
+      symbols:[{kind:"fn",name:"chargerSources",ref:"outils/construire.mjs:49"},{kind:"fn",name:"assembler",ref:"outils/construire.mjs:79"},{kind:"fn",name:"ecrireData",ref:"outils/construire.mjs:89"},{kind:"var",name:"PRECACHE",ref:"outils/construire.mjs:42"},{kind:"fn",name:"normaliserNotion",ref:"outils/lib/formats.mjs:59"},{kind:"fn",name:"normaliserAuteur",ref:"outils/lib/formats.mjs:30"},{kind:"fn",name:"normaliserConcept",ref:"outils/lib/formats.mjs:70"}] },
 
     { id:"donnees.index", label:"Index auteurs (AI)", niveau:1, parent:"donnees", domaine:"donnees",
       novice:"Une table qui regroupe, pour chaque auteur, toutes les notions où il apparaît.",

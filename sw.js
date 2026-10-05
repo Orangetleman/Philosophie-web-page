@@ -7,9 +7,10 @@
 //   • Le reste (icône, manifeste, polices Google) → « cache d'abord »
 //     (ces fichiers changent rarement → priorité à la vitesse/hors-ligne).
 // Permet l'usage hors-ligne tout en restant à jour dès qu'on a du réseau.
-// Pour invalider le cache après une mise à jour, incrémenter la version.
+// La version du cache (CACHE) est une empreinte du contenu des fichiers
+// précachés, recalculée par outils/construire.mjs : ne pas l'éditer à la main.
 
-const CACHE = 'philo-v61';
+const CACHE = 'philo-e5188fc43c';   // version calculée par outils/construire.mjs : ne pas éditer
 const PRECACHE = ['./', './index.html', './data.js', './manifest.json', './icon.svg'];
 
 // Installation : on précache les ressources critiques.
