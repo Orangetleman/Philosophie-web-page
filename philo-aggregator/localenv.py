@@ -3,9 +3,11 @@ localenv.py — chargement minimal d'un fichier `.env` (sans dépendance).
 
 Le « cerveau » local a besoin de quelques secrets qui NE DOIVENT JAMAIS
 finir sur Git :
-  - MAILBOX_URL    : l'adresse de la boîte aux lettres en ligne.
-  - MAILBOX_SECRET : le secret partagé pour `pull` / `ack`.
-  - GEMINI_API_KEY : la clé de l'API Gemini (relecture IA).
+  - GEMINI_API_KEY       : la clé de l'API Gemini (relecture IA) ;
+  - SUPABASE_SERVICE_KEY : la clé de service Supabase (lecture/écriture des
+    contributions).
+(MAILBOX_URL / MAILBOX_SECRET servaient la boîte PythonAnywhere, retirée en
+oct. 2026 : ils peuvent être effacés d'un ancien .env.)
 
 On les range dans un fichier `.env` (ignoré par `.gitignore`) au format
 « CLE=valeur », une par ligne. Ce module lit ce fichier et renvoie les

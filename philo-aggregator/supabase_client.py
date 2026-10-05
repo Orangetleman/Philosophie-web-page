@@ -1,11 +1,10 @@
 """
 supabase_client.py — client HTTP de la base de comptes Supabase.
 
-Depuis la « phase 4 », les visiteurs CONNECTÉS n'envoient plus leur
-proposition vers la boîte aux lettres PythonAnywhere : elle est écrite
-directement dans la table `contributions` de Supabase, rattachée à leur
-compte. Ce module est le pendant local de `mailbox_client.py` : il permet
-au cerveau local (sur ton PC) de :
+Toutes les propositions (visiteurs connectés, rattachées à leur compte, et
+anonymes, avec user_id NULL) sont écrites directement dans la table
+`contributions` de Supabase. Ce module permet au cerveau local (sur ton PC)
+de :
 
   - LIRE les contributions au statut « en_attente » (pull) ;
   - ÉCRIRE en retour le statut + une explication (set_status), pour que le
@@ -23,9 +22,9 @@ Deux clés existent côté Supabase :
   - la clé **service_role** : TOUTE-PUISSANTE, elle ignore le RLS et peut
     tout lire / tout modifier. Elle ne doit JAMAIS quitter ton PC :
     surtout pas dans le site, pas sur GitHub. On la range dans le `.env`
-    local (ignoré par Git), exactement comme le secret de la boîte.
+    local (ignoré par Git).
 
-Comme `mailbox_client`, on n'utilise que `urllib` (bibliothèque standard) :
+On n'utilise que `urllib` (bibliothèque standard) :
 nos besoins sont un GET et un PATCH JSON, pas besoin d'une dépendance.
 """
 
@@ -118,8 +117,7 @@ def _read(req):
     """
     Exécute la requête `req` et renvoie (code_http, corps_décodé).
 
-    Traduit les erreurs réseau / HTTP en messages clairs en français,
-    comme `mailbox_client._read_json` :
+    Traduit les erreurs réseau / HTTP en messages clairs en français :
       - 401/403 → clé refusée (mauvaise service_role, ou RLS) ;
       - autre code → on remonte le code et le corps ;
       - pas de réseau / DNS → message explicite.
@@ -159,7 +157,7 @@ def pull_pending(limit=200):
     contribution CÔTÉ SUPABASE — c'est lui qu'on stockera en base locale
     (colonne submissions.remote_id) pour pouvoir écrire le statut en retour.
 
-    Contrairement à la boîte PythonAnywhere, on ne « consomme » rien ici :
+    On ne « consomme » rien ici :
     la ligne reste « en_attente » côté Supabase tant que le mainteneur n'a
     pas tranché. Le pull est donc rejouable sans risque — la base locale
     dédoublonne sur `remote_id` (voir pipeline.pull_cloud_and_ingest).

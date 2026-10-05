@@ -426,9 +426,11 @@ d'ouverture `.sb-propose` (« 💡 Proposer du contenu ») intégré à la sideb
   du statut dans « Mes propositions ») ; sinon (anonyme) → **aussi Supabase**
   avec `user_id NULL` (`sendProposalAnonSupabase`, autorisé par la policy RLS
   `anon_insert_contributions`, cf. `philo-aggregator/migrations/2026_anon_contributions.sql`).
-  La **boîte anonyme PythonAnywhere** (`sendProposalOnline`) n'est plus qu'un
-  **repli ultime** si le client Supabase `SB` est indisponible (hors-ligne /
-  CDN non chargé). Le **`mailto:`** (constante `PROPOSAL_EMAIL`,
+  Si le client Supabase `SB` est indisponible (hors-ligne / CDN non chargé),
+  on passe directement au repli mail. (L'ancienne **boîte anonyme
+  PythonAnywhere**, `sendProposalOnline` et le dossier `philo-mailbox/`, a
+  été **supprimée** en oct. 2026 : le service était éteint ; la commande
+  `pull` et la route `/pull` de l'agrégateur aussi.) Le **`mailto:`** (constante `PROPOSAL_EMAIL`,
   `sendProposal`) n'est **plus une voie à choisir** mais un **repli
   automatique** : en cas d'échec en ligne, `proposalMailtoFallback(reason)`
   ouvre l'appli mail du contributeur (sans quitter la page) et l'annonce

@@ -18,8 +18,9 @@ Trier une boîte d'un clic (statut local) :
 « contributeur » vers Supabase — l'auteur le voit dans « Mes propositions » :
   Valider → « en cours d'intégration », Intégrer → « intégrée »,
   Rejeter → « refusée » (avec une explication facultative jointe).
-Les boîtes anonymes (boîte PythonAnywhere ou .txt) n'ont pas de pendant en
-ligne : rien n'est poussé pour elles.
+Les boîtes importées d'un .txt (et les anciennes boîtes de la boîte
+PythonAnywhere, retirée en oct. 2026) n'ont pas de pendant en ligne : rien
+n'est poussé pour elles.
 
 Barre d'outils (actions globales) :
   - ☁ Récupérer (Supabase) : pull-cloud → ingestion (comptes ET anonymes).
@@ -608,11 +609,8 @@ def _page(status, verdict_filter, cat, cible, rows, flash=None):
         "<header>",
         "<h1>🧠 Curation des propositions — Graphe Philosophie</h1>",
         '<div class="bar">',
-        # Récupération depuis Supabase (comptes ET anonymes : les envois anonymes
-        # passent désormais par Supabase, plus par PythonAnywhere). Le bouton
-        # « Récupérer (anonyme) » (boîte PythonAnywhere) a été retiré ; la route
-        # /pull et la commande CLI `pull` subsistent pour un éventuel rattrapage
-        # d'anciens envois si l'app PythonAnywhere est un jour réactivée.
+        # Récupération depuis Supabase (comptes ET anonymes : tous les envois
+        # passent par Supabase depuis que la boîte PythonAnywhere a été retirée).
         f'<form method="post" action="/pull-cloud">'
         f'<button class="toolbtn" type="submit">☁ Récupérer (Supabase)</button></form>',
         # Synchro cross-plateforme : récupère TOUT (états validés ailleurs inclus)
@@ -823,22 +821,6 @@ def note():
     if sub_row and sub_row["remote_id"]:
         _mirror_state(sub_row["sid"])
     return _redirect_back(status, verdict_filter, f"Note enregistrée sur #{box_id}.")
-
-
-@app.route("/pull", methods=["POST"])
-def pull():
-    """Va chercher les nouvelles propositions dans la boîte en ligne."""
-    import pipeline
-    try:
-        s = pipeline.pull_and_ingest(limit=200)
-    except SystemExit as e:
-        # localenv/mailbox_client lèvent SystemExit avec un message clair
-        # (config manquante, secret refusé…). On l'affiche au lieu de
-        # planter le serveur.
-        return _redirect_back("en_attente", "all", str(e))
-    msg = (f"Récupéré : {s['items']} item(s), {s['boxes']} boîte(s) ajoutée(s), "
-           f"{s['quarantine']} en quarantaine, {s['acked']} confirmée(s).")
-    return _redirect_back("en_attente", "all", msg)
 
 
 @app.route("/review", methods=["POST"])

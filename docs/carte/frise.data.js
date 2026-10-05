@@ -1,8 +1,17 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
-  "genere_le": "2026-10-05T17:59:48.415Z",
+  "genere_le": "2026-10-05T18:03:55.790Z",
   "commits": [
+    {
+      "hash": "ef4c0f30fbd343b6e82ed55d558da0932a945624",
+      "short": "ef4c0f3",
+      "auteur": "Orangentleman",
+      "date": "2026-10-05T19:59:48+02:00",
+      "sujet": "Site et documentation : robots.txt, Supabase figé, diagnostic d'octobre",
+      "corps": "- robot.txt renommé robots.txt : les moteurs cherchent ce nom exact,\n  l'ancien fichier n'était jamais lu ;\n- supabase-js figé en 2.117.2 avec empreinte d'intégrité (SRI), sur le\n  site et sur la page de triage (avant : « @2 » suivait toute nouvelle\n  version) ; caches philo-v60 et triage-v7 ;\n- docs/diagnostic-2026-10.md : diagnostic complet, comparaison avec Fiches\n  BUT, feuille de route validée par l'auteur (§ 10) et avancement (§ 11) ;\n- README.md, en-tête d'index.html et CLAUDE.md remis d'accord avec le\n  code (envoi des propositions, stratégie de cache, 5 modes, mode fiche,\n  convention des citations, quiz v4, pièges) ;\n- carte du projet : nœuds du quiz et de la synchro à jour (la progression\n  du quiz était décrite dans la table preferences), robots.txt.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": "Site et documentation"
+    },
     {
       "hash": "bd038368b4a969bbea45795932275d81d81ca0a6",
       "short": "bd03836",

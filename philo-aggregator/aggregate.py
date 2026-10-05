@@ -42,54 +42,12 @@ def cmd_ingest(args):
     ingest.run(args.dir)
 
 
-def cmd_pull(args):
-    """
-    Récupère les propositions empilées dans la boîte aux lettres en ligne,
-    les ingère dans la base locale, puis confirme leur réception (`ack`)
-    pour que la boîte ne les renvoie pas au prochain pull.
-
-    Déroulé :
-      1. GET /api/pull (secret) → liste d'items {id, body, …}.
-      2. Pour chaque item : ingest_text(body) → insertion en base, ou
-         sauvegarde en quarantaine si le corps est mal formé (rare : la
-         boîte exige déjà les marqueurs avant d'accepter un dépôt).
-      3. POST /api/ack avec TOUS les ids récupérés. On confirme même les
-         items mis en quarantaine : ils sont déjà sauvegardés sur le
-         disque, inutile de les re-télécharger à chaque fois.
-
-    `pipeline` (et, à travers lui, `mailbox_client`) n'est importé qu'ici
-    (import local) : `pull` est la seule commande à parler au réseau, on
-    évite donc de charger ces modules pour les commandes hors-ligne.
-    """
-    import pipeline
-
-    s = pipeline.pull_and_ingest(limit=args.limit)
-    if s["items"] == 0:
-        print("(boîte vide : rien à récupérer)")
-        return
-
-    # Détail par item (même rendu OK/KO que la commande `ingest`).
-    for d in s["details"]:
-        box_id, kind = d[0], d[1]
-        if kind == "ok":
-            n_boxes, n_dupes = d[2], d[3]
-            extra = (f" ({n_dupes} doublon(s) probable(s))" if n_dupes else "")
-            print(f"  OK   pull#{box_id} -> {n_boxes} boîte(s){extra}")
-        else:
-            print(f"  KO   pull#{box_id} -> quarantaine : {d[2]}")
-
-    print()
-    print(f"Récupération terminée : {s['ok']} OK, {s['quarantine']} en quarantaine.")
-    print(f"Boîtes ajoutées : {s['boxes']} (dont {s['dupes']} doublon(s) probable(s)).")
-    print(f"Confirmées auprès de la boîte (ack) : {s['acked']}.")
-
-
 def cmd_pull_cloud(args):
     """
     Récupère les contributions « en_attente » depuis Supabase (comptes des
     visiteurs connectés) et les ingère en base locale.
 
-    À la différence de `pull` (boîte PythonAnywhere), rien n'est « consommé »
+    Rien n'est « consommé »
     en ligne : la contribution reste « en_attente » côté Supabase jusqu'à ce
     qu'on la traite et qu'on renvoie son statut (commande `push`). Le pull
     est rejouable : une contribution déjà en base est simplement ignorée
@@ -352,13 +310,6 @@ def build_parser():
     p.add_argument("--dir", type=pathlib.Path, default=None,
                    help="Dossier d'entrée alternatif (défaut : ./inbox).")
     p.set_defaults(func=cmd_ingest)
-
-    # ── pull ──
-    p = sub.add_parser("pull",
-                       help="Récupérer les propositions de la boîte en ligne.")
-    p.add_argument("--limit", type=int, default=200,
-                   help="Nombre maxi à récupérer en une fois (défaut : 200).")
-    p.set_defaults(func=cmd_pull)
 
     # ── pull-cloud ──
     p = sub.add_parser("pull-cloud",
