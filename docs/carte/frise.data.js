@@ -1,8 +1,17 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
-  "genere_le": "2026-10-05T19:55:46.299Z",
+  "genere_le": "2026-10-05T19:59:04.063Z",
   "commits": [
+    {
+      "hash": "b845b58546aca1690233b6b481346930445d1f2f",
+      "short": "b845b58",
+      "auteur": "Orangentleman",
+      "date": "2026-10-05T21:55:46+02:00",
+      "sujet": "Une adresse par page (#/notion/…, #/auteur/…) : liens partageables, bouton « précédent »",
+      "corps": "Le site n'avait qu'une adresse : impossible d'envoyer un lien vers une\nnotion, le bouton « précédent » du navigateur sortait du site, et\n« Partager » donnait la page d'accueil (diagnostic § 3).\n\n- Chaque vue a son adresse dans le fragment de l'URL : #/notion/<clé>\n  [/<onglet>], #/auteur/<nom>[/<onglet>], #/concept/<id>, #/repere/<id>,\n  #/methodo/<parcours>. Le # marche partout (double-clic, Vercel sans\n  réécriture).\n- majAdresse() suit chaque rendu : une navigation crée une entrée dans\n  l'historique du navigateur, un simple rafraîchissement la remplace ; le\n  titre de l'onglet nomme la page. popstate rejoue l'adresse (précédent /\n  suivant), et la pile « ← Retour » du site reste d'accord.\n- Au démarrage, un lien partagé l'emporte sur la position mémorisée.\n- Un jeton de connexion Supabase dans l'URL n'est jamais écrasé.\n- « Partager » donne l'adresse de la page ouverte.\n\nVérifié dans le navigateur : lien direct vers Spinoza › Citations, trois\n« précédent » puis « suivant », adresse d'une page inexistante ignorée,\nforme courte « Arendt » ramenée à Hannah Arendt, nom avec apostrophe\nencodé puis relu, jeton laissé intact.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": ""
+    },
     {
       "hash": "e568d31eaea27aa4cda52a88a723331400ba4a75",
       "short": "e568d31",

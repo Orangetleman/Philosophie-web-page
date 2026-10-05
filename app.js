@@ -917,7 +917,8 @@ function openNotion(key){
    seule fois) ; focusAfterRender() l'applique après le rendu. */
 let pendingConceptMention=null;   // id de concept à repérer dans la notion, ou null
 let pendingAuthorMention=null;    // nom d'auteur à repérer dans la notion (pastille de notion d'une fiche auteur), ou null
-let pendingAccroche=null;         // index d'accroche à faire briller (recherche globale), ou null
+let pendingAccroche=null;
+let pendingCible=null;            // élément à faire briller après une recherche plein texte ({sel, extrait})         // index d'accroche à faire briller (recherche globale), ou null
 
 /* scrollAndFlash(el) — amène el dans la vue puis le fait briller ~1,6 s.
    Deux fiabilisations par rapport à une version naïve :
@@ -956,6 +957,15 @@ function focusAfterRender(){
   requestAnimationFrame(()=>{
     const mainEl=document.getElementById('main');
     if(!mainEl) return;
+    // 0 bis) Résultat « plein texte » de la recherche globale (étape 3) : on
+    //    fait briller l'élément trouvé (citation, œuvre, texte, exemple, sujet)
+    //    AU LIEU de l'en-tête — deux surbrillances, l'œil ne sait où regarder.
+    if(pendingCible){
+      const c=pendingCible; pendingCible=null;   // consommé
+      const cle=paletteNorm(c.extrait).slice(0,40);
+      const el=[...mainEl.querySelectorAll(c.sel)].find(x=>paletteNorm(x.textContent).includes(cle));
+      if(el){ scrollAndFlash(el); return; }
+    }
     // 0) Notion ouverte depuis la recherche globale sur une accroche → on fait
     //    briller la carte d'accroche ciblée (sous-onglet « Accroches »).
     if(pendingAccroche!==null){
@@ -6752,15 +6762,20 @@ function paletteEsc(s){
 }
 
 /* PALETTE_INDEX — index plat construit UNE fois au chargement : une entrée
-   par notion / auteur / concept, avec libellé, sous-titre, pastille de
-   couleur et chaîne de recherche normalisée (norm). */
+   par notion / auteur / concept / accroche, avec libellé, sous-titre,
+   pastille de couleur et chaîne de recherche normalisée (norm).
+   Depuis l'étape 3 (oct. 2026), la recherche porte aussi sur le TEXTE :
+   champ `texte` (normalisé) = définition d'une notion ou d'un concept, corps
+   d'un texte ou d'un exemple ; et cinq types de plus : citation, œuvre,
+   sujet (dissertations et plans), texte, exemple. Un résultat mène à sa
+   fiche, sur le bon onglet, et fait briller l'élément trouvé (ouvrirResultat). */
 const PALETTE_INDEX=(function(){
   const out=[];
   // Notions : couleur = D[k].c ; sous-titre = question d'accroche (texte nu).
   KEYS.forEach(k=>{
     const sub=stripHtml(D[k].s||'');
     out.push({type:'notion', id:k, label:D[k].l, sub:sub,
-      color:D[k].c, norm:paletteNorm(D[k].l+' '+sub)});
+      color:D[k].c, norm:paletteNorm(D[k].l+' '+sub), texte:paletteNorm(stripHtml(D[k].def||''))});
   });
   // Auteurs : couleur = courant (CC) ; sous-titre = courant philosophique.
   Object.keys(AI).forEach(name=>{
@@ -6772,7 +6787,7 @@ const PALETTE_INDEX=(function(){
   CONCEPTS.forEach(c=>{
     const col=(c.notions&&c.notions[0]&&D[c.notions[0]])?D[c.notions[0]].c:'#888';
     out.push({type:'concept', id:c.id, label:c.term, sub:c.cat||'',
-      color:col, norm:paletteNorm(c.term+' '+(c.cat||''))});
+      color:col, norm:paletteNorm(c.term+' '+(c.cat||'')), texte:paletteNorm(stripHtml(c.def||''))});
   });
   // Accroches : phrases d'ouverture rangées dans l'onglet Exemples > Accroches
   //   de chaque notion. id = "clé#index" (la clé ne contient pas de '#') →
@@ -6788,11 +6803,60 @@ const PALETTE_INDEX=(function(){
         color:D[k].c, norm:paletteNorm(txt+' '+(a.src||'')+' '+D[k].l+' '+(a.type||''))});
     });
   });
+  // ── Plein texte (étape 3). `cible` dit où ouvrir et quoi faire briller.
+  const court=t=>t.length>88?t.slice(0,87)+'…':t;
+  // Citations et œuvres : depuis l'index des auteurs (AI), notion par notion.
+  const oeuvresVues={};
+  Object.keys(AI).forEach(name=>{
+    const col=CC[(AM[name]||{}).courant]||'#888';
+    Object.keys(AI[name].entries).forEach(k=>{
+      (AI[name].entries[k].ideas||[]).forEach(it=>{
+        (it.citations||[]).forEach(c=>{
+          const txt=stripHtml(c); if(!txt) return;
+          out.push({type:'citation', id:name+'|'+k, label:court(txt), sub:name+' · '+D[k].l, color:col,
+            norm:paletteNorm(txt+' '+name), cible:{auteur:name, onglet:'citations', sel:'.cit-card', extrait:txt}});
+        });
+        const w=stripHtml(it.w||''), cle=name+'|'+w;
+        if(w&&!oeuvresVues[cle]){
+          oeuvresVues[cle]=1;
+          out.push({type:'oeuvre', id:cle, label:court(w), sub:name, color:col,
+            norm:paletteNorm(w+' '+name), cible:{auteur:name, onglet:'oeuvres', sel:'.oeuvre-card', extrait:w}});
+        }
+      });
+    });
+  });
+  // Sujets (questions simples et plans rédigés), textes, exemples : par notion.
+  KEYS.forEach(k=>{
+    const n=D[k], col=n.c;
+    (n.diss||[]).forEach(d=>{
+      const q=stripHtml(typeof d==='object'?d.q:d); if(!q) return;
+      out.push({type:'sujet', id:k, label:court(q), sub:n.l, color:col, norm:paletteNorm(q),
+        cible:{notion:k, onglet:'diss', sel:'.dq', extrait:q}});
+    });
+    (n.plans||[]).forEach(pl=>{
+      const q=stripHtml(pl.q||''); if(!q) return;
+      out.push({type:'sujet', id:k, label:court(q), sub:n.l+' · plan', color:col, norm:paletteNorm(q),
+        cible:{notion:k, onglet:'diss', sel:'.plan-card', extrait:q}});
+    });
+    (n.textes||[]).forEach(t=>{
+      const ti=stripHtml(t.n||''); if(!ti) return;
+      out.push({type:'texte', id:k, label:court(ti), sub:n.l, color:col, norm:paletteNorm(ti),
+        texte:paletteNorm(stripHtml(t.t||'')), cible:{notion:k, onglet:'textes', sel:'.ti2', extrait:ti}});
+    });
+    (n.exemples||[]).forEach(x=>{
+      const ti=stripHtml(x.tit||''); if(!ti) return;
+      out.push({type:'exemple', id:k, label:court(ti), sub:n.l+(x.tag?' · '+x.tag:''), color:col,
+        norm:paletteNorm(ti+' '+(x.tag||'')), texte:paletteNorm(stripHtml(x.body||'')),
+        cible:{notion:k, onglet:'exemples', sel:'.ex-card', extrait:ti}});
+    });
+  });
   return out;
 })();
 
-const PALETTE_GROUPS={notion:'Notions', auteur:'Auteurs', concept:'Concepts', accroche:'Accroches'};
-const PALETTE_ORDER={notion:0, auteur:1, concept:2, accroche:3};
+const PALETTE_GROUPS={notion:'Notions', auteur:'Auteurs', concept:'Concepts', citation:'Citations', oeuvre:'Œuvres', sujet:'Sujets de dissertation', texte:'Textes', exemple:'Exemples', accroche:'Accroches'};
+const PALETTE_ORDER={notion:0, auteur:1, concept:2, citation:3, oeuvre:4, sujet:5, texte:6, exemple:7, accroche:8};
+const PALETTE_BASE={notion:1, auteur:1, concept:1, accroche:1};   // types montrés quand la saisie est vide
+const PALETTE_PAR_GROUPE=8;                                       // résultats affichés par type, au plus
 
 /* État runtime. paletteResults = liste à plat des résultats affichés (dans
    l'ordre des groupes) ; paletteSel = index sélectionné au clavier. */
@@ -6801,25 +6865,28 @@ let paletteResults=[]; let paletteSel=0;
 /* paletteQuery() — lit la saisie courante du champ. */
 function paletteQuery(){ const i=document.getElementById('palette-input'); return i?i.value:''; }
 
-/* paletteSearch(q) — entrées correspondant à q, classées par pertinence
-   (libellé qui COMMENCE par q, puis match en tête de la chaîne, puis
-   simple inclusion), regroupées par type (notion → auteur → concept).
-   Sans requête : tout l'index, dans son ordre naturel. Plafonné à 40. */
+/* paletteSearch(q) — entrées correspondant à q, classées par pertinence :
+   0 le libellé COMMENCE par q, 1 la chaîne de recherche commence par q,
+   2 q est dans le libellé ou la chaîne, 3 q n'est que dans le TEXTE (une
+   définition, le corps d'un texte ou d'un exemple). Regroupées par type
+   (notions, auteurs, concepts, citations, œuvres, sujets, textes, exemples,
+   accroches), PALETTE_PAR_GROUPE par type au plus, pour qu'un type très
+   fourni (les citations) ne cache pas les autres.
+   Sans requête : les notions, auteurs, concepts et accroches (40 au plus). */
 function paletteSearch(q){
   const n=paletteNorm(q.trim());
-  let hits;
-  if(!n){
-    hits=PALETTE_INDEX.slice();
-  } else {
-    hits=PALETTE_INDEX
-      .map(e=>{ const i=e.norm.indexOf(n);
-        return i<0?null:{e, rank:(paletteNorm(e.label).startsWith(n)?0:(i===0?1:2))}; })
-      .filter(Boolean)
-      .sort((a,b)=>a.rank-b.rank)   // sort stable : conserve l'ordre d'index à rang égal
-      .map(x=>x.e);
-  }
-  // Regroupe par type (sort stable → pertinence conservée dans chaque groupe).
-  return hits.sort((a,b)=>PALETTE_ORDER[a.type]-PALETTE_ORDER[b.type]).slice(0,40);
+  if(!n) return PALETTE_INDEX.filter(e=>PALETTE_BASE[e.type]).slice(0,40);
+  const hits=PALETTE_INDEX
+    .map(e=>{
+      const i=e.norm.indexOf(n);
+      if(i>=0) return {e, rank:(paletteNorm(e.label).startsWith(n)?0:(i===0?1:2))};
+      return (e.texte&&e.texte.includes(n))?{e, rank:3}:null;
+    })
+    .filter(Boolean)
+    .sort((a,b)=>(PALETTE_ORDER[a.e.type]-PALETTE_ORDER[b.e.type])||(a.rank-b.rank))   // sort stable
+    .map(x=>x.e);
+  const parType={};
+  return hits.filter(e=>(parType[e.type]=(parType[e.type]||0)+1)<=PALETTE_PAR_GROUPE);
 }
 
 /* renderPalette() — recalcule les résultats selon la saisie et peint la
@@ -6900,6 +6967,22 @@ function paletteActivate(){
     // briller la carte ciblée.
     const h=e.id.lastIndexOf('#');
     openNotionAccroche(e.id.slice(0,h), +e.id.slice(h+1));
+  }
+  else if(e.cible) ouvrirResultat(e.cible);
+}
+
+/* ouvrirResultat(c) — ouvre un résultat « plein texte » (étape 3) : la fiche
+   de l'auteur ou la notion, sur le bon onglet. pendingCible dit à
+   focusAfterRender (appelée par open*, au prochain affichage, donc APRÈS le
+   changement d'onglet ci-dessous) de faire briller l'élément (c.sel) dont le
+   texte contient le début de l'extrait, au lieu de l'en-tête. */
+function ouvrirResultat(c){
+  pendingCible={sel:c.sel, extrait:c.extrait};
+  if(c.auteur){ openAuthor(c.auteur); curAuthorTab=c.onglet; renderAuthorContent(); }
+  else if(c.notion){
+    openNotion(c.notion); curTab=c.onglet;
+    if(c.onglet==='exemples') curExempleSubTab='exemples';
+    renderContent();
   }
 }
 

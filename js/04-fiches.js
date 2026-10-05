@@ -12,7 +12,8 @@
    seule fois) ; focusAfterRender() l'applique après le rendu. */
 let pendingConceptMention=null;   // id de concept à repérer dans la notion, ou null
 let pendingAuthorMention=null;    // nom d'auteur à repérer dans la notion (pastille de notion d'une fiche auteur), ou null
-let pendingAccroche=null;         // index d'accroche à faire briller (recherche globale), ou null
+let pendingAccroche=null;
+let pendingCible=null;            // élément à faire briller après une recherche plein texte ({sel, extrait})         // index d'accroche à faire briller (recherche globale), ou null
 
 /* scrollAndFlash(el) — amène el dans la vue puis le fait briller ~1,6 s.
    Deux fiabilisations par rapport à une version naïve :
@@ -51,6 +52,15 @@ function focusAfterRender(){
   requestAnimationFrame(()=>{
     const mainEl=document.getElementById('main');
     if(!mainEl) return;
+    // 0 bis) Résultat « plein texte » de la recherche globale (étape 3) : on
+    //    fait briller l'élément trouvé (citation, œuvre, texte, exemple, sujet)
+    //    AU LIEU de l'en-tête — deux surbrillances, l'œil ne sait où regarder.
+    if(pendingCible){
+      const c=pendingCible; pendingCible=null;   // consommé
+      const cle=paletteNorm(c.extrait).slice(0,40);
+      const el=[...mainEl.querySelectorAll(c.sel)].find(x=>paletteNorm(x.textContent).includes(cle));
+      if(el){ scrollAndFlash(el); return; }
+    }
     // 0) Notion ouverte depuis la recherche globale sur une accroche → on fait
     //    briller la carte d'accroche ciblée (sous-onglet « Accroches »).
     if(pendingAccroche!==null){
