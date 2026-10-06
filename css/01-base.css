@@ -175,10 +175,10 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--color-page);heigh
 /* Plusieurs idées dans une carte → on matérialise les zones par un liseré
    discret (les zones colorées, elles, l'emportent ci-dessous). */
 .ac-multi .a-idea{border-color:var(--color-border-tertiary)}
-.a-idea.is-new{border-color:var(--color-new-border);background:var(--color-new-bg)}
-.a-idea.is-new .aw{color:var(--color-new)}
-.a-idea.is-modified{border-color:var(--color-mod-border);background:var(--color-mod-bg)}
-.a-idea.is-modified .aw{color:var(--color-mod)}
+body.mode-edition .a-idea.is-new{border-color:var(--color-new-border);background:var(--color-new-bg)}
+body.mode-edition .a-idea.is-new .aw{color:var(--color-new)}
+body.mode-edition .a-idea.is-modified{border-color:var(--color-mod-border);background:var(--color-mod-bg)}
+body.mode-edition .a-idea.is-modified .aw{color:var(--color-mod)}
 /* Carte d'un auteur à plusieurs idées : s'élargit sur 2 colonnes (au lieu de
    toute la rangée) pour que les zones d'idées tiennent côte à côte SANS laisser
    de grands vides dans la grille — un span pleine-rangée cassait le flux et
@@ -281,8 +281,8 @@ body.mode-fiche .a-idea .aq-details{display:none}
 .accroche-type{font-size:10px;font-weight:600;letter-spacing:.03em;text-transform:uppercase;color:var(--color-accent);background:var(--color-accent-soft,rgba(120,120,255,.10));padding:2px 9px;border-radius:20px;flex-shrink:0}
 .accroche-body{font-size:13.5px;color:var(--color-text-primary);line-height:1.6}
 .accroche-src{font-size:11px;color:var(--color-text-tertiary);margin-top:6px;font-style:italic;text-align:right}
-.accroche-card.is-new{border-color:var(--color-new-border);border-left-color:var(--color-new);background:var(--color-new-bg)}
-.accroche-card.is-modified{border-color:var(--color-mod-border);border-left-color:var(--color-mod);background:var(--color-mod-bg)}
+body.mode-edition .accroche-card.is-new{border-color:var(--color-new-border);border-left-color:var(--color-new);background:var(--color-new-bg)}
+body.mode-edition .accroche-card.is-modified{border-color:var(--color-mod-border);border-left-color:var(--color-mod);background:var(--color-mod-bg)}
 
 /* ── 6e. Contenu notion — onglets Liens & Dissertations ──────────── */
 .liens-row{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:14px}
@@ -368,15 +368,15 @@ body.mode-fiche .a-idea .aq-details{display:none}
 .hp-invite-note{font-size:11px;color:var(--color-text-tertiary);margin:10px 0 0!important}
 @media (max-width:700px){ .hp-invite{left:16px;right:16px;bottom:16px;max-width:none} }
 .quiz-filters button.quiz-hp{font-style:italic}
-.ac.is-new{border-color:var(--color-new-border);background:var(--color-new-bg)}
-.ac.is-new .an{position:relative}
-.ti2.is-new{background:var(--color-new-bg);border-radius:4px;padding:5px 7px;margin-bottom:2px;border-bottom:none!important}
-.ti2.is-new .tinum{color:var(--color-new)}
-.axe-card.is-new{border-color:var(--color-new-border);background:var(--color-new-bg)}
-.axe-card.is-new .axe-num{color:var(--color-new)}
-.ex-card.is-new{border-color:var(--color-new-border);background:var(--color-new-bg)}
-.dq.is-new{color:var(--color-new);border-bottom-color:var(--color-new-border)}
-.dq.is-new::before{color:var(--color-new)}
+body.mode-edition .ac.is-new{border-color:var(--color-new-border);background:var(--color-new-bg)}
+body.mode-edition .ac.is-new .an{position:relative}
+body.mode-edition .ti2.is-new{background:var(--color-new-bg);border-radius:4px;padding:5px 7px;margin-bottom:2px;border-bottom:none!important}
+body.mode-edition .ti2.is-new .tinum{color:var(--color-new)}
+body.mode-edition .axe-card.is-new{border-color:var(--color-new-border);background:var(--color-new-bg)}
+body.mode-edition .axe-card.is-new .axe-num{color:var(--color-new)}
+body.mode-edition .ex-card.is-new{border-color:var(--color-new-border);background:var(--color-new-bg)}
+body.mode-edition .dq.is-new{color:var(--color-new);border-bottom-color:var(--color-new-border)}
+body.mode-edition .dq.is-new::before{color:var(--color-new)}
 
 /* ── Éléments modifiés ────────────────────────────────────────── */
 :root{
@@ -391,16 +391,16 @@ body.mode-fiche .a-idea .aq-details{display:none}
   border:0.5px solid var(--color-mod-border);
   border-radius:4px;padding:1px 6px;flex-shrink:0;
 }
-.ac.is-modified{border-color:var(--color-mod-border);background:var(--color-mod-bg)}
-.ac.is-modified .an{color:var(--color-mod)!important}
-.ti2.is-modified{background:var(--color-mod-bg);border-radius:4px;padding:5px 7px;margin-bottom:2px;border-bottom:none!important}
-.ti2.is-modified .tinum{color:var(--color-mod)}
-.axe-card.is-modified{border-color:var(--color-mod-border);background:var(--color-mod-bg)}
-.axe-card.is-modified .axe-num{color:var(--color-mod)}
-.ex-card.is-modified{border-color:var(--color-mod-border);background:var(--color-mod-bg)}
-.dq.is-modified{color:var(--color-mod);border-bottom-color:var(--color-mod-border)}
-.dq.is-modified::before{color:var(--color-mod)}
-.idea-card.is-modified{border-color:var(--color-mod-border);background:var(--color-mod-bg)}
+body.mode-edition .ac.is-modified{border-color:var(--color-mod-border);background:var(--color-mod-bg)}
+body.mode-edition .ac.is-modified .an{color:var(--color-mod)!important}
+body.mode-edition .ti2.is-modified{background:var(--color-mod-bg);border-radius:4px;padding:5px 7px;margin-bottom:2px;border-bottom:none!important}
+body.mode-edition .ti2.is-modified .tinum{color:var(--color-mod)}
+body.mode-edition .axe-card.is-modified{border-color:var(--color-mod-border);background:var(--color-mod-bg)}
+body.mode-edition .axe-card.is-modified .axe-num{color:var(--color-mod)}
+body.mode-edition .ex-card.is-modified{border-color:var(--color-mod-border);background:var(--color-mod-bg)}
+body.mode-edition .dq.is-modified{color:var(--color-mod);border-bottom-color:var(--color-mod-border)}
+body.mode-edition .dq.is-modified::before{color:var(--color-mod)}
+body.mode-edition .idea-card.is-modified{border-color:var(--color-mod-border);background:var(--color-mod-bg)}
 
 /* ── Bouton retour ───────────────────────────────────────────── */
 .back-btn{
@@ -430,3 +430,11 @@ body.mode-fiche .a-idea .aq-details{display:none}
 /* Plans convertis de l'ancien format : la mention « ↻ à enrichir » ne
    regarde que les contributeurs (mode édition), pas les visiteurs. */
 body:not(.mode-edition) .plan-migr{display:none}
+
+/* Badges « ✦ Nouveau » / « ✎ Modifié » (étape 6) : informations pour les
+   contributeurs. Sans date, ils avaient fini par marquer près de 250
+   éléments (diagnostic, § 3) ; en mode révision (par défaut), ni badge ni
+   teinte (les règles is-new / is-modified ci-dessus sont réservées à
+   body.mode-edition), et les nouveautés sont datées dans Explorer ›
+   Nouveautés. */
+body:not(.mode-edition) .new-badge,body:not(.mode-edition) .modified-badge{display:none}

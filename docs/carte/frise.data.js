@@ -1,8 +1,17 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
-  "genere_le": "2026-10-06T19:24:25.100Z",
+  "genere_le": "2026-10-06T19:32:53.271Z",
   "commits": [
+    {
+      "hash": "6259dda8a35b5e57575c0802ee5a1706eef9da80",
+      "short": "6259dda",
+      "auteur": "Orangentleman",
+      "date": "2026-10-06T21:24:22+02:00",
+      "sujet": "Étape 6, explorer : frise des auteurs et graphe des idées",
+      "corps": "- Nouvel onglet « Explorer » (#/explorer/frise, #/explorer/graphe).\n- Frise : les auteurs des notions groupés par période de naissance, une\n  barre par vie, couleur du courant ; filtres « au programme » et par\n  notion ; graduations courtes sur téléphone.\n- Graphe : dialogues entre auteurs, relations entre concepts ou liens\n  entre notions, dessinés par forces (sans bibliothèque) ; zoom, déplacement,\n  voisins mis en valeur au survol ou au clavier, liste textuelle des\n  relations. Le hors programme masqué l'est aussi ici.\n- Dates structurées des 123 auteurs des notions (naissance, mort,\n  datesApprox) dans contenu/auteurs/, et question 13 du vérificateur avec\n  son témoin.\n- Couleurs pour les 27 courants qui n'en avaient pas.\n- Le démarrage devient js/99-demarrage.js : il doit s'exécuter après\n  tous les autres morceaux.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": "Étape 6, explorer"
+    },
     {
       "hash": "3f73d4075f441b6f8d4a3151bfe709b7333ed942",
       "short": "3f73d40",

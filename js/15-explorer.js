@@ -19,7 +19,10 @@
 const EXPLORER_TOPICS=[
   {id:'frise', label:'Frise des auteurs'},
   {id:'graphe', label:'Graphe des idées'},
+  {id:'sujets', label:'Sujets du bac'},
+  {id:'nouveautes', label:'Nouveautés'},
 ];
+let sujetsNotion='', sujetsVoie='';                // filtres des sujets du bac
 let friseProgramme=false, friseNotion='';          // filtres de la frise
 let grapheMode='auteurs', grapheNotion='';         // réseau affiché et notion filtrée
 
@@ -33,7 +36,10 @@ function renderExplorerContent(){
   }
   const tabsEl=mainEl.querySelector('.tabs'), mc=mainEl.querySelector('.main-content');
   tabsEl.innerHTML=backBtnHTML()+EXPLORER_TOPICS.map(t=>`<div class="tab${explorerTopic===t.id?' active':''}" onclick="explorerTopic='${t.id}';renderSB();renderExplorerContent()">${t.label}</div>`).join('');
-  mc.innerHTML=explorerTopic==='graphe'?grapheHTML():friseHTML();
+  mc.innerHTML=explorerTopic==='graphe'?grapheHTML()
+    :explorerTopic==='sujets'?sujetsHTML()
+    :explorerTopic==='nouveautes'?nouveautesHTML()
+    :friseHTML();
   if(explorerTopic==='graphe') grapheBrancher();
 }
 
@@ -278,3 +284,59 @@ function grapheBrancher(){
     g.addEventListener('mouseleave',eteindre); g.addEventListener('blur',eteindre);
   });
 }
+
+/* ── Sujets du bac (SUJETS_BAC, contenu/sujets-bac.js) ──────────────── */
+/* sujetBacHTML(x, avecNotions) — un sujet : la question (ou le texte à
+   expliquer, avec un lien vers la fiche de l'auteur), l'année et la voie,
+   et au besoin les notions en jeu (pastilles qui ouvrent l'onglet
+   Dissertations de la notion). */
+function sujetBacHTML(x, avecNotions){
+  const quand=`<span class="bac-quand">${x.annee} · voie ${x.voie}</span>`;
+  const corps=x.type==='explication'
+    ? `Explication de texte : <span class="aterm" role="link" tabindex="0" onclick="openAuthor('${x.auteur.replace(/'/g,"\\'")}')">${x.auteur}</span>, <em>${x.oeuvre}</em>`
+    : `« ${x.q} »`;
+  const pills=avecNotions?(x.notions||[]).filter(notionVisible).map(k=>`<span class="notion-pill" style="color:${D[k].c};border-color:${D[k].c}40;background:${D[k].c}12" onclick="pushHistory();cur='${k}';curTab='diss';sbMode='notions';renderSB();renderContent()">${D[k].l} →</span>`).join(''):'';
+  return `<li class="bac-sujet"><div>${corps} ${quand}</div>${pills?`<div class="bac-pills">${pills}</div>`:''}</li>`;
+}
+/* sujetsDeNotion(k) / sujetsDAuteur(nom) — les sujets d'une notion (onglet
+   Dissertations) ou les textes d'un auteur tombés à l'explication. */
+function sujetsDeNotion(k){ return SUJETS_BAC.sujets.filter(x=>(x.notions||[]).includes(k)); }
+function sujetsDAuteur(nom){ return SUJETS_BAC.sujets.filter(x=>x.type==='explication'&&x.auteur===nom); }
+
+/* sujetsHTML() — tous les sujets depuis 2021, par année, filtrables. */
+function sujetsHTML(){
+  const liste=SUJETS_BAC.sujets.filter(x=>(!sujetsVoie||x.voie===sujetsVoie)&&(!sujetsNotion||(x.notions||[]).includes(sujetsNotion)));
+  let html=`<div class="explorer-intro">Les sujets réellement tombés au bac depuis le programme actuel (première session en 2021), en France métropolitaine. Pour chaque session : deux sujets de dissertation et un texte à expliquer, par voie. Les notions indiquées sont celles qu'on mobilise d'abord ; elles ne figurent pas sur la copie.</div>
+  <div class="explorer-filtres">
+    <select aria-label="Voie" onchange="sujetsVoie=this.value;renderExplorerContent()"><option value="">Les deux voies</option><option value="générale"${sujetsVoie==='générale'?' selected':''}>Voie générale</option><option value="technologique"${sujetsVoie==='technologique'?' selected':''}>Voie technologique</option></select>
+    <select aria-label="Filtrer par notion" onchange="sujetsNotion=this.value;renderExplorerContent()">${optionsNotions(sujetsNotion)}</select>
+    <span class="explorer-compte">${liste.length} sujet${liste.length>1?'s':''}</span>
+  </div>`;
+  if(!liste.length) return html+`<div class="explorer-vide">Aucun sujet pour ce filtre.</div>`;
+  [...new Set(liste.map(x=>x.annee))].forEach(an=>{
+    const de=liste.filter(x=>x.annee===an);
+    html+=`<section class="bac-annee"><h3 class="frise-titre">${an}${de[0].date?' · '+de[0].date:''}</h3><ul class="bac-liste">${de.map(x=>sujetBacHTML(x,true)).join('')}</ul></section>`;
+  });
+  html+=`<div class="explorer-note">Sources : ${SUJETS_BAC.sources.join(' ; ')}.</div>`;
+  return html;
+}
+
+/* ── Nouveautés (NOUVEAUTES, contenu/nouveautes.js) ─────────────────── */
+const MOIS=['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+function dateLongue(iso){ const [a,m,j]=iso.split('-').map(Number); return j+' '+MOIS[m-1]+' '+a; }
+/* ouvrirAdresse(h) — suit une adresse #/… du site depuis un lien interne. */
+function ouvrirAdresse(h){
+  const s=etatDe(h); if(!s) return;
+  pushHistory();
+  if(applyNavState(s)){ renderSB(); renderCurrentView(); }
+}
+function nouveautesHTML(){
+  return `<div class="explorer-intro">Ce qui a changé sur le site, du plus récent au plus ancien.</div>`
+    +NOUVEAUTES.map(e=>`<article class="nouveaute">
+      <div class="nouveaute-date">${dateLongue(e.date)}</div>
+      <h3 class="nouveaute-titre">${e.titre}</h3>
+      <p>${e.texte}</p>
+      ${(e.liens||[]).length?`<div class="nouveaute-liens">${e.liens.map(l=>`<button class="pbtn pbtn-ghost" onclick="ouvrirAdresse('${l.h}')">${l.l} →</button>`).join('')}</div>`:''}
+    </article>`).join('');
+}
+

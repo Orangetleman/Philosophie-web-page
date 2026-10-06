@@ -1773,8 +1773,11 @@ function renderAuthorContent(){
   </div>
 </div>`;
 
+  // Étape 6 : un texte de cet auteur est-il tombé à l'explication de texte ?
+  const bacAuteur=sujetsDAuteur(curAuthor);
+  const bacHTML=bacAuteur.length?`<div class="bac-auteur">🎓 Tombé au bac : ${bacAuteur.map(x=>`<em>${x.oeuvre}</em> (${x.annee}, voie ${x.voie})`).join(' ; ')}.</div>`:'';
   if(meta.bio){
-    html+=`<div class="author-def-box">${linkTerms('<span>'+meta.bio+'</span>')}`;
+    html+=`<div class="author-def-box">${linkTerms('<span>'+meta.bio+'</span>')}${bacHTML}`;
     if(meta.periode||meta.themes.length){
       html+=`<details><summary>Période &amp; thèmes majeurs</summary>`;
       if(meta.periode) html+=`<div style="margin-top:8px;font-size:12px"><span style="font-weight:500;color:var(--color-text-primary)">Période :</span> ${meta.periode}</div>`;
@@ -1934,6 +1937,7 @@ function renderContent(){
 <div class="notion-head">
   <div class="nbadge" style="background:${c}"></div>
   <div><div class="ntitle">${n.l}${estHP(cur)?' '+hpBadgeHTML():''}</div><div class="nsub">${n.s}</div></div>
+  <button class="fiche-btn" onclick="imprimerFiche('${cur}')" title="Imprimer la fiche de révision de la notion, ou l'enregistrer en PDF">🖨 Fiche</button>
 </div>
 ${estHP(cur)?hpNoticeHTML():''}
 <div class="def-box">${linkTerms(n.def)}${sourcesHTML(n.sources)}${pPlus('ajout','notion',cur,'Définition / approfondissement de '+n.l)}</div>`;
@@ -2153,6 +2157,12 @@ ${estHP(cur)?hpNoticeHTML():''}
     if(!plans.length) html+=`<div style="color:var(--color-text-tertiary);font-size:12px;padding:6px 0 10px">Aucun plan détaillé pour l'instant.</div>`;
     plans.forEach(p=>{ html+=planCardHTML(p); });
     html+=pPlusCat('plan',cur,'Proposer un plan');
+    // 2 bis) Étape 6 : les sujets réellement tombés au bac où la notion est en
+    // jeu (SUJETS_BAC), avec leur année et leur voie.
+    const bac=sujetsDeNotion(cur);
+    if(bac.length){
+      html+=`<div class="slabel">Tombés au bac depuis 2021 (${bac.length})</div><ul class="bac-liste">${bac.map(x=>sujetBacHTML(x,false)).join('')}</ul>`;
+    }
     // 3) Autres sujets de dissertation (questions simples)
     html+=`<div class="slabel">Autres sujets de dissertation</div>
     <div class="diss-list">`;
@@ -7171,6 +7181,12 @@ const PALETTE_INDEX=(function(){
         cible:{notion:k, onglet:'exemples', sel:'.ex-card', extrait:ti}});
     });
   });
+  // Sujets tombés au bac (étape 6) : ouvrent Explorer › Sujets du bac.
+  SUJETS_BAC.sujets.forEach((x,i)=>{
+    const lab=x.type==='explication'?'Explication : '+x.auteur+', '+stripHtml(x.oeuvre):x.q;
+    out.push({type:'sujet', id:(x.notions||[])[0]||'', label:court(lab), sub:'Bac '+x.annee+' · voie '+x.voie,
+      color:'#888', norm:paletteNorm(lab+' bac '+x.annee), cible:{explorer:'sujets'}});
+  });
   return out;
 })();
 
@@ -7314,6 +7330,7 @@ function paletteActivate(){
    changement d'onglet ci-dessous) de faire briller l'élément (c.sel) dont le
    texte contient le début de l'extrait, au lieu de l'en-tête. */
 function ouvrirResultat(c){
+  if(c.explorer){ pushHistory(); sbMode='explorer'; explorerTopic=c.explorer; renderSB(); renderExplorerContent(); return; }   // étape 6
   pendingCible={sel:c.sel, extrait:c.extrait};
   if(c.auteur){ openAuthor(c.auteur); curAuthorTab=c.onglet; renderAuthorContent(); }
   else if(c.notion){
@@ -7376,7 +7393,10 @@ function ouvrirResultat(c){
 const EXPLORER_TOPICS=[
   {id:'frise', label:'Frise des auteurs'},
   {id:'graphe', label:'Graphe des idées'},
+  {id:'sujets', label:'Sujets du bac'},
+  {id:'nouveautes', label:'Nouveautés'},
 ];
+let sujetsNotion='', sujetsVoie='';                // filtres des sujets du bac
 let friseProgramme=false, friseNotion='';          // filtres de la frise
 let grapheMode='auteurs', grapheNotion='';         // réseau affiché et notion filtrée
 
@@ -7390,7 +7410,10 @@ function renderExplorerContent(){
   }
   const tabsEl=mainEl.querySelector('.tabs'), mc=mainEl.querySelector('.main-content');
   tabsEl.innerHTML=backBtnHTML()+EXPLORER_TOPICS.map(t=>`<div class="tab${explorerTopic===t.id?' active':''}" onclick="explorerTopic='${t.id}';renderSB();renderExplorerContent()">${t.label}</div>`).join('');
-  mc.innerHTML=explorerTopic==='graphe'?grapheHTML():friseHTML();
+  mc.innerHTML=explorerTopic==='graphe'?grapheHTML()
+    :explorerTopic==='sujets'?sujetsHTML()
+    :explorerTopic==='nouveautes'?nouveautesHTML()
+    :friseHTML();
   if(explorerTopic==='graphe') grapheBrancher();
 }
 
@@ -7634,6 +7657,120 @@ function grapheBrancher(){
     g.addEventListener('mouseenter',()=>allumer(g.dataset.id)); g.addEventListener('focus',()=>allumer(g.dataset.id));
     g.addEventListener('mouseleave',eteindre); g.addEventListener('blur',eteindre);
   });
+}
+
+/* ── Sujets du bac (SUJETS_BAC, contenu/sujets-bac.js) ──────────────── */
+/* sujetBacHTML(x, avecNotions) — un sujet : la question (ou le texte à
+   expliquer, avec un lien vers la fiche de l'auteur), l'année et la voie,
+   et au besoin les notions en jeu (pastilles qui ouvrent l'onglet
+   Dissertations de la notion). */
+function sujetBacHTML(x, avecNotions){
+  const quand=`<span class="bac-quand">${x.annee} · voie ${x.voie}</span>`;
+  const corps=x.type==='explication'
+    ? `Explication de texte : <span class="aterm" role="link" tabindex="0" onclick="openAuthor('${x.auteur.replace(/'/g,"\\'")}')">${x.auteur}</span>, <em>${x.oeuvre}</em>`
+    : `« ${x.q} »`;
+  const pills=avecNotions?(x.notions||[]).filter(notionVisible).map(k=>`<span class="notion-pill" style="color:${D[k].c};border-color:${D[k].c}40;background:${D[k].c}12" onclick="pushHistory();cur='${k}';curTab='diss';sbMode='notions';renderSB();renderContent()">${D[k].l} →</span>`).join(''):'';
+  return `<li class="bac-sujet"><div>${corps} ${quand}</div>${pills?`<div class="bac-pills">${pills}</div>`:''}</li>`;
+}
+/* sujetsDeNotion(k) / sujetsDAuteur(nom) — les sujets d'une notion (onglet
+   Dissertations) ou les textes d'un auteur tombés à l'explication. */
+function sujetsDeNotion(k){ return SUJETS_BAC.sujets.filter(x=>(x.notions||[]).includes(k)); }
+function sujetsDAuteur(nom){ return SUJETS_BAC.sujets.filter(x=>x.type==='explication'&&x.auteur===nom); }
+
+/* sujetsHTML() — tous les sujets depuis 2021, par année, filtrables. */
+function sujetsHTML(){
+  const liste=SUJETS_BAC.sujets.filter(x=>(!sujetsVoie||x.voie===sujetsVoie)&&(!sujetsNotion||(x.notions||[]).includes(sujetsNotion)));
+  let html=`<div class="explorer-intro">Les sujets réellement tombés au bac depuis le programme actuel (première session en 2021), en France métropolitaine. Pour chaque session : deux sujets de dissertation et un texte à expliquer, par voie. Les notions indiquées sont celles qu'on mobilise d'abord ; elles ne figurent pas sur la copie.</div>
+  <div class="explorer-filtres">
+    <select aria-label="Voie" onchange="sujetsVoie=this.value;renderExplorerContent()"><option value="">Les deux voies</option><option value="générale"${sujetsVoie==='générale'?' selected':''}>Voie générale</option><option value="technologique"${sujetsVoie==='technologique'?' selected':''}>Voie technologique</option></select>
+    <select aria-label="Filtrer par notion" onchange="sujetsNotion=this.value;renderExplorerContent()">${optionsNotions(sujetsNotion)}</select>
+    <span class="explorer-compte">${liste.length} sujet${liste.length>1?'s':''}</span>
+  </div>`;
+  if(!liste.length) return html+`<div class="explorer-vide">Aucun sujet pour ce filtre.</div>`;
+  [...new Set(liste.map(x=>x.annee))].forEach(an=>{
+    const de=liste.filter(x=>x.annee===an);
+    html+=`<section class="bac-annee"><h3 class="frise-titre">${an}${de[0].date?' · '+de[0].date:''}</h3><ul class="bac-liste">${de.map(x=>sujetBacHTML(x,true)).join('')}</ul></section>`;
+  });
+  html+=`<div class="explorer-note">Sources : ${SUJETS_BAC.sources.join(' ; ')}.</div>`;
+  return html;
+}
+
+/* ── Nouveautés (NOUVEAUTES, contenu/nouveautes.js) ─────────────────── */
+const MOIS=['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+function dateLongue(iso){ const [a,m,j]=iso.split('-').map(Number); return j+' '+MOIS[m-1]+' '+a; }
+/* ouvrirAdresse(h) — suit une adresse #/… du site depuis un lien interne. */
+function ouvrirAdresse(h){
+  const s=etatDe(h); if(!s) return;
+  pushHistory();
+  if(applyNavState(s)){ renderSB(); renderCurrentView(); }
+}
+function nouveautesHTML(){
+  return `<div class="explorer-intro">Ce qui a changé sur le site, du plus récent au plus ancien.</div>`
+    +NOUVEAUTES.map(e=>`<article class="nouveaute">
+      <div class="nouveaute-date">${dateLongue(e.date)}</div>
+      <h3 class="nouveaute-titre">${e.titre}</h3>
+      <p>${e.texte}</p>
+      ${(e.liens||[]).length?`<div class="nouveaute-liens">${e.liens.map(l=>`<button class="pbtn pbtn-ghost" onclick="ouvrirAdresse('${l.h}')">${l.l} →</button>`).join('')}</div>`:''}
+    </article>`).join('');
+}
+/* js/16-impression.js — morceau du script du site. Le build (outils/construire.mjs)
+   recolle js/*.js dans l'ORDRE des noms en UN SEUL script, app.js : les
+   fonctions restent visibles d'un morceau à l'autre comme avant, et le code
+   « de premier niveau » s'exécute dans cet ordre. */
+/* ── FICHE IMPRIMABLE D'UNE NOTION (étape 6, oct. 2026) ──────────────────
+   Le point fort historique de Fiches BUT : une fiche de révision à
+   imprimer (ou à enregistrer en PDF depuis la fenêtre d'impression). Le
+   bouton « 🖨 Fiche » de l'en-tête d'une notion compose la fiche dans
+   #impression, invisible à l'écran ; la feuille css/10-impression.css
+   n'imprime que lui. Contenu : question et définition (sections
+   « Approfondir » dépliées), auteurs (synthèse de chaque idée et première
+   citation exacte), concepts, plans (problématique et parties), sujets
+   (dont ceux tombés au bac), sources. */
+
+/* ficheImpressionHTML(k) — le HTML de la fiche de la notion k. */
+function ficheImpressionHTML(k){
+  const n=D[k], e=s=>String(s||'');
+  const def=e(n.def).replace(/<details>/g,'<details open>');
+  // Auteurs, dans l'ordre des cartes de la notion (compareAuthors).
+  const parNom={}; (n.auteurs||[]).forEach(a=>{ (parNom[a.n]=parNom[a.n]||[]).push(...(a.ideas||[])); });
+  const noms=Object.keys(parNom).sort(compareAuthors);
+  const auteurs=noms.map(nom=>{
+    const st=statutAuteur(nom), etiq=st==='programme'?' <span class="imp-etiq">programme</span>':'';
+    const idees=parNom[nom].map(it=>{
+      const cit=(it.citations||[]).find(c=>/[«“]/.test(c));
+      return `<li><span class="imp-oeuvre">${e(it.w)}</span> : ${e(it.fiche||quizThesis(it)||stripHtml(it.i))}${cit?`<div class="imp-cit">${cit}</div>`:''}</li>`;
+    }).join('');
+    return `<div class="imp-auteur"><div class="imp-nom">${nom}${etiq}</div><ul>${idees}</ul></div>`;
+  }).join('');
+  const concepts=CONCEPTS.filter(c=>!isRepere(c)&&(c.notions||[]).includes(k)).map(c=>`<li><strong>${c.term}</strong> : ${stripHtml(c.def)}</li>`).join('');
+  const plans=(n.plans||[]).map(p=>`<div class="imp-plan"><div class="imp-plan-q">${e(p.q)}</div>${p.pb?`<div class="imp-pb">${p.pb}</div>`:''}<ol>${(p.axes||[]).map(a=>`<li>${e(a.t)||'(partie)'}${(a.sps||[]).length?`<ul>${a.sps.map(s=>`<li>${e(s.t)}${s.auteurs?' ('+s.auteurs+')':''}</li>`).join('')}</ul>`:''}</li>`).join('')}</ol></div>`).join('');
+  const bac=sujetsDeNotion(k).map(x=>`<li>${x.type==='explication'?'Explication : '+x.auteur+', <em>'+x.oeuvre+'</em>':x.q} <span class="imp-quand">(bac ${x.annee}, voie ${x.voie})</span></li>`).join('');
+  const diss=(n.diss||[]).map(d=>`<li>${typeof d==='object'?d.q:d}</li>`).join('');
+  const sources=(n.sources||[]).map(s=>`<li>${s}</li>`).join('');
+  const adresse=location.origin+location.pathname+'#/notion/'+k;
+  return `<header class="imp-tete"><div class="imp-site">Graphe Philosophie · fiche de révision${estHP(k)?' · hors programme':''}</div>
+      <h1>${n.l}</h1><div class="imp-question">${e(n.s)}</div></header>
+    <section><h2>Définition</h2><div class="imp-def">${def}</div></section>
+    ${auteurs?`<section><h2>Auteurs et idées clés</h2>${auteurs}</section>`:''}
+    ${concepts?`<section><h2>Concepts</h2><ul class="imp-concepts">${concepts}</ul></section>`:''}
+    ${plans?`<section><h2>Plans de dissertation</h2>${plans}</section>`:''}
+    ${bac?`<section><h2>Tombés au bac</h2><ul>${bac}</ul></section>`:''}
+    ${diss?`<section><h2>Autres sujets</h2><ul>${diss}</ul></section>`:''}
+    ${sources?`<section><h2>Sources</h2><ul>${sources}</ul></section>`:''}
+    <footer class="imp-pied">${adresse}</footer>`;
+}
+
+/* imprimerFiche(k) — compose la fiche et ouvre la fenêtre d'impression du
+   navigateur ; la fiche est retirée une fois l'impression terminée. */
+function imprimerFiche(k){
+  k=k||cur;
+  let box=document.getElementById('impression');
+  if(!box){ box=document.createElement('div'); box.id='impression'; document.body.appendChild(box); }
+  box.innerHTML=ficheImpressionHTML(k);
+  document.body.classList.add('impression-prete');
+  const fin=()=>{ document.body.classList.remove('impression-prete'); box.innerHTML=''; window.removeEventListener('afterprint',fin); };
+  window.addEventListener('afterprint',fin);
+  window.print();
 }
 /* js/99-demarrage.js — morceau du script du site. Numéroté 99 (étape 6) pour
    s'exécuter EN DERNIER : le démarrage appelle des rendus qui lisent les

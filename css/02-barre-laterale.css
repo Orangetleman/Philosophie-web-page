@@ -72,7 +72,7 @@
 
 /* ── Idea cards ─────────────────────────────────────────────── */
 .idea-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:12px 14px;margin-bottom:10px}
-.idea-card.is-new{border-color:var(--color-new-border);background:var(--color-new-bg)}
+body.mode-edition .idea-card.is-new{border-color:var(--color-new-border);background:var(--color-new-bg)}
 .idea-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:5px}
 .idea-card-work{font-size:11px;color:var(--color-text-tertiary);font-style:italic;flex:1}
 .idea-card-body{font-size:12px;color:var(--color-text-secondary);line-height:1.55}

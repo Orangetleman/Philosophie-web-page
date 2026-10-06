@@ -121,6 +121,12 @@ const PALETTE_INDEX=(function(){
         cible:{notion:k, onglet:'exemples', sel:'.ex-card', extrait:ti}});
     });
   });
+  // Sujets tombés au bac (étape 6) : ouvrent Explorer › Sujets du bac.
+  SUJETS_BAC.sujets.forEach((x,i)=>{
+    const lab=x.type==='explication'?'Explication : '+x.auteur+', '+stripHtml(x.oeuvre):x.q;
+    out.push({type:'sujet', id:(x.notions||[])[0]||'', label:court(lab), sub:'Bac '+x.annee+' · voie '+x.voie,
+      color:'#888', norm:paletteNorm(lab+' bac '+x.annee), cible:{explorer:'sujets'}});
+  });
   return out;
 })();
 
@@ -264,6 +270,7 @@ function paletteActivate(){
    changement d'onglet ci-dessous) de faire briller l'élément (c.sel) dont le
    texte contient le début de l'extrait, au lieu de l'en-tête. */
 function ouvrirResultat(c){
+  if(c.explorer){ pushHistory(); sbMode='explorer'; explorerTopic=c.explorer; renderSB(); renderExplorerContent(); return; }   // étape 6
   pendingCible={sel:c.sel, extrait:c.extrait};
   if(c.auteur){ openAuthor(c.auteur); curAuthorTab=c.onglet; renderAuthorContent(); }
   else if(c.notion){

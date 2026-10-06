@@ -177,10 +177,10 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--color-page);heigh
 /* Plusieurs idées dans une carte → on matérialise les zones par un liseré
    discret (les zones colorées, elles, l'emportent ci-dessous). */
 .ac-multi .a-idea{border-color:var(--color-border-tertiary)}
-.a-idea.is-new{border-color:var(--color-new-border);background:var(--color-new-bg)}
-.a-idea.is-new .aw{color:var(--color-new)}
-.a-idea.is-modified{border-color:var(--color-mod-border);background:var(--color-mod-bg)}
-.a-idea.is-modified .aw{color:var(--color-mod)}
+body.mode-edition .a-idea.is-new{border-color:var(--color-new-border);background:var(--color-new-bg)}
+body.mode-edition .a-idea.is-new .aw{color:var(--color-new)}
+body.mode-edition .a-idea.is-modified{border-color:var(--color-mod-border);background:var(--color-mod-bg)}
+body.mode-edition .a-idea.is-modified .aw{color:var(--color-mod)}
 /* Carte d'un auteur à plusieurs idées : s'élargit sur 2 colonnes (au lieu de
    toute la rangée) pour que les zones d'idées tiennent côte à côte SANS laisser
    de grands vides dans la grille — un span pleine-rangée cassait le flux et
@@ -283,8 +283,8 @@ body.mode-fiche .a-idea .aq-details{display:none}
 .accroche-type{font-size:10px;font-weight:600;letter-spacing:.03em;text-transform:uppercase;color:var(--color-accent);background:var(--color-accent-soft,rgba(120,120,255,.10));padding:2px 9px;border-radius:20px;flex-shrink:0}
 .accroche-body{font-size:13.5px;color:var(--color-text-primary);line-height:1.6}
 .accroche-src{font-size:11px;color:var(--color-text-tertiary);margin-top:6px;font-style:italic;text-align:right}
-.accroche-card.is-new{border-color:var(--color-new-border);border-left-color:var(--color-new);background:var(--color-new-bg)}
-.accroche-card.is-modified{border-color:var(--color-mod-border);border-left-color:var(--color-mod);background:var(--color-mod-bg)}
+body.mode-edition .accroche-card.is-new{border-color:var(--color-new-border);border-left-color:var(--color-new);background:var(--color-new-bg)}
+body.mode-edition .accroche-card.is-modified{border-color:var(--color-mod-border);border-left-color:var(--color-mod);background:var(--color-mod-bg)}
 
 /* ── 6e. Contenu notion — onglets Liens & Dissertations ──────────── */
 .liens-row{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:14px}
@@ -370,15 +370,15 @@ body.mode-fiche .a-idea .aq-details{display:none}
 .hp-invite-note{font-size:11px;color:var(--color-text-tertiary);margin:10px 0 0!important}
 @media (max-width:700px){ .hp-invite{left:16px;right:16px;bottom:16px;max-width:none} }
 .quiz-filters button.quiz-hp{font-style:italic}
-.ac.is-new{border-color:var(--color-new-border);background:var(--color-new-bg)}
-.ac.is-new .an{position:relative}
-.ti2.is-new{background:var(--color-new-bg);border-radius:4px;padding:5px 7px;margin-bottom:2px;border-bottom:none!important}
-.ti2.is-new .tinum{color:var(--color-new)}
-.axe-card.is-new{border-color:var(--color-new-border);background:var(--color-new-bg)}
-.axe-card.is-new .axe-num{color:var(--color-new)}
-.ex-card.is-new{border-color:var(--color-new-border);background:var(--color-new-bg)}
-.dq.is-new{color:var(--color-new);border-bottom-color:var(--color-new-border)}
-.dq.is-new::before{color:var(--color-new)}
+body.mode-edition .ac.is-new{border-color:var(--color-new-border);background:var(--color-new-bg)}
+body.mode-edition .ac.is-new .an{position:relative}
+body.mode-edition .ti2.is-new{background:var(--color-new-bg);border-radius:4px;padding:5px 7px;margin-bottom:2px;border-bottom:none!important}
+body.mode-edition .ti2.is-new .tinum{color:var(--color-new)}
+body.mode-edition .axe-card.is-new{border-color:var(--color-new-border);background:var(--color-new-bg)}
+body.mode-edition .axe-card.is-new .axe-num{color:var(--color-new)}
+body.mode-edition .ex-card.is-new{border-color:var(--color-new-border);background:var(--color-new-bg)}
+body.mode-edition .dq.is-new{color:var(--color-new);border-bottom-color:var(--color-new-border)}
+body.mode-edition .dq.is-new::before{color:var(--color-new)}
 
 /* ── Éléments modifiés ────────────────────────────────────────── */
 :root{
@@ -393,16 +393,16 @@ body.mode-fiche .a-idea .aq-details{display:none}
   border:0.5px solid var(--color-mod-border);
   border-radius:4px;padding:1px 6px;flex-shrink:0;
 }
-.ac.is-modified{border-color:var(--color-mod-border);background:var(--color-mod-bg)}
-.ac.is-modified .an{color:var(--color-mod)!important}
-.ti2.is-modified{background:var(--color-mod-bg);border-radius:4px;padding:5px 7px;margin-bottom:2px;border-bottom:none!important}
-.ti2.is-modified .tinum{color:var(--color-mod)}
-.axe-card.is-modified{border-color:var(--color-mod-border);background:var(--color-mod-bg)}
-.axe-card.is-modified .axe-num{color:var(--color-mod)}
-.ex-card.is-modified{border-color:var(--color-mod-border);background:var(--color-mod-bg)}
-.dq.is-modified{color:var(--color-mod);border-bottom-color:var(--color-mod-border)}
-.dq.is-modified::before{color:var(--color-mod)}
-.idea-card.is-modified{border-color:var(--color-mod-border);background:var(--color-mod-bg)}
+body.mode-edition .ac.is-modified{border-color:var(--color-mod-border);background:var(--color-mod-bg)}
+body.mode-edition .ac.is-modified .an{color:var(--color-mod)!important}
+body.mode-edition .ti2.is-modified{background:var(--color-mod-bg);border-radius:4px;padding:5px 7px;margin-bottom:2px;border-bottom:none!important}
+body.mode-edition .ti2.is-modified .tinum{color:var(--color-mod)}
+body.mode-edition .axe-card.is-modified{border-color:var(--color-mod-border);background:var(--color-mod-bg)}
+body.mode-edition .axe-card.is-modified .axe-num{color:var(--color-mod)}
+body.mode-edition .ex-card.is-modified{border-color:var(--color-mod-border);background:var(--color-mod-bg)}
+body.mode-edition .dq.is-modified{color:var(--color-mod);border-bottom-color:var(--color-mod-border)}
+body.mode-edition .dq.is-modified::before{color:var(--color-mod)}
+body.mode-edition .idea-card.is-modified{border-color:var(--color-mod-border);background:var(--color-mod-bg)}
 
 /* ── Bouton retour ───────────────────────────────────────────── */
 .back-btn{
@@ -432,6 +432,14 @@ body.mode-fiche .a-idea .aq-details{display:none}
 /* Plans convertis de l'ancien format : la mention « ↻ à enrichir » ne
    regarde que les contributeurs (mode édition), pas les visiteurs. */
 body:not(.mode-edition) .plan-migr{display:none}
+
+/* Badges « ✦ Nouveau » / « ✎ Modifié » (étape 6) : informations pour les
+   contributeurs. Sans date, ils avaient fini par marquer près de 250
+   éléments (diagnostic, § 3) ; en mode révision (par défaut), ni badge ni
+   teinte (les règles is-new / is-modified ci-dessus sont réservées à
+   body.mode-edition), et les nouveautés sont datées dans Explorer ›
+   Nouveautés. */
+body:not(.mode-edition) .new-badge,body:not(.mode-edition) .modified-badge{display:none}
 /* css/02-barre-laterale.css — morceau de la feuille de style du site. Le build
    (outils/construire.mjs) recolle css/*.css dans l'ORDRE des noms pour
    produire app.css : l'ordre compte (cascade CSS). */
@@ -506,7 +514,7 @@ body:not(.mode-edition) .plan-migr{display:none}
 
 /* ── Idea cards ─────────────────────────────────────────────── */
 .idea-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:12px 14px;margin-bottom:10px}
-.idea-card.is-new{border-color:var(--color-new-border);background:var(--color-new-bg)}
+body.mode-edition .idea-card.is-new{border-color:var(--color-new-border);background:var(--color-new-bg)}
 .idea-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:5px}
 .idea-card-work{font-size:11px;color:var(--color-text-tertiary);font-style:italic;flex:1}
 .idea-card-body{font-size:12px;color:var(--color-text-secondary);line-height:1.55}
@@ -1532,4 +1540,59 @@ body.sb-open .sb-backdrop{display:block;opacity:1}
   .fg-long,.frise-grad-impaire{display:none}
   .fg-court{display:inline}
   #graphe-svg{height:62vh}
+}
+
+/* ── Sujets du bac (Explorer, onglet Dissertations, fiche d'auteur) ── */
+.bac-annee{margin-bottom:16px}
+.bac-liste{list-style:none;margin:0 0 14px;padding:0}
+.bac-sujet{padding:7px 0;border-bottom:0.5px solid var(--color-border-tertiary);font-size:12.5px;line-height:1.5;color:var(--color-text-secondary)}
+.bac-quand{font-size:11px;color:var(--color-text-tertiary);white-space:nowrap;margin-left:4px}
+.bac-pills{display:flex;flex-wrap:wrap;gap:5px;margin-top:5px}
+.bac-auteur{margin-top:9px;font-size:12px;color:var(--color-text-info);background:var(--color-background-info);border:0.5px solid var(--color-border-info);border-radius:var(--border-radius-md);padding:6px 9px}
+
+/* ── Nouveautés ── */
+.nouveaute{padding:12px 0 14px;border-bottom:0.5px solid var(--color-border-tertiary);max-width:760px}
+.nouveaute-date{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--color-text-tertiary)}
+.nouveaute-titre{font-size:15px;font-weight:600;color:var(--color-text-primary);margin:3px 0 5px}
+.nouveaute p{font-size:13px;line-height:1.6;color:var(--color-text-secondary);margin:0}
+.nouveaute-liens{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+/* css/10-impression.css — fiche imprimable d'une notion (étape 6,
+   js/16-impression.js). À l'écran, #impression n'apparaît jamais ; à
+   l'impression, lui seul est imprimé, en noir sur blanc, quel que soit le
+   thème. Ctrl+P sans passer par le bouton imprime la page telle quelle. */
+#impression{display:none}
+.fiche-btn{
+  margin-left:auto;align-self:flex-start;flex-shrink:0;font:inherit;font-size:12px;cursor:pointer;
+  padding:5px 10px;border-radius:var(--border-radius-md);
+  background:var(--color-background-secondary);color:var(--color-text-secondary);border:0.5px solid var(--color-border-secondary);
+}
+.fiche-btn:hover{color:var(--color-text-primary)}
+@media print{
+  @page{margin:16mm 14mm}
+  body.impression-prete{background:#fff!important;padding:0!important;height:auto!important;overflow:visible!important}
+  body.impression-prete > *:not(#impression){display:none!important}
+  body.impression-prete #impression{display:block;color:#111;font:10.5pt/1.45 'Inter',system-ui,sans-serif}
+  /* Le contenu reprend des classes du site (définitions, mots-clés) dont les
+     couleurs suivent le thème : tout est forcé en encre noire sur papier. */
+  #impression *{color:#111!important;background:transparent!important;border-color:#bbb!important;box-shadow:none!important}
+  #impression h1{font-size:20pt;margin:2pt 0 2pt}
+  #impression h2{font-size:12.5pt;margin:12pt 0 5pt;padding-bottom:2pt;border-bottom:0.6pt solid #999;break-after:avoid}
+  #impression .imp-site{font-size:8.5pt;color:#555;text-transform:uppercase;letter-spacing:.06em}
+  #impression .imp-question{font-style:italic;font-size:12pt;color:#333}
+  #impression .imp-def summary{display:none}
+  #impression .def-sec{margin-top:5pt}
+  #impression .def-sec-title{font-weight:600}
+  #impression .imp-auteur{break-inside:avoid;margin-bottom:6pt}
+  #impression .imp-nom{font-weight:600}
+  #impression .imp-etiq{font-weight:400;font-size:8pt;border:0.5pt solid #777;border-radius:6pt;padding:0 4pt;margin-left:4pt}
+  #impression .imp-oeuvre{font-style:italic;color:#444}
+  #impression .imp-cit{font-style:italic;color:#333;margin:2pt 0 0 8pt}
+  #impression ul,#impression ol{margin:2pt 0 4pt 16pt}
+  #impression li{margin-bottom:2pt}
+  #impression .imp-plan{break-inside:avoid;margin-bottom:6pt}
+  #impression .imp-plan-q{font-weight:600}
+  #impression .imp-pb{font-size:9.5pt;color:#333;margin:2pt 0}
+  #impression .imp-quand{color:#555;font-size:9pt}
+  #impression .imp-pied{margin-top:14pt;font-size:8pt;color:#666;border-top:0.5pt solid #bbb;padding-top:4pt}
+  #impression a,#impression span{color:inherit!important;border:0!important}
 }

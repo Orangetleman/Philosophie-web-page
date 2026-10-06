@@ -78,3 +78,18 @@
   .fg-court{display:inline}
   #graphe-svg{height:62vh}
 }
+
+/* ── Sujets du bac (Explorer, onglet Dissertations, fiche d'auteur) ── */
+.bac-annee{margin-bottom:16px}
+.bac-liste{list-style:none;margin:0 0 14px;padding:0}
+.bac-sujet{padding:7px 0;border-bottom:0.5px solid var(--color-border-tertiary);font-size:12.5px;line-height:1.5;color:var(--color-text-secondary)}
+.bac-quand{font-size:11px;color:var(--color-text-tertiary);white-space:nowrap;margin-left:4px}
+.bac-pills{display:flex;flex-wrap:wrap;gap:5px;margin-top:5px}
+.bac-auteur{margin-top:9px;font-size:12px;color:var(--color-text-info);background:var(--color-background-info);border:0.5px solid var(--color-border-info);border-radius:var(--border-radius-md);padding:6px 9px}
+
+/* ── Nouveautés ── */
+.nouveaute{padding:12px 0 14px;border-bottom:0.5px solid var(--color-border-tertiary);max-width:760px}
+.nouveaute-date{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--color-text-tertiary)}
+.nouveaute-titre{font-size:15px;font-weight:600;color:var(--color-text-primary);margin:3px 0 5px}
+.nouveaute p{font-size:13px;line-height:1.6;color:var(--color-text-secondary);margin:0}
+.nouveaute-liens{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
