@@ -1,8 +1,35 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
-  "genere_le": "2026-10-06T13:41:10.119Z",
+  "genere_le": "2026-10-06T16:53:06.067Z",
   "commits": [
+    {
+      "hash": "fe03fe3a5a4af102bf591c4a21b1d5fa43a4109d",
+      "short": "fe03fe3",
+      "auteur": "Orangentleman",
+      "date": "2026-10-06T18:52:42+02:00",
+      "sujet": "Hors programme : les sept autres notions du programme de 2003",
+      "corps": "Perception, Existence, Vivant, Matière et esprit, Interprétation,\nDémonstration, Société. Avec Autrui, le Désir et l'Histoire, le programme\nde 2003 est entièrement couvert (« Théorie et expérience » et « La justice\net le droit » vivent déjà dans la Science et la Justice).\n\nChaque notion : définition et sections « Approfondir », 6 auteurs de la\nliste officielle, un texte, un plan détaillé, deux exemples, une accroche,\nquatre sujets, liens et sources (minimum de la question 12). Douze concepts\nnouveaux, vingt concepts ou repères existants rattachés. Citations exactes\nvérifiées sur le texte (Wikisource, texte français de Leibniz) ; les autres\nentrent comme reformulations.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": "Hors programme"
+    },
+    {
+      "hash": "f04b9ffaf4317298b3d4e9b0b9c9ada834351796",
+      "short": "f04b9ff",
+      "auteur": "Orangentleman",
+      "date": "2026-10-06T18:37:00+02:00",
+      "sujet": "Merge pull request #13 from Orangetleman/claude/etape-5-hors-programme",
+      "corps": "Mise à jour, étape 5 : le hors programme (statuts, réglage, Autrui, Désir, Histoire)",
+      "tag": ""
+    },
+    {
+      "hash": "b914388ccfd38edb2e78419d37dbc162e185c487",
+      "short": "b914388",
+      "auteur": "Orangentleman",
+      "date": "2026-10-06T15:41:09+02:00",
+      "sujet": "Documentation de l'étape 5 : statuts calculés, règle du hors programme, compte rendu du premier lot",
+      "corps": "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": "Documentation de l'étape 5"
+    },
     {
       "hash": "39bb374131d4294b473c04f01e1bccd4819a6333",
       "short": "39bb374",

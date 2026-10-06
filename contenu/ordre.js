@@ -23,4 +23,11 @@ ORDRE([
   "autrui",
   "desir",
   "histoire",
+  "perception",
+  "existence",
+  "vivant",
+  "matiere-esprit",
+  "interpretation",
+  "demonstration",
+  "societe",
 ]);
