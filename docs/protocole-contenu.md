@@ -49,7 +49,10 @@ D'où trois statuts (décision de l'auteur du 5 octobre 2026) :
 
 Le statut se **calcule** à partir des listes officielles et des notions où
 l'élément apparaît ; il ne s'écrit pas à la main (mise en place à l'étape 5
-de la feuille de route). Le hors programme est visible par défaut, et le site
+de la feuille de route). La liste officielle est dans `contenu/programme.js`
+depuis l'étape 4 : le site en tire l'étiquette « Au programme », et le
+vérificateur (question 11) exige que chacun des 84 auteurs ait sa fiche et
+au moins une idée. Le hors programme est visible par défaut, et le site
 propose de le masquer à la première visite.
 
 ## 4. Les règles d'écriture
@@ -77,6 +80,13 @@ propose de le masquer à la première visite.
   prose en disant qu'elle est attribuée.
 - Une formule moderne qui résume un ancien (« croyance vraie justifiée »
   pour Platon) n'est **pas** une citation de cet ancien.
+- Une citation traduite dit **sa traduction** quand on l'a vérifiée sur une
+  traduction précise (« trad. Granger ») ; une formule latine se cite en
+  latin, sa traduction hors des guillemets. Sans traduction de référence
+  vérifiable (fragments, textes chinois ou sanskrits), on reformule.
+- La **référence** d'une citation est celle de l'œuvre où elle se trouve,
+  pas celle de l'idée qui l'entoure : si elles diffèrent, la citation porte
+  sa propre référence entre parenthèses.
 
 ### 4.3 Les auteurs
 

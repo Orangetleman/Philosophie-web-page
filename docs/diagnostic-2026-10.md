@@ -560,6 +560,98 @@ par notion pour le référencement (les moteurs ignorent la partie après #),
 et le découpage de `data.js` en « index + détail chargé à la demande » (pas
 nécessaire tant qu'il fait moins d'un mégaoctet : 695 Ko aujourd'hui).
 
+### Étape 4, « Compléter le programme » (6 octobre 2026)
+
+**La liste officielle entre dans le dépôt.** `contenu/programme.js` recopie
+le BO de 2019 : les 17 notions et les 84 auteurs, par période. Le build en
+tire une globale `PROGRAMME` (dans `data.js`) ; la question 11 du
+vérificateur exige que chaque auteur de la liste ait sa fiche et au moins
+une idée dans une notion (témoin : Montaigne retiré, la faute est vue). Deux
+noms diffèrent entre le BO et le site : « Les présocratiques » (fiches
+Héraclite et Parménide) et « Guillaume d'Occam » (fiche « Guillaume
+d'Ockham », graphie déjà employée par le concept du rasoir).
+
+**Les 39 auteurs manquants** ont leur fiche (40 avec les deux
+présocratiques) et 85 idées réparties dans 16 notions, toutes `new:true`.
+L'étiquette verte « Au programme » (fiche d'auteur, et en court sur ses
+cartes dans une notion) dit qu'un texte de l'auteur peut tomber à
+l'explication de texte. Les nouveaux courants ont leur couleur, les autres
+graphies des noms (Occam, Simone de Beauvoir, Ibn Sina…) sont reconnues par
+les liens et par la recherche.
+
+**Sources des citations exactes ajoutées** (entre « », donc posées par le
+quiz) :
+- textes français : Montaigne, *Essais* (« Au lecteur », I, 31, II, 12,
+  III, 2, III, 13 ; orthographe modernisée) ; Montesquieu, *De l'esprit des
+  lois*, I, 1, XI, 3 et XI, 4 ; Diderot, article « Autorité politique » et
+  *Paradoxe sur le comédien* ; Jankélévitch, *L'Irréversible et la
+  nostalgie* ; Beauvoir, *Le Deuxième Sexe*, t. II ; Lévi-Strauss, *Race
+  et histoire* ; Foucault, *Les Mots et les choses* et *Surveiller et
+  punir* ; Mauss, *Les Techniques du corps* ; Cournot, *Exposition de la
+  théorie des chances* ; Levinas, *Totalité et infini* ;
+- traductions nommées : Machiavel, *Le Prince*, XV et XVII (trad. Périès,
+  Wikisource) ; Wittgenstein, *Tractatus*, 5.6 et 7 (trad. Granger) ;
+  Husserl, *Méditations cartésiennes*, § 14 (trad. Peiffer et Levinas) ;
+  Bentham, *Introduction aux principes de morale et de législation*, chap. I
+  et XVII ;
+- formules latines exactes, avec leur traduction hors guillemets :
+  Lucrèce (I, 101 ; III, 830), Cicéron (*De la République*, I, 25, 39),
+  Anselme (*Proslogion*, 1 et 2), Bacon (*Novum Organum*, I, 3), Vico
+  (*De l'antique sagesse*, I), Berkeley (*Principes*, § 3), Ockham
+  (« Pluralitas non est ponenda sine necessitate » ; la forme « Entia non
+  sunt multiplicanda » n'est pas de lui, l'idée le dit).
+
+Vérifiées par Wikisource quand le texte y est, sinon par une source
+secondaire qui donne la référence (cours universitaires, éditions
+critiques, Stanford Encyclopedia). **Entrées comme reformulations** (sans
+guillemets, hors quiz), faute d'une traduction de référence ou d'un texte
+vérifié : les fragments présocratiques, Zhuangzi, Nāgārjuna, Marc Aurèle,
+Plotin, Avicenne, Averroès, Maïmonide, Adam Smith, Condillac, Jaspers,
+Aron, Hersch, Anscombe, Murdoch, Putnam, Benjamin (l'aura), et quelques
+formules secondaires des autres.
+
+**Citations existantes revues** (214 entre guillemets) : 72 corrigées. Les
+erreurs étaient de quatre sortes :
+- une **référence fausse** : « L'homme est né libre… » rangé sous le
+  *Discours sur l'inégalité* (c'est le *Contrat social*), le principe de
+  non-contradiction sous les *Premiers Analytiques* (c'est la
+  *Métaphysique*), « Ne pas railler… » sous l'*Éthique* (c'est le *Traité
+  politique*), la durée qui « ronge l'avenir » sous l'*Essai* (c'est
+  *L'Évolution créatrice*), le doute « une fois en sa vie » sous les
+  *Méditations* (ce sont les *Principes*), « De chacun selon ses
+  capacités… » sous *Le Capital* (c'est la *Critique du programme de
+  Gotha*), une phrase de Pie XI présentée comme « Marx cité par Weil » ;
+- une **phrase retouchée** donnée pour exacte : Marx (« comité d'affaires »),
+  Freud (« illusion universelle obsessionnelle » au lieu de « névrose »),
+  Rousseau (« clôtura »), Kant (« Sois digne d'être heureux »), Bergson
+  (« Les mots s'insinuent »), Jonas, Lafargue, l'impératif de Kant tronqué
+  sans le signaler ;
+- un **résumé** mis entre guillemets (« Religion statique = défense »,
+  « La justice distributive : à chacun selon son mérite »…) : reformulé ;
+- une **formule moderne** attribuée à un ancien : « croyance vraie
+  justifiée » pour Platon, remplacée partout (idées, textes, plans,
+  définitions) par l'opinion vraie accompagnée de raison du *Ménon* et du
+  *Théétète*, avec la mention que la formule est moderne. Aussi « La science
+  consiste à passer d'un étonnement à un autre », attribuée à Aristote.
+
+Chaque idée corrigée porte `modified:true`. Le dialogue Austin → Wittgenstein
+parlait d'un « second Tractatus » : corrigé (ce sont les *Recherches*).
+
+**Pas vérifié, à reprendre** : les citations d'auteurs hors liste et
+quelques classiques dont la traduction varie (Benveniste, Hegel sur le
+langage et l'art, Schopenhauer sur l'art, Simone Weil « Poser en termes
+techniques… », Thoreau, D'Holbach, Ricœur, Alain, Popper « C'est à travers
+la falsification… », Sartre sur la mort, Rosa, Lipovetsky, Anders, de
+Waal, Cassin, Boroditsky). Elles restent en l'état, sans garantie
+nouvelle. Aussi : 27 auteurs plus anciens ont un courant sans couleur
+(affiché en gris), et deux dialogues visent encore des auteurs sans fiche
+(Chomsky, Bateson).
+
+**Contrôles** : vérificateur « cohérent », 11 questions et leurs 11
+témoins vus ; build `--controle` à jour ; carte 278 symboles à leur place ;
+essai dans le navigateur (fiches, étiquette, recherche « occam », quiz :
+plus aucune carte n'attribue la formule moderne à Platon).
+
 ## Sources
 
 - Programme de philosophie de terminale, [BO spécial n° 8 du 25 juillet 2019](https://www.education.gouv.fr/bo/19/Special8/MENE1921238A.htm) ([annexe en PDF](https://cache.media.education.gouv.fr/file/SPE8_MENJ_25_7_2019/16/1/spe238_annexe2_1159161.pdf)) : notions, repères, liste des auteurs et son usage.

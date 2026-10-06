@@ -15,7 +15,7 @@ liste officielle, 5 hors programme, 6 enrichir ; décisions de l'auteur au
 
 | Chemin | Rôle | On l'édite ? |
 |---|---|---|
-| `contenu/` | **le contenu** : `notions/<clé>.js` (un fichier par notion), `auteurs/<nom>.js` (fiche de chaque auteur), `concepts.js`, `reperes.js`, `ordre.js` | **oui** |
+| `contenu/` | **le contenu** : `notions/<clé>.js` (un fichier par notion), `auteurs/<nom>.js` (fiche de chaque auteur), `concepts.js`, `reperes.js`, `ordre.js`, `programme.js` (la liste officielle : 17 notions, 84 auteurs) | **oui** |
 | `js/`, `css/` | **le code** du site, en morceaux numérotés (`01-…` à `14-…`) | **oui** |
 | `index.html` | le squelette HTML ; charge `app.css`, `data.js`, puis `app.js` | oui (HTML seulement) |
 | `data.js`, `app.js`, `app.css` | **générés** par le build à partir de `contenu/`, `js/`, `css/` | **jamais** |
@@ -69,10 +69,10 @@ liste officielle, 5 hors programme, 6 enrichir ; décisions de l'auteur au
 
 ## Contrôles
 
-- **`node outils/verifier_contenu.mjs`** : 10 questions sur `data.js` (KEYS,
+- **`node outils/verifier_contenu.mjs`** : 11 questions sur `data.js` (KEYS,
   notions, ids et termes uniques, relations, repères, fiche `AM` de chaque
   auteur, dialogues, guillemets des citations, traces de support de cours,
-  format canonique). `--temoins` glisse une faute par question et vérifie
+  format canonique, programme officiel couvert). `--temoins` glisse une faute par question et vérifie
   qu'elle est vue : une règle nouvelle = une question + son témoin.
   `--racine <dossier>` contrôle une autre copie du site.
 - **`node outils/construire.mjs --temoins`** : prouve que le contrôle de
@@ -89,10 +89,11 @@ liste officielle, 5 hors programme, 6 enrichir ; décisions de l'auteur au
 
 ## Données (vue d'ensemble)
 
-`data.js` définit quatre globales, déjà au format canonique (le build
+`data.js` définit cinq globales, déjà au format canonique (le build
 convertit les anciens formats, cf. `outils/lib/formats.mjs`) :
 `D` (les notions), `KEYS` (leur ordre), `AM` (les fiches d'auteurs),
-`CONCEPTS` (concepts puis repères). Formats détaillés, onglets, liens
+`CONCEPTS` (concepts puis repères), `PROGRAMME` (la liste officielle,
+`{source, notions, auteurs:[{bo, periode, fiches}]}`). Formats détaillés, onglets, liens
 dynamiques, contribution, interface, quiz : **`docs/architecture.md`**.
 
 Rappels qui reviennent souvent :
