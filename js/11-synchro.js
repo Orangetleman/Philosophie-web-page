@@ -85,6 +85,8 @@ function prefsBlobForSync(){
   return {
     mode: localStorage.getItem('philo-mode')||'revision',
     tour: localStorage.getItem('philo-tour-v1')||'',
+    hp: localStorage.getItem('philo-hp')||'',            // étape 5 : hors programme affiché ('1') ou masqué ('0')
+    hpChoix: localStorage.getItem('philo-hp-choix')||'', // la proposition d'arrivée a reçu une réponse
     drafts: drafts,
     nav: nav     // position courante (cross-plateforme : reprendre où l'on en était)
   };
@@ -97,6 +99,10 @@ function applyPrefsBlob(p){
   if(!p) return;
   if(p.mode) localStorage.setItem('philo-mode',p.mode);
   if(p.tour) localStorage.setItem('philo-tour-v1',p.tour);
+  // Étape 5 : le choix hors programme suit le compte ; la proposition
+  // d'arrivée se ferme si l'autre appareil y a déjà répondu.
+  if(p.hp){ const avant=voirHP(); localStorage.setItem('philo-hp',p.hp); if(voirHP()!==avant){ renderSB(); renderCurrentView(); } }
+  if(p.hpChoix){ localStorage.setItem('philo-hp-choix',p.hpChoix); fermerHpInvite(); }
   applyPhiloMode();
   // Position distante (cross-plateforme) : on ne l'adopte QUE si l'utilisateur
   // n'a pas encore navigué sur cet appareil (navTouched). Sinon sa position

@@ -197,6 +197,53 @@ function progBadgeHTML(nom, court){
   return `<span class="prog-badge${court?' prog-badge-court':''}" title="${t}">${court?'Programme':'Au programme'}</span>`;
 }
 
+/* ── Les trois statuts (étape 5, oct. 2026) ──────────────────────────────
+   CALCULÉS, jamais écrits à la main (docs/protocole-contenu.md, § 3) :
+   · notion  : 'programme' si sa clé est dans PROGRAMME.notions, sinon
+               'hors-programme' ;
+   · auteur  : 'programme' s'il est sur la liste officielle (PROG_AUTEURS),
+               'hors-liste' s'il apparaît dans au moins une notion du
+               programme (citable en dissertation, pas à l'explication de
+               texte), 'hors-programme' s'il n'apparaît que sous des notions
+               hors programme ;
+   · concept : 'hors-programme' si TOUTES ses notions le sont (un repère est
+               toujours au programme), sinon 'programme'.
+   Réglage « philo-hp » (localStorage) : '0' masque tout le hors programme.
+   Visible par défaut (décision de l'auteur du 5 octobre 2026) ; le site
+   propose de le masquer à la première visite (hpInviterSiBesoin).        */
+const PROG_NOTIONS=new Set(PROGRAMME.notions);
+function estHP(k){ return !!D[k] && !PROG_NOTIONS.has(k); }
+const KEYS_HP=KEYS.filter(estHP);                // les notions hors programme, dans l'ordre
+function voirHP(){ try{ return localStorage.getItem('philo-hp')!=='0'; }catch(e){ return true; } }
+function notionVisible(k){ return !estHP(k)||voirHP(); }
+function notionsVisibles(){ return KEYS.filter(notionVisible); }
+function statutAuteur(nom){
+  if(PROG_AUTEURS[nom]) return 'programme';
+  const e=AI[nom];
+  return (e&&e.notions.length&&e.notions.every(estHP))?'hors-programme':'hors-liste';
+}
+function auteurVisible(nom){ return voirHP()||statutAuteur(nom)!=='hors-programme'; }
+function statutConcept(c){
+  if(!c||isRepere(c)) return 'programme';
+  const ns=(c.notions||[]).filter(k=>D[k]);
+  return (ns.length&&ns.every(estHP))?'hors-programme':'programme';
+}
+function conceptVisible(c){ return voirHP()||statutConcept(c)!=='hors-programme'; }
+
+/* hpBadgeHTML(court) — badge « Hors programme » (notion, concept, auteur qui
+   n'apparaît que hors programme). court=true : version compacte (listes). */
+function hpBadgeHTML(court){
+  return `<span class="hp-badge${court?' hp-badge-court':''}" title="Pas au programme de terminale : pour aller plus loin. Masquable dans les Réglages.">${court?'HP':'Hors programme'}</span>`;
+}
+/* statutAuteurHTML(nom) — l'étiquette de statut d'un auteur, pour l'en-tête
+   de sa fiche : « Au programme », « Hors liste » ou « Hors programme ». */
+function statutAuteurHTML(nom){
+  const s=statutAuteur(nom);
+  if(s==='programme') return progBadgeHTML(nom);
+  if(s==='hors-programme') return hpBadgeHTML();
+  return `<span class="hl-badge" title="Absent de la liste officielle des auteurs : citable en dissertation, mais un texte de lui ne tombera pas à l'explication de texte.">Hors liste</span>`;
+}
+
 /* ── Courant → color ─────────────────────────────────────────── */
 const CC={
   'Rationalisme':'#185FA5','Empirisme / Libéralisme':'#3B6D11','Idéalisme allemand':'#534AB7',
@@ -538,6 +585,7 @@ let filterMode='or'; // 'or' | 'and'
 function authorsFiltered(){
   const q=authorSearch.trim().toLowerCase();
   return authorsSorted().filter(name=>{
+    if(!auteurVisible(name)) return false;   // étape 5 : hors programme masqué
     const entry=AI[name];
     const matchSearch=!q||name.toLowerCase().includes(q);
     let matchFilter=true;
@@ -685,13 +733,29 @@ function renderSB(){
   applyFicheMode();   // applique le « mode fiche » (lecture compressée) si actif
 
   if(sbMode==='notions'){
-    KEYS.forEach(k=>{
+    const ajouterNotion=k=>{
       const el=document.createElement('div');
-      el.className='nb'+(k===cur?' active':'');
+      el.className='nb'+(k===cur?' active':'')+(estHP(k)?' nb-hp':'');
       el.innerHTML=`<span class="dot" style="background:${D[k].c}"></span>${D[k].l}`;
       el.onclick=()=>{pushHistory();cur=k;curTab='auteurs';sbMode='notions';renderSB();renderContent()};
       list.appendChild(el);
-    });
+    };
+    KEYS.filter(k=>!estHP(k)).forEach(ajouterNotion);
+    // Étape 5 : les notions hors programme, dans une section à part en bas de
+    // la liste, repliable (état mémorisé dans « philo-hp-replie »). Rien du
+    // tout si le hors programme est masqué dans les Réglages. La notion
+    // ouverte reste visible même section repliée.
+    if(KEYS_HP.length && voirHP()){
+      let replie=false; try{ replie=localStorage.getItem('philo-hp-replie')==='1'; }catch(e){}
+      const tete=document.createElement('button');
+      tete.className='sb-hp-head';
+      tete.setAttribute('aria-expanded', String(!replie));
+      tete.title='Notions qui ne sont pas au programme de terminale : pour aller plus loin';
+      tete.innerHTML=`<span>Hors programme (${KEYS_HP.length})</span><span class="sb-hp-caret">${replie?'▸':'▾'}</span>`;
+      tete.onclick=()=>{ try{ localStorage.setItem('philo-hp-replie', replie?'0':'1'); }catch(e){} renderSB(); };
+      list.appendChild(tete);
+      KEYS_HP.filter(k=>!replie||k===cur).forEach(ajouterNotion);
+    }
   } else if(sbMode==='auteurs'){
     // Search row (fixe dans la zone fixe, en dessous des sb-tabs)
     let searchRow=fixed.querySelector('.sb-search-row');
@@ -711,7 +775,7 @@ function renderSB(){
     if(filterOpen){
       const fp=document.createElement('div');
       fp.className='filter-panel open';
-      const checks=KEYS.map(k=>{
+      const checks=notionsVisibles().map(k=>{   // étape 5 : sans les notions HP masquées
         const checked=authorFilter.has(k);
         return `<div class="filter-notion-item" onclick="toggleFilter('${k}')">
           <div class="filter-notion-check${checked?' checked':''}" style="${checked?`background:${D[k].c};color:#fff`:''}">${checked?'✓':''}</div>
@@ -728,7 +792,7 @@ function renderSB(){
         </div>
         <div class="filter-notions">${checks}</div>
         <div class="filter-actions">
-          <button class="filter-action-btn" onclick="authorFilter=new Set(KEYS);renderSB()">Sélect. tout</button>
+          <button class="filter-action-btn" onclick="authorFilter=new Set(notionsVisibles());renderSB()">Sélect. tout</button>
           <button class="filter-action-btn" onclick="authorFilter=new Set();renderSB()">Effacer</button>
         </div>`;
       list.appendChild(fp);
@@ -755,7 +819,7 @@ function renderSB(){
     if(conceptFilterOpen){
       const cfp=document.createElement('div');
       cfp.className='filter-panel open';
-      const cChecks=KEYS.map(k=>{
+      const cChecks=notionsVisibles().map(k=>{
         const checked=conceptFilter.has(k);
         return `<div class="filter-notion-item" onclick="toggleConceptFilter('${k}')">
           <div class="filter-notion-check${checked?' checked':''}" style="${checked?`background:${D[k].c};color:#fff`:''}">${checked?'✓':''}</div>
@@ -772,7 +836,7 @@ function renderSB(){
         </div>
         <div class="filter-notions">${cChecks}</div>
         <div class="filter-actions">
-          <button class="filter-action-btn" onclick="conceptFilter=new Set(KEYS);renderSB()">Sélect. tout</button>
+          <button class="filter-action-btn" onclick="conceptFilter=new Set(notionsVisibles());renderSB()">Sélect. tout</button>
           <button class="filter-action-btn" onclick="conceptFilter=new Set();renderSB()">Effacer</button>
         </div>`;
       list.appendChild(cfp);
@@ -840,6 +904,7 @@ function renderSBConceptsList(){
   //    On part de realConcepts() : les repères (cat:'Repère') sont rangés
   //    dans l'onglet « Méthodo », pas dans le glossaire général.
   const list=realConcepts().filter(c=>{
+    if(!conceptVisible(c)) return false;   // étape 5 : hors programme masqué
     const matchSearch=!q||c.term.toLowerCase().includes(q);
     let matchFilter=true;
     if(conceptFilter.size>0){
@@ -853,7 +918,7 @@ function renderSBConceptsList(){
   // Compteur TOUJOURS affiché : total de concepts, ou « filtrés / total »
   // quand une recherche/un filtre est actif (repères exclus du total).
   const hasFilter=q||(conceptFilter.size>0);
-  const total=realConcepts().length;
+  const total=realConcepts().filter(conceptVisible).length;
   const countTxt=hasFilter
     ?`${list.length} / ${total} concepts`
     :`${total} concept${total>1?'s':''}`;
@@ -1195,7 +1260,7 @@ function renderConceptContent(){
   // de CE concept dans son contenu (openNotionFromConcept — retour contributeur).
   const safeCid=c.id.replace(/'/g,"\\'");
   const notionPills=c.notions.map(k=>{
-    const nd=D[k]; if(!nd) return '';
+    const nd=D[k]; if(!nd||!notionVisible(k)) return '';   // étape 5 : HP masqué
     return `<span class="notion-pill" style="color:${nd.c};border-color:${nd.c}40;background:${nd.c}12"
       onclick="openNotionFromConcept('${k}','${safeCid}')">${nd.l} →</span>`;
   }).join('');
@@ -1209,7 +1274,7 @@ function renderConceptContent(){
   let html=`
 <div class="notion-head">
   <div>
-    <div class="concept-title">${c.term}</div>
+    <div class="concept-title">${c.term}${statutConcept(c)==='hors-programme'?' '+hpBadgeHTML():''}</div>
     ${c.cat?`<span class="concept-cat-badge facet-clickable" title="Voir les concepts de cette catégorie" onclick="openFacet('cat','${String(c.cat).replace(/'/g,"\\'")}')">${c.cat}</span>`:''}
   </div>
 </div>
@@ -1641,7 +1706,9 @@ function renderAuthorContent(){
   const mc=mainEl.querySelector('.main-content');
 
   if(!curAuthor||!AI[curAuthor]){mc.innerHTML='';tabsEl.innerHTML='';return;}
-  const entry=AI[curAuthor];
+  // Étape 5 : hors programme masqué → la fiche ne montre que les notions
+  // visibles (idées, citations, œuvres). Copie : AI n'est pas modifié.
+  const entry=voirHP()?AI[curAuthor]:Object.assign({},AI[curAuthor],{notions:AI[curAuthor].notions.filter(notionVisible)});
   const meta=AM[curAuthor]||{bio:'',courant:'',periode:'',themes:[],dialogues:[]};
   const cc=CC[meta.courant]||'#888';
   // Nom de l'auteur échappé pour les attributs onclick (pastilles de notion
@@ -1661,7 +1728,7 @@ function renderAuthorContent(){
   <div>
     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
       <div class="author-title">${curAuthor}</div>
-      ${progBadgeHTML(curAuthor)}
+      ${statutAuteurHTML(curAuthor)}
       ${meta.courant?`<span class="author-courant facet-clickable" style="background:${cc}18;color:${cc};border:0.5px solid ${cc}40" title="Voir les auteurs de ce courant" onclick="openFacet('courant','${String(meta.courant).replace(/'/g,"\\'")}')">${meta.courant}</span>`:''}
     </div>
     <div style="display:flex;gap:3px;align-items:center;margin-top:5px">${notionBdgs}<span style="font-size:10px;color:var(--color-text-tertiary);margin-left:4px">${entry.notions.length} notion${entry.notions.length>1?'s':''}</span></div>
@@ -1789,6 +1856,23 @@ function renderAuthorContent(){
      · diss      → questions de dissertation (.dq) + liens vers notions liées
    La définition (.def-box) est toujours affichée en haut, quelle que soit
    l'onglet actif.                                                         */
+/* hpNoticeHTML() — encadré en tête d'une notion hors programme (étape 5) :
+   dit à l'élève ce que c'est et ce qui reste utile pour le bac ; si le hors
+   programme est masqué (on est arrivé par un lien), propose de l'afficher. */
+function hpNoticeHTML(){
+  const masque=!voirHP();
+  return `<div class="hp-notice" role="note"><strong>Pour aller plus loin.</strong> Cette notion n'est pas au programme de terminale. Elle reste utile pour nourrir une dissertation : les auteurs de la liste officielle y gardent leur étiquette « Programme ».`
+    +(masque?` Le hors programme est masqué dans tes Réglages. <button class="hp-notice-btn" onclick="setVoirHP(true)">L'afficher</button>`:'')
+    +`</div>`;
+}
+/* sourcesHTML(src) — les sources d'une notion (champ facultatif sources:[…],
+   exigé pour une notion hors programme, docs/protocole-contenu.md § 4.5),
+   dans un déroulant sous la définition. '' s'il n'y en a pas. */
+function sourcesHTML(src){
+  if(!Array.isArray(src)||!src.length) return '';
+  return `<details class="notion-sources"><summary>Sources</summary><ul>${src.map(s=>`<li>${s}</li>`).join('')}</ul></details>`;
+}
+
 function renderContent(){
   renderCrumbs();
   const mainEl=document.getElementById('main');
@@ -1811,9 +1895,10 @@ function renderContent(){
   let html=`
 <div class="notion-head">
   <div class="nbadge" style="background:${c}"></div>
-  <div><div class="ntitle">${n.l}</div><div class="nsub">${n.s}</div></div>
+  <div><div class="ntitle">${n.l}${estHP(cur)?' '+hpBadgeHTML():''}</div><div class="nsub">${n.s}</div></div>
 </div>
-<div class="def-box">${linkTerms(n.def)}${pPlus('ajout','notion',cur,'Définition / approfondissement de '+n.l)}</div>`;
+${estHP(cur)?hpNoticeHTML():''}
+<div class="def-box">${linkTerms(n.def)}${sourcesHTML(n.sources)}${pPlus('ajout','notion',cur,'Définition / approfondissement de '+n.l)}</div>`;
 
   if(curTab==='auteurs'){
     // Fusion VOULUE : toutes les idées d'un même auteur pour cette notion
@@ -2021,7 +2106,7 @@ function renderContent(){
     if(liens.length){
       html+=`<div class="slabel">Liens avec d'autres notions</div>
       <div class="liens-row">
-        ${liens.map(l=>{const k=KEYS.find(k=>D[k].l===l);return k?`<div class="lpill" style="border-color:${D[k].c};color:${D[k].c}" onclick="pushHistory();cur='${k}';curTab='auteurs';sbMode='notions';renderSB();renderContent()">${l}</div>`:''}).join('')}
+        ${liens.map(l=>{const k=KEYS.find(k=>D[k].l===l);return (k&&notionVisible(k))?`<div class="lpill" style="border-color:${D[k].c};color:${D[k].c}" onclick="pushHistory();cur='${k}';curTab='auteurs';sbMode='notions';renderSB();renderContent()">${l}</div>`:''}).join('')}
       </div>`;
     }
     // 2) Plans de dissertation détaillés (cartes déroulables)
@@ -2063,7 +2148,7 @@ function renderSBList(){
     const fa=authorFilter.size>0;
     // Compteur TOUJOURS affiché : total d'auteurs, ou « filtrés / total »
     // quand une recherche/un filtre est actif.
-    const total=Object.keys(AI).length;
+    const total=Object.keys(AI).filter(auteurVisible).length;   // étape 5
     const hasFilter=authorSearch||fa;
     const countTxt=hasFilter
       ?`${list.length} / ${total} auteurs`
@@ -2071,7 +2156,7 @@ function renderSBList(){
     html+=`<div class="sb-results-count">${countTxt}</div>`;
     list.forEach(name=>{
       const entry=AI[name];
-      const bdgs=entry.notions.map(k=>`<span class="ab-bdg" style="background:${D[k].c}" title="${D[k].l}"></span>`).join('');
+      const bdgs=entry.notions.filter(notionVisible).map(k=>`<span class="ab-bdg" style="background:${D[k].c}" title="${D[k].l}"></span>`).join('');
       const safeN=name.replace(/'/g,"\\'");
       html+=`<div class="ab${name===curAuthor?' active':''}" onclick="pushHistory();curAuthor='${safeN}';curAuthorTab='idees';renderSBList();renderAuthorContent()">
         <div class="ab-name">${name}</div><div class="ab-badges">${bdgs}</div>
@@ -2115,6 +2200,10 @@ CONCEPTS.forEach(c=>{
   if(c.id.startsWith('notion-')) return;
   const key=c.term.toLowerCase();
   if(!LINK_MAP[key]) LINK_MAP[key]={t:'c',v:c.id};
+  // Étape 5 : un concept homonyme d'une notion HORS PROGRAMME (« Désir ») est
+  // gardé en repli (alt) : si le hors programme est masqué, le mot mène au
+  // concept au lieu de redevenir du texte simple (cf. linkTerms).
+  else if(LINK_MAP[key].t==='n' && estHP(LINK_MAP[key].v) && !LINK_MAP[key].alt) LINK_MAP[key].alt={t:'c',v:c.id};
 });
 // 3. Auteurs — clés de AI (garantit que openAuthor reconnaîtra le nom)
 Object.keys(AI).forEach(name=>{
@@ -2199,6 +2288,15 @@ function inkOnDark(hex){
 
 /* linkTerms(html) — cf. section H ci-dessus : rend cliquables les notions,
    concepts et auteurs détectés dans un fragment HTML. */
+/* lienVersHP(e) — vrai si l'entrée e de LINK_MAP vise du hors programme (une
+   notion, un concept ou un auteur qui n'existe que hors programme). Les
+   ensembles sont calculés une fois : les statuts ne bougent qu'au build. */
+const HP_CONCEPTS=new Set(CONCEPTS.filter(c=>statutConcept(c)==='hors-programme').map(c=>c.id));
+const HP_AUTEURS=new Set(Object.keys(AI).filter(n=>statutAuteur(n)==='hors-programme'));
+function lienVersHP(e){
+  return e.t==='n' ? estHP(e.v) : e.t==='c' ? HP_CONCEPTS.has(e.v) : HP_AUTEURS.has(e.v);
+}
+
 function linkTerms(html){
   // Découpe la chaîne en BALISES (<...>) et FRAGMENTS DE TEXTE, puis ne
   // linkifie que le texte. Indispensable : une version antérieure ne
@@ -2208,8 +2306,11 @@ function linkTerms(html){
   return html.replace(/<[^>]+>|[^<]+/g,(chunk)=>{
     if(chunk[0]==='<') return chunk; // c'est une balise : on n'y touche pas
     return chunk.replace(LINK_REGEX,(m)=>{
-      const e=LINK_MAP[m.toLowerCase()];
+      let e=LINK_MAP[m.toLowerCase()];
       if(!e) return m;
+      // Étape 5 : pas de lien vers du hors programme masqué ; on se replie sur
+      // le concept homonyme s'il y en a un (et s'il est visible).
+      if(!voirHP() && lienVersHP(e)){ e=e.alt; if(!e || lienVersHP(e)) return m; }
       if(e.t==='n'){ // lien notion — coloré avec la couleur (éclaircie) de la notion
         // inkOnDark : version assez claire de la couleur de notion pour rester
         // lisible en texte sur fond sombre (WCAG AA). On l'applique au texte ET
@@ -3835,6 +3936,47 @@ function toggleFicheMode(){
   applyFicheMode();
 }
 
+/* ── Hors programme : afficher / masquer (étape 5, oct. 2026) ─────────────
+   setVoirHP(v) — enregistre le réglage (« philo-hp » : '1' visible, '0'
+   masqué), note que la personne a fait son choix (« philo-hp-choix », la
+   proposition d'arrivée ne revient plus), redessine tout ce qui en dépend
+   (barre latérale, page ouverte, Réglages, quiz) et le reporte au compte. */
+function setVoirHP(v){
+  try{ localStorage.setItem('philo-hp', v?'1':'0'); localStorage.setItem('philo-hp-choix','1'); }catch(e){}
+  fermerHpInvite();
+  renderSB(); renderCurrentView();
+  const ov=document.getElementById('settings-overlay');
+  if(ov && ov.classList.contains('open')) renderSettingsBody();
+  const qo=document.getElementById('quiz-overlay');
+  if(qo && qo.classList.contains('open') && quizState.view==='dashboard') renderQuiz();
+  syncOnPrefsChange();
+}
+
+/* hpInviterSiBesoin() — la proposition de la première visite (décision du
+   5 octobre 2026 : le hors programme est visible par défaut, mais le site
+   propose de le masquer à l'arrivée). Ne s'affiche qu'une fois (« philo-hp-
+   choix »), seulement s'il existe du hors programme, et jamais par-dessus la
+   visite guidée : endTour() la rappelle à la fin de la visite. */
+function hpInviterSiBesoin(){
+  if(!KEYS_HP.length || document.getElementById('hp-invite')) return;
+  let choix='1'; try{ choix=localStorage.getItem('philo-hp-choix'); }catch(e){}
+  if(choix) return;
+  if(typeof tourState!=='undefined' && tourState.i>=0) return;   // visite en cours
+  const noms=KEYS_HP.slice(0,3).map(k=>D[k].l.toLowerCase()).join(', ');
+  const box=document.createElement('div');
+  box.id='hp-invite'; box.className='hp-invite'; box.setAttribute('role','dialog');
+  box.setAttribute('aria-labelledby','hp-invite-titre');
+  box.innerHTML=`<div class="hp-invite-titre" id="hp-invite-titre">Programme ou plus large ?</div>
+    <p>En plus des 17 notions du bac, le site propose des notions <strong>hors programme</strong> (${noms}…), marquées comme telles. Tu prépares le bac et préfères t'en tenir au programme ?</p>
+    <div class="hp-invite-btns">
+      <button class="pbtn pbtn-primary" onclick="setVoirHP(false)">M'en tenir au programme</button>
+      <button class="pbtn pbtn-ghost" onclick="setVoirHP(true)">Tout garder visible</button>
+    </div>
+    <p class="hp-invite-note">Modifiable à tout moment dans ⚙ Réglages.</p>`;
+  document.body.appendChild(box);
+}
+function fermerHpInvite(){ const b=document.getElementById('hp-invite'); if(b) b.remove(); }
+
 /* ── Menu « ⚙ Réglages » ─────────────────────────────────────────────────
    Regroupe les fonctions NON nécessaires à la révision. Le toggle de mode y
    est rendu EXPLICITE : le bouton nomme le mode-CIBLE (l'action), avec le mode
@@ -3858,6 +4000,13 @@ function renderSettingsBody(){
     +'<button class="pbtn pbtn-primary set-mode-btn" onclick="toggleFicheMode()">'
       +(isFiche?'📖 Affichage complet':'🗂 Activer le mode fiche')+'</button>'
     +'</div>'
+    // Étape 5 : afficher ou masquer le hors programme (visible par défaut).
+    +(KEYS_HP.length?'<div class="set-row">'
+    +'<div class="set-row-cur">Hors programme : <strong>'+(voirHP()?'affiché':'masqué')+'</strong></div>'
+    +'<div class="set-row-desc">Les notions qui ne sont pas au programme de terminale ('+KEYS_HP.length+' pour l\'instant), et ce qui n\'apparaît que sous elles : auteurs, concepts, cartes du quiz. Masqué, le site s\'en tient au programme du bac.</div>'
+    +'<button class="pbtn pbtn-primary set-mode-btn" onclick="setVoirHP('+(voirHP()?'false':'true')+')">'
+      +(voirHP()?'🎯 M\'en tenir au programme':'🧭 Afficher le hors programme')+'</button>'
+    +'</div>':'')
     // Carte technique du projet (doc) — discret, pour les curieux de l'envers du décor.
     +'<div class="set-row">'
     +'<div class="set-row-cur">🔎 Découvrir l\'envers du projet</div>'
@@ -4414,6 +4563,7 @@ function endTour(){
   applyPhiloMode();                              // restaure le mode (édition tempo)
   try{ localStorage.setItem('philo-tour-v1','1'); }catch(e){}
   syncOnPrefsChange();                           // new (Phase 2) : « visite vue » suit le compte
+  setTimeout(hpInviterSiBesoin,400);             // étape 5 : la proposition hors programme vient après la visite
 }
 
 /* tourNext() — avance dans la SÉQUENCE ACTIVE (tourSeq(), filtrée par le mode).
@@ -5359,6 +5509,8 @@ function prefsBlobForSync(){
   return {
     mode: localStorage.getItem('philo-mode')||'revision',
     tour: localStorage.getItem('philo-tour-v1')||'',
+    hp: localStorage.getItem('philo-hp')||'',            // étape 5 : hors programme affiché ('1') ou masqué ('0')
+    hpChoix: localStorage.getItem('philo-hp-choix')||'', // la proposition d'arrivée a reçu une réponse
     drafts: drafts,
     nav: nav     // position courante (cross-plateforme : reprendre où l'on en était)
   };
@@ -5371,6 +5523,10 @@ function applyPrefsBlob(p){
   if(!p) return;
   if(p.mode) localStorage.setItem('philo-mode',p.mode);
   if(p.tour) localStorage.setItem('philo-tour-v1',p.tour);
+  // Étape 5 : le choix hors programme suit le compte ; la proposition
+  // d'arrivée se ferme si l'autre appareil y a déjà répondu.
+  if(p.hp){ const avant=voirHP(); localStorage.setItem('philo-hp',p.hp); if(voirHP()!==avant){ renderSB(); renderCurrentView(); } }
+  if(p.hpChoix){ localStorage.setItem('philo-hp-choix',p.hpChoix); fermerHpInvite(); }
   applyPhiloMode();
   // Position distante (cross-plateforme) : on ne l'adopte QUE si l'utilisateur
   // n'a pas encore navigué sur cet appareil (navTouched). Sinon sa position
@@ -5733,6 +5889,7 @@ restoreNavHistory();          // pile « ← Retour » survit aussi (philo-navhi
 renderSB();renderCurrentView();
 initAuth();           // new (comptes) : récupère la session + s'abonne aux changements d'état
 tourStartIfFirst();   // visite guidée auto à la 1re venue (cf. module « Visite guidée »)
+hpInviterSiBesoin();  // étape 5 : propose de masquer le hors programme (une fois, hors visite)
 initNotice();         // bandeau « contenu en construction » (auto-fermeture à 1 min)
 
 /* ── PWA — enregistrement du service worker + mise à jour automatique ──
@@ -6119,12 +6276,31 @@ function cardsForFilter(st){
   st=st||loadQuizState(); const h=quizState.horizon;
   const nf=quizState.notionFilters, tf=quizState.typeFilters;
   return QUIZ_CARDS.filter(c=>{
+    if(!carteQuizVisible(c)) return false;   // étape 5 : hors programme
     if(nf.size && !(c.notions||[c.notion]).some(k=>nf.has(k))) return false;
     if(tf.size && !tf.has(c.type)) return false;
     if(quizState.wrongOnly){ const p=st.byHorizon[h][c.id]; if(!(p&&p.box<=1&&p.seen>0)) return false; }
     return true;
   });
 }
+/* ── Hors programme dans le quiz (étape 5, oct. 2026) ──────────────────
+   Une carte est hors programme quand TOUTES ses notions le sont. Exclue par
+   défaut (on révise le bac) ; incluse si l'interrupteur « Inclure le hors
+   programme » est mis (« philo-quiz-hp », propre à l'appareil), ou si l'on
+   coche soi-même une notion hors programme dans les filtres. Jamais quand le
+   hors programme est masqué dans les Réglages. */
+function carteEstHP(c){ const ns=c.notions||[c.notion]; return ns.length>0 && ns.every(estHP); }
+function quizInclureHP(){ try{ return localStorage.getItem('philo-quiz-hp')==='1'; }catch(e){ return false; } }
+function toggleQuizHP(){ try{ localStorage.setItem('philo-quiz-hp', quizInclureHP()?'0':'1'); }catch(e){} renderQuiz(); }
+function carteQuizVisible(c){
+  if(!carteEstHP(c)) return true;
+  if(!voirHP()) return false;
+  return quizInclureHP() || (c.notions||[c.notion]).some(k=>quizState.notionFilters.has(k));
+}
+/* notionsDuQuiz() — les notions proposées au quiz (filtres, maîtrise,
+   badges) : celles du programme, plus les hors programme si incluses. */
+function notionsDuQuiz(){ return KEYS.filter(k=>!estHP(k) || (voirHP() && (quizInclureHP() || quizState.notionFilters.has(k)))); }
+
 /* Helpers de bascule des filtres (un clic = ajout/retrait). */
 function clearQuizFilters(){ quizState.notionFilters.clear(); quizState.typeFilters.clear(); quizState.wrongOnly=false; renderQuiz(); }
 function toggleQuizWrong(){ quizState.wrongOnly=!quizState.wrongOnly; renderQuiz(); }
@@ -6270,7 +6446,9 @@ function renderQuizDashboard(){
   const s=quizStats(st);
   const nf=quizState.notionFilters, tf=quizState.typeFilters;   // filtres actifs (Sets)
   // Filtres multi-sélection : un bouton est « active » s'il est dans l'ensemble.
-  const notionBtns=KEYS.map(k=>`<button class="${nf.has(k)?'active':''}" onclick="toggleNotionFilter('${k}')">${D[k].l}</button>`).join('');
+  // Étape 5 : boutons des notions HP seulement si le hors programme est affiché.
+  const notionBtns=notionsVisibles().map(k=>`<button class="${nf.has(k)?'active':''}${estHP(k)?' quiz-hp':''}" onclick="toggleNotionFilter('${k}')">${D[k].l}</button>`).join('');
+  const hpBtn=(KEYS_HP.length&&voirHP())?`<button class="${quizInclureHP()?'active':''}" onclick="toggleQuizHP()" title="Ajouter aux sessions les cartes des notions hors programme">+ Hors programme</button>`:'';
   const typeLabels={'concept-def':'Concept→déf','def-concept':'Déf→concept','cite-author':'Citation→auteur','author-cite':'Auteur→citation','notion-authors':'Notion→auteurs'};
   const typeBtns=Object.keys(typeLabels).map(t=>`<button class="${tf.has(t)?'active':''}" onclick="toggleTypeFilter('${t}')">${typeLabels[t]}</button>`).join('');
   // v3 — gamification : niveau courant + XP dans le niveau (0..99).
@@ -6343,7 +6521,7 @@ function renderQuizDashboard(){
     <div class="quiz-section-lbl">Filtrer ${quizFiltersEmpty()?'':`<button class="quiz-reset" style="float:right;margin:0" onclick="clearQuizFilters()">tout effacer</button>`}</div>
     <div class="quiz-filters">
       <button class="${quizState.wrongOnly?'active':''}" onclick="toggleQuizWrong()">Mes ratés</button>
-      ${notionBtns}${typeBtns}
+      ${hpBtn}${notionBtns}${typeBtns}
     </div>
   </div>
   ${launchHtml}
@@ -6703,7 +6881,7 @@ function setQuizGoal(n){ const st=loadQuizState(); st.daily.goal=n; saveQuizStat
    courant. Une carte compte pour chacune de ses notions (c.notions, v4). */
 function notionMastery(st){
   st=st||loadQuizState(); const h=quizState.horizon;
-  return KEYS.map(k=>{
+  return notionsDuQuiz().map(k=>{   // étape 5 : sans les notions HP non incluses
     const cards=QUIZ_CARDS.filter(c=>(c.notions||[c.notion]).includes(k));
     let m=0; cards.forEach(c=>{const p=st.byHorizon[h][c.id]; if(p&&p.box>=4)m++;});
     return {k,total:cards.length,pct:cards.length?Math.round(m/cards.length*100):0};
@@ -6717,7 +6895,7 @@ function notionMastery(st){
 const QUIZ_BADGE_PCT=80;
 function quizBadges(st){
   const nm=notionMastery(st);
-  return KEYS.map(k=>{
+  return notionsDuQuiz().map(k=>{
     const x=nm.find(m=>m.k===k);
     return {k,label:D[k].l,earned:!!(x&&x.pct>=QUIZ_BADGE_PCT)};
   });
@@ -6903,6 +7081,21 @@ const PALETTE_INDEX=(function(){
   return out;
 })();
 
+// Étape 5 : chaque entrée sait si elle relève du hors programme (e.hp), d'après
+// sa notion ou le statut de son auteur ou concept ; paletteSearch l'écarte
+// quand le hors programme est masqué, et la signale sinon.
+PALETTE_INDEX.forEach(e=>{
+  const t=e.type, id=String(e.id);
+  e.hp = t==='notion' ? estHP(id)
+       : t==='auteur' ? HP_AUTEURS.has(id)
+       : t==='concept' ? HP_CONCEPTS.has(id)
+       : t==='accroche' ? estHP(id.slice(0,id.lastIndexOf('#')))
+       : t==='citation' ? estHP(id.slice(id.indexOf('|')+1))
+       : t==='oeuvre' ? HP_AUTEURS.has(id.slice(0,id.indexOf('|')))
+       : estHP(id);                       // sujet, texte, exemple : id = clé de notion
+  if(e.hp) e.sub=(e.sub?e.sub+' · ':'')+'hors programme';
+});
+
 const PALETTE_GROUPS={notion:'Notions', auteur:'Auteurs', concept:'Concepts', citation:'Citations', oeuvre:'Œuvres', sujet:'Sujets de dissertation', texte:'Textes', exemple:'Exemples', accroche:'Accroches'};
 const PALETTE_ORDER={notion:0, auteur:1, concept:2, citation:3, oeuvre:4, sujet:5, texte:6, exemple:7, accroche:8};
 const PALETTE_BASE={notion:1, auteur:1, concept:1, accroche:1};   // types montrés quand la saisie est vide
@@ -6925,8 +7118,9 @@ function paletteQuery(){ const i=document.getElementById('palette-input'); retur
    Sans requête : les notions, auteurs, concepts et accroches (40 au plus). */
 function paletteSearch(q){
   const n=paletteNorm(q.trim());
-  if(!n) return PALETTE_INDEX.filter(e=>PALETTE_BASE[e.type]).slice(0,40);
-  const hits=PALETTE_INDEX
+  const vus=voirHP()?PALETTE_INDEX:PALETTE_INDEX.filter(e=>!e.hp);   // étape 5
+  if(!n) return vus.filter(e=>PALETTE_BASE[e.type]).slice(0,40);
+  const hits=vus
     .map(e=>{
       const i=e.norm.indexOf(n);
       if(i>=0) return {e, rank:(paletteNorm(e.label).startsWith(n)?0:(i===0?1:2))};

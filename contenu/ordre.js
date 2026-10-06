@@ -19,4 +19,8 @@ ORDRE([
   "science",
   "verite",
   "temps",
+  // Hors programme (étape 5) : après les 17 notions du programme.
+  "autrui",
+  "desir",
+  "histoire",
 ]);

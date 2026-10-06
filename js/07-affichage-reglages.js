@@ -44,6 +44,47 @@ function toggleFicheMode(){
   applyFicheMode();
 }
 
+/* ── Hors programme : afficher / masquer (étape 5, oct. 2026) ─────────────
+   setVoirHP(v) — enregistre le réglage (« philo-hp » : '1' visible, '0'
+   masqué), note que la personne a fait son choix (« philo-hp-choix », la
+   proposition d'arrivée ne revient plus), redessine tout ce qui en dépend
+   (barre latérale, page ouverte, Réglages, quiz) et le reporte au compte. */
+function setVoirHP(v){
+  try{ localStorage.setItem('philo-hp', v?'1':'0'); localStorage.setItem('philo-hp-choix','1'); }catch(e){}
+  fermerHpInvite();
+  renderSB(); renderCurrentView();
+  const ov=document.getElementById('settings-overlay');
+  if(ov && ov.classList.contains('open')) renderSettingsBody();
+  const qo=document.getElementById('quiz-overlay');
+  if(qo && qo.classList.contains('open') && quizState.view==='dashboard') renderQuiz();
+  syncOnPrefsChange();
+}
+
+/* hpInviterSiBesoin() — la proposition de la première visite (décision du
+   5 octobre 2026 : le hors programme est visible par défaut, mais le site
+   propose de le masquer à l'arrivée). Ne s'affiche qu'une fois (« philo-hp-
+   choix »), seulement s'il existe du hors programme, et jamais par-dessus la
+   visite guidée : endTour() la rappelle à la fin de la visite. */
+function hpInviterSiBesoin(){
+  if(!KEYS_HP.length || document.getElementById('hp-invite')) return;
+  let choix='1'; try{ choix=localStorage.getItem('philo-hp-choix'); }catch(e){}
+  if(choix) return;
+  if(typeof tourState!=='undefined' && tourState.i>=0) return;   // visite en cours
+  const noms=KEYS_HP.slice(0,3).map(k=>D[k].l.toLowerCase()).join(', ');
+  const box=document.createElement('div');
+  box.id='hp-invite'; box.className='hp-invite'; box.setAttribute('role','dialog');
+  box.setAttribute('aria-labelledby','hp-invite-titre');
+  box.innerHTML=`<div class="hp-invite-titre" id="hp-invite-titre">Programme ou plus large ?</div>
+    <p>En plus des 17 notions du bac, le site propose des notions <strong>hors programme</strong> (${noms}…), marquées comme telles. Tu prépares le bac et préfères t'en tenir au programme ?</p>
+    <div class="hp-invite-btns">
+      <button class="pbtn pbtn-primary" onclick="setVoirHP(false)">M'en tenir au programme</button>
+      <button class="pbtn pbtn-ghost" onclick="setVoirHP(true)">Tout garder visible</button>
+    </div>
+    <p class="hp-invite-note">Modifiable à tout moment dans ⚙ Réglages.</p>`;
+  document.body.appendChild(box);
+}
+function fermerHpInvite(){ const b=document.getElementById('hp-invite'); if(b) b.remove(); }
+
 /* ── Menu « ⚙ Réglages » ─────────────────────────────────────────────────
    Regroupe les fonctions NON nécessaires à la révision. Le toggle de mode y
    est rendu EXPLICITE : le bouton nomme le mode-CIBLE (l'action), avec le mode
@@ -67,6 +108,13 @@ function renderSettingsBody(){
     +'<button class="pbtn pbtn-primary set-mode-btn" onclick="toggleFicheMode()">'
       +(isFiche?'📖 Affichage complet':'🗂 Activer le mode fiche')+'</button>'
     +'</div>'
+    // Étape 5 : afficher ou masquer le hors programme (visible par défaut).
+    +(KEYS_HP.length?'<div class="set-row">'
+    +'<div class="set-row-cur">Hors programme : <strong>'+(voirHP()?'affiché':'masqué')+'</strong></div>'
+    +'<div class="set-row-desc">Les notions qui ne sont pas au programme de terminale ('+KEYS_HP.length+' pour l\'instant), et ce qui n\'apparaît que sous elles : auteurs, concepts, cartes du quiz. Masqué, le site s\'en tient au programme du bac.</div>'
+    +'<button class="pbtn pbtn-primary set-mode-btn" onclick="setVoirHP('+(voirHP()?'false':'true')+')">'
+      +(voirHP()?'🎯 M\'en tenir au programme':'🧭 Afficher le hors programme')+'</button>'
+    +'</div>':'')
     // Carte technique du projet (doc) — discret, pour les curieux de l'envers du décor.
     +'<div class="set-row">'
     +'<div class="set-row-cur">🔎 Découvrir l\'envers du projet</div>'

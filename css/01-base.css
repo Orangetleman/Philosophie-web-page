@@ -252,6 +252,58 @@ body.mode-fiche .a-idea .aq-details{display:none}
   border-radius:20px;padding:2px 8px;flex-shrink:0;cursor:help;
 }
 .prog-badge-court{font-size:9px;padding:0 6px;margin-left:6px;vertical-align:1px}
+
+/* ── Hors programme (étape 5) ─────────────────────────────────────────
+   Bleu « quiz » : ni le vert du programme, ni l'or du badge Nouveau.
+   .hl-badge (hors liste) reste neutre : ce n'est pas un avertissement. */
+.hp-badge,.hl-badge{
+  display:inline-flex;align-items:center;
+  font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
+  border-radius:20px;padding:2px 8px;flex-shrink:0;cursor:help;vertical-align:middle;
+}
+.hp-badge{background:var(--color-background-quiz);color:var(--color-text-quiz);border:0.5px solid var(--color-border-quiz)}
+.hl-badge{background:var(--color-background-secondary);color:var(--color-text-tertiary);border:0.5px solid var(--color-border-secondary)}
+.hp-badge-court{font-size:9px;padding:0 6px;margin-left:6px}
+.hp-notice{
+  background:var(--color-background-quiz);border:0.5px solid var(--color-border-quiz);
+  border-radius:var(--border-radius-md);padding:9px 12px;margin-bottom:12px;
+  font-size:12px;line-height:1.55;color:var(--color-text-secondary);
+}
+.hp-notice strong{color:var(--color-text-quiz)}
+.hp-notice-btn{
+  margin-left:4px;font:inherit;font-size:11px;cursor:pointer;
+  background:transparent;color:var(--color-text-quiz);
+  border:0.5px solid var(--color-border-quiz);border-radius:20px;padding:1px 9px;
+}
+.notion-sources{margin-top:10px;font-size:11.5px;color:var(--color-text-tertiary)}
+.notion-sources summary{cursor:pointer}
+.notion-sources ul{margin:6px 0 0;padding-left:18px}
+.notion-sources li{margin-bottom:3px}
+/* Barre latérale : en-tête de la section des notions hors programme. */
+.sb-hp-head{
+  display:flex;justify-content:space-between;align-items:center;width:100%;
+  margin:10px 0 4px;padding:6px 9px 4px;
+  background:none;border:none;border-top:0.5px solid var(--color-border-tertiary);
+  font:inherit;font-size:9.5px;font-weight:500;text-transform:uppercase;letter-spacing:.02em;
+  white-space:nowrap;color:var(--color-text-quiz);cursor:pointer;text-align:left;
+}
+.sb-hp-caret{font-size:11px}
+.nb.nb-hp{font-style:italic}
+/* Proposition de la première visite : carte en bas à droite ; sur
+   téléphone, toute la largeur (règle @media juste en dessous). */
+.hp-invite{
+  position:fixed;right:20px;bottom:20px;z-index:900;max-width:340px;
+  background:var(--color-background-secondary);border:0.5px solid var(--color-border-quiz);
+  border-radius:var(--border-radius-lg);padding:14px 16px;
+  box-shadow:0 8px 28px rgba(0,0,0,.45);font-size:12.5px;line-height:1.55;
+  color:var(--color-text-secondary);
+}
+.hp-invite p{margin:0 0 10px}
+.hp-invite-titre{font-size:14px;font-weight:600;color:var(--color-text-primary);margin-bottom:6px}
+.hp-invite-btns{display:flex;flex-wrap:wrap;gap:6px}
+.hp-invite-note{font-size:11px;color:var(--color-text-tertiary);margin:10px 0 0!important}
+@media (max-width:700px){ .hp-invite{left:16px;right:16px;bottom:16px;max-width:none} }
+.quiz-filters button.quiz-hp{font-style:italic}
 .ac.is-new{border-color:var(--color-new-border);background:var(--color-new-bg)}
 .ac.is-new .an{position:relative}
 .ti2.is-new{background:var(--color-new-bg);border-radius:4px;padding:5px 7px;margin-bottom:2px;border-bottom:none!important}

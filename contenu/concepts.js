@@ -594,11 +594,12 @@ CONCEPT({
   cat: "Phénoménologie",
   def: "Relation entre sujets par laquelle chacun reconnaît l'autre comme une autre conscience. Fondement du monde commun et de l'objectivité. Husserl : la réalité partagée se constitue par l'intersubjectivité. Sartre : \"l'enfer, c'est les autres\" — mais aussi la condition de la conscience de soi.",
   auteur: "Husserl / Sartre / Merleau-Ponty",
-  notions: ["conscience", "langage", "etat"],
+  notions: ["conscience", "langage", "etat", "autrui"],
   relations: [
     {type: "distinction", desc: "Intersubjectivité → monde commun ≠ solipsisme"},
     {type: "distinction", desc: "Autrui comme menace (Sartre) ≠ autrui comme condition (Merleau-Ponty)"},
   ],
+  modified: true,
 });
 
 CONCEPT({
@@ -844,11 +845,12 @@ CONCEPT({
   cat: "Anthropologie philosophique",
   def: "Mouvement vers ce qui manque, vers un objet qui n'est pas encore possédé. Platon (<em>Banquet</em>) : le désir est manque — Éros est fils de Pénia (pauvreté). Spinoza : le désir est l'essence même de l'homme (conatus). Freud : le désir naît du refoulement pulsionnel.",
   auteur: "Platon / Spinoza / Freud",
-  notions: ["bonheur", "inconscient", "liberte"],
+  notions: ["bonheur", "inconscient", "liberte", "desir"],
   relations: [
     {type: "distinction", desc: "Désir comme manque (Platon) ≠ désir comme puissance (Spinoza)"},
     {type: "distinction", desc: "Satisfaire le désir ≠ supprimer le désir"},
   ],
+  modified: true,
 });
 
 CONCEPT({
@@ -883,11 +885,12 @@ CONCEPT({
   cat: "Psychanalyse",
   def: "Freud : force représentant une exigence de travail pour le psychisme, à la frontière du corporel et du psychique. Pulsions de vie (Éros) vs pulsions de mort (Thanatos). La pulsion est une poussée constante — ≠ instinct (réponse fixe à un stimulus).",
   auteur: "Freud",
-  notions: ["inconscient", "nature"],
+  notions: ["inconscient", "nature", "desir"],
   relations: [
     {type: "distinction", desc: "Pulsion (psychique) ≠ instinct (biologique fixe)"},
     {type: "distinction", desc: "Éros (vie) ≠ Thanatos (mort, destruction)"},
   ],
+  modified: true,
 });
 
 CONCEPT({
@@ -1184,11 +1187,12 @@ CONCEPT({
   cat: "Phénoménologie",
   def: "Hegel : l'esclave se libère par le travail. En transformant la matière, il s'y reconnaît et forme sa conscience de soi. Le maître, dépendant de l'esclave pour ses besoins, perd sa liberté. Le travail est le chemin de l'émancipation par la résistance de la matière.",
   auteur: "Hegel",
-  notions: ["travail", "liberte", "conscience"],
+  notions: ["travail", "liberte", "conscience", "autrui"],
   relations: [
     {type: "distinction", desc: "Travail de l'esclave → émancipation paradoxale"},
     {type: "distinction", desc: "Travail libre (expression de soi) ≠ travail forcé (aliénation)"},
   ],
+  modified: true,
 });
 
 CONCEPT({
@@ -2631,5 +2635,102 @@ CONCEPT({
     },
     {to: "plus-value", type: "complete"},
     {to: "ideologie", type: "complete"},
+  ],
+});
+
+CONCEPT({
+  new: true,
+  id: "alterite",
+  term: "Altérité",
+  cat: "Philosophie",
+  def: "Le fait d'être <strong>autre</strong> : ce par quoi autrui ne se réduit ni à moi, ni à ce que j'en connais. Penser l'altérité, c'est refuser de faire de l'autre un simple double de soi (un « alter ego ») ou un objet. Chez Levinas, l'altérité d'autrui se manifeste dans le visage, qui résiste à toute prise et m'oblige. <em>Ex.</em> On peut connaître les goûts, l'histoire, les opinions d'un ami, sans jamais vivre de l'intérieur ce qu'il ressent : c'est son altérité.",
+  auteur: "Levinas",
+  notions: ["autrui"],
+  relations: [
+    {
+      to: "intersubjectivite",
+      type: "complete",
+      desc: "L'intersubjectivité dit ce que je partage avec autrui (un monde commun) ; l'altérité, ce qui en lui m'échappe.",
+    },
+  ],
+});
+
+CONCEPT({
+  new: true,
+  id: "conatus",
+  term: "Conatus",
+  cat: "Métaphysique",
+  def: "Mot latin, l'<strong>effort</strong> : chez Spinoza, l'effort par lequel chaque chose s'efforce de persévérer dans son être (<em>Éthique</em>, III, 6). Chez l'homme, quand cet effort se connaît lui-même, il s'appelle désir. Le conatus fait du désir une puissance d'exister plutôt qu'un manque. <em>Ex.</em> Un malade qui lutte pour guérir, un enfant qui apprend à marcher malgré les chutes : la même tendance à persévérer et à augmenter sa puissance d'agir.",
+  auteur: "Spinoza",
+  notions: ["desir"],
+  relations: [
+    {to: "désir", type: "prolonge", desc: "Le désir est le conatus conscient de lui-même."},
+  ],
+});
+
+CONCEPT({
+  new: true,
+  id: "desir-mimetique",
+  term: "Désir mimétique",
+  cat: "Anthropologie philosophique",
+  def: "Thèse de René Girard (<em>Mensonge romantique et vérité romanesque</em>, 1961) : nous ne désirons pas spontanément un objet, nous le désirons parce qu'un <strong>modèle</strong> le désire. Le désir est imitation du désir d'un autre, d'où les rivalités quand le modèle devient un obstacle. <em>Ex.</em> Dans une cour de récréation, un jouet délaissé devient soudain précieux dès qu'un autre enfant s'en empare.",
+  auteur: "René Girard",
+  notions: ["desir"],
+  relations: [
+    {
+      to: "désir",
+      type: "complete",
+      desc: "Le désir mimétique explique d'où vient l'objet du désir : du désir d'un autre.",
+    },
+  ],
+});
+
+CONCEPT({
+  new: true,
+  id: "ruse-de-la-raison",
+  term: "Ruse de la raison",
+  cat: "Philosophie de l’histoire",
+  def: "Expression de Hegel (<em>La Raison dans l'histoire</em>) : la raison, qui gouverne l'histoire, se sert des passions et des intérêts particuliers des hommes pour accomplir des fins universelles qu'ils ne visaient pas. Les grands hommes croient agir pour eux-mêmes ; ils sont les instruments d'un progrès de la liberté. <em>Ex.</em> Napoléon cherche la gloire et l'empire, mais ses conquêtes répandent en Europe le Code civil et les principes de la Révolution.",
+  auteur: "Hegel",
+  notions: ["histoire"],
+  relations: [
+    {
+      to: "insociable-sociabilite",
+      type: "prolonge",
+      desc: "Chez Kant déjà, la nature se sert des conflits entre les hommes pour les faire progresser.",
+    },
+  ],
+});
+
+CONCEPT({
+  new: true,
+  id: "insociable-sociabilite",
+  term: "Insociable sociabilité",
+  cat: "Philosophie de l’histoire",
+  def: "Expression de Kant (<em>Idée d'une histoire universelle</em>, 1784, quatrième proposition) : les hommes ont besoin de vivre ensemble, mais chacun veut aussi tout plier à sa propre volonté. Ce double penchant, source de conflits, les pousse à rivaliser, donc à développer leurs talents, puis à se donner des lois. <em>Ex.</em> Comme des arbres dans une forêt qui, en se disputant l'air et le soleil, poussent droits et beaux, alors que l'arbre isolé pousse tordu (image de la cinquième proposition).",
+  auteur: "Kant",
+  notions: ["histoire"],
+  relations: [
+    {
+      type: "distinction",
+      desc: "Insociable sociabilité (un conflit qui fait progresser) ≠ guerre de tous contre tous (Hobbes), qui ne produit rien sans un souverain.",
+    },
+  ],
+});
+
+CONCEPT({
+  new: true,
+  id: "materialisme-historique",
+  term: "Matérialisme historique",
+  cat: "Philosophie sociale",
+  def: "Conception de l'histoire de Marx et Engels : ce ne sont pas les idées qui mènent l'histoire, mais les conditions matérielles de la vie, c'est-à-dire la manière dont une société produit ses biens (forces productives et rapports de production). Ce socle économique (l'<strong>infrastructure</strong>) conditionne le droit, l'État, la religion, les idées (la <strong>superstructure</strong>). <em>Ex.</em> Le passage de l'atelier artisanal à l'usine fait naître une nouvelle classe, le prolétariat, et avec elle de nouvelles luttes et de nouvelles lois sociales.",
+  auteur: "Marx",
+  notions: ["histoire", "travail", "etat"],
+  relations: [
+    {
+      to: "ruse-de-la-raison",
+      type: "oppose",
+      desc: "Hegel fait de la raison le moteur de l'histoire ; Marx « remet sur ses pieds » la dialectique : ce sont les conditions matérielles.",
+    },
   ],
 });

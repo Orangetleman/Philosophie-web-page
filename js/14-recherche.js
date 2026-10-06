@@ -124,6 +124,21 @@ const PALETTE_INDEX=(function(){
   return out;
 })();
 
+// Étape 5 : chaque entrée sait si elle relève du hors programme (e.hp), d'après
+// sa notion ou le statut de son auteur ou concept ; paletteSearch l'écarte
+// quand le hors programme est masqué, et la signale sinon.
+PALETTE_INDEX.forEach(e=>{
+  const t=e.type, id=String(e.id);
+  e.hp = t==='notion' ? estHP(id)
+       : t==='auteur' ? HP_AUTEURS.has(id)
+       : t==='concept' ? HP_CONCEPTS.has(id)
+       : t==='accroche' ? estHP(id.slice(0,id.lastIndexOf('#')))
+       : t==='citation' ? estHP(id.slice(id.indexOf('|')+1))
+       : t==='oeuvre' ? HP_AUTEURS.has(id.slice(0,id.indexOf('|')))
+       : estHP(id);                       // sujet, texte, exemple : id = clé de notion
+  if(e.hp) e.sub=(e.sub?e.sub+' · ':'')+'hors programme';
+});
+
 const PALETTE_GROUPS={notion:'Notions', auteur:'Auteurs', concept:'Concepts', citation:'Citations', oeuvre:'Œuvres', sujet:'Sujets de dissertation', texte:'Textes', exemple:'Exemples', accroche:'Accroches'};
 const PALETTE_ORDER={notion:0, auteur:1, concept:2, citation:3, oeuvre:4, sujet:5, texte:6, exemple:7, accroche:8};
 const PALETTE_BASE={notion:1, auteur:1, concept:1, accroche:1};   // types montrés quand la saisie est vide
@@ -146,8 +161,9 @@ function paletteQuery(){ const i=document.getElementById('palette-input'); retur
    Sans requête : les notions, auteurs, concepts et accroches (40 au plus). */
 function paletteSearch(q){
   const n=paletteNorm(q.trim());
-  if(!n) return PALETTE_INDEX.filter(e=>PALETTE_BASE[e.type]).slice(0,40);
-  const hits=PALETTE_INDEX
+  const vus=voirHP()?PALETTE_INDEX:PALETTE_INDEX.filter(e=>!e.hp);   // étape 5
+  if(!n) return vus.filter(e=>PALETTE_BASE[e.type]).slice(0,40);
+  const hits=vus
     .map(e=>{
       const i=e.norm.indexOf(n);
       if(i>=0) return {e, rank:(paletteNorm(e.label).startsWith(n)?0:(i===0?1:2))};

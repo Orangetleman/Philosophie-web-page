@@ -352,12 +352,31 @@ function cardsForFilter(st){
   st=st||loadQuizState(); const h=quizState.horizon;
   const nf=quizState.notionFilters, tf=quizState.typeFilters;
   return QUIZ_CARDS.filter(c=>{
+    if(!carteQuizVisible(c)) return false;   // étape 5 : hors programme
     if(nf.size && !(c.notions||[c.notion]).some(k=>nf.has(k))) return false;
     if(tf.size && !tf.has(c.type)) return false;
     if(quizState.wrongOnly){ const p=st.byHorizon[h][c.id]; if(!(p&&p.box<=1&&p.seen>0)) return false; }
     return true;
   });
 }
+/* ── Hors programme dans le quiz (étape 5, oct. 2026) ──────────────────
+   Une carte est hors programme quand TOUTES ses notions le sont. Exclue par
+   défaut (on révise le bac) ; incluse si l'interrupteur « Inclure le hors
+   programme » est mis (« philo-quiz-hp », propre à l'appareil), ou si l'on
+   coche soi-même une notion hors programme dans les filtres. Jamais quand le
+   hors programme est masqué dans les Réglages. */
+function carteEstHP(c){ const ns=c.notions||[c.notion]; return ns.length>0 && ns.every(estHP); }
+function quizInclureHP(){ try{ return localStorage.getItem('philo-quiz-hp')==='1'; }catch(e){ return false; } }
+function toggleQuizHP(){ try{ localStorage.setItem('philo-quiz-hp', quizInclureHP()?'0':'1'); }catch(e){} renderQuiz(); }
+function carteQuizVisible(c){
+  if(!carteEstHP(c)) return true;
+  if(!voirHP()) return false;
+  return quizInclureHP() || (c.notions||[c.notion]).some(k=>quizState.notionFilters.has(k));
+}
+/* notionsDuQuiz() — les notions proposées au quiz (filtres, maîtrise,
+   badges) : celles du programme, plus les hors programme si incluses. */
+function notionsDuQuiz(){ return KEYS.filter(k=>!estHP(k) || (voirHP() && (quizInclureHP() || quizState.notionFilters.has(k)))); }
+
 /* Helpers de bascule des filtres (un clic = ajout/retrait). */
 function clearQuizFilters(){ quizState.notionFilters.clear(); quizState.typeFilters.clear(); quizState.wrongOnly=false; renderQuiz(); }
 function toggleQuizWrong(){ quizState.wrongOnly=!quizState.wrongOnly; renderQuiz(); }
@@ -503,7 +522,9 @@ function renderQuizDashboard(){
   const s=quizStats(st);
   const nf=quizState.notionFilters, tf=quizState.typeFilters;   // filtres actifs (Sets)
   // Filtres multi-sélection : un bouton est « active » s'il est dans l'ensemble.
-  const notionBtns=KEYS.map(k=>`<button class="${nf.has(k)?'active':''}" onclick="toggleNotionFilter('${k}')">${D[k].l}</button>`).join('');
+  // Étape 5 : boutons des notions HP seulement si le hors programme est affiché.
+  const notionBtns=notionsVisibles().map(k=>`<button class="${nf.has(k)?'active':''}${estHP(k)?' quiz-hp':''}" onclick="toggleNotionFilter('${k}')">${D[k].l}</button>`).join('');
+  const hpBtn=(KEYS_HP.length&&voirHP())?`<button class="${quizInclureHP()?'active':''}" onclick="toggleQuizHP()" title="Ajouter aux sessions les cartes des notions hors programme">+ Hors programme</button>`:'';
   const typeLabels={'concept-def':'Concept→déf','def-concept':'Déf→concept','cite-author':'Citation→auteur','author-cite':'Auteur→citation','notion-authors':'Notion→auteurs'};
   const typeBtns=Object.keys(typeLabels).map(t=>`<button class="${tf.has(t)?'active':''}" onclick="toggleTypeFilter('${t}')">${typeLabels[t]}</button>`).join('');
   // v3 — gamification : niveau courant + XP dans le niveau (0..99).
@@ -576,7 +597,7 @@ function renderQuizDashboard(){
     <div class="quiz-section-lbl">Filtrer ${quizFiltersEmpty()?'':`<button class="quiz-reset" style="float:right;margin:0" onclick="clearQuizFilters()">tout effacer</button>`}</div>
     <div class="quiz-filters">
       <button class="${quizState.wrongOnly?'active':''}" onclick="toggleQuizWrong()">Mes ratés</button>
-      ${notionBtns}${typeBtns}
+      ${hpBtn}${notionBtns}${typeBtns}
     </div>
   </div>
   ${launchHtml}
@@ -936,7 +957,7 @@ function setQuizGoal(n){ const st=loadQuizState(); st.daily.goal=n; saveQuizStat
    courant. Une carte compte pour chacune de ses notions (c.notions, v4). */
 function notionMastery(st){
   st=st||loadQuizState(); const h=quizState.horizon;
-  return KEYS.map(k=>{
+  return notionsDuQuiz().map(k=>{   // étape 5 : sans les notions HP non incluses
     const cards=QUIZ_CARDS.filter(c=>(c.notions||[c.notion]).includes(k));
     let m=0; cards.forEach(c=>{const p=st.byHorizon[h][c.id]; if(p&&p.box>=4)m++;});
     return {k,total:cards.length,pct:cards.length?Math.round(m/cards.length*100):0};
@@ -950,7 +971,7 @@ function notionMastery(st){
 const QUIZ_BADGE_PCT=80;
 function quizBadges(st){
   const nm=notionMastery(st);
-  return KEYS.map(k=>{
+  return notionsDuQuiz().map(k=>{
     const x=nm.find(m=>m.k===k);
     return {k,label:D[k].l,earned:!!(x&&x.pct>=QUIZ_BADGE_PCT)};
   });

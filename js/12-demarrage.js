@@ -13,6 +13,7 @@ restoreNavHistory();          // pile « ← Retour » survit aussi (philo-navhi
 renderSB();renderCurrentView();
 initAuth();           // new (comptes) : récupère la session + s'abonne aux changements d'état
 tourStartIfFirst();   // visite guidée auto à la 1re venue (cf. module « Visite guidée »)
+hpInviterSiBesoin();  // étape 5 : propose de masquer le hors programme (une fois, hors visite)
 initNotice();         // bandeau « contenu en construction » (auto-fermeture à 1 min)
 
 /* ── PWA — enregistrement du service worker + mise à jour automatique ──

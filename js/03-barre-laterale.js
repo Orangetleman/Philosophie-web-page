@@ -14,6 +14,7 @@ let filterMode='or'; // 'or' | 'and'
 function authorsFiltered(){
   const q=authorSearch.trim().toLowerCase();
   return authorsSorted().filter(name=>{
+    if(!auteurVisible(name)) return false;   // étape 5 : hors programme masqué
     const entry=AI[name];
     const matchSearch=!q||name.toLowerCase().includes(q);
     let matchFilter=true;
@@ -161,13 +162,29 @@ function renderSB(){
   applyFicheMode();   // applique le « mode fiche » (lecture compressée) si actif
 
   if(sbMode==='notions'){
-    KEYS.forEach(k=>{
+    const ajouterNotion=k=>{
       const el=document.createElement('div');
-      el.className='nb'+(k===cur?' active':'');
+      el.className='nb'+(k===cur?' active':'')+(estHP(k)?' nb-hp':'');
       el.innerHTML=`<span class="dot" style="background:${D[k].c}"></span>${D[k].l}`;
       el.onclick=()=>{pushHistory();cur=k;curTab='auteurs';sbMode='notions';renderSB();renderContent()};
       list.appendChild(el);
-    });
+    };
+    KEYS.filter(k=>!estHP(k)).forEach(ajouterNotion);
+    // Étape 5 : les notions hors programme, dans une section à part en bas de
+    // la liste, repliable (état mémorisé dans « philo-hp-replie »). Rien du
+    // tout si le hors programme est masqué dans les Réglages. La notion
+    // ouverte reste visible même section repliée.
+    if(KEYS_HP.length && voirHP()){
+      let replie=false; try{ replie=localStorage.getItem('philo-hp-replie')==='1'; }catch(e){}
+      const tete=document.createElement('button');
+      tete.className='sb-hp-head';
+      tete.setAttribute('aria-expanded', String(!replie));
+      tete.title='Notions qui ne sont pas au programme de terminale : pour aller plus loin';
+      tete.innerHTML=`<span>Hors programme (${KEYS_HP.length})</span><span class="sb-hp-caret">${replie?'▸':'▾'}</span>`;
+      tete.onclick=()=>{ try{ localStorage.setItem('philo-hp-replie', replie?'0':'1'); }catch(e){} renderSB(); };
+      list.appendChild(tete);
+      KEYS_HP.filter(k=>!replie||k===cur).forEach(ajouterNotion);
+    }
   } else if(sbMode==='auteurs'){
     // Search row (fixe dans la zone fixe, en dessous des sb-tabs)
     let searchRow=fixed.querySelector('.sb-search-row');
@@ -187,7 +204,7 @@ function renderSB(){
     if(filterOpen){
       const fp=document.createElement('div');
       fp.className='filter-panel open';
-      const checks=KEYS.map(k=>{
+      const checks=notionsVisibles().map(k=>{   // étape 5 : sans les notions HP masquées
         const checked=authorFilter.has(k);
         return `<div class="filter-notion-item" onclick="toggleFilter('${k}')">
           <div class="filter-notion-check${checked?' checked':''}" style="${checked?`background:${D[k].c};color:#fff`:''}">${checked?'✓':''}</div>
@@ -204,7 +221,7 @@ function renderSB(){
         </div>
         <div class="filter-notions">${checks}</div>
         <div class="filter-actions">
-          <button class="filter-action-btn" onclick="authorFilter=new Set(KEYS);renderSB()">Sélect. tout</button>
+          <button class="filter-action-btn" onclick="authorFilter=new Set(notionsVisibles());renderSB()">Sélect. tout</button>
           <button class="filter-action-btn" onclick="authorFilter=new Set();renderSB()">Effacer</button>
         </div>`;
       list.appendChild(fp);
@@ -231,7 +248,7 @@ function renderSB(){
     if(conceptFilterOpen){
       const cfp=document.createElement('div');
       cfp.className='filter-panel open';
-      const cChecks=KEYS.map(k=>{
+      const cChecks=notionsVisibles().map(k=>{
         const checked=conceptFilter.has(k);
         return `<div class="filter-notion-item" onclick="toggleConceptFilter('${k}')">
           <div class="filter-notion-check${checked?' checked':''}" style="${checked?`background:${D[k].c};color:#fff`:''}">${checked?'✓':''}</div>
@@ -248,7 +265,7 @@ function renderSB(){
         </div>
         <div class="filter-notions">${cChecks}</div>
         <div class="filter-actions">
-          <button class="filter-action-btn" onclick="conceptFilter=new Set(KEYS);renderSB()">Sélect. tout</button>
+          <button class="filter-action-btn" onclick="conceptFilter=new Set(notionsVisibles());renderSB()">Sélect. tout</button>
           <button class="filter-action-btn" onclick="conceptFilter=new Set();renderSB()">Effacer</button>
         </div>`;
       list.appendChild(cfp);
@@ -316,6 +333,7 @@ function renderSBConceptsList(){
   //    On part de realConcepts() : les repères (cat:'Repère') sont rangés
   //    dans l'onglet « Méthodo », pas dans le glossaire général.
   const list=realConcepts().filter(c=>{
+    if(!conceptVisible(c)) return false;   // étape 5 : hors programme masqué
     const matchSearch=!q||c.term.toLowerCase().includes(q);
     let matchFilter=true;
     if(conceptFilter.size>0){
@@ -329,7 +347,7 @@ function renderSBConceptsList(){
   // Compteur TOUJOURS affiché : total de concepts, ou « filtrés / total »
   // quand une recherche/un filtre est actif (repères exclus du total).
   const hasFilter=q||(conceptFilter.size>0);
-  const total=realConcepts().length;
+  const total=realConcepts().filter(conceptVisible).length;
   const countTxt=hasFilter
     ?`${list.length} / ${total} concepts`
     :`${total} concept${total>1?'s':''}`;

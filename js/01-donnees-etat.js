@@ -195,6 +195,53 @@ function progBadgeHTML(nom, court){
   return `<span class="prog-badge${court?' prog-badge-court':''}" title="${t}">${court?'Programme':'Au programme'}</span>`;
 }
 
+/* ── Les trois statuts (étape 5, oct. 2026) ──────────────────────────────
+   CALCULÉS, jamais écrits à la main (docs/protocole-contenu.md, § 3) :
+   · notion  : 'programme' si sa clé est dans PROGRAMME.notions, sinon
+               'hors-programme' ;
+   · auteur  : 'programme' s'il est sur la liste officielle (PROG_AUTEURS),
+               'hors-liste' s'il apparaît dans au moins une notion du
+               programme (citable en dissertation, pas à l'explication de
+               texte), 'hors-programme' s'il n'apparaît que sous des notions
+               hors programme ;
+   · concept : 'hors-programme' si TOUTES ses notions le sont (un repère est
+               toujours au programme), sinon 'programme'.
+   Réglage « philo-hp » (localStorage) : '0' masque tout le hors programme.
+   Visible par défaut (décision de l'auteur du 5 octobre 2026) ; le site
+   propose de le masquer à la première visite (hpInviterSiBesoin).        */
+const PROG_NOTIONS=new Set(PROGRAMME.notions);
+function estHP(k){ return !!D[k] && !PROG_NOTIONS.has(k); }
+const KEYS_HP=KEYS.filter(estHP);                // les notions hors programme, dans l'ordre
+function voirHP(){ try{ return localStorage.getItem('philo-hp')!=='0'; }catch(e){ return true; } }
+function notionVisible(k){ return !estHP(k)||voirHP(); }
+function notionsVisibles(){ return KEYS.filter(notionVisible); }
+function statutAuteur(nom){
+  if(PROG_AUTEURS[nom]) return 'programme';
+  const e=AI[nom];
+  return (e&&e.notions.length&&e.notions.every(estHP))?'hors-programme':'hors-liste';
+}
+function auteurVisible(nom){ return voirHP()||statutAuteur(nom)!=='hors-programme'; }
+function statutConcept(c){
+  if(!c||isRepere(c)) return 'programme';
+  const ns=(c.notions||[]).filter(k=>D[k]);
+  return (ns.length&&ns.every(estHP))?'hors-programme':'programme';
+}
+function conceptVisible(c){ return voirHP()||statutConcept(c)!=='hors-programme'; }
+
+/* hpBadgeHTML(court) — badge « Hors programme » (notion, concept, auteur qui
+   n'apparaît que hors programme). court=true : version compacte (listes). */
+function hpBadgeHTML(court){
+  return `<span class="hp-badge${court?' hp-badge-court':''}" title="Pas au programme de terminale : pour aller plus loin. Masquable dans les Réglages.">${court?'HP':'Hors programme'}</span>`;
+}
+/* statutAuteurHTML(nom) — l'étiquette de statut d'un auteur, pour l'en-tête
+   de sa fiche : « Au programme », « Hors liste » ou « Hors programme ». */
+function statutAuteurHTML(nom){
+  const s=statutAuteur(nom);
+  if(s==='programme') return progBadgeHTML(nom);
+  if(s==='hors-programme') return hpBadgeHTML();
+  return `<span class="hl-badge" title="Absent de la liste officielle des auteurs : citable en dissertation, mais un texte de lui ne tombera pas à l'explication de texte.">Hors liste</span>`;
+}
+
 /* ── Courant → color ─────────────────────────────────────────── */
 const CC={
   'Rationalisme':'#185FA5','Empirisme / Libéralisme':'#3B6D11','Idéalisme allemand':'#534AB7',
