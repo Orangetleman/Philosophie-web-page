@@ -1,8 +1,17 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
-  "genere_le": "2026-10-06T19:32:53.271Z",
+  "genere_le": "2026-10-06T19:33:50.298Z",
   "commits": [
+    {
+      "hash": "6914b7427e28d8fa14330f053a1e7f1ae649be95",
+      "short": "6914b74",
+      "auteur": "Orangentleman",
+      "date": "2026-10-06T21:32:50+02:00",
+      "sujet": "Étape 6, bac : sujets réels, nouveautés datées, fiche imprimable",
+      "corps": "- Sujets tombés au bac de 2021 à 2026 (France métropolitaine, voies\n  générale et technologique), recoupés sur plusieurs sources :\n  contenu/sujets-bac.js → SUJETS_BAC. Affichés dans Explorer (filtres par\n  voie et par notion), dans l'onglet Dissertations de chaque notion, sur\n  la fiche des auteurs dont un texte est tombé, et dans la recherche.\n- Journal daté des nouveautés (contenu/nouveautes.js → NOUVEAUTES), dans\n  Explorer. Les badges « Nouveau / Modifié » et leurs teintes, sans date et\n  devenus omniprésents, sont réservés au mode édition.\n- Fiche de révision imprimable (ou en PDF) pour chaque notion : bouton\n  « 🖨 Fiche », définition dépliée, auteurs, concepts, plans, sujets, sources.\n- Question 14 du vérificateur (notions, auteurs et adresses des sujets et\n  des nouveautés), avec son témoin.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": "Étape 6, bac"
+    },
     {
       "hash": "6259dda8a35b5e57575c0802ee5a1706eef9da80",
       "short": "6259dda",

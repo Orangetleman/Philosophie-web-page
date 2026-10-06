@@ -740,6 +740,57 @@ Mauss.
 
 Le site compte désormais 27 notions : 17 au programme et 10 hors programme.
 
+### Étape 6, « Enrichir » (6 octobre 2026)
+
+Trois parties, un commit chacune, une seule PR (les fichiers produits par
+le build auraient été en conflit entre plusieurs PR ouvertes en même temps).
+
+**Lecture.**
+- **Thème** sombre (par défaut), clair (fond papier) ou automatique ; les
+  couleurs écrites en dur sont passées en variables. Le thème est posé avant
+  le premier affichage et se synchronise avec le compte.
+- **Taille du texte** : normale, grande ou très grande.
+- **Liens** : jamais vers la page affichée, une même cible une fois par bloc
+  de texte. Sur l'onglet Auteurs de Liberté, on passe d'environ 90 liens
+  visibles à 60, et aucun des 43 qui renvoyaient à Liberté elle-même ne
+  subsiste. Les liens sont aussi atteignables au clavier.
+- **Défauts visibles corrigés** : trous dans la grille des cartes d'auteur,
+  fond du quiz transparent, mention « à enrichir » montrée aux visiteurs,
+  variable `--color-accent` jamais définie, feuille de style hors de
+  `<head>`.
+
+**Explorer**, un sixième onglet de la barre latérale :
+- **frise des auteurs**, par période de naissance, une barre par vie,
+  couleur du courant ;
+- **graphe des idées** : dialogues entre auteurs, relations entre concepts
+  ou liens entre notions, avec zoom, déplacement et une liste textuelle des
+  relations ;
+- **sujets du bac** et **nouveautés** (voir la troisième partie).
+
+Les 123 auteurs des notions ont reçu des dates structurées, relues une à
+une, que la question 13 exige. Les 27 courants sans couleur en ont reçu une.
+Le démarrage est devenu `js/99-demarrage.js` : il doit passer après tous les
+morceaux.
+
+**Bac.**
+- **Sujets réels** de 2021 à 2026, France métropolitaine, voies générale et
+  technologique, chacun recoupé sur au moins deux sources. Ils apparaissent
+  dans Explorer, dans l'onglet Dissertations, sur la fiche des auteurs dont
+  un texte est tombé, et dans la recherche.
+- **Journal daté des nouveautés.** Les badges « Nouveau / Modifié »
+  (environ 250 éléments, sans date) ne s'affichent plus qu'en mode édition.
+- **Fiche de révision imprimable**, ou enregistrable en PDF, pour chaque
+  notion.
+- La question 14 contrôle sujets et nouveautés.
+
+**Pas fait.**
+- Les liens vers les textes libres de droits (Wikisource, Gallica) : il
+  faut vérifier chaque adresse une à une, ce sera un chantier de contenu à
+  part.
+- L'aperçu au survol d'un concept ou d'un auteur.
+- La répétition espacée plus fine (FSRS) dans le quiz, que le quiz v4 de
+  l'étape 1 ne rend pas urgente.
+
 ## Sources
 
 - Programme de philosophie de terminale, [BO spécial n° 8 du 25 juillet 2019](https://www.education.gouv.fr/bo/19/Special8/MENE1921238A.htm) ([annexe en PDF](https://cache.media.education.gouv.fr/file/SPE8_MENJ_25_7_2019/16/1/spe238_annexe2_1159161.pdf)) : notions, repères, liste des auteurs et son usage.

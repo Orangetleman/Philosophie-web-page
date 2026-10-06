@@ -24,7 +24,8 @@ tenues à jour par le build) ou par une recherche dans `js/`.
 | `js/09-compte.js` | authentification Supabase |
 | `js/10-partage.js` | modale de partage |
 | `js/11-synchro.js` | synchronisation du compte (quiz, préférences) |
-| `js/15-explorer.js` | mode Explorer : frise des auteurs, graphe des idées (étape 6) |
+| `js/15-explorer.js` | mode Explorer : frise des auteurs, graphe des idées, sujets du bac, nouveautés (étape 6) |
+| `js/16-impression.js` | fiche imprimable d'une notion (étape 6) |
 | `js/99-demarrage.js` | démarrage et service worker (en dernier : il lit les constantes de tous les morceaux) |
 | `js/13-quiz.js` | mode quiz |
 | `js/14-recherche.js` | recherche globale Ctrl/⌘+K |
