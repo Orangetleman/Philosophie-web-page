@@ -60,7 +60,14 @@ const AUTHOR_ALIASES={
   // emploie le nom complet : clés d'AM renommées, formes courtes gardées ici.
   "Weil":"Simone Weil",
   "Nozick":"Robert Nozick",
-  "Anders":"Gunther Anders"
+  "Anders":"Gunther Anders",
+  // Auteurs de la liste officielle ajoutés à l'étape 4 (oct. 2026) : graphies
+  // du BO, formes courtes et noms d'origine, rendus cliquables vers la fiche.
+  "Guillaume d'Occam":"Guillaume d'Ockham","Occam":"Guillaume d'Ockham","Ockham":"Guillaume d'Ockham",
+  "Nagarjuna":"Nāgārjuna","Tchouang-tseu":"Zhuangzi","Marc-Aurèle":"Marc Aurèle",
+  "Ibn Sina":"Avicenne","Ibn Rushd":"Averroès","Anselme de Cantorbéry":"Anselme",
+  "Simone de Beauvoir":"Beauvoir","Lévinas":"Levinas","Benjamin":"Walter Benjamin",
+  "Aron":"Raymond Aron","Hersch":"Jeanne Hersch","Murdoch":"Iris Murdoch","Smith":"Adam Smith"
 };
 Object.keys(AUTHOR_ALIASES).forEach(alias=>{
   const canon=AUTHOR_ALIASES[alias], key=alias.toLowerCase();

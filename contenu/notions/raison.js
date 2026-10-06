@@ -14,7 +14,10 @@ NOTION("raison", {
           w: "Critique de la raison pure, 1781",
           i: "La raison pure a des limites : elle ne peut connaître que les phénomènes (le monde tel qu'il nous apparaît) et non les noumènes (les choses en soi). Quand elle dépasse ses limites, elle produit des antinomies (contradictions). Révolution copernicienne : c'est le sujet qui structure l'expérience.",
           fiche: "La raison pure a des limites : elle ne connaît que les phénomènes, jamais les choses en soi (noumènes) ; au-delà, elle s'enferme dans des antinomies.",
-          citations: ["« La raison produit des illusions inévitables quand elle dépasse ses limites »"],
+          citations: [
+            "La raison tombe dans des illusions inévitables quand elle s'aventure au-delà de toute expérience possible (Critique de la raison pure, Dialectique transcendantale, reformulé)",
+          ],
+          modified: true,
         },
       ],
     },
@@ -34,9 +37,12 @@ NOTION("raison", {
       ideas: [
         {
           w: "Théétète, ~369 av. J.-C.",
-          i: "Le savoir est <em>une croyance vraie justifiée</em> : la raison est la faculté qui produit la justification (<em>logos</em>) et fait passer de l'opinion (<em>doxa</em>) au savoir (<em>épistémé</em>). Ce qui distingue la raison scientifique de la simple foi religieuse, ce n'est pas la croyance elle-même mais l'exigence de justification rationnelle.",
-          fiche: "Le savoir est une croyance vraie justifiée : la raison (logos) fait passer de l'opinion (doxa) au savoir (épistémé) par l'exigence de justification.",
-          citations: ["« Le savoir est une croyance vraie justifiée »"],
+          i: "Le savoir est plus qu'une opinion vraie : une <em>opinion vraie accompagnée de raison</em> (on dit aujourd'hui « croyance vraie justifiée ») : la raison est la faculté qui produit la justification (<em>logos</em>) et fait passer de l'opinion (<em>doxa</em>) au savoir (<em>épistémé</em>). Ce qui distingue la raison scientifique de la simple foi religieuse, ce n'est pas la croyance elle-même mais l'exigence de justification rationnelle.",
+          fiche: "Le savoir est une opinion vraie accompagnée de raison : la raison (logos) fait passer de l'opinion (doxa) au savoir (épistémé) par l'exigence de justification.",
+          citations: [
+            "Une opinion vraie ne devient savoir que liée par un raisonnement qui en donne la cause (Ménon, 97 e - 98 a, reformulé) ; la formule croyance vraie justifiée est moderne",
+          ],
+          modified: true,
         },
       ],
     },
@@ -48,8 +54,9 @@ NOTION("raison", {
           i: "Fondateur de la <strong>logique</strong> comme étude formelle du raisonnement valide. Distinction entre raisonnement <em>déductif</em> (syllogisme — « Tout homme est mortel ; Socrate est un homme ; donc Socrate est mortel ») et <em>inductif</em> (généralisation à partir de cas). Pose le <strong>principe de non-contradiction</strong> : il est impossible qu'une même chose soit et ne soit pas, sous le même rapport — principe le plus ferme de toute démonstration.",
           fiche: "Fondateur de la logique : il distingue déduction (syllogisme) et induction, et pose le principe de non-contradiction comme socle de toute démonstration.",
           citations: [
-            "« Il est impossible que le même attribut appartienne et n'appartienne pas en même temps au même sujet et sous le même rapport »",
+            "« Il est impossible que le même attribut appartienne et n'appartienne pas en même temps au même sujet et sous le même rapport » (Métaphysique, Γ, 3)",
           ],
+          modified: true,
         },
       ],
     },
@@ -73,7 +80,10 @@ NOTION("raison", {
           w: "Lettre à Ménécée, ~300 av. J.-C.",
           i: "La raison occupe une place essentielle dans la morale épicurienne : c'est elle qui opère la <strong>métriopathie</strong> — calcul rationnel des plaisirs et des peines qui hiérarchise les désirs (naturels et nécessaires > naturels non nécessaires > vains) et permet d'atteindre l'<em>ataraxie</em>. Le <strong>tetrapharmakon</strong> (quadruple remède) est un ensemble d'arguments rationnels contre les quatre grandes peurs (dieux, mort, douleur, désir) qui troublent l'âme. La raison guérit des passions irrationnelles.",
           fiche: "La raison guérit l'âme : par le calcul des plaisirs et le tetrapharmakon (quadruple remède), elle dissipe les peurs irrationnelles et conduit à l'ataraxie.",
-          citations: ["« Il faut philosopher pour vivre heureux — la philosophie est la médecine de l'âme »"],
+          citations: [
+            "Il n'est jamais trop tôt ni trop tard pour s'occuper de la santé de l'âme (Lettre à Ménécée, reformulé)",
+          ],
+          modified: true,
         },
       ],
     },
@@ -111,8 +121,9 @@ NOTION("raison", {
           i: "L'<strong>obéissance de cadavre</strong> d'Eichmann illustre l'<em>absence d'usage</em> de la raison pratique : exécuter des ordres sans juger de leur sens moral, c'est démissionner de la pensée. Arendt renoue avec Kant et son <em>Qu'est-ce que les Lumières ?</em> : sortir de la « minorité » suppose d'oser penser par soi-même, en abandonnant « paresse et lâcheté ». La <strong>banalité du mal</strong> est ce qui arrive quand la raison cesse d'être un usage personnel pour devenir simple obéissance.",
           fiche: "La « banalité du mal » (Eichmann) naît de l'absence de pensée : démissionner du jugement par simple obéissance, c'est renoncer à l'usage personnel de la raison.",
           citations: [
-            "« Le mal extrême n'est pas radical — il n'a pas de profondeur, il n'a que la surface de l'irréflexion »",
+            "Le mal n'est jamais radical, il est seulement extrême ; il n'a ni profondeur ni dimension démoniaque (lettre à Gershom Scholem, 1963, reformulé)",
           ],
+          modified: true,
         },
       ],
     },
@@ -206,8 +217,8 @@ NOTION("raison", {
           i: "La raison (2e genre de connaissance) saisit les choses par leurs <em>causes</em> et leur nécessité ; elle <strong>libère des passions</strong>, car une passion cesse d'être subie dès qu'on s'en forme une idée claire. Comprendre, ce n'est ni juger ni condamner : c'est s'élever à la nécessité. « Ne pas railler, ne pas déplorer, ni maudire, mais comprendre. »",
           new: true,
           citations: [
-            "« Ne pas railler, ne pas déplorer, ni maudire, mais comprendre. »",
-            "« J'ai pris grand soin de ne pas rire des actions humaines, de ne pas les déplorer, mais de les comprendre. »",
+            "« Ne pas railler, ne pas déplorer, ni maudire, mais comprendre » (Traité politique, I, 4)",
+            "J'ai pris grand soin de ne pas tourner en dérision les actions humaines, de ne pas les déplorer, mais de les comprendre (Traité politique, I, 4, reformulé ; la traduction varie)",
           ],
           fiche: "La raison saisit les choses par leurs causes et leur nécessité ; elle libère des passions, car comprendre, ce n'est ni railler ni condamner, mais s'élever à la nécessité.",
         },
@@ -248,6 +259,82 @@ NOTION("raison", {
             "« La dialectique éristique est l'art de disputer de manière à avoir toujours raison, c'est-à-dire par tous les moyens (per fas et nefas). »",
           ],
           fiche: "La dialectique éristique est « l'art d'avoir toujours raison par tous les moyens » : il distingue avoir raison (être dans le vrai) de vouloir avoir raison (vaincre par vanité).",
+        },
+      ],
+    },
+    {
+      n: "Anselme",
+      ideas: [
+        {
+          w: "Proslogion, chap. 1",
+          i: "La foi cherchant l'intelligence (fides quaerens intellectum, premier titre de l'ouvrage) : le croyant ne renonce pas à comprendre, il part de la foi pour la rendre intelligible. La raison ne fonde pas la foi, elle l'éclaire de l'intérieur.",
+          new: true,
+          citations: ["« Credo ut intelligam » : je crois pour comprendre (chap. 1)"],
+          fiche: "La foi cherche l'intelligence : on ne comprend pas pour croire, on croit pour comprendre.",
+        },
+      ],
+    },
+    {
+      n: "Condillac",
+      ideas: [
+        {
+          w: "Traité des sensations, 1754",
+          i: "Condillac imagine une statue organisée comme nous, mais à qui l'on n'ouvrirait les sens qu'un à un, en commençant par l'odorat. Avec la seule odeur de rose, elle devient tout entière odeur de rose ; puis viennent l'attention, la mémoire, la comparaison, le jugement, le désir. Toutes nos facultés ne sont que des sensations transformées : rien n'est inné.",
+          new: true,
+          citations: [
+            "Si on présente une rose à la statue, elle est pour elle-même l'odeur même de cette fleur (I, 1, § 2, reformulé)",
+          ],
+          fiche: "La statue : toutes nos facultés (attention, mémoire, jugement) ne sont que des sensations transformées.",
+        },
+      ],
+    },
+    {
+      n: "Jaspers",
+      ideas: [
+        {
+          w: "Introduction à la philosophie (1950)",
+          i: "La philosophie naît de l'étonnement, du doute et du bouleversement devant les situations-limites. Elle n'est pas une science qui accumulerait des résultats : en philosophie, les questions sont plus essentielles que les réponses, et chaque réponse devient une question nouvelle. Philosopher, c'est être en route.",
+          new: true,
+          citations: ["Les questions sont en philosophie plus essentielles que les réponses (chap. 1, reformulé)"],
+          fiche: "En philosophie, les questions comptent plus que les réponses : philosopher, c'est être en route.",
+        },
+      ],
+    },
+    {
+      n: "Lévi-Strauss",
+      ideas: [
+        {
+          w: "La Pensée sauvage (1962)",
+          i: "La pensée des peuples sans écriture n'est pas prélogique : c'est une science du concret, qui classe le monde avec rigueur à partir des qualités sensibles. Le bricoleur, qui fait avec les moyens du bord, s'oppose à l'ingénieur, qui conçoit ses outils selon un projet : deux formes de rationalité, non deux stades.",
+          new: true,
+          citations: ["La pensée sauvage, science du concret : le bricoleur face à l'ingénieur (chap. I, reformulé)"],
+          fiche: "La pensée sauvage est une science du concret : le bricoleur et l'ingénieur, deux rationalités, non deux stades.",
+        },
+      ],
+    },
+    {
+      n: "Jeanne Hersch",
+      ideas: [
+        {
+          w: "L'Étonnement philosophique (1981 en allemand ; Gallimard, 1993)",
+          i: "Une histoire de la philosophie racontée à partir de l'étonnement : chaque grand philosophe a su s'étonner de ce qui semblait aller de soi. Philosopher n'est pas posséder des réponses, c'est retrouver la capacité de s'étonner, à la portée de chacun.",
+          new: true,
+          citations: ["La philosophie commence par l'étonnement devant ce qui va de soi (reformulé)"],
+          fiche: "Philosopher, c'est retrouver la capacité de s'étonner de ce qui semble aller de soi.",
+        },
+      ],
+    },
+    {
+      n: "Foucault",
+      ideas: [
+        {
+          w: "Histoire de la folie à l'âge classique (1961)",
+          i: "Au XVIIe siècle, la raison classique se définit en excluant la déraison : le grand renfermement (création de l'Hôpital général en 1656) enferme ensemble fous, mendiants et libertins. La folie n'est pas un objet naturel que la médecine aurait peu à peu découvert ; c'est une figure produite par le partage que la raison opère pour s'assurer d'elle-même.",
+          new: true,
+          citations: [
+            "Le grand renfermement de 1656 : la raison classique se définit en excluant la déraison (reformulé)",
+          ],
+          fiche: "La raison classique se définit en excluant la déraison (grand renfermement) : la folie est produite par ce partage.",
         },
       ],
     },

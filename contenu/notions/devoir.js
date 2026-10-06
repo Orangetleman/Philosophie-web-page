@@ -15,8 +15,9 @@ NOTION("devoir", {
           i: "Impératif catégorique : 'Agis uniquement d'après la maxime que tu peux vouloir voir devenir une loi universelle.' Agir par devoir (non conformément au devoir par intérêt). Autrui comme fin, jamais seulement comme moyen.",
           fiche: "Impératif catégorique : agis selon une maxime universalisable et traite autrui comme une fin, jamais seulement comme un moyen. Agir PAR devoir, non par intérêt.",
           citations: [
-            "« Agis de telle sorte que tu traites l'humanité toujours comme une fin, jamais seulement comme un moyen »",
+            "« Agis de telle sorte que tu traites l'humanité aussi bien dans ta personne que dans la personne de tout autre toujours en même temps comme une fin, et jamais simplement comme un moyen » (Fondements de la métaphysique des mœurs, II, trad. Delbos)",
           ],
+          modified: true,
         },
       ],
     },
@@ -28,8 +29,9 @@ NOTION("devoir", {
           i: "Nouveau devoir face à la puissance technique : responsabilité envers les générations futures et la nature. Heuristique de la peur : anticiper les risques pour agir prudemment. Devoir de non-nuisance au futur.",
           fiche: "Nouveau devoir à l'âge technique : responsabilité envers les générations futures et la nature ; « heuristique de la peur » — anticiper le pire pour l'éviter.",
           citations: [
-            "« Agis de façon que les effets de ton action soient compatibles avec la permanence d'une vie humaine authentique »",
+            "« Agis de façon que les effets de ton action soient compatibles avec la permanence d'une vie authentiquement humaine sur terre » (Le Principe responsabilité, chap. I)",
           ],
+          modified: true,
         },
       ],
     },
@@ -86,7 +88,10 @@ NOTION("devoir", {
           w: "Criton, ~399 av. J.-C. (étude de texte)",
           i: "Socrate condamné à mort refuse de fuir malgré l'invitation de Criton. Les lois lui parlent : elles l'ont fait naître, éduquer, protéger. Les désobéir serait les trahir comme des parents. Nous avons le devoir d'obéir à la loi même si elle nous paraît injuste — ou alors convaincre légalement qu'elle est injuste. Analogie lois/parents : pertinente en démocratie, mais limitée.",
           fiche: "Criton : Socrate refuse de fuir — les lois sont comme des parents ; on doit leur obéir, ou les convaincre légalement de leur injustice.",
-          citations: ["« Nous avons toujours le devoir d'obéir à la loi, même si elle nous paraît injuste »"],
+          citations: [
+            "Les Lois de la cité demandent à Socrate s'il croit qu'une cité peut subsister si les jugements rendus y restent sans force (Criton, 50 a-b, reformulé)",
+          ],
+          modified: true,
         },
       ],
     },
@@ -119,7 +124,10 @@ NOTION("devoir", {
           w: "Discours de la servitude volontaire, 1549",
           i: "Pourquoi les hommes obéissent-ils librement à la tyrannie ? Parce qu'ils s'y habituent dès l'enfance. La servitude est volontaire : si les hommes cessaient de donner leur force au tyran, il tomberait. La liberté se retrouve en cessant de servir, non en combattant.",
           fiche: "Servitude volontaire : le tyran n'a que le pouvoir qu'on lui donne ; cesser de le servir suffit à le faire tomber.",
-          citations: ["« Un tyran n'a que la puissance que vous lui donnez — cessez de le servir, il tombera »"],
+          citations: [
+            "« Soyez résolus de ne servir plus, et vous voilà libres » (Discours de la servitude volontaire, orthographe modernisée)",
+          ],
+          modified: true,
         },
       ],
     },
@@ -131,6 +139,84 @@ NOTION("devoir", {
           i: "Fondateur du mouvement Otpor en Serbie. Stratégie de la désobéissance non-violente. L'humour comme outil politique : faire perdre en crédibilité les dirigeants. Méthode CANVAS : petites transgressions mineures, actions créatives, désunion des piliers du régime. Appliqué en Syrie sous Bachar Al-Assad (balles de ping-pong).",
           fiche: "Désobéissance non-violente organisée : l'humour et la créativité (méthode CANVAS) désunissent les piliers d'un régime.",
           citations: ["L'humour et la créativité comme armes de la désobéissance non-violente"],
+        },
+      ],
+    },
+    {
+      n: "Cicéron",
+      ideas: [
+        {
+          w: "Les Devoirs (De officiis), 44 av. J.-C.",
+          i: "Adressé à son fils, le traité fait du devoir (officium) l'action convenable, celle dont on peut rendre raison. L'honnête (sagesse, justice, courage, tempérance) et l'utile ne s'opposent qu'en apparence : rien de vraiment utile ne peut être contraire à l'honnête. Le devoir envers la communauté humaine passe avant l'intérêt particulier.",
+          new: true,
+          citations: [
+            "Ce qui semble utile mais s'oppose à l'honnête n'est qu'une apparence d'utilité (livre III, reformulé)",
+          ],
+          fiche: "Le devoir (officium) est l'action convenable ; l'utile véritable ne contredit jamais l'honnête.",
+        },
+      ],
+    },
+    {
+      n: "Adam Smith",
+      ideas: [
+        {
+          w: "Théorie des sentiments moraux, 1759",
+          i: "La morale repose sur la sympathie, la capacité de se mettre par l'imagination à la place d'autrui. Pour juger notre propre conduite, nous la regardons avec les yeux d'un spectateur impartial, que nous avons intériorisé : c'est la conscience morale. Smith, qu'on réduit souvent à l'apologie de l'intérêt, est d'abord un philosophe de la sympathie.",
+          new: true,
+          citations: [
+            "Le spectateur impartial, l'homme au-dedans de nous, est le juge de notre conduite (partie III, reformulé)",
+          ],
+          fiche: "La morale naît de la sympathie ; nous jugeons nos actes par les yeux d'un spectateur impartial intériorisé.",
+        },
+      ],
+    },
+    {
+      n: "Bentham",
+      ideas: [
+        {
+          w: "Introduction aux principes de morale et de législation, chap. I (1789)",
+          i: "Principe d'utilité : une action est bonne si elle augmente le bonheur des personnes concernées, mauvaise si elle le diminue. La morale devient un calcul : on mesure plaisirs et peines selon leur intensité, leur durée, leur certitude, leur proximité. Le législateur doit viser le plus grand bonheur du plus grand nombre.",
+          new: true,
+          citations: [
+            "« La nature a placé l'humanité sous le gouvernement de deux maîtres souverains, la douleur et le plaisir » (chap. I)",
+          ],
+          fiche: "Principe d'utilité : est bon ce qui augmente le bonheur ; la morale est un calcul des plaisirs et des peines.",
+        },
+      ],
+    },
+    {
+      n: "Levinas",
+      ideas: [
+        {
+          w: "Totalité et infini (1961) ; Éthique et infini (1982)",
+          i: "Le visage d'autrui, nu et vulnérable, me parle avant tout discours : il m'interdit de le tuer et m'oblige. La responsabilité pour autrui est première, antérieure à toute liberté et à tout savoir : l'éthique est la philosophie première. Elle est asymétrique : je suis responsable d'autrui sans attendre la réciproque.",
+          new: true,
+          citations: ["« Autrui est le seul être que je peux vouloir tuer » (Totalité et infini)"],
+          fiche: "Le visage d'autrui m'interdit de tuer et m'oblige : la responsabilité pour autrui est première.",
+        },
+      ],
+    },
+    {
+      n: "Anscombe",
+      ideas: [
+        {
+          w: "La Philosophie morale moderne (1958)",
+          i: "Les notions de devoir moral et d'obligation morale sont des survivances d'une éthique de la loi divine : sans législateur, elles n'ont plus de sens. Anscombe forge le mot conséquentialisme pour critiquer les morales qui jugent un acte à ses seules conséquences, au point d'admettre qu'on puisse condamner un innocent. Elle appelle à revenir, avec Aristote, à une éthique des vertus.",
+          new: true,
+          citations: ["Les concepts d'obligation et de devoir moral devraient être abandonnés (1958, reformulé)"],
+          fiche: "Le devoir moral sans législateur divin n'a plus de sens : critique du conséquentialisme, retour aux vertus.",
+        },
+      ],
+    },
+    {
+      n: "Iris Murdoch",
+      ideas: [
+        {
+          w: "La Souveraineté du bien (1970)",
+          i: "La vie morale n'est pas faite seulement de choix ponctuels : elle se joue dans l'attention, le regard juste et aimant porté sur la réalité et sur autrui. Une mère apprend peu à peu à voir sa belle-fille autrement, sans rien faire de visible : c'est déjà un progrès moral. Le grand ennemi est l'ego, ce voile d'anxiété qui empêche de voir.",
+          new: true,
+          citations: ["L'attention, regard juste et aimant porté sur une réalité individuelle (reformulé)"],
+          fiche: "La morale se joue dans l'attention, regard juste et aimant sur autrui, plus que dans des choix ponctuels.",
         },
       ],
     },

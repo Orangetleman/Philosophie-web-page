@@ -59,8 +59,9 @@ NOTION("liberte", {
           i: "Principe de non-nuisance : la seule limite légitime à la liberté individuelle est la nuisance à autrui. Liberté d'expression, de pensée, d'association sont absolues. Critique du despotisme de la majorité.",
           fiche: "Principe de non-nuisance : la seule limite légitime à ma liberté est le tort fait à autrui ; libertés de pensée et d'expression absolues.",
           citations: [
-            "« Le seul but légitime pour lequel on peut restreindre la liberté, c'est la protection d'autrui »",
+            "La seule raison légitime d'user de la force contre un membre de la société est de l'empêcher de nuire aux autres (De la liberté, chap. I, reformulé)",
           ],
+          modified: true,
         },
       ],
     },
@@ -106,7 +107,10 @@ NOTION("liberte", {
           w: "De la démocratie en Amérique, 1840",
           i: "La démocratie peut dériver vers un despotisme doux et tutélaire si les citoyens sont passifs. L'État bienveillant prend tout en charge, réduisant les citoyens à un troupeau timide et industrieux. La vigilance active des citoyens envers leurs représentants est la condition de la liberté civile.",
           fiche: "La démocratie peut glisser vers un « despotisme doux » si les citoyens, passifs, délèguent tout ; la liberté exige leur vigilance active.",
-          citations: ["« La démocratie peut dégénérer en despotisme doux si les citoyens abdiquent leur vigilance »"],
+          citations: [
+            "La démocratie peut dégénérer en un despotisme doux et tutélaire si les citoyens abdiquent leur vigilance (De la démocratie en Amérique, II, 4, 6, reformulé)",
+          ],
+          modified: true,
         },
       ],
     },
@@ -140,8 +144,9 @@ NOTION("liberte", {
           i: "La liberté n'est pas indépendance des lois naturelles mais connaissance de ces lois et capacité à les mettre en œuvre méthodiquement. L'arbitraire apparent (choisir sans comprendre) est non-liberté ; la nécessité comprise (agir en connaissance de cause) est vraie liberté. 'La liberté consiste dans l'empire sur nous-mêmes et sur la nature extérieure, fondée sur la connaissance des nécessités naturelles.'",
           fiche: "La liberté n'est pas l'absence de lois naturelles mais leur connaissance et leur maîtrise : la nécessité comprise, non l'arbitraire aveugle.",
           citations: [
-            "« La liberté consiste dans la connaissance des nécessités naturelles et la capacité à les utiliser »",
+            "La liberté n'est pas une indépendance rêvée à l'égard des lois naturelles, mais leur connaissance et la possibilité de les faire agir (Anti-Dühring, I, 11, reformulé)",
           ],
+          modified: true,
         },
       ],
     },
@@ -153,6 +158,82 @@ NOTION("liberte", {
           i: "La liberté n'est pas d'abord un fait <em>intérieur</em> (le libre arbitre de la volonté) mais une expérience <strong>politique</strong> et mondaine : elle n'<em>apparaît</em> que dans l'<strong>action</strong>, au milieu d'une <strong>pluralité</strong> d'hommes égaux. Être libre ne se réduit donc pas à « n'obéir à personne » (une indépendance solitaire) : c'est commencer quelque chose de neuf <em>avec</em> les autres, dans l'espace public.",
           new: true,
           citations: [],
+        },
+      ],
+    },
+    {
+      n: "Lucrèce",
+      ideas: [
+        {
+          w: "De la nature, II, v. 216-293",
+          i: "Les atomes tombent dans le vide ; s'ils tombaient seulement en ligne droite, ils ne se rencontreraient jamais. Il faut une légère déviation, en un temps et un lieu indéterminés : le clinamen. Elle rompt la chaîne du destin, où chaque cause suit une autre cause à l'infini, et rend possible la volonté libre des vivants.",
+          new: true,
+          citations: ["La déviation des atomes rompt les lois du destin (II, 254, reformulé)"],
+          fiche: "Le clinamen, petite déviation des atomes, rompt la chaîne du destin et fonde la liberté.",
+        },
+      ],
+    },
+    {
+      n: "Machiavel",
+      ideas: [
+        {
+          w: "Le Prince, chap. XXV",
+          i: "La fortune, le cours imprévisible des événements, gouverne peut-être la moitié de nos actions, mais nous laisse l'autre. Elle est comme un fleuve en crue : on ne l'arrête pas, mais on peut construire digues et chaussées par temps calme. La virtù, l'énergie lucide qui adapte l'action aux circonstances, est la part de liberté du politique.",
+          new: true,
+          citations: [
+            "La fortune est l'arbitre de la moitié de nos actions, mais elle nous laisse gouverner l'autre (chap. XXV, reformulé)",
+          ],
+          fiche: "La fortune décide de la moitié de nos actions ; la virtù, qui s'adapte aux temps, gouverne l'autre.",
+        },
+      ],
+    },
+    {
+      n: "Montesquieu",
+      ideas: [
+        {
+          w: "De l'esprit des lois, XI, 3",
+          i: "La liberté politique ne consiste pas à faire ce que l'on veut. Dans une société où il y a des lois, elle consiste à pouvoir faire ce que l'on doit vouloir, et à n'être point contraint de faire ce que l'on ne doit pas vouloir. Si un citoyen pouvait faire ce que les lois défendent, il n'aurait plus de liberté, parce que les autres auraient tout de même ce pouvoir.",
+          new: true,
+          citations: ["« La liberté est le droit de faire tout ce que les lois permettent » (XI, 3)"],
+          fiche: "La liberté n'est pas de faire ce qu'on veut : c'est le droit de faire ce que les lois permettent.",
+        },
+      ],
+    },
+    {
+      n: "Jaspers",
+      ideas: [
+        {
+          w: "Philosophie, II (1932)",
+          i: "Il est des situations dont on ne peut sortir et qu'on ne peut changer : la mort, la souffrance, le combat, la culpabilité. Ces situations-limites font échouer le savoir objectif ; mais c'est en les affrontant lucidement que l'homme devient lui-même et accède à l'existence, au sens fort.",
+          new: true,
+          citations: [
+            "Mort, souffrance, combat, culpabilité : des situations-limites dont on ne peut sortir (reformulé)",
+          ],
+          fiche: "Mort, souffrance, combat, culpabilité : en affrontant les situations-limites, l'homme devient lui-même.",
+        },
+      ],
+    },
+    {
+      n: "Beauvoir",
+      ideas: [
+        {
+          w: "Pour une morale de l'ambiguïté (1947)",
+          i: "L'homme est libre, mais sa liberté ne se réalise qu'en situation et avec les autres. Je ne peux pas vouloir ma liberté sans vouloir celle d'autrui : une liberté qui opprime se contredit. La morale existentialiste n'est pas l'arbitraire, c'est l'exigence de libérer.",
+          new: true,
+          citations: ["Vouloir être libre, c'est aussi vouloir les autres libres (reformulé)"],
+          fiche: "Ma liberté ne se veut pas sans celle des autres : une liberté qui opprime se contredit.",
+        },
+      ],
+    },
+    {
+      n: "Anscombe",
+      ideas: [
+        {
+          w: "L'Intention (1957)",
+          i: "Qu'est-ce qu'une action intentionnelle ? Celle à laquelle s'applique la question pourquoi, au sens où l'on demande une raison d'agir et non une cause. Un homme qui actionne une pompe envoyant de l'eau empoisonnée dans une maison fait plusieurs choses à la fois (bouger le bras, pomper, empoisonner) : une même action se décrit de plusieurs façons, et l'intention dépend de la description.",
+          new: true,
+          citations: ["Une action est intentionnelle quand la question pourquoi y trouve une raison d'agir (reformulé)"],
+          fiche: "Une action est intentionnelle quand on peut lui demander une raison (pourquoi ?) ; une même action a plusieurs descriptions.",
         },
       ],
     },

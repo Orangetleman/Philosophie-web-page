@@ -14,7 +14,7 @@
 
    Aucune dépendance : Node seul. data.js est un script classique (des
    const globales) : on l'exécute dans un bac à sable (module vm) pour en
-   lire D, KEYS, AM et CONCEPTS. index.html n'est lu que pour la table
+   lire D, KEYS, AM, CONCEPTS et PROGRAMME (la liste officielle, étape 4). index.html n'est lu que pour la table
    AUTHOR_ALIASES (formes de noms acceptées dans les dialogues).
 
    Depuis l'étape 3, data.js est GÉNÉRÉ par outils/construire.mjs (qui lance
@@ -42,7 +42,9 @@ function charger() {
   const src = fs.readFileSync(path.join(RACINE, 'data.js'), 'utf8');
   const bac = {};
   vm.createContext(bac);
-  const data = vm.runInContext(src + '\n;({D, KEYS, AM, CONCEPTS})', bac, { filename: 'data.js' });
+  // PROGRAMME n'existe que depuis l'étape 4 : une copie plus ancienne (--racine)
+  // se charge quand même, et la question 11 dit ce qui manque.
+  const data = vm.runInContext(src + "\n;({D, KEYS, AM, CONCEPTS, PROGRAMME: typeof PROGRAMME === 'undefined' ? null : PROGRAMME})", bac, { filename: 'data.js' });
   // AUTHOR_ALIASES vit dans le code du site : js/*.js depuis l'étape 3 (avant,
   // dans index.html, encore lu pour contrôler une ancienne copie via --racine).
   const dJs = path.join(RACINE, 'js');
@@ -190,6 +192,26 @@ const QUESTIONS = [
       if (err.length) err.push('data.js doit être produit par « node outils/construire.mjs », pas édité à la main');
       return { err, warn: [] };
     } },
+  /* 11 (étape 4) — le programme officiel est couvert : chaque notion du
+     programme existe, chaque auteur de la liste a sa fiche ET au moins une
+     idée dans une notion (sinon il n'apparaît nulle part sur le site). */
+  { n: 11, titre: "le programme officiel est couvert (17 notions, 84 auteurs avec fiche et idées)",
+    f({ D, KEYS, AM, PROGRAMME }) {
+      const err = [], warn = [];
+      if (!PROGRAMME) return { err: ['PROGRAMME absent de data.js (contenu/programme.js, puis le build)'], warn };
+      PROGRAMME.notions.filter(k => !KEYS.includes(k)).forEach(k => err.push(`notion du programme « ${k} » absente de KEYS`));
+      const cites = new Set(auteursDe(D, KEYS).map(({ a }) => a.n));
+      const vus = new Set();
+      PROGRAMME.auteurs.forEach(({ bo, fiches }) => fiches.forEach(nom => {
+        if (vus.has(nom)) err.push(`« ${nom} » figure deux fois dans la liste officielle`);
+        vus.add(nom);
+        if (!AM[nom]) err.push(`${bo} : pas de fiche AUTEUR("${nom}")`);
+        if (!cites.has(nom)) err.push(`${bo} : « ${nom} » n'a aucune idée dans une notion`);
+      }));
+      if (PROGRAMME.notions.length !== 17) warn.push(`${PROGRAMME.notions.length} notions au programme (le BO en compte 17)`);
+      if (PROGRAMME.auteurs.length !== 84) warn.push(`${PROGRAMME.auteurs.length} auteurs au programme (le BO en compte 84)`);
+      return { err, warn };
+    } },
 ];
 
 /* ── Les témoins : une faute par question, glissée dans une COPIE ────── */
@@ -204,6 +226,7 @@ const TEMOINS = {
   8: d => { d.D[d.KEYS[0]].auteurs.push({ n: 'Kant', w: '', i: 'x', q: "'Une citation mal guillemetée'" }); },
   9: d => { d.D[d.KEYS[0]].auteurs[0].w = 'Une œuvre, 1900 (TEXTE 4)'; },
   10: d => { d.CONCEPTS[0].tensions = ['A ≠ B']; },
+  11: d => { d.KEYS.forEach(k => { d.D[k].auteurs = d.D[k].auteurs.filter(a => a.n !== 'Montaigne'); }); },
 };
 
 function lancer(data) {

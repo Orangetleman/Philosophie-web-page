@@ -14,7 +14,10 @@ NOTION("travail", {
           w: "Phénoménologie de l'Esprit, 1807",
           i: "Dialectique maître/esclave : le maître jouit sans travailler mais reste dépendant. L'esclave, en travaillant la matière, se forme lui-même et découvre sa liberté. Le travail = médiation entre l'homme et le monde.",
           fiche: "Dialectique maître/esclave : en travaillant la matière, l'esclave se forme et se libère, tandis que le maître reste dépendant — le travail médiatise l'homme et le monde.",
-          citations: ["« C'est dans le travail que l'esclave se retrouve lui-même »"],
+          citations: [
+            "Par le travail, l'esclave se forme et prend conscience de lui-même (Phénoménologie de l'Esprit, maître et esclave, reformulé)",
+          ],
+          modified: true,
         },
       ],
     },
@@ -25,7 +28,10 @@ NOTION("travail", {
           w: "Manuscrits de 1844 / Le Capital, 1867",
           i: "4 formes d'aliénation : par rapport au produit (qui lui échappe), à l'activité (mécanique), à l'espèce (déshumanisation), aux autres (concurrence). Plus-value : exploitation du travail. Mais le travail libre est l'essence de l'homme.",
           fiche: "Le travail aliéné sépare l'ouvrier de son produit, de son activité, de l'espèce et des autres (plus-value = exploitation) — mais le travail libre est l'essence de l'homme.",
-          citations: ["« Le travail aliéné arrache à l'homme son activité vitale »"],
+          citations: [
+            "Le travail aliéné arrache à l'homme l'objet de sa production et, avec lui, sa vie générique (Manuscrits de 1844, reformulé)",
+          ],
+          modified: true,
         },
       ],
     },
@@ -59,8 +65,9 @@ NOTION("travail", {
           i: "Expérience vécue des usines. Le travail en usine est écrasant mais peut être libérateur si le travailleur comprend ce qu'il fait. Devoir de l'ingénieur : concevoir des machines qui ennoblissent les travailleurs.",
           fiche: "Le travail en usine écrase, mais peut libérer si l'ouvrier comprend ce qu'il fait ; devoir de l'ingénieur : concevoir des machines qui n'avilissent pas.",
           citations: [
-            "« La matière sort ennoblie de la fabrique, les travailleurs en sortent avilis » (Marx cité par Weil)",
+            "La matière inerte sort ennoblie de l'atelier, les hommes s'y dégradent (formule de Pie XI, Quadragesimo anno, 1931, reprise par Simone Weil, reformulé)",
           ],
+          modified: true,
         },
       ],
     },
@@ -71,7 +78,10 @@ NOTION("travail", {
           w: "Le Droit à la paresse, 1880",
           i: "Pamphlet contre le culte du travail. La classe ouvrière s'est laissé intoxiquer par la passion du travail, instrument de sa propre exploitation. Revendiquer le temps libre comme droit fondamental.",
           fiche: "« Le droit à la paresse » : le culte du travail intoxique la classe ouvrière et sert sa propre exploitation ; revendiquer le temps libre comme droit fondamental.",
-          citations: ["« Une étrange folie possède les classes ouvrières : la passion du travail »"],
+          citations: [
+            "« Une étrange folie possède les classes ouvrières des nations où règne la civilisation capitaliste »",
+          ],
+          modified: true,
         },
       ],
     },
@@ -83,8 +93,9 @@ NOTION("travail", {
           i: "Contre le mythe du « don » naturel ou du « génie » inné. L'artiste observe, travaille, s'exerce par la répétition. Cette illusion naît de notre ignorance et de notre paresse : on préfère croire au miracle plutôt qu'au labeur. L'activité du génie n'est pas différente de celle de l'inventeur, du savant ou du tacticien — ce sont des hommes dont la pensée est active dans une direction unique.",
           fiche: "Contre le mythe du génie inné : l'artiste observe, s'exerce, répète — le talent est d'abord un travail patient, non un miracle.",
           citations: [
-            "« Le génie ne fait rien que d'apprendre à poser des pierres, travailler toujours à y mettre la forme »",
+            "Le génie n'a rien de miraculeux : il commence par apprendre à poser des pierres, puis à bâtir (Humain, trop humain, § 162-163, reformulé)",
           ],
+          modified: true,
         },
       ],
     },
@@ -108,9 +119,43 @@ NOTION("travail", {
           w: "Le Rire, 1900",
           i: "L'artiste voit là où les autres ne voient pas : il écarte le voile de la perception utilitaire. Ce que l'artiste a vu, nous ne l'aurions pas vu sans lui — il nous ouvre les yeux sur une réalité que nous n'apercevons pas ordinairement. La vérité de l'œuvre se mesure à l'efficacité de la leçon.",
           fiche: "L'artiste écarte le voile de la perception utilitaire : il nous fait voir ce que nous n'aurions pas vu — son œuvre est une leçon de vision.",
+          citations: ["L'artiste voit ce que nous ne voyons pas, et son œuvre nous apprend à le voir (reformulé)"],
+          modified: true,
+        },
+      ],
+    },
+    {
+      n: "Adam Smith",
+      ideas: [
+        {
+          w: "Richesse des nations, I, 1 et V, 1 (1776)",
+          i: "Dans une manufacture d'épingles, dix ouvriers qui se partagent les opérations (étirer le fil, le couper, faire la pointe…) en fabriquent plus de 48 000 par jour ; seul, chacun en ferait à peine vingt. La division du travail est la source de la richesse. Mais Smith en voit le prix : l'ouvrier qui répète toute sa vie quelques gestes simples s'abrutit, d'où la nécessité d'une instruction publique.",
+          new: true,
           citations: [
-            "« Ce que l'artiste a vu, nous ne le reverrons pas, du moins entièrement, mais s'il a vu pour tout de bon, son œuvre nous sert de leçon »",
+            "L'homme dont toute la vie se passe à quelques opérations simples devient aussi stupide et ignorant qu'il soit possible (V, 1, reformulé)",
           ],
+          fiche: "La division du travail multiplie la production (les épingles), mais abrutit l'ouvrier : il faut une instruction publique.",
+        },
+        {
+          w: "Richesse des nations, I, 2 et IV, 2",
+          i: "Nous n'obtenons pas notre dîner de la bienveillance du boucher ou du boulanger, mais de leur intérêt : l'échange fait servir l'intérêt de chacun au bien de tous. C'est dans ce sens que Smith parle, une seule fois dans l'ouvrage, d'une main invisible qui conduit l'individu, en ne cherchant que son gain, à servir un intérêt qu'il ne visait pas.",
+          new: true,
+          citations: [
+            "Ce n'est pas de la bienveillance du boucher ou du boulanger que nous attendons notre dîner, mais du soin qu'ils prennent de leur intérêt (I, 2, reformulé)",
+          ],
+          fiche: "L'échange fait servir l'intérêt de chacun au bien commun (le boucher, le boulanger, la main invisible).",
+        },
+      ],
+    },
+    {
+      n: "Beauvoir",
+      ideas: [
+        {
+          w: "Le Deuxième Sexe, t. II, « La femme indépendante »",
+          i: "C'est par le travail rémunéré que la femme a conquis l'essentiel de son autonomie : il la sort de la dépendance économique envers le mari. Mais Beauvoir en voit les limites, la double journée, les métiers dévalorisés : le travail ne libère vraiment que dans une société qui change aussi.",
+          new: true,
+          citations: ["Le travail peut seul garantir à la femme une liberté concrète (reformulé)"],
+          fiche: "Le travail rémunéré donne à la femme une liberté concrète, à condition que la société change aussi.",
         },
       ],
     },

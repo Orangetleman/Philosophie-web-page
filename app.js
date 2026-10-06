@@ -178,6 +178,25 @@ function compareAuthors(an, bn){
       || an.localeCompare(bn,'fr');
 }
 
+/* ── Programme officiel (étape 4, oct. 2026) ─────────────────────────────
+   PROGRAMME (data.js, tiré de contenu/programme.js) donne les 84 auteurs de
+   la liste officielle. PROG_AUTEURS[nom de fiche] = {bo, periode} : seuls
+   ces auteurs peuvent tomber à l'explication de texte ; en dissertation, on
+   peut citer qui on veut. Sert à l'étiquette « Au programme ».            */
+const PROG_AUTEURS={};
+PROGRAMME.auteurs.forEach(a=>a.fiches.forEach(nom=>{ PROG_AUTEURS[nom]={bo:a.bo, periode:a.periode}; }));
+
+/* progBadgeHTML(nom, court) — l'étiquette « Au programme » d'un auteur de la
+   liste officielle, '' pour les autres. court=true : version compacte
+   (« Programme ») pour les cartes d'auteur d'une notion. Le title dit à
+   l'élève ce que l'étiquette change pour lui. */
+function progBadgeHTML(nom, court){
+  const p=PROG_AUTEURS[nom]; if(!p) return '';
+  const bo=p.bo!==nom?', sous le nom « '+p.bo+' »':'';
+  const t=`Liste officielle des auteurs (${p.periode}${bo}) : un texte de cet auteur peut tomber à l'explication de texte.`;
+  return `<span class="prog-badge${court?' prog-badge-court':''}" title="${t}">${court?'Programme':'Au programme'}</span>`;
+}
+
 /* ── Courant → color ─────────────────────────────────────────── */
 const CC={
   'Rationalisme':'#185FA5','Empirisme / Libéralisme':'#3B6D11','Idéalisme allemand':'#534AB7',
@@ -209,7 +228,26 @@ const CC={
   'Épistémologie critique':'#2E86AB',
   'Histoire et philosophie des sciences':'#2E86AB',
   'Philosophie de l\'absurde':'#C2603A',
-  'Scepticisme':'#6E7B8B'
+  'Scepticisme':'#6E7B8B',
+  // Étape 4 (oct. 2026) : courants des auteurs de la liste officielle ajoutés.
+  // Mêmes teintes que les familles existantes (antiques en vert d'eau,
+  // empiristes en vert, phénoménologues en violet, langage en mauve…).
+  'Présocratiques':'#1D9E75','Taoïsme':'#1D9E75','Éclectisme / Stoïcisme romain':'#1D9E75',
+  'Bouddhisme Madhyamaka':'#6E7B8B','Néoplatonisme':'#534AB7',
+  'Falsafa (aristotélisme arabe)':'#3B6D11','Scolastique / Augustinisme':'#EF9F27',
+  'Philosophie juive médiévale':'#EF9F27','Nominalisme / Scolastique':'#6B4FA0',
+  'Réalisme politique / Républicanisme':'#D85A30','Empirisme':'#3B6D11',
+  'Cartésianisme / Occasionnalisme':'#185FA5','Philosophie de l\'histoire':'#993556',
+  'Empirisme / Immatérialisme':'#3B6D11','Lumières / Libéralisme politique':'#EF9F27',
+  'Empirisme / Sensualisme':'#3B6D11','Lumières écossaises / Économie politique classique':'#EF9F27',
+  'Rationalisme critique / Philosophie des sciences':'#2E86AB','Phénoménologie':'#534AB7',
+  'Sociologie durkheimienne / Anthropologie':'#D4537E','Philosophie de l\'existence':'#534AB7',
+  'Théorie critique / Philosophie de la culture':'#5F5E5A',
+  'Philosophie morale / Philosophie de la durée':'#1D9E75','Libéralisme politique / Sociologie':'#EF9F27',
+  'Phénoménologie / Éthique':'#534AB7','Existentialisme / Féminisme':'#993556',
+  'Structuralisme / Anthropologie':'#6B4FA0','Philosophie analytique / Éthique des vertus':'#185FA5',
+  'Platonisme moral':'#534AB7','Archéologie du savoir / Généalogie':'#993556',
+  'Philosophie analytique / Pragmatisme':'#6B4FA0'
 };
 /* js/02-navigation.js — morceau du script du site. Le build (outils/construire.mjs)
    recolle js/*.js dans l'ORDRE des noms en UN SEUL script, app.js : les
@@ -1623,6 +1661,7 @@ function renderAuthorContent(){
   <div>
     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
       <div class="author-title">${curAuthor}</div>
+      ${progBadgeHTML(curAuthor)}
       ${meta.courant?`<span class="author-courant facet-clickable" style="background:${cc}18;color:${cc};border:0.5px solid ${cc}40" title="Voir les auteurs de ce courant" onclick="openFacet('courant','${String(meta.courant).replace(/'/g,"\\'")}')">${meta.courant}</span>`:''}
     </div>
     <div style="display:flex;gap:3px;align-items:center;margin-top:5px">${notionBdgs}<span style="font-size:10px;color:var(--color-text-tertiary);margin-left:4px">${entry.notions.length} notion${entry.notions.length>1?'s':''}</span></div>
@@ -1816,7 +1855,7 @@ function renderContent(){
       const nameColor=inkOnDark(c);   // nom = couleur de la notion (neutre)
       html+=`<div class="ac${multi}">
         <div class="an" style="color:${nameColor}">
-          <span class="an-link" style="color:${nameColor}" onclick="openAuthor('${safeN}')">${a.n}</span>
+          <span class="an-link" style="color:${nameColor}" onclick="openAuthor('${safeN}')">${a.n}</span>${progBadgeHTML(a.n,true)}
         </div>
         <div class="a-ideas">${ideasHTML}</div>
       </div>`;
@@ -2103,7 +2142,14 @@ const AUTHOR_ALIASES={
   // emploie le nom complet : clés d'AM renommées, formes courtes gardées ici.
   "Weil":"Simone Weil",
   "Nozick":"Robert Nozick",
-  "Anders":"Gunther Anders"
+  "Anders":"Gunther Anders",
+  // Auteurs de la liste officielle ajoutés à l'étape 4 (oct. 2026) : graphies
+  // du BO, formes courtes et noms d'origine, rendus cliquables vers la fiche.
+  "Guillaume d'Occam":"Guillaume d'Ockham","Occam":"Guillaume d'Ockham","Ockham":"Guillaume d'Ockham",
+  "Nagarjuna":"Nāgārjuna","Tchouang-tseu":"Zhuangzi","Marc-Aurèle":"Marc Aurèle",
+  "Ibn Sina":"Avicenne","Ibn Rushd":"Averroès","Anselme de Cantorbéry":"Anselme",
+  "Simone de Beauvoir":"Beauvoir","Lévinas":"Levinas","Benjamin":"Walter Benjamin",
+  "Aron":"Raymond Aron","Hersch":"Jeanne Hersch","Murdoch":"Iris Murdoch","Smith":"Adam Smith"
 };
 Object.keys(AUTHOR_ALIASES).forEach(alias=>{
   const canon=AUTHOR_ALIASES[alias], key=alias.toLowerCase();
@@ -6778,10 +6824,14 @@ const PALETTE_INDEX=(function(){
       color:D[k].c, norm:paletteNorm(D[k].l+' '+sub), texte:paletteNorm(stripHtml(D[k].def||''))});
   });
   // Auteurs : couleur = courant (CC) ; sous-titre = courant philosophique.
+  // Les autres formes du nom (AUTHOR_ALIASES : « Occam », « Simone de
+  // Beauvoir »…) entrent dans la chaîne de recherche (étape 4).
+  const aliasDe={};
+  Object.keys(AUTHOR_ALIASES).forEach(al=>{ (aliasDe[AUTHOR_ALIASES[al]]=aliasDe[AUTHOR_ALIASES[al]]||[]).push(al); });
   Object.keys(AI).forEach(name=>{
     const courant=(AM[name]||{}).courant||'';
     out.push({type:'auteur', id:name, label:name, sub:courant,
-      color:CC[courant]||'#888', norm:paletteNorm(name+' '+courant)});
+      color:CC[courant]||'#888', norm:paletteNorm(name+' '+courant+' '+(aliasDe[name]||[]).join(' '))});
   });
   // Concepts : couleur = 1re notion liée (si fichée) ; sous-titre = catégorie.
   CONCEPTS.forEach(c=>{
