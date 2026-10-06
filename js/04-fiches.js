@@ -718,6 +718,7 @@ function renderAuthorContent(){
   <div>
     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
       <div class="author-title">${curAuthor}</div>
+      ${progBadgeHTML(curAuthor)}
       ${meta.courant?`<span class="author-courant facet-clickable" style="background:${cc}18;color:${cc};border:0.5px solid ${cc}40" title="Voir les auteurs de ce courant" onclick="openFacet('courant','${String(meta.courant).replace(/'/g,"\\'")}')">${meta.courant}</span>`:''}
     </div>
     <div style="display:flex;gap:3px;align-items:center;margin-top:5px">${notionBdgs}<span style="font-size:10px;color:var(--color-text-tertiary);margin-left:4px">${entry.notions.length} notion${entry.notions.length>1?'s':''}</span></div>
@@ -911,7 +912,7 @@ function renderContent(){
       const nameColor=inkOnDark(c);   // nom = couleur de la notion (neutre)
       html+=`<div class="ac${multi}">
         <div class="an" style="color:${nameColor}">
-          <span class="an-link" style="color:${nameColor}" onclick="openAuthor('${safeN}')">${a.n}</span>
+          <span class="an-link" style="color:${nameColor}" onclick="openAuthor('${safeN}')">${a.n}</span>${progBadgeHTML(a.n,true)}
         </div>
         <div class="a-ideas">${ideasHTML}</div>
       </div>`;

@@ -25,7 +25,10 @@ NOTION("justice", {
           w: "Éthique à Nicomaque, Liv. V",
           i: "Justice distributive : à chacun selon son mérite (inégalité proportionnelle). Justice corrective : rétablir l'égalité après un tort (arithmétique). La justice = juste milieu.",
           fiche: "Justice distributive (à chacun selon son mérite, proportionnelle) et corrective (rétablir l'égalité après un tort) — la justice est un juste milieu.",
-          citations: ["« La justice distributive : à chacun selon son mérite »"],
+          citations: [
+            "Justice distributive : à chacun selon son mérite, une égalité proportionnelle (Éthique à Nicomaque, V, 6, reformulé)",
+          ],
+          modified: true,
         },
       ],
     },
@@ -36,7 +39,10 @@ NOTION("justice", {
           w: "Théorie de la justice, 1971",
           i: "Voile d'ignorance : imaginons que nous ne savons pas quelle place nous occuperons. 2 principes : égale liberté pour tous + principe de différence (les inégalités ne sont justes que si elles profitent aux plus défavorisés).",
           fiche: "Voile d'ignorance : choisir les principes sans connaître sa place ; égale liberté pour tous + principe de différence (les inégalités ne valent que si elles profitent aux plus défavorisés).",
-          citations: ["« Les inégalités sont justifiées si elles profitent aux plus défavorisés »"],
+          citations: [
+            "Les inégalités ne sont justes que si elles profitent aux plus défavorisés (principe de différence, reformulé)",
+          ],
+          modified: true,
         },
       ],
     },
@@ -47,7 +53,10 @@ NOTION("justice", {
           w: "Le Capital, 1867",
           i: "La justice bourgeoise masque l'exploitation. La plus-value : le travailleur crée plus de valeur qu'il n'en reçoit. La vraie justice = abolir la propriété privée des moyens de production.",
           fiche: "La justice bourgeoise masque l'exploitation (plus-value) ; la vraie justice suppose d'abolir la propriété privée des moyens de production.",
-          citations: ["« De chacun selon ses capacités, à chacun selon ses besoins »"],
+          citations: [
+            "« De chacun selon ses capacités, à chacun selon ses besoins ! » (Critique du programme de Gotha, 1875)",
+          ],
+          modified: true,
         },
       ],
     },
@@ -58,7 +67,8 @@ NOTION("justice", {
           w: "Léviathan, 1651",
           i: "Sans État, pas de justice possible : état de nature = guerre de tous contre tous. La justice naît du contrat : est juste ce que le souverain déclare juste.",
           fiche: "Sans État, pas de justice (guerre de tous contre tous) : la justice naît du contrat — est juste ce que le souverain déclare juste.",
-          citations: ["« L'homme est un loup pour l'homme » (formule du De Cive, 1642)"],
+          citations: ["« L'homme est un loup pour l'homme » (Le Citoyen, épître dédicatoire, 1642, reprenant Plaute)"],
+          modified: true,
         },
       ],
     },
@@ -69,7 +79,10 @@ NOTION("justice", {
           w: "Discours sur l'inégalité, 1755",
           i: "Les inégalités naturelles sont légitimes. Les inégalités sociales sont artificielles et injustes. La propriété est la source de l'injustice sociale.",
           fiche: "Les inégalités sociales, nées de la propriété, sont artificielles et injustes (contrairement aux inégalités naturelles) : la propriété est la source de l'injustice.",
-          citations: ["« Le premier qui clôtura un terrain... fut le vrai fondateur de la société civile »"],
+          citations: [
+            "« Le premier qui, ayant enclos un terrain, s'avisa de dire : Ceci est à moi, et trouva des gens assez simples pour le croire, fut le vrai fondateur de la société civile » (Discours sur l'inégalité, II)",
+          ],
+          modified: true,
         },
       ],
     },
@@ -107,6 +120,96 @@ NOTION("justice", {
           citations: [
             "« Sous un gouvernement qui emprisonne injustement, la vraie place d'un homme juste est aussi en prison »",
           ],
+        },
+      ],
+    },
+    {
+      n: "Cicéron",
+      ideas: [
+        {
+          w: "De la République, III (fragment transmis par Lactance)",
+          i: "Il existe une loi vraie, la droite raison accordée à la nature, la même pour tous et toujours. Elle ne sera pas autre à Rome et autre à Athènes ; ni le Sénat ni le peuple ne peuvent nous en délier. C'est l'une des formules les plus nettes du droit naturel : une loi injuste n'est pas une vraie loi.",
+          new: true,
+          citations: [
+            "Il n'y aura pas une loi à Rome, une autre à Athènes, mais une seule loi éternelle (III, 33, reformulé)",
+          ],
+          fiche: "La vraie loi est la droite raison accordée à la nature, la même à Rome et à Athènes (droit naturel).",
+        },
+      ],
+    },
+    {
+      n: "Montesquieu",
+      ideas: [
+        {
+          w: "De l'esprit des lois, I, 1 à 3",
+          i: "Les lois ne sont pas des commandements arbitraires : elles sont des rapports nécessaires qui dérivent de la nature des choses. Celles d'un peuple doivent convenir à son régime, à son climat, à ses mœurs, à son commerce : c'est cet ensemble de rapports que Montesquieu appelle l'esprit des lois. Il ouvre ainsi la voie à une science des sociétés.",
+          new: true,
+          citations: [
+            "« Les lois, dans la signification la plus étendue, sont les rapports nécessaires qui dérivent de la nature des choses » (I, 1)",
+          ],
+          fiche: "Les lois sont des rapports nécessaires qui dérivent de la nature des choses ; elles doivent convenir au peuple qu'elles régissent.",
+        },
+      ],
+    },
+    {
+      n: "Mauss",
+      ideas: [
+        {
+          w: "Essai sur le don (1925)",
+          i: "Dans de nombreuses sociétés (Polynésie, Mélanésie, Nord-Ouest américain), les échanges ne passent pas d'abord par le marché mais par des dons qui obligent : donner, recevoir, rendre. Le don crée un lien et une dette d'honneur. Mauss y voit un fait social total, à la fois économique, juridique, religieux et moral, et une leçon pour nos sociétés : la solidarité ne se réduit pas au contrat.",
+          new: true,
+          citations: ["Trois obligations fondent l'échange : donner, recevoir, rendre (Essai sur le don, reformulé)"],
+          fiche: "Le don oblige à recevoir et à rendre : un lien social qui ne se réduit ni au marché ni au contrat.",
+        },
+      ],
+    },
+    {
+      n: "Jankélévitch",
+      ideas: [
+        {
+          w: "L'Imprescriptible (textes de 1965 et 1971, recueil en 1986)",
+          i: "Faut-il pardonner les crimes nazis ? Alors qu'on débat de leur prescription en Allemagne, Jankélévitch répond que les crimes contre l'humanité sont imprescriptibles : le temps n'efface pas ce qui a voulu nier l'homme. Le pardon a un sens entre personnes, quand le coupable le demande ; or personne ne l'a demandé.",
+          new: true,
+          citations: ["« Le pardon est mort dans les camps de la mort » (L'Imprescriptible)"],
+          fiche: "Les crimes contre l'humanité sont imprescriptibles : le temps ne les efface pas, et le pardon n'a pas été demandé.",
+        },
+      ],
+    },
+    {
+      n: "Levinas",
+      ideas: [
+        {
+          w: "Autrement qu'être ou au-delà de l'essence (1974)",
+          i: "Avec le tiers, l'autre de l'autre, ma responsabilité infinie pour un seul doit se partager : il faut comparer les incomparables, peser, juger. Ainsi naissent la justice, les institutions et l'État. Mais la justice reste sous le contrôle de la responsabilité pour le visage : un État qui l'oublie dérive vers la violence.",
+          new: true,
+          citations: ["La justice naît de l'entrée du tiers (reformulé)"],
+          fiche: "La justice naît avec le tiers : il faut comparer et juger ; elle reste soumise à la responsabilité pour autrui.",
+        },
+      ],
+    },
+    {
+      n: "Jeanne Hersch",
+      ideas: [
+        {
+          w: "Le Droit d'être un homme (anthologie, Unesco, 1968)",
+          i: "Pour les vingt ans de la Déclaration universelle, Hersch rassemble des textes de toutes les époques et de toutes les cultures (proverbes, lois, poèmes, plaintes d'esclaves) qui réclament le respect de l'homme. Les droits de l'homme ne sont pas une invention propre à l'Occident : l'exigence d'être traité en homme se retrouve partout.",
+          new: true,
+          citations: [
+            "L'exigence d'être traité en homme se retrouve dans toutes les cultures (Le Droit d'être un homme, reformulé)",
+          ],
+          fiche: "L'exigence d'être traité en homme se retrouve dans toutes les cultures : les droits de l'homme ne sont pas qu'occidentaux.",
+        },
+      ],
+    },
+    {
+      n: "Foucault",
+      ideas: [
+        {
+          w: "Surveiller et punir (1975)",
+          i: "Du supplice public (Damiens écartelé en 1757) à la prison moderne, la peine ne cherche plus à frapper le corps mais à corriger l'âme. Ce n'est pas seulement un progrès d'humanité : c'est une nouvelle technique de pouvoir, la discipline, qui surveille, classe et normalise, à l'école, à l'usine, à la caserne comme en prison. Le panoptique de Bentham en est le modèle : un surveillant invisible, des détenus visibles qui finissent par se surveiller eux-mêmes.",
+          new: true,
+          citations: ["« La visibilité est un piège » (Surveiller et punir, III, 3)"],
+          fiche: "Du supplice à la prison : la discipline surveille et normalise ; le panoptique fait que chacun se surveille lui-même.",
         },
       ],
     },

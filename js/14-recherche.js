@@ -45,10 +45,14 @@ const PALETTE_INDEX=(function(){
       color:D[k].c, norm:paletteNorm(D[k].l+' '+sub), texte:paletteNorm(stripHtml(D[k].def||''))});
   });
   // Auteurs : couleur = courant (CC) ; sous-titre = courant philosophique.
+  // Les autres formes du nom (AUTHOR_ALIASES : « Occam », « Simone de
+  // Beauvoir »…) entrent dans la chaîne de recherche (étape 4).
+  const aliasDe={};
+  Object.keys(AUTHOR_ALIASES).forEach(al=>{ (aliasDe[AUTHOR_ALIASES[al]]=aliasDe[AUTHOR_ALIASES[al]]||[]).push(al); });
   Object.keys(AI).forEach(name=>{
     const courant=(AM[name]||{}).courant||'';
     out.push({type:'auteur', id:name, label:name, sub:courant,
-      color:CC[courant]||'#888', norm:paletteNorm(name+' '+courant)});
+      color:CC[courant]||'#888', norm:paletteNorm(name+' '+courant+' '+(aliasDe[name]||[]).join(' '))});
   });
   // Concepts : couleur = 1re notion liée (si fichée) ; sous-titre = catégorie.
   CONCEPTS.forEach(c=>{

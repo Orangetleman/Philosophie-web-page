@@ -25,7 +25,10 @@ NOTION("religion", {
           w: "L'Avenir d'une illusion, 1927",
           i: "La religion est une illusion collective — une projection des désirs infantiles (le père protecteur). Elle remplit une fonction d'apaisement face à l'angoisse de la mort et à la détresse humaine. Non nécessairement fausse mais motivée par le désir.",
           fiche: "La religion est une illusion : projection d'un père protecteur, elle apaise l'angoisse de la mort — motivée par le désir, pas forcément fausse.",
-          citations: ["« La religion est l'illusion universelle obsessionnelle de l'humanité »"],
+          citations: [
+            "« La religion serait la névrose obsessionnelle universelle de l'humanité » (L'Avenir d'une illusion, chap. VIII)",
+          ],
+          modified: true,
         },
       ],
     },
@@ -34,9 +37,12 @@ NOTION("religion", {
       ideas: [
         {
           w: "Théétète, ~369 av. J.-C.",
-          i: "En distinguant le savoir (<em>une croyance vraie justifiée</em>) de la simple opinion ou croyance, Platon fournit le critère qui sépare radicalement le régime du savoir scientifique de celui de la foi religieuse. La religion repose sur l'adhésion <em>sans</em> démonstration : non parce qu'elle serait fausse, mais parce qu'elle relève d'un autre rapport à la vérité — révélation, expérience, tradition.",
-          fiche: "Savoir = croyance vraie justifiée : la foi relève d'un autre rapport à la vérité (révélation, tradition) — CROIRE n'est pas SAVOIR.",
-          citations: ["« Le savoir est une croyance vraie justifiée » — donc CROIRE ≠ SAVOIR"],
+          i: "En distinguant le savoir (une <em>opinion vraie accompagnée de raison</em>) de la simple opinion ou croyance, Platon fournit le critère qui sépare radicalement le régime du savoir scientifique de celui de la foi religieuse. La religion repose sur l'adhésion <em>sans</em> démonstration : non parce qu'elle serait fausse, mais parce qu'elle relève d'un autre rapport à la vérité — révélation, expérience, tradition.",
+          fiche: "Savoir = opinion vraie accompagnée de raison : la foi relève d'un autre rapport à la vérité (révélation, tradition) — CROIRE n'est pas SAVOIR.",
+          citations: [
+            "Une opinion vraie ne devient savoir que liée par un raisonnement qui en donne la cause (Ménon, 97 e - 98 a, reformulé) ; la formule croyance vraie justifiée est moderne",
+          ],
+          modified: true,
         },
       ],
     },
@@ -47,7 +53,8 @@ NOTION("religion", {
           w: "Et Dieu dit : « Que Darwin soit ! », 1999",
           i: "Principe NOMA (Non-Overlapping Magisteria) : la science et la religion ne se contredisent pas <em>nécessairement</em> car elles ne traitent pas des mêmes questions. La science traite du <em>comment</em> (faits empiriques, mécanismes, lois) ; la religion traite du <em>pourquoi</em> (sens, valeurs, finalité). Conflit seulement quand l'une empiète sur l'autre (créationnisme = religion qui prétend faire de la science ; scientisme = science qui prétend épuiser le sens).",
           fiche: "NOMA : la science (le comment, les faits) et la religion (le pourquoi, le sens) ne se recouvrent pas ; le conflit naît quand l'une empiète sur l'autre.",
-          citations: ["« Science et religion sont deux magistères qui ne se recouvrent pas »"],
+          citations: ["Science et religion sont deux magistères qui ne se recouvrent pas (principe NOMA, reformulé)"],
+          modified: true,
         },
       ],
     },
@@ -83,8 +90,9 @@ NOTION("religion", {
           i: "Synthèse fondatrice de la scolastique médiévale : la philosophie est mise « <em>au service de la théologie</em> » (<em>ancilla theologiae</em>). La raison naturelle peut atteindre certaines vérités sur Dieu (les « cinq voies » prouvant son existence), mais d'autres (Trinité, Incarnation) ne sont accessibles que par la révélation. Foi et raison ne se contredisent pas : elles procèdent toutes deux de Dieu. Modèle de <strong>collaboration subordonnée</strong> entre les deux ordres.",
           fiche: "Foi et raison ne se contredisent pas : la raison prouve certaines vérités (les cinq voies), la révélation en livre d'autres ; philosophie « servante de la théologie ».",
           citations: [
-            "« Ce que la foi enseigne, la raison ne peut pas le contredire — mais elle ne peut pas non plus tout démontrer »",
+            "La foi et la raison ne peuvent se contredire, car toutes deux viennent de Dieu ; mais la raison ne démontre pas tout ce que la foi enseigne (Somme contre les Gentils, I, 7, reformulé)",
           ],
+          modified: true,
         },
       ],
     },
@@ -95,7 +103,8 @@ NOTION("religion", {
           w: "Méditations / Lettre au Père Mesland, 1644",
           i: "Distinction nette entre l'ordre de la connaissance rationnelle et celui de la foi. <strong>La foi n'est pas un acte de l'intelligence mais un acte de la volonté</strong> : nous croyons parce que nous voulons croire, non parce que nous comprenons les vérités révélées. Le rationalisme cartésien ne récuse donc pas la foi mais affirme l'<em>autonomie de la raison</em> — la philosophie a son domaine propre (la connaissance certaine), distinct de celui de la théologie.",
           fiche: "La foi est un acte de la volonté, non de l'intelligence : on croit parce qu'on veut croire ; la raison garde son domaine propre, la connaissance certaine.",
-          citations: ["« La foi n'est pas un acte de l'intelligence mais un acte de la volonté »"],
+          citations: ["La foi relève de la volonté plus que de l'entendement (reformulé)"],
+          modified: true,
         },
       ],
     },
@@ -107,8 +116,9 @@ NOTION("religion", {
           i: "<strong>Critique radicale de l'anthropomorphisme religieux</strong> : croire que Dieu agit en vue d'une fin (le salut de l'homme) lui prête un défaut, donc une limitation incompatible avec sa perfection infinie. Dieu = Nature (<em>Deus sive Natura</em>) — pas de providence personnelle. Spinoza prône une « religion » purement éthique : non plus le culte d'un Dieu jaloux, mais l'amour intellectuel de la nécessité naturelle. La vraie piété est la connaissance.",
           fiche: "Critique de l'anthropomorphisme : Dieu = Nature (Deus sive Natura), sans providence ni fin ; la vraie piété est la connaissance, non le culte d'un Dieu jaloux.",
           citations: [
-            "« Si Dieu agit en vue d'une fin, c'est que quelque chose lui fait défaut — limitation incompatible avec sa nature »",
+            "Si Dieu agissait en vue d'une fin, il désirerait nécessairement quelque chose dont il manque (Éthique, I, appendice, reformulé)",
           ],
+          modified: true,
         },
       ],
     },
@@ -120,8 +130,9 @@ NOTION("religion", {
           i: "Toutes les religions se ramènent à deux types : (1) <strong>religion de simple culte</strong> — l'homme prie Dieu pour obtenir des faveurs, sans rien faire d'autre ; (2) <strong>religion morale</strong> — l'homme cherche à devenir meilleur par sa propre conduite, sans rien attendre de Dieu en retour. Seule la seconde est conforme à la dignité de l'homme et à l'autonomie morale (impératif catégorique). La religion vraie se réduit à la morale.",
           fiche: "Deux religions : de simple culte (prier pour obtenir) ou morale (devenir meilleur sans rien attendre) ; seule la seconde, conforme à l'autonomie, est vraie.",
           citations: [
-            "« Soit l'homme prie Dieu de le rendre heureux ; soit il fait son possible pour devenir meilleur, sans rien attendre de Dieu »",
+            "Ou bien l'homme demande à Dieu de le rendre heureux, ou bien il fait tout pour devenir meilleur (La Religion dans les limites de la simple raison, reformulé)",
           ],
+          modified: true,
         },
       ],
     },
@@ -132,7 +143,10 @@ NOTION("religion", {
           w: "L'Essence du christianisme, 1842",
           i: "<strong>Théorie de la projection / aliénation religieuse</strong> : Dieu n'est que la projection hors de soi des aspirations humaines (puissance, amour, sagesse infinies) que l'expérience de notre finitude borne. L'homme s'aliène en Dieu parce qu'en lui il se réalise dans un autre imaginaire. Pour se réapproprier son essence, il faut renverser le mouvement : ramener Dieu à l'homme. Inspirera Marx (« critique du ciel = critique de la terre »).",
           fiche: "Aliénation religieuse : Dieu est la projection des perfections humaines hors de l'homme ; pour se réapproprier son essence, ramener Dieu à l'homme.",
-          citations: ["« Dieu n'est rien d'autre que l'essence humaine projetée hors de l'homme »"],
+          citations: [
+            "L'essence divine n'est rien d'autre que l'essence humaine, séparée des limites de l'homme individuel et objectivée (L'Essence du christianisme, introduction, reformulé)",
+          ],
+          modified: true,
         },
       ],
     },
@@ -144,8 +158,9 @@ NOTION("religion", {
           i: "« La religion est l'<strong>opium du peuple</strong>. » Mais l'idée nouvelle de Marx (au-delà des Lumières) : la religion n'est pas simple ignorance ni manipulation cléricale — elle est une <strong>illusion qui revêt une signification anthropologique</strong>. Elle est à la fois <em>expression</em> de la détresse réelle et <em>protestation</em> contre cette détresse. Les frustrations sociales (aliénation économique) sont la véritable clé de l'aliénation religieuse. Critiquer la religion sans critiquer ses conditions sociales = inutile.",
           fiche: "« La religion est l'opium du peuple » : à la fois expression de la détresse réelle et protestation contre elle ; la critiquer sans ses causes sociales est vain.",
           citations: [
-            "« La religion est le soupir de la créature accablée, l'âme d'un monde sans cœur — l'opium du peuple »",
+            "« La religion est le soupir de la créature accablée, l'âme d'un monde sans cœur, comme elle est l'esprit de conditions sociales d'où l'esprit est exclu. Elle est l'opium du peuple »",
           ],
+          modified: true,
         },
       ],
     },
@@ -156,7 +171,8 @@ NOTION("religion", {
           w: "Crainte et Tremblement, 1843",
           i: "La foi n'est pas un savoir tranquille : c'est un <strong>saut</strong> dans l'<em>angoisse</em>, en l'absence de toute certitude rationnelle. Abraham acceptant de sacrifier Isaac est le « chevalier de la foi » : il croit malgré l'absurdité, en suspendant l'éthique générale au profit d'un absolu personnel. L'<strong>angoisse est formatrice</strong> : elle met à nu nos illusions et ouvre à la foi authentique. Loin d'être naïve, la vraie expérience religieuse se vit dans l'absence de certitude.",
           fiche: "La foi est un « saut » dans l'angoisse, sans certitude (Abraham) : suspension de l'éthique au profit d'un absolu ; l'angoisse est formatrice.",
-          citations: ["« Grâce à la foi, l'angoisse possède une valeur éducative absolue »"],
+          citations: ["Par la foi, l'angoisse éduque absolument (Le Concept d'angoisse, 1844, chap. V, reformulé)"],
+          modified: true,
         },
       ],
     },
@@ -167,7 +183,8 @@ NOTION("religion", {
           w: "Les Formes élémentaires de la vie religieuse, 1912",
           i: "Approche sociologique : le sacré n'est pas une réalité surnaturelle mais une <strong>projection collective</strong> — le sacré, c'est la société divinisée. La religion est une « <em>forme élémentaire de la vie sociale</em> » : elle exprime, renforce et reproduit la cohésion du groupe. Distinction structurale <strong>sacré / profane</strong>. Même les sociétés sécularisées conservent des formes de sacré (drapeau national, mémoriaux, fêtes civiques).",
           fiche: "Le sacré est une projection collective — « la société qui s'adore elle-même » : la religion exprime et renforce la cohésion du groupe (sacré/profane).",
-          citations: ["« La religion est éminemment sociale — elle est la société qui s'adore elle-même »"],
+          citations: ["Dans le culte, c'est la société qui se célèbre elle-même (reformulé)"],
+          modified: true,
         },
       ],
     },
@@ -178,7 +195,8 @@ NOTION("religion", {
           w: "Les Deux Sources de la morale et de la religion, 1932",
           i: "Distinction <strong>religion statique</strong> / <strong>religion dynamique</strong>. La religion <em>statique</em> est une fonction sociale (issue de la « fonction fabulatrice » de l'intelligence) qui sert à défendre l'individu contre l'angoisse de la mort et à maintenir la cohésion du groupe — fonction de défense. La religion <em>dynamique</em> est l'élan créateur des grands mystiques, expérience vivante du divin qui transforme l'humanité. Toute religion historique mêle les deux.",
           fiche: "Religion statique (fonction sociale de défense contre l'angoisse) vs dynamique (élan créateur des mystiques) ; toute religion historique mêle les deux.",
-          citations: ["« Religion statique = défense ; religion dynamique = élan créateur »"],
+          citations: ["Religion statique : défense de la vie ; religion dynamique : élan créateur (reformulé)"],
+          modified: true,
         },
       ],
     },
@@ -203,8 +221,9 @@ NOTION("religion", {
           i: "<strong>Religiosité cosmique</strong> : la science elle-même engendre une religiosité, non du Dieu personnel mais du sentiment d'émerveillement devant l'<em>ordre rationnel</em> du monde. Le savant remplace l'espoir de la sollicitude divine par l'<em>admiration extasiée de l'harmonie de la nature</em>. C'est le « Dieu de Spinoza » : la <em>Natura sive Deus</em>. Cette religiosité-là n'est pas en concurrence avec la science — elle en est l'autre face. Argument contre la nécessité du conflit science/religion : un certain sentiment religieux est <em>compatible avec</em> et même <em>nourri par</em> la pratique scientifique.",
           fiche: "Religiosité cosmique : non un Dieu personnel mais l'émerveillement devant l'ordre rationnel du monde (le « Dieu de Spinoza ») — compatible avec la science.",
           citations: [
-            "« Je crois au Dieu de Spinoza, qui se révèle dans l'harmonie de tout ce qui existe — non en un Dieu qui se préoccupe des destinées et des actes des hommes »",
+            "Je crois au Dieu de Spinoza, qui se révèle dans l'harmonie de ce qui existe, non en un Dieu qui se soucie du destin des hommes (télégramme au rabbin Goldstein, 1929, reformulé)",
           ],
+          modified: true,
         },
       ],
     },
@@ -216,9 +235,10 @@ NOTION("religion", {
           i: "<strong>Fonction fabulatrice</strong> : faculté humaine spontanée de produire des récits, des mythes, des représentations « semi-personnelles » qui simulent une présence vivante là où il n'y a que des forces aveugles. C'est une <em>réponse de la nature à un risque vital</em> : l'intelligence, en anticipant la mort et en révélant la passivité de la nature, menace la cohésion du groupe et la volonté de vivre — la fonction fabulatrice contre-balance ce risque. Elle est à l'origine de la <strong>religion statique</strong>, distincte de la <strong>religion dynamique</strong> des mystiques.",
           fiche: "Fonction fabulatrice : faculté de produire spontanément mythes et récits « semi-personnels » qui rassurent face à l'imprévu et à la mort, et cimentent le groupe.",
           citations: [
-            "« La fonction fabulatrice est à l'origine d'illusions volontaires qui sont, vis-à-vis de l'intelligence, ce que l'instinct est à la conscience »",
-            "« Religion statique = défense de la vie ; religion dynamique = élan créateur »",
+            "La fonction fabulatrice produit des représentations imaginaires qui protègent la vie contre l'intelligence (reformulé)",
+            "Religion statique : défense de la vie ; religion dynamique : élan créateur (reformulé)",
           ],
+          modified: true,
         },
       ],
     },
@@ -250,11 +270,100 @@ NOTION("religion", {
         },
       ],
     },
+    {
+      n: "Lucrèce",
+      ideas: [
+        {
+          w: "De la nature (De rerum natura), I, v. 62-101",
+          i: "Le poème s'ouvre sur le sacrifice d'Iphigénie, immolée par son père pour obtenir des vents favorables. La religion, née de l'ignorance des causes et de la peur des dieux, pousse au crime. Le remède est la connaissance de la nature : tout s'explique par les atomes et le vide, les dieux ne s'occupent pas des hommes, et la peur tombe.",
+          new: true,
+          citations: ["« Tantum religio potuit suadere malorum » : tant la religion a pu inspirer de crimes (I, 101)"],
+          fiche: "La religion naît de la peur et de l'ignorance des causes, et pousse au crime (Iphigénie) ; la physique atomiste en délivre.",
+        },
+      ],
+    },
+    {
+      n: "Plotin",
+      ideas: [
+        {
+          w: "Ennéades, VI, 9",
+          i: "Au sommet de tout est l'Un, principe au-delà de l'être et de la pensée, dont tout procède comme la lumière d'une source. L'âme peut remonter vers lui par la purification et la contemplation, jusqu'à une union où l'on ne distingue plus celui qui voit et ce qui est vu. Une mystique philosophique, sans révélation ni Église, qui marquera Augustin.",
+          new: true,
+          citations: ["La fuite du seul vers le Seul (dernière phrase des Ennéades, VI, 9, 11, reformulé)"],
+          fiche: "Tout procède de l'Un, au-delà de l'être ; l'âme peut y remonter jusqu'à l'union mystique.",
+        },
+      ],
+    },
+    {
+      n: "Anselme",
+      ideas: [
+        {
+          w: "Proslogion, chap. 2 à 4 (1077–1078)",
+          i: "Dieu est ce dont on ne peut rien penser de plus grand. Même l'insensé qui dit que Dieu n'existe pas comprend cette définition : Dieu est donc dans son intelligence. Or exister aussi dans la réalité est plus grand qu'exister seulement dans l'intelligence. Donc Dieu existe réellement. Le moine Gaunilon objecte qu'on prouverait ainsi l'existence d'une île parfaite ; Thomas d'Aquin puis Kant refuseront la preuve.",
+          new: true,
+          citations: [
+            "« Aliquid quo nihil maius cogitari possit » : quelque chose dont on ne peut rien penser de plus grand (chap. 2)",
+          ],
+          fiche: "Dieu est ce dont on ne peut rien penser de plus grand ; or exister réellement est plus grand : donc Dieu existe (preuve ontologique).",
+        },
+      ],
+    },
+    {
+      n: "Averroès",
+      ideas: [
+        {
+          w: "Discours décisif (Faṣl al-maqāl), 1179",
+          i: "Juriste autant que philosophe, Averroès pose une question de droit : la Loi révélée permet-elle la philosophie ? Elle l'ordonne, puisque le Coran invite à réfléchir sur les êtres. Et le vrai ne peut contredire le vrai : si un texte semble contraire à une démonstration, il faut l'interpréter. Chacun reçoit la vérité selon son esprit : par la démonstration (les philosophes), la dialectique (les théologiens) ou la rhétorique (le plus grand nombre).",
+          new: true,
+          citations: [
+            "La vérité ne contredit pas la vérité : elle s'accorde avec elle et témoigne en sa faveur (reformulé)",
+          ],
+          fiche: "La Loi révélée ordonne la philosophie ; le vrai ne contredit pas le vrai : en cas de conflit apparent, on interprète le texte.",
+        },
+      ],
+    },
+    {
+      n: "Maïmonide",
+      ideas: [
+        {
+          w: "Le Guide des égarés (vers 1190)",
+          i: "Écrit pour le croyant instruit que la philosophie trouble. Quand la Bible prête à Dieu une main, une colère ou un lieu, il faut lire ces mots comme des images : Dieu n'a pas de corps. On ne peut d'ailleurs rien dire positivement de lui, seulement ce qu'il n'est pas (théologie négative). Foi et raison ne se contredisent pas, mais la raison a ses limites : elle ne peut démontrer ni l'éternité du monde ni sa création.",
+          new: true,
+          citations: ["On ne connaît de Dieu que ce qu'il n'est pas (I, 58, reformulé)"],
+          fiche: "Les images corporelles de Dieu dans la Bible sont des métaphores ; on ne dit de Dieu que ce qu'il n'est pas (théologie négative).",
+        },
+      ],
+    },
+    {
+      n: "Malebranche",
+      ideas: [
+        {
+          w: "De la recherche de la vérité, VI, II, 3",
+          i: "Occasionnalisme : les créatures n'ont aucune vraie puissance causale, Dieu seul agit. Quand je veux lever le bras, ma volonté n'est que l'occasion de l'action divine. Nous voyons même toutes choses en Dieu, où sont les idées qui éclairent l'esprit. Et Dieu agit par des lois simples et générales, ce qui explique qu'il y ait du mal dans le monde.",
+          new: true,
+          citations: ["Il n'y a qu'une seule vraie cause, parce qu'il n'y a qu'un vrai Dieu (VI, II, 3, reformulé)"],
+          fiche: "Dieu seul est cause véritable ; nos volontés n'en sont que les occasions, et nous voyons toutes choses en Dieu.",
+        },
+      ],
+    },
+    {
+      n: "Raymond Aron",
+      ideas: [
+        {
+          w: "L'Avenir des religions séculières (1944) ; L'Opium des intellectuels (1955)",
+          i: "Aron appelle religions séculières les doctrines politiques qui, comme le communisme, promettent le salut de l'humanité ici-bas, avec leurs dogmes, leur clergé et leurs hérétiques. Il retourne la formule de Marx : le marxisme est devenu l'opium des intellectuels.",
+          new: true,
+          citations: ["Le marxisme, opium des intellectuels (titre de 1955, qui retourne la formule de Marx)"],
+          fiche: "Les religions séculières promettent le salut ici-bas ; le marxisme est devenu l'opium des intellectuels.",
+        },
+      ],
+    },
   ],
   textes: [
     {
       n: "Religion vs science : adhésion sans/avec démonstration",
-      t: "<strong>Religion</strong> = ensemble de <em>croyances</em> ; adhésion <em>sans</em> démonstration. <strong>Science</strong> = ensemble de <em>savoirs/connaissances</em> ; adhésion <em>avec</em> démonstration. Platon : le savoir est « une croyance vraie justifiée » — c'est la justification rationnelle qui fait la différence. <strong>CROIRE ≠ SAVOIR.</strong> Cette distinction conceptuelle suggère une opposition de nature ; mais l'histoire montre des compatibilités fortes (Galilée croyant, Mendel moine, Lemaître prêtre). L'opposition est-elle <em>nécessaire</em> ou seulement <em>contingente</em> ?",
+      t: "<strong>Religion</strong> = ensemble de <em>croyances</em> ; adhésion <em>sans</em> démonstration. <strong>Science</strong> = ensemble de <em>savoirs/connaissances</em> ; adhésion <em>avec</em> démonstration. Platon : le savoir est une opinion vraie accompagnée de raison (les modernes disent « croyance vraie justifiée ») — c'est la justification rationnelle qui fait la différence. <strong>CROIRE ≠ SAVOIR.</strong> Cette distinction conceptuelle suggère une opposition de nature ; mais l'histoire montre des compatibilités fortes (Galilée croyant, Mendel moine, Lemaître prêtre). L'opposition est-elle <em>nécessaire</em> ou seulement <em>contingente</em> ?",
+      modified: true,
     },
     {
       new: true,
@@ -474,8 +583,8 @@ NOTION("religion", {
           sps: [
             {
               t: "Deux méthodes inconciliables : démontrer ou croire",
-              args: "La science procède par démonstration, expérience et réfutation ; la religion par foi et révélation. Savoir, depuis Platon, c'est tenir une croyance vraie justifiée : la justification (preuve, méthode) manque précisément à la croyance religieuse. Croire n'est pas savoir.",
-              auteurs: "Platon (Théétète : savoir = croyance vraie justifiée) ; Russell",
+              args: "La science procède par démonstration, expérience et réfutation ; la religion par foi et révélation. Savoir, depuis Platon, c'est tenir une opinion vraie accompagnée de raison (une « croyance vraie justifiée », disent les modernes) : la justification (preuve, méthode) manque précisément à la croyance religieuse. Croire n'est pas savoir.",
+              auteurs: "Platon (Ménon, Théétète : savoir = opinion vraie accompagnée de raison) ; Russell",
               ref: "Russell, Is There a God ? (1952)",
               limite: "Mais cette opposition suppose que la religion prétende expliquer les faits, comme une science rivale — ce qui n'est peut-être pas son objet.",
             },
@@ -530,6 +639,7 @@ NOTION("religion", {
           limite: "Il reste donc à distinguer deux croyances : celle qui s'expose à la réfutation (la science) et celle qui s'y soustrait (le dogme) — ce qui relance, pour finir, la question du critère du vrai.",
         },
       ],
+      modified: true,
     },
     {
       q: "La religion est-elle radicalement étrangère au régime scientifique de vérité ?",
@@ -542,7 +652,7 @@ NOTION("religion", {
           sps: [
             {
               t: "",
-              args: "Distinction cardinale (Platon, <em>Théétète</em>) : le savoir est <em>une croyance vraie justifiée</em>. La religion accepte des contenus sans démonstration (foi, révélation, tradition) ; la science les exige démontrés et reproductibles. CROIRE ≠ SAVOIR : deux régimes épistémiques.",
+              args: "Distinction cardinale (Platon, <em>Ménon</em> et <em>Théétète</em>) : le savoir est une <em>opinion vraie accompagnée de raison</em>. La religion accepte des contenus sans démonstration (foi, révélation, tradition) ; la science les exige démontrés et reproductibles. CROIRE ≠ SAVOIR : deux régimes épistémiques.",
               auteurs: "",
               ref: "Platon, Théétète",
               limite: "",
@@ -578,7 +688,7 @@ NOTION("religion", {
         },
       ],
       new: false,
-      modified: false,
+      modified: true,
       migrated: true,
     },
     {

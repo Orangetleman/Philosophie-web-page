@@ -5,7 +5,7 @@ NOTION("verite", {
   c: "#8A6B2E",
   l: "Vérité",
   s: "Peut-on douter de tout ?",
-  def: "La <span class='kw'>vérité</span> est l'adéquation entre un jugement et la réalité (conception classique). Mais on distingue vérité <span class='kw'>absolue</span> (universelle, nécessaire) et vérité <span class='kw'>relative</span> (dépendante d'un contexte). Question : comment distinguer le vrai du faux ? Y a-t-il des vérités définitives ?<details><summary>Approfondir la notion</summary><div class='def-sec'><div class='def-sec-title'>Savoir, croire, vérité (Platon)</div><div class='def-sec-body'>Platon (<em>Théétète</em>) : le savoir est <strong>une croyance vraie justifiée</strong>. Trois ingrédients sont nécessaires : (1) il faut croire (adhésion subjective) ; (2) la croyance doit être vraie (adéquation au réel) ; (3) la croyance doit être justifiée (preuve, démonstration). Sans justification, on peut avoir raison par hasard — ce n'est pas du savoir. C'est pourquoi <strong>CROIRE ≠ SAVOIR</strong>, et c'est cette exigence de justification qui sépare la science de la croyance religieuse.</div></div><div class='def-sec'><div class='def-sec-title'>Réminiscence : le paradoxe de l'apprentissage</div><div class='def-sec-body'>Platon (<em>Ménon</em>) répond au <strong>paradoxe sophistique</strong> : connaître suppose qu'on puisse apprendre — mais si apprendre c'est découvrir quelque chose de totalement inconnu, comment chercher ce dont on n'a pas la moindre idée et reconnaître quand on l'a trouvé ? Inversement, si l'on sait déjà ce qu'on cherche, la connaissance ne nous apprend rien. La <strong>réminiscence</strong> (<em>anamnèse</em>) résout l'aporie : connaître = <em>re-connaître</em> ce qui a déjà été appris mais oublié. Double fonction : <em>psychologique</em> (orienter le sujet vers la connaissance, faire de la connaissance une « démarche intérieure ») et <em>épistémologique</em> (réinsérer ignorance et connaissance dans un processus continu d'apprentissage).</div></div><div class='def-sec'><div class='def-sec-title'>Trois types de vérités, trois régimes</div><div class='def-sec-body'>(1) <strong>Vérités démontrées</strong> (sciences formelles : mathématiques, logique) — fondées sur la déduction à partir d'axiomes, sans besoin de vérification empirique. (2) <strong>Vérités vérifiées</strong> (sciences expérimentales) — soumises au contrôle des faits ; Popper : une théorie est scientifique si elle est <em>réfutable</em>. (3) <strong>Vérités révélées / vérités du cœur</strong> (religion, expérience intérieure) — Pascal : il y a des « vérités du cœur » que la raison seule ne peut atteindre, qui sont l'objet d'une <em>révélation</em>. Question centrale : ces régimes sont-ils incompatibles, étanches (NOMA de Gould), ou hiérarchisables ?</div></div><div class='def-sec'><div class='def-sec-title'>L'opinion comme obstacle à la vérité</div><div class='def-sec-body'>Bachelard (<em>La Formation de l'esprit scientifique</em>, 1938) : « <strong>On ne peut rien fonder sur l'opinion : il faut d'abord la détruire.</strong> » L'opinion (<em>doxa</em>) est un <em>obstacle épistémologique</em> à la raison scientifique — elle traduit nos besoins en termes de connaissance, elle confond familiarité et compréhension. La vérité scientifique ne se découvre pas dans le prolongement du sens commun : elle exige une <em>rupture</em> avec lui. Aristote : la science commence dans l'<em>étonnement</em> qui défamiliarise le réel.</div></div><div class='def-sec'><div class='def-sec-title'>La science « ne pense pas » (Heidegger)</div><div class='def-sec-body'>Heidegger : « La science ne pense pas. » Provocation à comprendre : la science calcule, mesure, démontre — mais elle ne s'interroge pas sur le <em>sens</em> de ses propres opérations ni sur l'<em>être</em> de ce dont elle parle. Cette interrogation appartient à la philosophie. Il y a donc une vérité (<em>alètheia</em>, dévoilement) que la science empirique ne peut atteindre — non par défaut, mais parce qu'elle est d'un autre ordre. Limite : ne pas confondre cette critique avec un rejet anti-scientifique.</div></div></details>",
+  def: "La <span class='kw'>vérité</span> est l'adéquation entre un jugement et la réalité (conception classique). Mais on distingue vérité <span class='kw'>absolue</span> (universelle, nécessaire) et vérité <span class='kw'>relative</span> (dépendante d'un contexte). Question : comment distinguer le vrai du faux ? Y a-t-il des vérités définitives ?<details><summary>Approfondir la notion</summary><div class='def-sec'><div class='def-sec-title'>Savoir, croire, vérité (Platon)</div><div class='def-sec-body'>Platon (<em>Ménon</em>, <em>Théétète</em>) : le savoir est une <strong>opinion vraie accompagnée de raison</strong> (en termes modernes, une « croyance vraie justifiée »). Trois ingrédients sont nécessaires : (1) il faut croire (adhésion subjective) ; (2) la croyance doit être vraie (adéquation au réel) ; (3) la croyance doit être justifiée (preuve, démonstration). Sans justification, on peut avoir raison par hasard — ce n'est pas du savoir. C'est pourquoi <strong>CROIRE ≠ SAVOIR</strong>, et c'est cette exigence de justification qui sépare la science de la croyance religieuse.</div></div><div class='def-sec'><div class='def-sec-title'>Réminiscence : le paradoxe de l'apprentissage</div><div class='def-sec-body'>Platon (<em>Ménon</em>) répond au <strong>paradoxe sophistique</strong> : connaître suppose qu'on puisse apprendre — mais si apprendre c'est découvrir quelque chose de totalement inconnu, comment chercher ce dont on n'a pas la moindre idée et reconnaître quand on l'a trouvé ? Inversement, si l'on sait déjà ce qu'on cherche, la connaissance ne nous apprend rien. La <strong>réminiscence</strong> (<em>anamnèse</em>) résout l'aporie : connaître = <em>re-connaître</em> ce qui a déjà été appris mais oublié. Double fonction : <em>psychologique</em> (orienter le sujet vers la connaissance, faire de la connaissance une « démarche intérieure ») et <em>épistémologique</em> (réinsérer ignorance et connaissance dans un processus continu d'apprentissage).</div></div><div class='def-sec'><div class='def-sec-title'>Trois types de vérités, trois régimes</div><div class='def-sec-body'>(1) <strong>Vérités démontrées</strong> (sciences formelles : mathématiques, logique) — fondées sur la déduction à partir d'axiomes, sans besoin de vérification empirique. (2) <strong>Vérités vérifiées</strong> (sciences expérimentales) — soumises au contrôle des faits ; Popper : une théorie est scientifique si elle est <em>réfutable</em>. (3) <strong>Vérités révélées / vérités du cœur</strong> (religion, expérience intérieure) — Pascal : il y a des « vérités du cœur » que la raison seule ne peut atteindre, qui sont l'objet d'une <em>révélation</em>. Question centrale : ces régimes sont-ils incompatibles, étanches (NOMA de Gould), ou hiérarchisables ?</div></div><div class='def-sec'><div class='def-sec-title'>L'opinion comme obstacle à la vérité</div><div class='def-sec-body'>Bachelard (<em>La Formation de l'esprit scientifique</em>, 1938) : « <strong>On ne peut rien fonder sur l'opinion : il faut d'abord la détruire.</strong> » L'opinion (<em>doxa</em>) est un <em>obstacle épistémologique</em> à la raison scientifique — elle traduit nos besoins en termes de connaissance, elle confond familiarité et compréhension. La vérité scientifique ne se découvre pas dans le prolongement du sens commun : elle exige une <em>rupture</em> avec lui. Aristote : la science commence dans l'<em>étonnement</em> qui défamiliarise le réel.</div></div><div class='def-sec'><div class='def-sec-title'>La science « ne pense pas » (Heidegger)</div><div class='def-sec-body'>Heidegger : « La science ne pense pas. » Provocation à comprendre : la science calcule, mesure, démontre — mais elle ne s'interroge pas sur le <em>sens</em> de ses propres opérations ni sur l'<em>être</em> de ce dont elle parle. Cette interrogation appartient à la philosophie. Il y a donc une vérité (<em>alètheia</em>, dévoilement) que la science empirique ne peut atteindre — non par défaut, mais parce qu'elle est d'un autre ordre. Limite : ne pas confondre cette critique avec un rejet anti-scientifique.</div></div></details>",
   auteurs: [
     {
       n: "Descartes",
@@ -14,7 +14,10 @@ NOTION("verite", {
           w: "Méditations métaphysiques, 1641",
           i: "Le doute méthodique comme chemin vers la vérité : douter de tout ce qui peut être mis en doute. La seule certitude indubitable : le cogito. À partir de là, reconstruire un édifice de connaissances certaines.",
           fiche: "Le doute méthodique mène à la vérité : douter de tout le doutable jusqu'à la seule certitude indubitable, le cogito, sur quoi rebâtir un savoir certain.",
-          citations: ["« Pour examiner la vérité, il est besoin de douter une fois en sa vie de toutes choses »"],
+          citations: [
+            "« Pour examiner la vérité, il est besoin, une fois en sa vie, de mettre toutes choses en doute autant qu'il se peut » (Principes de la philosophie, I, 1)",
+          ],
+          modified: true,
         },
       ],
     },
@@ -25,16 +28,18 @@ NOTION("verite", {
           w: "Par-delà le Bien et le Mal, 1886 / Le Gai Savoir, 1882",
           i: "La vérité n'est pas donnée mais construite — elle est une perspective parmi d'autres. « Il n'y a pas de faits, il n'y a que des interprétations. » La volonté de vérité cache une volonté de puissance. <em>Perspectivisme</em> : tout regard sur le monde est situé, partiel, intéressé.",
           fiche: "Perspectivisme : « il n'y a pas de faits, seulement des interprétations » ; la vérité est une perspective située et la volonté de vérité cache une volonté de puissance.",
-          citations: ["« Il n'y a pas de faits, seulement des interprétations »"],
+          citations: ["« Il n'y a pas de faits, seulement des interprétations » (Fragments posthumes, 1886-1887)"],
+          modified: true,
         },
         {
           w: "Fragments posthumes / Le Gai Savoir §344",
           i: "<strong>Origine de la « post-vérité » contemporaine.</strong> Nietzsche est rétroactivement lu (Emmanuel Salanevris) comme l'inventeur philosophique de ce que l'Oxford English Dictionary baptisera en 2016 « <em>post-truth</em> » — la disqualification du fait objectif au profit de l'affect et de la conviction personnelle. Le diagnostic nietzschéen : la « volonté de vérité » a perdu son autorité régulatrice ; le savoir lui-même cachait une croyance (celle en la valeur du vrai), et cette croyance s'effondre. Conséquence prévisible : sans horizon commun de vérité, le débat rationnel ne peut plus arbitrer entre les interprétations. <em>Limite</em> : Nietzsche prônait une critique vivifiante, pas la démagogie d'État ; sa généalogie est <em>retournée contre lui</em> par les usages populistes contemporains.",
           fiche: "Lu comme l'origine philosophique de la « post-vérité » : quand la « volonté de vérité » perd son autorité, le débat rationnel ne peut plus arbitrer — mais Nietzsche visait une critique vivifiante, non la démagogie.",
           citations: [
-            "« Le savoir cache une croyance » (Le Gai Savoir §344)",
-            "« Il n'y a pas de faits, seulement des interprétations »",
+            "Notre foi en la science repose encore sur une croyance métaphysique (Le Gai Savoir, § 344, reformulé)",
+            "« Il n'y a pas de faits, seulement des interprétations » (Fragments posthumes, 1886-1887)",
           ],
+          modified: true,
         },
       ],
     },
@@ -43,9 +48,12 @@ NOTION("verite", {
       ideas: [
         {
           w: "Théétète, ~369 av. J.-C. / Ménon",
-          i: "Deux apports majeurs. (1) <strong>Définition du savoir</strong> : une <em>croyance vraie justifiée</em>. Avoir raison par hasard ne fait pas un savoir — il faut pouvoir rendre raison (<em>logos</em>). (2) <strong>Réminiscence</strong> (<em>Ménon</em>) : la connaissance n'est pas découverte ex nihilo mais re-connaissance d'un savoir oublié — elle suppose une démarche intérieure, et fait de la vérité une <em>conquête</em> qui réinsère l'ignorance dans l'apprentissage.",
-          fiche: "Le savoir est une croyance vraie justifiée (avoir raison par hasard ne suffit pas) ; et connaître, c'est se ressouvenir (réminiscence) — la vérité est une conquête intérieure.",
-          citations: ["« Le savoir est une croyance vraie justifiée » / « Apprendre, c'est se ressouvenir »"],
+          i: "Deux apports majeurs. (1) <strong>Le savoir</strong> : plus qu'une opinion vraie, une <em>opinion vraie accompagnée de raison</em> (<em>Ménon</em>, <em>Théétète</em> ; les modernes disent « croyance vraie justifiée »). Avoir raison par hasard ne fait pas un savoir — il faut pouvoir rendre raison (<em>logos</em>). (2) <strong>Réminiscence</strong> (<em>Ménon</em>) : la connaissance n'est pas découverte ex nihilo mais re-connaissance d'un savoir oublié — elle suppose une démarche intérieure, et fait de la vérité une <em>conquête</em> qui réinsère l'ignorance dans l'apprentissage.",
+          fiche: "Le savoir est une opinion vraie accompagnée de raison (avoir raison par hasard ne suffit pas) ; et connaître, c'est se ressouvenir (réminiscence) — la vérité est une conquête intérieure.",
+          citations: [
+            "Une opinion vraie ne devient savoir que liée par un raisonnement qui en donne la cause (Ménon, 97 e - 98 a, reformulé) ; la formule croyance vraie justifiée est moderne",
+          ],
+          modified: true,
         },
       ],
     },
@@ -56,7 +64,10 @@ NOTION("verite", {
           w: "Métaphysique, IVe s. av. J.-C.",
           i: "« <strong>Tous les hommes désirent naturellement savoir.</strong> » L'origine de la science (et de la philosophie) est l'<em>étonnement</em> : on commence par s'étonner des choses ordinaires (le monde tel qu'il est), puis on cherche les causes. La science ne se définit pas par ses objets ni par l'assurance qu'elle apporte, mais par cette <strong>ouverture d'esprit</strong> qui passe « d'un étonnement à un autre » — chaque réponse ouvre de nouvelles questions.",
           fiche: "« Tous les hommes désirent naturellement savoir » : l'origine de la science est l'étonnement ; la science passe « d'un étonnement à un autre », chaque réponse ouvrant de nouvelles questions.",
-          citations: ["« La science consiste à passer d'un étonnement à un autre »"],
+          citations: [
+            "C'est l'étonnement qui poussa les premiers penseurs aux spéculations philosophiques (Métaphysique, A, 2, reformulé)",
+          ],
+          modified: true,
         },
       ],
     },
@@ -67,7 +78,10 @@ NOTION("verite", {
           w: "Essai sur l'entendement humain, 1690",
           i: "<strong>Empirisme fondateur</strong> : l'esprit à la naissance est une <em>tabula rasa</em> — il n'y a pas d'idées innées (contre Descartes). Toute connaissance vient de l'<em>expérience</em> sensible et de la réflexion sur cette expérience. L'expérience est le « fondement de toutes nos connaissances, et c'est de là qu'elles tirent leur première origine ». Conséquence : la vérité se construit à partir des données sensibles, par induction et associations d'idées.",
           fiche: "Empirisme : l'esprit naît « table rase », sans idées innées ; toute connaissance vient de l'expérience sensible — la vérité se construit par induction à partir des données des sens.",
-          citations: ["« L'expérience est le fondement de toutes nos connaissances »"],
+          citations: [
+            "Toutes nos idées viennent de l'expérience, par la sensation ou la réflexion (Essai, II, 1, reformulé)",
+          ],
+          modified: true,
         },
       ],
     },
@@ -78,7 +92,10 @@ NOTION("verite", {
           w: "Critique de la raison pure, 1781",
           i: "<strong>Synthèse rationalisme/empirisme</strong> : « L'expérience nous apprend bien ce qui est, mais non pas que ce qui est ne puisse pas être autrement. » L'expérience nous donne des faits contingents — mais la <em>nécessité</em> des lois ne peut venir d'elle ; elle vient des structures a priori du sujet (catégories de l'entendement). La science n'est donc ni pure expérience (Locke) ni pure raison (Descartes) : elle est démonstration appliquée à l'expérience.",
           fiche: "Synthèse rationalisme/empirisme : l'expérience donne des faits contingents, mais la nécessité des lois vient des structures a priori du sujet (catégories) ; la science = démonstration appliquée à l'expérience.",
-          citations: ["« L'expérience nous apprend ce qui est, non que ce qui est ne puisse pas être autrement »"],
+          citations: [
+            "L'expérience nous apprend qu'une chose est ainsi, non qu'elle ne puisse pas être autrement (Critique de la raison pure, introduction, reformulé)",
+          ],
+          modified: true,
         },
       ],
     },
@@ -111,7 +128,10 @@ NOTION("verite", {
           w: "Qu'appelle-t-on penser ?, 1954",
           i: "« <strong>La science ne pense pas.</strong> » Provocation : la science calcule, mesure, démontre — mais elle ne s'interroge pas sur le <em>sens</em> de ses propres opérations ni sur l'être de ce dont elle parle. Cette interrogation est l'affaire de la philosophie. La vérité (<em>alètheia</em>, « dé-couvrement ») n'est pas seulement adéquation jugement/réalité, mais <em>dévoilement</em> du sens de l'être. La science empirique opère une vérité <em>dérivée</em> qui présuppose une vérité plus originaire qu'elle ne thématise pas.",
           fiche: "« La science ne pense pas » : elle calcule et démontre mais n'interroge ni le sens de ses opérations ni l'être ; la vérité comme alètheia (dévoilement) est plus originaire que l'adéquation.",
-          citations: ["« La science ne pense pas — la réflexion philosophique n'est pas du ressort de la science »"],
+          citations: [
+            "« La science ne pense pas » (Qu'appelle-t-on penser ?) : la réflexion sur le sens n'est pas de son ressort",
+          ],
+          modified: true,
         },
       ],
     },
@@ -164,6 +184,82 @@ NOTION("verite", {
             "« La vérité, en fait, vit pour l'essentiel sur un système de crédit : nos pensées et nos croyances ont cours tant que rien ne vient les contester, comme les billets de banque tant que personne ne les refuse. »",
             "« La vérité à crédit, la plupart du temps. »",
           ],
+        },
+      ],
+    },
+    {
+      n: "Parménide",
+      ideas: [
+        {
+          w: "De la nature, poème (fr. 2 à 8 DK)",
+          i: "Une déesse montre au poète deux voies. Celle de l'être : il est, et il ne peut pas ne pas être. Celle du non-être, impraticable, car on ne peut ni connaître ni dire ce qui n'est pas. À côté, l'opinion des mortels, qui mêle être et non-être et croit au changement. La vérité se découvre par la raison, contre le témoignage des sens : l'être est un, immobile, sans naissance ni fin.",
+          new: true,
+          citations: ["Penser et être sont une même chose (fr. 3 ; formule dont le sens est discuté)"],
+          fiche: "Deux voies : l'être, seul pensable, et le non-être, impensable. La vérité s'atteint par la raison, contre l'opinion et les sens.",
+        },
+      ],
+    },
+    {
+      n: "Nāgārjuna",
+      ideas: [
+        {
+          w: "Stances fondamentales de la Voie du milieu (Mūlamadhyamakakārikā)",
+          i: "Rien n'existe par soi : toute chose dépend d'autres choses (coproduction conditionnée), elle est donc vide de nature propre. Ce n'est pas un néant mais une voie du milieu entre « tout existe » et « rien n'existe ». D'où deux vérités : une vérité conventionnelle, celle du langage et de la vie courante, et une vérité ultime, la vacuité, qu'on n'atteint qu'en s'appuyant sur la première.",
+          new: true,
+          citations: [
+            "Les Bouddhas enseignent en s'appuyant sur deux vérités, la conventionnelle et l'ultime (XXIV, 8, reformulé)",
+          ],
+          fiche: "Rien n'existe par soi (vacuité). Deux vérités, conventionnelle et ultime ; on n'atteint la seconde qu'à partir de la première.",
+        },
+      ],
+    },
+    {
+      n: "Montaigne",
+      ideas: [
+        {
+          w: "Essais, II, 12, « Apologie de Raimond Sebond »",
+          i: "La raison humaine se contredit, varie avec les coutumes et les humeurs, et ne peut juger d'elle-même sans tourner en rond. Montaigne reprend les arguments des sceptiques et fait du doute sa devise, sous forme de question, avec une balance pour emblème. Ce doute n'est pas désespoir : il rend modeste et tolérant.",
+          new: true,
+          citations: ["« Que sais-je ? » (devise de Montaigne, II, 12)"],
+          fiche: "La raison varie et ne peut se juger elle-même : le doute (Que sais-je ?) rend modeste et tolérant.",
+        },
+      ],
+    },
+    {
+      n: "Vico",
+      ideas: [
+        {
+          w: "De l'antique sagesse de l'Italie, chap. I (1710)",
+          i: "Contre le critère cartésien de l'idée claire et distincte, Vico pose que le vrai et le fait se convertissent : on ne connaît vraiment que ce qu'on a fait. Dieu connaît la nature parce qu'il l'a créée ; l'homme connaît parfaitement les mathématiques, qu'il construit, mais la nature seulement de l'extérieur.",
+          new: true,
+          citations: ["« Verum et factum convertuntur » : le vrai et le fait se convertissent (chap. I)"],
+          fiche: "Le vrai et le fait se convertissent : on ne connaît vraiment que ce qu'on a fait.",
+        },
+      ],
+    },
+    {
+      n: "Berkeley",
+      ideas: [
+        {
+          w: "Traité des principes de la connaissance humaine, § 3 (1710)",
+          i: "Immatérialisme : ce que nous appelons choses (une table, un arbre) n'est qu'un ensemble d'idées perçues. Leur être est d'être perçu : supposer une matière qui existerait hors de toute perception est contradictoire, car on ne peut pas concevoir une chose non conçue. Les choses que personne ne perçoit subsistent dans l'esprit de Dieu.",
+          new: true,
+          citations: ["« Esse est percipi » : leur être est d'être perçu (§ 3)"],
+          fiche: "Être, c'est être perçu : rien n'existe hors des esprits qui perçoivent (immatérialisme).",
+        },
+      ],
+    },
+    {
+      n: "Putnam",
+      ideas: [
+        {
+          w: "Raison, vérité et histoire (1981), chap. 1",
+          i: "Imaginons qu'un savant fou ait placé notre cerveau dans une cuve, branché sur un ordinateur qui lui fournit toutes nos expériences. Pouvons-nous savoir que ce n'est pas le cas ? Putnam répond que l'hypothèse se réfute elle-même : si nous étions des cerveaux dans une cuve, nos mots cerveau et cuve ne désigneraient pas de vrais cerveaux ni de vraies cuves, et nous ne pourrions même pas énoncer l'hypothèse.",
+          new: true,
+          citations: [
+            "Nous ne pouvons pas être des cerveaux dans une cuve : l'hypothèse se réfute elle-même (chap. 1, reformulé)",
+          ],
+          fiche: "Le cerveau dans une cuve : l'hypothèse se réfute elle-même, car nos mots n'y désigneraient plus les vraies choses.",
         },
       ],
     },
@@ -408,7 +504,7 @@ NOTION("verite", {
           sps: [
             {
               t: "",
-              args: "Distinction platonicienne : le savoir est <em>une croyance vraie justifiée</em>. <strong>CROIRE ≠ SAVOIR</strong> — la croyance, même vraie, n'est pas un savoir tant qu'elle n'est pas justifiée par la raison (<em>logos</em>). Cette distinction fonde la séparation moderne science/religion (Gould — NOMA).",
+              args: "Distinction platonicienne : le savoir est une <em>opinion vraie accompagnée de raison</em>. <strong>CROIRE ≠ SAVOIR</strong> — la croyance, même vraie, n'est pas un savoir tant qu'elle n'est pas justifiée par la raison (<em>logos</em>). Cette distinction fonde la séparation moderne science/religion (Gould — NOMA).",
               auteurs: "",
               ref: "Platon, Théétète",
               limite: "",
@@ -444,7 +540,7 @@ NOTION("verite", {
         },
       ],
       new: false,
-      modified: false,
+      modified: true,
       migrated: true,
     },
     {

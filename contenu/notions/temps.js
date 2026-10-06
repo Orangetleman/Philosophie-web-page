@@ -14,7 +14,10 @@ NOTION("temps", {
           w: "Essai sur les données immédiates de la conscience, 1889",
           i: "La durée (durée vécue intérieure) est irréductible au temps mesuré par l'horloge. Le temps scientifique spatialise la durée — il la trahit. La vraie liberté se situe dans la durée vécue, non dans le déterminisme des sciences.",
           fiche: "La durée (temps vécu intérieur) est irréductible au temps mesuré par l'horloge, qui la « spatialise » et la trahit ; la vraie liberté se loge dans la durée.",
-          citations: ["« La durée est le progrès continu du passé qui ronge l'avenir »"],
+          citations: [
+            "« La durée est le progrès continu du passé qui ronge l'avenir et qui gonfle en avançant » (L'Évolution créatrice, chap. I)",
+          ],
+          modified: true,
         },
       ],
     },
@@ -25,7 +28,8 @@ NOTION("temps", {
           w: "Être et Temps, 1927",
           i: "L'être humain (Dasein) est fondamentalement 'être-vers-la-mort'. La temporalité est la structure fondamentale de l'existence. L'authenticité consiste à assumer sa finitude au lieu de fuir dans le 'On' (das Man) anonyme.",
           fiche: "Le Dasein est « être-vers-la-mort » : la temporalité est la structure de l'existence ; l'authenticité consiste à assumer sa finitude au lieu de la fuir dans le « On » anonyme.",
-          citations: ["« L'être-là est fondamentalement un être-vers-la-mort »"],
+          citations: ["Le Dasein est un être-vers-la-mort (Être et Temps, § 46-53, reformulé)"],
+          modified: true,
         },
       ],
     },
@@ -190,6 +194,82 @@ NOTION("temps", {
             "« Il faut imaginer Sisyphe heureux. »",
           ],
           fiche: "Face au temps qui mène à la mort, la vraie question est le suicide ; l'absurde naît du divorce entre notre exigence de sens et le silence du monde — la réponse est la révolte lucide.",
+        },
+      ],
+    },
+    {
+      n: "Héraclite",
+      ideas: [
+        {
+          w: "Fragments (fr. 91 DK, transmis par Plutarque)",
+          i: "Tout s'écoule : on ne peut pas entrer deux fois dans le même fleuve, car d'autres eaux y coulent sans cesse. La formule panta rhei vient de la tradition (Platon, Simplicius) plus que d'Héraclite lui-même, mais elle résume sa pensée : le monde n'est pas fait de choses stables, il est un devenir. Ce devenir n'est pas un chaos : il obéit à une loi commune, le logos.",
+          new: true,
+          citations: ["On ne peut pas entrer deux fois dans le même fleuve (fr. 91 ; la traduction varie)"],
+          fiche: "Tout devient : on n'entre pas deux fois dans le même fleuve. Mais ce devenir suit une loi, le logos.",
+        },
+      ],
+    },
+    {
+      n: "Marc Aurèle",
+      ideas: [
+        {
+          w: "Pensées pour moi-même, II, 14 et IV, 17 (vers 170–180)",
+          i: "Chacun ne vit que l'instant présent et ne perd que lui : la vie la plus longue et la plus courte perdent la même chose, car on ne peut perdre ni le passé ni l'avenir, qu'on n'a pas. D'où l'exigence de ne pas vivre comme si l'on avait des milliers d'années devant soi : tant qu'on le peut encore, devenir bon.",
+          new: true,
+          citations: ["N'agis pas comme si tu devais vivre dix mille ans (IV, 17, reformulé)"],
+          fiche: "Chacun ne vit et ne perd que le présent ; ne pas vivre comme si l'on avait des milliers d'années.",
+        },
+      ],
+    },
+    {
+      n: "Vico",
+      ideas: [
+        {
+          w: "Principes d'une science nouvelle (1725, refondue en 1744)",
+          i: "Le monde des nations, ayant été fait par les hommes, peut être connu par eux : Vico fonde une science de l'histoire. Les peuples traversent trois âges, des dieux, des héros et des hommes, chacun avec sa langue, son droit, sa manière de penser ; ils peuvent ensuite retomber dans la barbarie et recommencer le cycle (corsi e ricorsi).",
+          new: true,
+          citations: [
+            "Le monde civil a certainement été fait par les hommes, donc on peut en retrouver les principes dans notre esprit (§ 331, reformulé)",
+          ],
+          fiche: "Le monde des nations, fait par les hommes, peut être connu d'eux : trois âges, des dieux, des héros, des hommes.",
+        },
+      ],
+    },
+    {
+      n: "Walter Benjamin",
+      ideas: [
+        {
+          w: "Sur le concept d'histoire (1940)",
+          i: "Écrites peu avant sa mort, en fuyant le nazisme, ces thèses critiquent la croyance au progrès. L'ange de l'histoire, inspiré d'un tableau de Klee, voit une seule catastrophe qui accumule les ruines, tandis que la tempête du progrès le pousse vers l'avenir. Faire l'histoire, c'est aussi sauver la mémoire des vaincus.",
+          new: true,
+          citations: [
+            "Il n'est aucun document de culture qui ne soit aussi un document de barbarie (thèse VII, reformulé)",
+          ],
+          fiche: "L'ange de l'histoire voit des ruines là où l'on parle de progrès : sauver la mémoire des vaincus.",
+        },
+      ],
+    },
+    {
+      n: "Jankélévitch",
+      ideas: [
+        {
+          w: "L'Irréversible et la nostalgie (1974)",
+          i: "Le temps est irréversible : on ne revient jamais au même, et la nostalgie, désir du retour, est un regret sans remède, car même revenu au même lieu, on y revient à un autre moment. Mais l'irréversible a son envers : ce qui a été ne peut plus ne pas avoir été. Le fait d'avoir vécu est indestructible.",
+          new: true,
+          citations: ["« Celui qui a été ne peut plus désormais ne pas avoir été » (L'Irréversible et la nostalgie)"],
+          fiche: "Le temps est irréversible ; mais ce qui a été ne peut plus ne pas avoir été.",
+        },
+      ],
+    },
+    {
+      n: "Raymond Aron",
+      ideas: [
+        {
+          w: "Introduction à la philosophie de l'histoire (1938)",
+          i: "Il n'y a pas d'histoire objective au sens où il y a une physique : l'historien choisit, interprète, reconstruit à partir de son présent. L'histoire n'a pas un sens unique et nécessaire, contrairement à ce que soutiennent Hegel ou Marx ; elle reste ouverte, faite de décisions humaines prises dans l'incertitude.",
+          new: true,
+          citations: ["L'historien reconstruit le passé à partir de son présent (reformulé)"],
+          fiche: "Pas d'histoire objective : l'historien reconstruit ; l'histoire n'a pas de sens nécessaire, elle reste ouverte.",
         },
       ],
     },

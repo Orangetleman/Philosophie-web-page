@@ -61,8 +61,9 @@ NOTION("technique", {
           i: "Prométhée déchaîné par la science. Loi de Gabor : tout ce qui est possible sera réalisé. Face à l'irréversible, heuristique de la peur. Nécessité d'un encadrement légal et moral de la technique.",
           fiche: "« Prométhée déchaîné » : tout pouvoir technique tend à se réaliser (loi de Gabor) ; face à l'irréversible, une éthique de la responsabilité (heuristique de la peur).",
           citations: [
-            "« Le Prométhée définitivement déchaîné réclame une éthique qui empêche le pouvoir de l'homme de devenir une malédiction pour lui »",
+            "« Le Prométhée définitivement déchaîné, auquel la science confère des forces jamais encore connues et l'économie son impulsion effrénée, réclame une éthique qui, par des entraves librement consenties, empêche le pouvoir de l'homme de devenir une malédiction pour lui » (préface)",
           ],
+          modified: true,
         },
       ],
     },
@@ -130,7 +131,46 @@ NOTION("technique", {
           w: "La Société de consommation, 1970",
           i: "Les hommes modernes sont entourés non plus d'hommes mais d'objets. La technique ne répond plus aux besoins primaires mais au rêve d'abondance — elle sert le rêve de l'humanité et non ses besoins premiers. On peut se demander si la technique est née d'un besoin ou si elle est là pour accomplir nos rêves. La technique devient prescriptrice de l'être : elle définit ce que nous sommes en définissant ce que nous consommons.",
           fiche: "L'homme moderne est entouré d'objets plus que d'hommes : la technique sert le rêve d'abondance plus que les besoins, et prescrit ce que nous sommes.",
-          citations: ["« Les hommes de l'opulence ne sont plus entourés d'hommes, mais d'objets »"],
+          citations: ["Les hommes de l'opulence sont moins entourés d'autres hommes que d'objets (reformulé)"],
+          modified: true,
+        },
+      ],
+    },
+    {
+      n: "Zhuangzi",
+      ideas: [
+        {
+          w: "Zhuangzi, chapitre 3",
+          i: "Le boucher Ding découpe un bœuf devant le prince Wenhui, et sa lame est intacte depuis dix-neuf ans : il ne tranche pas en force, il suit les jointures naturelles, les vides entre les os. Il ne s'agit plus d'appliquer une technique mais d'épouser une voie (dao). La plus haute habileté accompagne la nature au lieu de la contraindre.",
+          new: true,
+          citations: [
+            "Le boucher Ding ne tranche pas : il glisse sa lame dans les vides des jointures (chap. 3, reformulé)",
+          ],
+          fiche: "Le boucher Ding : la plus haute habileté suit les jointures de la nature au lieu de forcer ; la technique devient une voie.",
+        },
+      ],
+    },
+    {
+      n: "Bacon",
+      ideas: [
+        {
+          w: "Novum Organum, I, 3 et I, 129",
+          i: "Savoir et pouvoir humain coïncident, car ignorer la cause empêche de produire l'effet. On ne vainc la nature qu'en lui obéissant : la connaissance de ses lois donne l'empire sur elle. Bacon fonde le projet moderne d'une science utile, au service de l'amélioration de la condition humaine.",
+          new: true,
+          citations: ["« Natura enim non nisi parendo vincitur » : on ne vainc la nature qu'en lui obéissant (I, 3)"],
+          fiche: "Savoir, c'est pouvoir : on ne commande à la nature qu'en lui obéissant.",
+        },
+      ],
+    },
+    {
+      n: "Mauss",
+      ideas: [
+        {
+          w: "Les Techniques du corps (1934)",
+          i: "Nager, marcher, dormir, s'accroupir, porter un enfant : ces gestes qu'on croit naturels varient d'une société à l'autre et s'apprennent. Mauss raconte que la façon de nager a changé en une génération, et qu'un régiment anglais ne savait pas marcher au son des tambours français. Le corps est le premier instrument de l'homme : la technique commence avant l'outil.",
+          new: true,
+          citations: ["« J'appelle technique un acte traditionnel efficace » (Les Techniques du corps)"],
+          fiche: "Les gestes du corps s'apprennent et varient selon les sociétés : le corps est le premier instrument technique.",
         },
       ],
     },

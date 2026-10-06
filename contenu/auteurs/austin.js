@@ -16,7 +16,8 @@ AUTEUR("Austin", {
       dir: "prolonge",
       auteur: "Wittgenstein",
       sujet: "langage ordinaire",
-      desc: "Austin s'inscrit dans la tradition de Wittgenstein du second Tractatus : la signification est dans l'usage.",
+      desc: "Austin partage avec le second Wittgenstein, celui des Recherches philosophiques (et non du Tractatus), l'idée que la signification se comprend par l'usage ordinaire des mots ; il a pourtant développé à Oxford sa propre méthode, en grande partie indépendamment de lui.",
+      modified: true,
     },
     {
       dir: "repond",

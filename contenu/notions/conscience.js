@@ -26,7 +26,8 @@ NOTION("conscience", {
           w: "Introduction à la psychanalyse, 1916",
           i: "L'inconscient comme iceberg : le moi n'est pas maître en sa propre maison. Ça / Moi / Surmoi. Les pulsions refoulées agissent à notre insu (rêves, lapsus, actes manqués).",
           fiche: "« Le moi n'est pas maître dans sa propre maison » : l'<strong>inconscient</strong> (pulsions refoulées, Ça/Moi/Surmoi) agit à notre insu — la conscience n'est ni transparente ni souveraine.",
-          citations: ["« Le moi n'est pas maître dans sa propre maison »"],
+          citations: ["« Le moi n'est pas maître dans sa propre maison » (Une difficulté de la psychanalyse, 1917)"],
+          modified: true,
         },
       ],
     },
@@ -114,7 +115,10 @@ NOTION("conscience", {
           w: "Par-delà le Bien et le Mal, 1886",
           i: "Critique du cogito cartésien : 'je' est une simple hypothèse grammaticale. La routine du langage nous fait supposer un sujet là où il n'y a que processus. 'Quelque chose pense' ne suppose pas nécessairement un sujet substantiel. La conscience de soi est une construction fictive de la grammaire.",
           fiche: "Critique du cogito : le « je » n'est qu'une <strong>hypothèse grammaticale</strong> ; il y a du <em>processus</em>, pas un sujet substantiel.",
-          citations: ["« Ce que l'on appelle le je n'est rien d'autre qu'une hypothèse grammaticale »"],
+          citations: [
+            "Le je n'est qu'une habitude grammaticale : on pense, donc il faut quelqu'un qui pense (Par-delà bien et mal, § 17 et 54, reformulé)",
+          ],
+          modified: true,
         },
       ],
     },
@@ -137,6 +141,75 @@ NOTION("conscience", {
           i: "L'homme est 'un roseau pensant', le plus faible de la nature, mais sa grandeur est dans sa pensée. La conscience de la mort distingue l'homme de la nature aveugle : quand l'univers l'écraserait, l'homme serait encore plus noble que ce qui le tue, parce qu'il sait qu'il meurt. La conscience humaine n'est pas une faiblesse mais une dignité.",
           fiche: "L'homme est un <strong>roseau pensant</strong> : faible mais grand par la pensée ; la conscience de sa mort fait toute sa dignité.",
           citations: ["« L'homme n'est qu'un roseau, le plus faible de la nature, mais c'est un roseau pensant »"],
+        },
+      ],
+    },
+    {
+      n: "Zhuangzi",
+      ideas: [
+        {
+          w: "Zhuangzi, chapitre 2",
+          i: "Zhuang Zhou rêve qu'il est un papillon, heureux de voleter, sans savoir qu'il est Zhou. Il s'éveille : est-il Zhou qui a rêvé être papillon, ou un papillon qui rêve être Zhou ? Le récit ne conclut pas au doute sur tout mais à la transformation des choses : nos distinctions (moi et autre, rêve et veille) dépendent d'un point de vue.",
+          new: true,
+          citations: [
+            "Est-ce Zhou qui rêvait d'être un papillon, ou un papillon qui rêve d'être Zhou ? (chap. 2, reformulé)",
+          ],
+          fiche: "Le rêve du papillon : rien ne garantit, de l'intérieur, que je suis éveillé ; nos distinctions dépendent d'un point de vue.",
+        },
+      ],
+    },
+    {
+      n: "Avicenne",
+      ideas: [
+        {
+          w: "Livre de la guérison, De l'âme, I, 1 et V, 7",
+          i: "L'expérience de pensée de l'homme volant : imaginons un homme créé d'un coup, adulte, suspendu dans l'air, les yeux voilés, les membres écartés pour qu'ils ne se touchent pas. Il ne perçoit rien de son corps ni du monde. Pourtant il affirme qu'il existe. L'âme se connaît donc elle-même sans passer par le corps : six siècles avant Descartes, la conscience de soi est posée comme première.",
+          new: true,
+          citations: [
+            "L'homme suspendu dans l'air, privé de toute sensation, affirme encore qu'il existe (De l'âme, I, 1, reformulé)",
+          ],
+          fiche: "L'homme volant, privé de toute sensation, sait encore qu'il existe : la conscience de soi ne dépend pas du corps.",
+        },
+      ],
+    },
+    {
+      n: "Montaigne",
+      ideas: [
+        {
+          w: "Essais, « Au lecteur » (1580) et III, 2, « Du repentir »",
+          i: "Montaigne se prend lui-même pour objet, non pour se donner en exemple, mais parce que chaque homme porte la forme entière de l'humaine condition. Il découvre un moi changeant et divers, qu'on ne peut peindre qu'en mouvement. La connaissance de soi n'est pas une saisie d'un coup, comme chez Descartes, mais un essai sans fin.",
+          new: true,
+          citations: [
+            "« Je suis moi-même la matière de mon livre » (Essais, « Au lecteur »)",
+            "« Je ne peins pas l'être. Je peins le passage » (III, 2)",
+          ],
+          fiche: "Se peindre soi-même : un moi changeant, qu'on ne saisit qu'en passage ; chaque homme porte la forme entière de l'humaine condition.",
+        },
+      ],
+    },
+    {
+      n: "Malebranche",
+      ideas: [
+        {
+          w: "De la recherche de la vérité, III, II, 7 (1674–1675)",
+          i: "Contre Descartes, pour qui l'esprit est plus aisé à connaître que le corps, Malebranche soutient que nous n'avons pas d'idée claire de notre âme. Nous la connaissons seulement par conscience, ou sentiment intérieur : nous sentons que nous pensons, voulons, souffrons, sans savoir ce qu'est l'âme. Paradoxe : le corps, objet de la géométrie, est mieux connu que l'esprit.",
+          new: true,
+          citations: ["Nous ne connaissons notre âme que par conscience ou sentiment intérieur (III, II, 7, reformulé)"],
+          fiche: "Nous n'avons pas d'idée claire de l'âme : nous ne la connaissons que par conscience, ou sentiment intérieur.",
+        },
+      ],
+    },
+    {
+      n: "Husserl",
+      ideas: [
+        {
+          w: "Méditations cartésiennes, § 14 (1931)",
+          i: "Toute conscience est conscience de quelque chose : c'est l'intentionnalité. La conscience n'est pas une boîte qui contiendrait des images des choses, elle est un mouvement vers elles. Percevoir, imaginer, se souvenir, désirer sont des manières différentes de viser un objet. La phénoménologie décrit ces vécus en suspendant la croyance spontanée à l'existence du monde (épochè), pour revenir aux choses mêmes.",
+          new: true,
+          citations: [
+            "« Le mot intentionnalité ne signifie rien d'autre que cette particularité foncière et générale qu'a la conscience d'être conscience de quelque chose » (§ 14, trad. Peiffer et Levinas)",
+          ],
+          fiche: "Toute conscience est conscience de quelque chose (intentionnalité) : la conscience est visée du monde, non boîte à images.",
         },
       ],
     },

@@ -176,6 +176,25 @@ function compareAuthors(an, bn){
       || an.localeCompare(bn,'fr');
 }
 
+/* ── Programme officiel (étape 4, oct. 2026) ─────────────────────────────
+   PROGRAMME (data.js, tiré de contenu/programme.js) donne les 84 auteurs de
+   la liste officielle. PROG_AUTEURS[nom de fiche] = {bo, periode} : seuls
+   ces auteurs peuvent tomber à l'explication de texte ; en dissertation, on
+   peut citer qui on veut. Sert à l'étiquette « Au programme ».            */
+const PROG_AUTEURS={};
+PROGRAMME.auteurs.forEach(a=>a.fiches.forEach(nom=>{ PROG_AUTEURS[nom]={bo:a.bo, periode:a.periode}; }));
+
+/* progBadgeHTML(nom, court) — l'étiquette « Au programme » d'un auteur de la
+   liste officielle, '' pour les autres. court=true : version compacte
+   (« Programme ») pour les cartes d'auteur d'une notion. Le title dit à
+   l'élève ce que l'étiquette change pour lui. */
+function progBadgeHTML(nom, court){
+  const p=PROG_AUTEURS[nom]; if(!p) return '';
+  const bo=p.bo!==nom?', sous le nom « '+p.bo+' »':'';
+  const t=`Liste officielle des auteurs (${p.periode}${bo}) : un texte de cet auteur peut tomber à l'explication de texte.`;
+  return `<span class="prog-badge${court?' prog-badge-court':''}" title="${t}">${court?'Programme':'Au programme'}</span>`;
+}
+
 /* ── Courant → color ─────────────────────────────────────────── */
 const CC={
   'Rationalisme':'#185FA5','Empirisme / Libéralisme':'#3B6D11','Idéalisme allemand':'#534AB7',
@@ -207,5 +226,24 @@ const CC={
   'Épistémologie critique':'#2E86AB',
   'Histoire et philosophie des sciences':'#2E86AB',
   'Philosophie de l\'absurde':'#C2603A',
-  'Scepticisme':'#6E7B8B'
+  'Scepticisme':'#6E7B8B',
+  // Étape 4 (oct. 2026) : courants des auteurs de la liste officielle ajoutés.
+  // Mêmes teintes que les familles existantes (antiques en vert d'eau,
+  // empiristes en vert, phénoménologues en violet, langage en mauve…).
+  'Présocratiques':'#1D9E75','Taoïsme':'#1D9E75','Éclectisme / Stoïcisme romain':'#1D9E75',
+  'Bouddhisme Madhyamaka':'#6E7B8B','Néoplatonisme':'#534AB7',
+  'Falsafa (aristotélisme arabe)':'#3B6D11','Scolastique / Augustinisme':'#EF9F27',
+  'Philosophie juive médiévale':'#EF9F27','Nominalisme / Scolastique':'#6B4FA0',
+  'Réalisme politique / Républicanisme':'#D85A30','Empirisme':'#3B6D11',
+  'Cartésianisme / Occasionnalisme':'#185FA5','Philosophie de l\'histoire':'#993556',
+  'Empirisme / Immatérialisme':'#3B6D11','Lumières / Libéralisme politique':'#EF9F27',
+  'Empirisme / Sensualisme':'#3B6D11','Lumières écossaises / Économie politique classique':'#EF9F27',
+  'Rationalisme critique / Philosophie des sciences':'#2E86AB','Phénoménologie':'#534AB7',
+  'Sociologie durkheimienne / Anthropologie':'#D4537E','Philosophie de l\'existence':'#534AB7',
+  'Théorie critique / Philosophie de la culture':'#5F5E5A',
+  'Philosophie morale / Philosophie de la durée':'#1D9E75','Libéralisme politique / Sociologie':'#EF9F27',
+  'Phénoménologie / Éthique':'#534AB7','Existentialisme / Féminisme':'#993556',
+  'Structuralisme / Anthropologie':'#6B4FA0','Philosophie analytique / Éthique des vertus':'#185FA5',
+  'Platonisme moral':'#534AB7','Archéologie du savoir / Généalogie':'#993556',
+  'Philosophie analytique / Pragmatisme':'#6B4FA0'
 };

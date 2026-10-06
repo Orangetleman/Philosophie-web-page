@@ -8,7 +8,7 @@
      js/, css/  le code du site, en morceaux numérotés.
    Ce script :
      1. charge contenu/ (des appels NOTION(…), AUTEUR(…), CONCEPT(…),
-        REPERE(…), ORDRE(…) exécutés dans un bac à sable) ;
+        REPERE(…), ORDRE(…), PROGRAMME(…) exécutés dans un bac à sable) ;
      2. le convertit au format canonique (outils/lib/formats.mjs : anciens
         formats d'auteur, axes → plans, tensions → relations) ;
      3. écrit data.js (le fichier de données que le site charge) ;
@@ -53,15 +53,17 @@ const echec = m => { console.error('ÉCHEC : ' + m); process.exit(1); };
 const lireTexte = f => fs.readFileSync(f, 'utf8').replace(/\r\n/g, '\n');
 
 /* chargerSources() — exécute chaque fichier de contenu/ avec des collecteurs
-   et renvoie {ordre, notions:{cle→objet}, auteurs:{nom→objet}, concepts:[], reperes:[]}. */
+   et renvoie {ordre, notions:{cle→objet}, auteurs:{nom→objet}, concepts:[], reperes:[],
+   programme}. */
 export function chargerSources() {
-  const s = { ordre: null, notions: {}, auteurs: {}, concepts: [], reperes: [] };
+  const s = { ordre: null, notions: {}, auteurs: {}, concepts: [], reperes: [], programme: null };
   const bac = {
     ORDRE: cles => { if (s.ordre) echec('ORDRE déclaré deux fois'); s.ordre = cles; },
     NOTION: (cle, n) => { if (s.notions[cle]) echec(`notion « ${cle} » déclarée deux fois`); s.notions[cle] = n; },
     AUTEUR: (nom, a) => { if (s.auteurs[nom]) echec(`auteur « ${nom} » déclaré deux fois`); s.auteurs[nom] = a; },
     CONCEPT: c => s.concepts.push(c),
     REPERE: c => s.reperes.push(c),
+    PROGRAMME: p => { if (s.programme) echec('PROGRAMME déclaré deux fois'); s.programme = p; },
   };
   vm.createContext(bac);
   const jouer = f => {
@@ -75,6 +77,8 @@ export function chargerSources() {
   }
   jouer(path.join(CONTENU, 'concepts.js'));
   jouer(path.join(CONTENU, 'reperes.js'));
+  jouer(path.join(CONTENU, 'programme.js'));
+  if (!s.programme) echec('contenu/programme.js ne déclare pas PROGRAMME({...})');
   if (!s.ordre) echec('contenu/ordre.js ne déclare pas ORDRE([...])');
   Object.keys(s.notions).filter(k => !s.ordre.includes(k)).forEach(k => echec(`notion « ${k} » absente de ORDRE (contenu/ordre.js)`));
   s.ordre.filter(k => !s.notions[k]).forEach(k => echec(`ORDRE cite « ${k} », sans fichier contenu/notions/${k}.js`));
@@ -88,17 +92,30 @@ export function assembler(s) {
   const AM = {};
   Object.keys(s.auteurs).sort((a, b) => a.localeCompare(b, 'fr')).forEach(n => { AM[n] = s.auteurs[n]; });
   const CONCEPTS = s.concepts.concat(s.reperes).map(normaliserConcept);
-  return { D, KEYS: s.ordre.slice(), AM, CONCEPTS };
+  return { D, KEYS: s.ordre.slice(), AM, CONCEPTS, PROGRAMME: programmeCanonique(s.programme) };
+}
+
+/* programmeCanonique(p) — la liste officielle sous la forme que lit le site :
+   {source, notions:[clés], auteurs:[{bo, periode, fiches:[noms de fiche]}]}.
+   Dans contenu/programme.js, un auteur peut s'écrire d'un simple nom quand
+   le BO et la fiche portent le même (cf. l'en-tête de ce fichier). */
+export function programmeCanonique(p) {
+  const auteurs = [];
+  Object.keys(p.auteurs).forEach(periode => p.auteurs[periode].forEach(a => {
+    const e = typeof a === 'string' ? { bo: a, fiches: [a] } : a;
+    auteurs.push({ bo: e.bo, periode, fiches: e.fiches.slice() });
+  }));
+  return { source: p.source, notions: p.notions.slice(), auteurs };
 }
 
 /* ecrireData(d) — le texte de data.js : un élément par ligne (diffs lisibles). */
-export function ecrireData({ D, KEYS, AM, CONCEPTS }) {
+export function ecrireData({ D, KEYS, AM, CONCEPTS, PROGRAMME }) {
   const j = v => JSON.stringify(v);
   return [
     '/* data.js — GÉNÉRÉ par outils/construire.mjs à partir de contenu/. NE PAS ÉDITER :',
     '   modifier les fichiers de contenu/, puis lancer « node outils/construire.mjs ».',
-    '   Chargé en <script src> AVANT app.js : D, KEYS, AM, CONCEPTS deviennent des',
-    '   globales, déjà au format canonique (cf. CLAUDE.md). */',
+    '   Chargé en <script src> AVANT app.js : D, KEYS, AM, CONCEPTS, PROGRAMME deviennent',
+    '   des globales, déjà au format canonique (cf. CLAUDE.md). */',
     'const D={',
     KEYS.map(k => j(k) + ':' + j(D[k])).join(',\n'),
     '};',
@@ -109,6 +126,8 @@ export function ecrireData({ D, KEYS, AM, CONCEPTS }) {
     'const CONCEPTS=[',
     CONCEPTS.map(j).join(',\n'),
     '];',
+    '// Le programme officiel (contenu/programme.js) : notions et auteurs « au programme ».',
+    'const PROGRAMME=' + j(PROGRAMME) + ';',
     ''
   ].join('\n');
 }

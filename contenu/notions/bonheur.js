@@ -36,7 +36,10 @@ NOTION("bonheur", {
           w: "Fondements de la métaphysique des mœurs, 1785",
           i: "Le bonheur ne peut fonder la morale : il est empirique et variable. Le devoir est inconditionné. Un homme vertueux mérite d'être heureux mais le bonheur n'est pas le critère de l'action morale.",
           fiche: "Le bonheur ne peut fonder la morale (empirique, variable) : on doit se rendre digne d'être heureux, mais le devoir reste inconditionné.",
-          citations: ["« Sois digne d'être heureux » — mais le bonheur n'est pas le but de la morale"],
+          citations: [
+            "« Fais ce qui peut te rendre digne d'être heureux » (Critique de la raison pure, Canon de la raison pure, II) : le bonheur n'est pas le but de la morale",
+          ],
+          modified: true,
         },
       ],
     },
@@ -104,6 +107,42 @@ NOTION("bonheur", {
             "« Si tu embrasses ton enfant, dis-toi que tu embrasses un être mortel. »",
           ],
           fiche: "Bonheur stoïcien : ne désirer que ce qui dépend de nous (nos jugements), tenir le reste pour prêté — « ne dis pas : je l'ai perdu, mais : je l'ai rendu ».",
+        },
+      ],
+    },
+    {
+      n: "Lucrèce",
+      ideas: [
+        {
+          w: "De la nature, III, v. 830 et suivants",
+          i: "L'âme est faite d'atomes et se disperse à la mort : il n'y aura plus personne pour souffrir. Craindre la mort, c'est s'imaginer présent à sa propre absence. Et de même que le temps d'avant notre naissance ne nous a rien fait, celui d'après notre mort ne nous fera rien. Libéré de cette peur, on peut vivre en paix.",
+          new: true,
+          citations: ["« Nil igitur mors est ad nos » : la mort n'est donc rien pour nous (III, 830)"],
+          fiche: "L'âme meurt avec le corps : la mort n'est rien pour nous, pas plus que le temps d'avant notre naissance.",
+        },
+      ],
+    },
+    {
+      n: "Marc Aurèle",
+      ideas: [
+        {
+          w: "Pensées pour moi-même, IV, 3 (vers 170–180)",
+          i: "Ce qui nous trouble, ce sont nos jugements sur les choses, que nous pouvons corriger, et non les choses, qui ne dépendent pas de nous. Les hommes cherchent des retraites à la campagne ou au bord de la mer ; mais on peut, à toute heure, se retirer en soi-même, et nulle part on n'est plus tranquille que dans son âme.",
+          new: true,
+          citations: ["Nulle part l'homme ne trouve de retraite plus tranquille que dans son âme (IV, 3, reformulé)"],
+          fiche: "Le trouble vient de nos jugements ; la paix se trouve dans la retraite intérieure, toujours disponible.",
+        },
+      ],
+    },
+    {
+      n: "Montaigne",
+      ideas: [
+        {
+          w: "Essais, I, 20 et III, 13, « De l'expérience »",
+          i: "Le premier Montaigne, stoïcien, veut que philosopher soit apprendre à mourir : penser souvent à la mort pour lui ôter son étrangeté. Le dernier chapitre des Essais est moins tendu : il s'agit d'apprendre à vivre, de jouir loyalement de son être, sans mépriser le corps ni les plaisirs simples.",
+          new: true,
+          citations: ["« Quand je danse, je danse ; quand je dors, je dors » (III, 13)"],
+          fiche: "D'apprendre à mourir à apprendre à vivre : jouir loyalement de son être, au présent.",
         },
       ],
     },

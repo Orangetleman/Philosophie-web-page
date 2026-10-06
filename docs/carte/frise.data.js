@@ -1,8 +1,44 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
-  "genere_le": "2026-10-05T20:03:22.260Z",
+  "genere_le": "2026-10-06T00:13:46.218Z",
   "commits": [
+    {
+      "hash": "097bb29319598c581c47a07a6c4e5a629e3bda6a",
+      "short": "097bb29",
+      "auteur": "Orangentleman",
+      "date": "2026-10-06T02:13:38+02:00",
+      "sujet": "Étape 4 : les 84 auteurs de la liste officielle, et les citations revues",
+      "corps": "La liste officielle entre dans le dépôt (contenu/programme.js, BO 2019) :\nle build en tire PROGRAMME dans data.js, et la question 11 du vérificateur\nexige que chaque auteur de la liste ait sa fiche et au moins une idée\n(témoin : Montaigne retiré, vu).\n\n- 40 fiches nouvelles (les 39 auteurs manquants, dont les présocratiques\n  en Héraclite et Parménide) et 85 idées dans 16 notions, new:true.\n  Citations exactes seulement quand elles sont retrouvées dans le texte ou\n  une traduction nommée ; sinon reformulations.\n- Étiquette « Au programme » (fiche d'auteur, cartes d'une notion),\n  couleurs des nouveaux courants, autres graphies des noms reconnues par\n  les liens et la recherche (Occam, Simone de Beauvoir, Ibn Sina…).\n- 72 citations existantes corrigées (référence fausse, phrase retouchée,\n  résumé entre guillemets, formule moderne prêtée à un ancien), dont\n  « croyance vraie justifiée » retirée de Platon partout ; idées marquées\n  modified:true. Dialogue Austin → Wittgenstein corrigé.\n- Carte du projet : PROGRAMME, étiquette « Au programme ».\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": "Étape 4"
+    },
+    {
+      "hash": "ad295b38e22e1c87f23ce7b648ba75ae19948c8d",
+      "short": "ad295b3",
+      "auteur": "Orangentleman",
+      "date": "2026-10-05T23:23:55+02:00",
+      "sujet": "Merge pull request #11 from Orangetleman/claude/etape-3-build",
+      "corps": "Mise à jour, étape 3 : build léger, code découpé, une adresse par page, recherche plein texte",
+      "tag": ""
+    },
+    {
+      "hash": "03e24c91ed8d5669b72ec3fea76c994639ada244",
+      "short": "03e24c9",
+      "auteur": "Orangentleman",
+      "date": "2026-10-05T23:23:13+02:00",
+      "sujet": "Merge pull request #10 from Orangetleman/claude/etape-2-outiller",
+      "corps": "Étape 2 vers main (la #9 a été fusionnée dans la branche de l'étape 1)",
+      "tag": ""
+    },
+    {
+      "hash": "9a319a8b18d4ba497532b1064f06cb61bcf0cb2c",
+      "short": "9a319a8",
+      "auteur": "Orangentleman",
+      "date": "2026-10-05T22:03:22+02:00",
+      "sujet": "Banc : le témoin du droit UPDATE vise l'instruction, plus le commentaire",
+      "corps": "Depuis l'ajout d'un commentaire citant « grant update (payload, updated_at) »\ndans 2026_contributions_colonnes.sql, le témoin modifiait ce commentaire au\nlieu de l'instruction, et ne prouvait plus rien (« témoin PAS VU »). Il vise\ndésormais l'instruction entière ; 10 essais, 10 témoins vus.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": "Banc"
+    },
     {
       "hash": "1c775cbc6a07cd7db18619962ad649268f727343",
       "short": "1c775cb",
@@ -65,6 +101,15 @@ window.FRISE = {
       "sujet": "Migrations : la photographie de la base réelle confirme le défaut, et en montre un second",
       "corps": "Requête 6 de 2026_schema_lecture.sql lancée par l'auteur : authenticated lit\ntoutes les colonnes de contributions (aggregator_state comprise) et n'a aucun\ndroit UPDATE, donc « Modifier » une proposition en attente devait échouer.\n2026_contributions_colonnes.sql corrige les deux ; commentaires mis à jour.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
       "tag": "Migrations"
+    },
+    {
+      "hash": "f283c5e88c903b0ebd16f8b540093a4edb244d2d",
+      "short": "f283c5e",
+      "auteur": "Orangentleman",
+      "date": "2026-10-05T21:31:02+02:00",
+      "sujet": "Merge pull request #8 from Orangetleman/claude/philosophy-site-audit-update-bb592f",
+      "corps": "Mise à jour, étape 1 : réparer le quiz, les données et la doc",
+      "tag": ""
     },
     {
       "hash": "c77ba9aecc1b7a608f4b71bd78beac4a6f4c41f0",

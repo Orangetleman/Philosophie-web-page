@@ -26,8 +26,9 @@ NOTION("art", {
           i: "Contre le mythe du génie inné. L'artiste observe, travaille, s'exerce par la répétition — comme l'inventeur ou le tacticien. L'illusion du génie naît de notre ignorance et de notre paresse : tout ce qui est fini excite l'étonnement ; tout ce qui est en train de se faire est déprécié. L'art est donc d'abord un travail.",
           fiche: "Contre le mythe du génie inné : l'artiste observe, travaille, répète — l'art est d'abord un labeur ; l'illusion du don naît de notre paresse.",
           citations: [
-            "« Le génie ne fait rien que d'apprendre à poser des pierres, travailler toujours à y mettre la forme »",
+            "Le génie n'a rien de miraculeux : il commence par apprendre à poser des pierres, puis à bâtir (Humain, trop humain, § 162-163, reformulé)",
           ],
+          modified: true,
         },
       ],
     },
@@ -84,9 +85,8 @@ NOTION("art", {
           w: "Le Rire, 1900",
           i: "L'artiste écarte le voile de la perception utilitaire. Ce que l'artiste a vu, nous ne l'aurions jamais vu sans lui. Son œuvre nous sert de leçon : l'efficacité de la leçon se mesure à la vérité de l'œuvre. L'art révèle ce que nous ne voyons pas ordinairement car notre perception est orientée vers l'action pratique.",
           fiche: "L'artiste écarte le voile de la perception utilitaire : il nous fait voir ce que nous ne voyons pas ordinairement — son œuvre est une leçon de vision.",
-          citations: [
-            "« Ce que l'artiste a vu, nous ne le reverrons pas — mais s'il a vu pour tout de bon, son œuvre nous sert de leçon »",
-          ],
+          citations: ["L'artiste voit ce que nous ne voyons pas, et son œuvre nous apprend à le voir (reformulé)"],
+          modified: true,
         },
       ],
     },
@@ -109,6 +109,54 @@ NOTION("art", {
           i: "L'œuvre d'art ne doit pas tout livrer directement aux sens — elle doit mettre l'imagination en bonne voie. L'imagination doit toujours avoir quelque chose à ajouter : c'est elle qui dit le dernier mot. Ce qu'il y a de meilleur dans l'art est trop spirituel pour être livré directement : c'est à l'imagination à le mettre au jour.",
           fiche: "L'art ne doit pas tout livrer aux sens : il met l'imagination en route — c'est elle qui « dit le dernier mot » ; le meilleur de l'art est trop spirituel pour le direct.",
           citations: ["« Ce qu'il y a de meilleur dans l'art est trop spirituel pour être livré directement aux sens »"],
+        },
+      ],
+    },
+    {
+      n: "Plotin",
+      ideas: [
+        {
+          w: "Ennéades, I, 6, « Du Beau » (vers 254)",
+          i: "La beauté n'est pas d'abord la symétrie des parties : une chose simple, l'éclat de l'or ou la lumière, est belle aussi. Elle est la présence d'une forme, reflet de l'intelligible, dans la matière, et l'âme reconnaît dans le beau une parenté avec elle-même. Pour voir la beauté, il faut se rendre beau : retrancher le superflu, comme le sculpteur qui ne cesse de travailler sa statue.",
+          new: true,
+          citations: ["Ne cesse pas de sculpter ta propre statue (I, 6, 9, reformulé)"],
+          fiche: "Le beau est la présence d'une forme intelligible dans la matière ; pour le voir, il faut sculpter sa propre statue intérieure.",
+        },
+      ],
+    },
+    {
+      n: "Diderot",
+      ideas: [
+        {
+          w: "Paradoxe sur le comédien (écrit vers 1773–1778, publié en 1830)",
+          i: "Le grand comédien n'éprouve pas ce qu'il joue : s'il pleurait vraiment, il jouerait inégalement, bien un soir, mal le lendemain. Il observe, imite un modèle idéal composé à froid, et reproduit chaque soir les mêmes signes de l'émotion. L'art n'est pas l'effusion du sentiment mais la maîtrise de son expression.",
+          new: true,
+          citations: ["« C'est l'extrême sensibilité qui fait les acteurs médiocres » (Paradoxe sur le comédien)"],
+          fiche: "Le grand acteur ne ressent pas ce qu'il joue : l'art est maîtrise des signes de l'émotion, non effusion.",
+        },
+      ],
+    },
+    {
+      n: "Walter Benjamin",
+      ideas: [
+        {
+          w: "L'Œuvre d'art à l'époque de sa reproductibilité technique (1935–1939)",
+          i: "Une œuvre originale a une aura : une présence unique, ici et maintenant, liée à une tradition et longtemps à un culte. La photographie et le cinéma la reproduisent en masse et la détachent de ce lieu : l'aura dépérit. Benjamin n'y voit pas que de la perte : l'art passe de la valeur de culte à la valeur d'exposition, et peut devenir politique.",
+          new: true,
+          citations: ["L'aura, unique apparition d'un lointain, si proche soit-il (reformulé ; la traduction varie)"],
+          fiche: "La reproduction technique fait dépérir l'aura de l'œuvre : de la valeur de culte à la valeur d'exposition.",
+        },
+      ],
+    },
+    {
+      n: "Iris Murdoch",
+      ideas: [
+        {
+          w: "La Souveraineté du bien (1970)",
+          i: "Je regarde par la fenêtre, anxieux, ruminant une offense ; soudain je vois un faucon crécerelle planer. Tout change : le moi ruminant a disparu. La beauté de la nature et de l'art nous arrache à nous-mêmes (Murdoch parle d'unselfing, de décentrement) : le grand art est une école de vertu, parce qu'il apprend à voir ce qui n'est pas nous.",
+          new: true,
+          citations: ["Le crécerelle aperçu par la fenêtre : la beauté fait disparaître le moi anxieux (reformulé)"],
+          fiche: "La beauté (le crécerelle, le grand art) nous décentre : l'art est une école de vertu, il apprend à voir.",
         },
       ],
     },

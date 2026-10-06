@@ -58,7 +58,10 @@ NOTION("langage", {
           w: "Le Rire, 1900 / L'évolution créatrice, 1907",
           i: "<em>Le Rire</em> : les mots (termes généraux) masquent le particulier et l'intime — nous ne voyons pas les choses mais des étiquettes. Seul le « poète » peut saisir la singularité, voire créer les mots / une langue spécifique (ex. « spleen » de Baudelaire). Pb des glissements sémantiques : un même signe peut avoir des connotations variables — ex. « bonnomatisme », « qualitatif », « punition »/« bordel », « passion » (pâtir, subir → passivité), « adulti » (quelqu'un qui m'aime). L'<em>Évolution créatrice</em> : le signe intelligent est mobile (connotations, ironie, sens figurés), contrairement au signe instinctif adhérent.",
           fiche: "Les mots généraux masquent le singulier (de simples « étiquettes ») ; seul le poète saisit l'unique — « les mots s'insinuent entre la chose et nous ».",
-          citations: ["« Les mots s'insinuent entre la chose et nous »"],
+          citations: [
+            "« Le mot, qui ne note de la chose que sa fonction la plus commune et son aspect banal, s'insinue entre elle et nous » (Le Rire, chap. III)",
+          ],
+          modified: true,
         },
       ],
     },
@@ -82,7 +85,10 @@ NOTION("langage", {
           w: "1984, 1949",
           i: "La novlangue est une langue artificielle conçue pour réduire le champ du pensable : moins de mots = moins de pensées possibles. Instrument du pouvoir totalitaire. Illustre que le langage conditionne la pensée et peut être outil d'oppression autant que de libération.",
           fiche: "La novlangue réduit le champ du pensable (moins de mots = moins de pensées) : le langage conditionne la pensée et peut devenir un instrument d'oppression.",
-          citations: ["« La novlangue réduira finalement le champ de la pensée »"],
+          citations: [
+            "Le véritable but du novlangue est de restreindre les limites de la pensée (1984, I, 5, reformulé)",
+          ],
+          modified: true,
         },
       ],
     },
@@ -167,6 +173,80 @@ NOTION("langage", {
           w: "La Disparition, 1969 (OULIPO)",
           i: "Membre majeur de l'OULIPO (Ouvroir de Littérature Potentielle). <em>La Disparition</em> est un roman de plus de 300 pages écrit sans la lettre 'e' (lipogramme). La contrainte radicale, loin d'appauvrir le langage, génère paradoxalement de la nouveauté : l'écrivain doit inventer des tournures, mobiliser un lexique inédit. Démontre que le langage comme matériau peut être réinventé par les règles formelles. Voir aussi : palindromes (le poème '9691, edna d'nilu, o, mû, acéré, perçu… ').",
           citations: ["« La contrainte est libératrice » (devise oulipienne)"],
+        },
+      ],
+    },
+    {
+      n: "Guillaume d'Ockham",
+      ideas: [
+        {
+          w: "Somme de logique (vers 1323)",
+          i: "Querelle des universaux : « l'homme », « l'arbre » désignent-ils des réalités générales ? Non, répond Ockham : il n'existe que des individus. L'universel est un signe, un concept de l'esprit qui renvoie à plusieurs individus semblables. C'est le nominalisme : le langage et la pensée classent, la réalité n'est faite que de singuliers.",
+          new: true,
+          citations: [
+            "Tout universel est une chose singulière, et il n'est universel que par la signification (Somme de logique, I, 14, reformulé)",
+          ],
+          fiche: "Seuls existent des individus ; l'universel n'est qu'un signe qui en désigne plusieurs (nominalisme).",
+        },
+      ],
+    },
+    {
+      n: "Berkeley",
+      ideas: [
+        {
+          w: "Traité des principes, Introduction",
+          i: "Contre Locke, Berkeley nie qu'il existe des idées abstraites générales, comme celle d'un triangle qui ne serait ni rectangle, ni isocèle, ni scalène. Un mot devient général en représentant indifféremment plusieurs idées particulières. Beaucoup de faux problèmes philosophiques naissent des mots : il faut écarter leur voile pour voir les idées elles-mêmes.",
+          new: true,
+          citations: [
+            "Il faut écarter le rideau des mots pour voir l'arbre de la connaissance (Introduction, § 24, reformulé)",
+          ],
+          fiche: "Pas d'idées abstraites générales : un mot est général parce qu'il représente plusieurs idées particulières. Écarter le voile des mots.",
+        },
+      ],
+    },
+    {
+      n: "Condillac",
+      ideas: [
+        {
+          w: "La Logique (1780) et La Langue des calculs (posthume, 1798)",
+          i: "Nous ne pensons qu'avec des signes : l'art de raisonner se ramène à une langue bien faite. L'algèbre en est le modèle, langue parfaitement analytique. Une science progresse quand ses mots sont bien définis et bien ordonnés ; les sciences mal faites sont d'abord des langues mal faites.",
+          new: true,
+          citations: ["Une science bien traitée n'est qu'une langue bien faite (La Langue des calculs, reformulé)"],
+          fiche: "On ne pense qu'avec des signes : une science bien traitée n'est qu'une langue bien faite.",
+        },
+      ],
+    },
+    {
+      n: "Wittgenstein",
+      ideas: [
+        {
+          w: "Tractatus logico-philosophicus (1921)",
+          i: "Le langage dit le monde en le peignant : une proposition est une image logique d'un fait possible. Ce qui ne peut pas se peindre (l'éthique, l'esthétique, le sens de la vie) ne peut pas se dire, seulement se montrer. La philosophie n'est pas une doctrine mais une activité : la clarification logique des pensées.",
+          new: true,
+          citations: [
+            "« Les frontières de mon langage sont les frontières de mon monde » (5.6, trad. Granger)",
+            "« Sur ce dont on ne peut parler, il faut garder le silence » (7, trad. Granger)",
+          ],
+          fiche: "La proposition est une image des faits ; ce qui ne se peint pas ne se dit pas, il se montre.",
+        },
+        {
+          w: "Recherches philosophiques (posthume, 1953)",
+          i: "Le second Wittgenstein abandonne l'idée d'une essence du langage. Parler, c'est jouer à des jeux de langage variés (ordonner, raconter, plaisanter, prier), liés à des formes de vie ; dans la plupart des cas, la signification d'un mot est son usage. Et un langage purement privé, que moi seul pourrais comprendre, est impossible : suivre une règle est une pratique publique.",
+          new: true,
+          citations: ["La signification d'un mot est son emploi dans le langage (§ 43, reformulé)"],
+          fiche: "Jeux de langage : la signification d'un mot est son usage ; un langage privé est impossible.",
+        },
+      ],
+    },
+    {
+      n: "Putnam",
+      ideas: [
+        {
+          w: "La Signification de « signification » (1975)",
+          i: "Sur une Terre jumelle, tout est identique à la nôtre, sauf que l'eau n'y est pas H2O mais un autre composé, XYZ. Mon double et moi avons les mêmes pensées, mais le mot eau ne désigne pas la même chose. Le sens d'un mot ne dépend donc pas seulement de ce qui se passe dans la tête : il dépend du monde et de la communauté des locuteurs, experts compris.",
+          new: true,
+          citations: ["Les significations ne sont pas dans la tête (1975, reformulé)"],
+          fiche: "Terre jumelle : le sens d'un mot dépend du monde et de la communauté, pas seulement de ce qui est dans la tête.",
         },
       ],
     },

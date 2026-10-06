@@ -5,7 +5,7 @@ NOTION("science", {
   c: "#1A7A4A",
   l: "Science",
   s: "La science peut-elle tout expliquer ?",
-  def: "La <span class='kw'>science</span> est une connaissance rationnelle, méthodique et vérifiable des phénomènes naturels ou humains. Elle se distingue de la croyance par ses exigences de preuve et de réfutabilité. Question : la science produit-elle la vérité ? Y a-t-il des domaines hors de sa portée ?<details><summary>Approfondir la notion</summary><div class='def-sec'><div class='def-sec-title'>Savoir ≠ Croire (Platon)</div><div class='def-sec-body'>Platon (<em>Théétète</em>) propose une définition canonique du savoir : <strong>une croyance vraie justifiée</strong>. Il ne suffit pas de croire (adhésion subjective) ni même que la croyance soit vraie par hasard — il faut une <em>justification</em> (preuve, démonstration, méthode). C'est cette exigence de justification qui distingue la science de la croyance religieuse : <strong>CROIRE ≠ SAVOIR</strong>. La science est adhésion <em>avec</em> démonstration ; la religion, adhésion <em>sans</em> démonstration.</div></div><div class='def-sec'><div class='def-sec-title'>Science et religion : oppositions historiques</div><div class='def-sec-body'>La dissection humaine longtemps prohibée par l'Église catholique (sacralité du corps) a freiné l'anatomie. Galilée condamné par l'Inquisition en 1633 pour avoir défendu l'héliocentrisme. À l'inverse : la pratique de la <strong>relecture par les pairs</strong> (peer-review) en science est l'héritage tardif des pratiques de censure ecclésiastique — où l'Église contrôlait ce qui pouvait être publié. Mais opposition n'est pas nécessité : Galilée, Newton, Mendel, Lemaître étaient eux-mêmes croyants. Stephen Jay Gould (<em>NOMA</em>) : science et religion sont des « magistères qui ne se recouvrent pas » — la science dit le « comment », la religion le « pourquoi ».</div></div></details>",
+  def: "La <span class='kw'>science</span> est une connaissance rationnelle, méthodique et vérifiable des phénomènes naturels ou humains. Elle se distingue de la croyance par ses exigences de preuve et de réfutabilité. Question : la science produit-elle la vérité ? Y a-t-il des domaines hors de sa portée ?<details><summary>Approfondir la notion</summary><div class='def-sec'><div class='def-sec-title'>Savoir ≠ Croire (Platon)</div><div class='def-sec-body'>Platon (<em>Ménon</em>, <em>Théétète</em>) distingue le savoir de l'opinion : savoir, c'est avoir une <strong>opinion vraie accompagnée de raison</strong> (les modernes disent « croyance vraie justifiée » ; le <em>Théétète</em> examine cette définition sans parvenir à la fonder). Il ne suffit pas de croire (adhésion subjective) ni même que la croyance soit vraie par hasard — il faut une <em>justification</em> (preuve, démonstration, méthode). C'est cette exigence de justification qui distingue la science de la croyance religieuse : <strong>CROIRE ≠ SAVOIR</strong>. La science est adhésion <em>avec</em> démonstration ; la religion, adhésion <em>sans</em> démonstration.</div></div><div class='def-sec'><div class='def-sec-title'>Science et religion : oppositions historiques</div><div class='def-sec-body'>La dissection humaine longtemps prohibée par l'Église catholique (sacralité du corps) a freiné l'anatomie. Galilée condamné par l'Inquisition en 1633 pour avoir défendu l'héliocentrisme. À l'inverse : la pratique de la <strong>relecture par les pairs</strong> (peer-review) en science est l'héritage tardif des pratiques de censure ecclésiastique — où l'Église contrôlait ce qui pouvait être publié. Mais opposition n'est pas nécessité : Galilée, Newton, Mendel, Lemaître étaient eux-mêmes croyants. Stephen Jay Gould (<em>NOMA</em>) : science et religion sont des « magistères qui ne se recouvrent pas » — la science dit le « comment », la religion le « pourquoi ».</div></div></details>",
   auteurs: [
     {
       n: "Popper",
@@ -14,7 +14,10 @@ NOTION("science", {
           w: "La Logique de la découverte scientifique, 1934",
           i: "Critère de démarcation : une théorie est scientifique si elle est réfutable (falsifiable). La psychanalyse et le marxisme ne sont pas des sciences car elles ne peuvent être réfutées. La science progresse par conjectures et réfutations.",
           fiche: "Critère de démarcation : une théorie est scientifique si elle est réfutable (falsifiable) ; la science progresse par conjectures et réfutations, non par accumulation de preuves.",
-          citations: ["« La science n'est pas un corps de connaissances certaines mais de conjectures audacieuses »"],
+          citations: [
+            "La science n'est pas un système d'énoncés certains mais de conjectures audacieuses, toujours révisables (reformulé)",
+          ],
+          modified: true,
         },
       ],
     },
@@ -34,9 +37,12 @@ NOTION("science", {
       ideas: [
         {
           w: "Théétète, ~369 av. J.-C.",
-          i: "Définition canonique du savoir : <strong>une croyance vraie justifiée</strong>. Il ne suffit pas qu'une croyance soit vraie — il faut pouvoir en rendre raison (<em>logos</em>). Cette exigence de <em>justification</em> distingue la science (savoir démontré) de l'opinion (<em>doxa</em>) et de la croyance religieuse (adhésion sans démonstration). CROIRE ≠ SAVOIR : la science est adhésion <em>avec</em> démonstration.",
-          fiche: "Le savoir est une croyance vraie justifiée : l'exigence de justification (logos) distingue la science de la simple croyance — CROIRE ≠ SAVOIR.",
-          citations: ["« Le savoir est une croyance vraie justifiée »"],
+          i: "Le savoir est plus qu'une opinion vraie : une <strong>opinion vraie accompagnée de raison</strong> (formule que les modernes traduisent par « croyance vraie justifiée » ; le <em>Théétète</em> l'examine sans parvenir à la fonder). Il ne suffit pas qu'une croyance soit vraie — il faut pouvoir en rendre raison (<em>logos</em>). Cette exigence de <em>justification</em> distingue la science (savoir démontré) de l'opinion (<em>doxa</em>) et de la croyance religieuse (adhésion sans démonstration). CROIRE ≠ SAVOIR : la science est adhésion <em>avec</em> démonstration.",
+          fiche: "Le savoir est une opinion vraie accompagnée de raison : l'exigence de justification (logos) distingue la science de la simple croyance — CROIRE ≠ SAVOIR.",
+          citations: [
+            "Une opinion vraie ne devient savoir que liée par un raisonnement qui en donne la cause (Ménon, 97 e - 98 a, reformulé) ; la formule croyance vraie justifiée est moderne",
+          ],
+          modified: true,
         },
       ],
     },
@@ -47,7 +53,8 @@ NOTION("science", {
           w: "Et Dieu dit : « Que Darwin soit ! », 1999",
           i: "Principe NOMA (Non-Overlapping Magisteria) : science et religion sont deux <strong>magistères qui ne se recouvrent pas</strong>. La science traite du « comment » (faits, mécanismes, lois empiriques) ; la religion traite du « pourquoi » (sens, valeurs, finalité ultime). Leurs domaines sont distincts — donc l'opposition n'est pas nécessaire mais résulte de transgressions de frontières (créationnisme, scientisme).",
           fiche: "Principe NOMA : science et religion sont des « magistères qui ne se recouvrent pas » — la science dit le « comment », la religion le « pourquoi » ; l'opposition n'est pas nécessaire.",
-          citations: ["« La science traite de la fabrique du monde, la religion du sens de la vie »"],
+          citations: ["La science traite des faits du monde, la religion du sens et des valeurs (reformulé)"],
+          modified: true,
         },
       ],
     },
@@ -59,8 +66,9 @@ NOTION("science", {
           i: "Critique rationaliste rigoureuse du conflit science/religion : « Les credos sont la source du conflit intellectuel entre la science et la religion », car ils mettent en doute les credos religieux et requièrent les esprits libres. <strong>Problème de l'induction</strong> : aucune science empirique n'est définitivement prouvée. <strong>Théière de Russell</strong> (1952) : si j'affirmais qu'une théière en porcelaine est en orbite entre la Terre et Mars, personne ne pourrait me réfuter — mais la charge de la preuve pèse sur celui qui affirme l'existence, non sur celui qui doute. Argument transposé à la religion : Dieu est une théière.",
           fiche: "Critique du conflit science/religion + problème de l'induction : aucune science empirique n'est définitivement prouvée ; la « théière en orbite » : la charge de la preuve pèse sur qui affirme.",
           citations: [
-            "« Une théorie qui ne peut être réfutée par aucun fait concevable n'est pas scientifique — il en va de même de la théière en orbite »",
+            "Ce qu'on ne peut pas réfuter n'est pas prouvé pour autant : on ne peut pas réfuter la théière en orbite (Is There a God?, 1952, reformulé)",
           ],
+          modified: true,
         },
       ],
     },
@@ -99,15 +107,85 @@ NOTION("science", {
         },
       ],
     },
+    {
+      n: "Guillaume d'Ockham",
+      ideas: [
+        {
+          w: "Commentaire des Sentences (vers 1318)",
+          i: "Principe d'économie, dit rasoir d'Ockham : ne pas multiplier les entités sans nécessité. À pouvoir explicatif égal, l'explication qui suppose le moins d'êtres vaut mieux. La formule la plus connue, « Entia non sunt multiplicanda praeter necessitatem », n'est pas d'Ockham : on ne la trouve qu'au XVIIe siècle. Lui écrit que la pluralité ne doit pas être posée sans nécessité.",
+          new: true,
+          citations: [
+            "« Pluralitas non est ponenda sine necessitate » : la pluralité ne doit pas être posée sans nécessité",
+          ],
+          fiche: "Rasoir d'Ockham : ne pas poser plus d'entités qu'il n'en faut pour expliquer.",
+        },
+      ],
+    },
+    {
+      n: "Bacon",
+      ideas: [
+        {
+          w: "Novum Organum, livre I (1620)",
+          i: "Avant d'observer, il faut chasser les idoles, ces illusions qui faussent l'esprit : idoles de la tribu (communes à l'espèce humaine), de la caverne (propres à chacun), du forum (nées des mots), du théâtre (nées des systèmes). Puis vient l'induction méthodique : observer, dresser des tables de présence et d'absence, éliminer, expérimenter.",
+          new: true,
+          citations: [
+            "Quatre genres d'idoles assiègent l'esprit humain : de la tribu, de la caverne, du forum, du théâtre (I, 39, reformulé)",
+          ],
+          fiche: "Chasser les idoles (tribu, caverne, forum, théâtre), puis induire méthodiquement à partir de l'expérience.",
+        },
+      ],
+    },
+    {
+      n: "Cournot",
+      ideas: [
+        {
+          w: "Exposition de la théorie des chances et des probabilités (1843)",
+          i: "Le hasard n'est pas l'absence de cause. Un événement fortuit naît de la rencontre de séries de causes indépendantes : une tuile tombe d'un toit (série physique), un passant passe dessous (série de ses projets). Chaque série est déterminée ; leur rencontre n'est voulue par rien. Le hasard est donc objectif, et pas seulement le nom de notre ignorance.",
+          new: true,
+          citations: [
+            "« Les événements amenés par la combinaison ou la rencontre d'autres événements qui appartiennent à des séries indépendantes les unes des autres, sont ce qu'on nomme des événements fortuits, ou des résultats du hasard » (Exposition…, 1843)",
+          ],
+          fiche: "Le hasard est la rencontre de séries causales indépendantes : il est objectif, non simple ignorance.",
+        },
+      ],
+    },
+    {
+      n: "Husserl",
+      ideas: [
+        {
+          w: "La Crise des sciences européennes et la phénoménologie transcendantale (1936)",
+          i: "Les sciences triomphent, et pourtant elles sont en crise : elles n'ont plus rien à dire sur le sens de l'existence humaine. Depuis Galilée, on a pris le monde mathématisé pour le vrai monde et oublié le monde de la vie (Lebenswelt), celui de l'expérience vécue, d'où toute science part et qu'elle ne remplace pas.",
+          new: true,
+          citations: ["De simples sciences de faits forment une simple humanité de faits (Krisis, § 2, reformulé)"],
+          fiche: "Les sciences ont oublié le monde de la vie, d'où elles partent : elles ne disent rien du sens de l'existence.",
+        },
+      ],
+    },
+    {
+      n: "Foucault",
+      ideas: [
+        {
+          w: "Les Mots et les choses (1966)",
+          i: "Chaque époque a son épistémè, un sol de pensée qui fixe ce qui peut être tenu pour vrai. L'homme comme objet de savoir, celui des sciences humaines, n'apparaît qu'à la fin du XVIIIe siècle ; il pourrait s'effacer, comme à la limite de la mer un visage de sable.",
+          new: true,
+          citations: [
+            "« L'homme est une invention dont l'archéologie de notre pensée montre aisément la date récente. Et peut-être la fin prochaine » (chap. X)",
+          ],
+          fiche: "Chaque époque a son épistémè ; l'homme, objet des sciences humaines, est une figure récente du savoir.",
+        },
+      ],
+    },
   ],
   textes: [
     {
-      n: "Platon, Théétète — savoir = croyance vraie justifiée",
+      n: "Platon, Ménon et Théétète : savoir = opinion vraie accompagnée de raison",
       t: "Socrate, dans le <em>Théétète</em>, examine successivement trois définitions du savoir : (1) le savoir = sensation (réfutée : sensations contradictoires) ; (2) le savoir = opinion vraie (réfutée : on peut avoir raison par hasard) ; (3) le savoir = opinion vraie accompagnée de raison (<em>logos</em>). Cette troisième définition, bien que problématique chez Platon lui-même, est devenue la définition classique de la connaissance occidentale (« justified true belief »). Elle pose la justification rationnelle comme critère de démarcation entre savoir et simple croyance.",
+      modified: true,
     },
     {
       n: "Définitions et opposition science/religion",
-      t: "<strong>Science</strong> = ensemble de savoirs/connaissances ; adhésion <em>avec</em> démonstration. <strong>Religion</strong> = ensemble de croyances ; adhésion <em>sans</em> démonstration. Platon : le savoir est « une croyance vraie justifiée ». <strong>CROIRE ≠ SAVOIR</strong>. <em>Oppositions historiques</em> : (a) la dissection humaine prohibée par l'Église catholique (sacralité du corps) — frein durable à l'anatomie scientifique ; (b) histoire des pratiques de relecture par les pairs (peer-review) résultant elles-mêmes de pratiques de censure ecclésiastique sur les publications. Mais ces oppositions historiques ne suffisent pas à conclure à une opposition <em>nécessaire</em> : la question reste ouverte (cf. Galilée croyant, Mendel moine, Lemaître prêtre).",
+      t: "<strong>Science</strong> = ensemble de savoirs/connaissances ; adhésion <em>avec</em> démonstration. <strong>Religion</strong> = ensemble de croyances ; adhésion <em>sans</em> démonstration. Platon : le savoir est une opinion vraie accompagnée de raison (les modernes disent « croyance vraie justifiée »). <strong>CROIRE ≠ SAVOIR</strong>. <em>Oppositions historiques</em> : (a) la dissection humaine prohibée par l'Église catholique (sacralité du corps) — frein durable à l'anatomie scientifique ; (b) histoire des pratiques de relecture par les pairs (peer-review) résultant elles-mêmes de pratiques de censure ecclésiastique sur les publications. Mais ces oppositions historiques ne suffisent pas à conclure à une opposition <em>nécessaire</em> : la question reste ouverte (cf. Galilée croyant, Mendel moine, Lemaître prêtre).",
+      modified: true,
     },
     {
       n: "Russell — Science et religion (1935)",
@@ -243,7 +321,7 @@ NOTION("science", {
           sps: [
             {
               t: "",
-              args: "Distinction fondamentale Platon : le savoir est <em>une croyance vraie justifiée</em>. La science exige démonstration et reproductibilité ; la religion repose sur la foi (adhésion sans démonstration). CROIRE ≠ SAVOIR : ce sont deux régimes épistémiques distincts.",
+              args: "Distinction fondamentale de Platon : le savoir est une <em>opinion vraie accompagnée de raison</em>. La science exige démonstration et reproductibilité ; la religion repose sur la foi (adhésion sans démonstration). CROIRE ≠ SAVOIR : ce sont deux régimes épistémiques distincts.",
               auteurs: "",
               ref: "Platon, Théétète",
               limite: "",
@@ -279,7 +357,7 @@ NOTION("science", {
         },
       ],
       new: false,
-      modified: false,
+      modified: true,
       migrated: true,
     },
     {

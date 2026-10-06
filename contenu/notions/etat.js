@@ -14,7 +14,8 @@ NOTION("etat", {
           w: "Léviathan, 1651",
           i: "Sans État : état de nature = guerre de tous contre tous, vie 'solitaire, misérable, bestiale et brève'. Le contrat cède tous les droits à un souverain absolu (Léviathan) en échange de la sécurité. La justice naît du contrat.",
           fiche: "Sans État, guerre de tous contre tous (vie « solitaire, misérable, brève ») : on cède tous ses droits à un souverain absolu (le Léviathan) en échange de la sécurité.",
-          citations: ["« L'homme est un loup pour l'homme » (formule du De Cive, 1642)"],
+          citations: ["« L'homme est un loup pour l'homme » (Le Citoyen, épître dédicatoire, 1642, reprenant Plaute)"],
+          modified: true,
         },
       ],
     },
@@ -58,7 +59,10 @@ NOTION("etat", {
           w: "L'Idéologie allemande / Le Manifeste, 1848",
           i: "L'État est l'instrument de la classe dominante. Infrastructure économique → superstructure (État, droit, idéologie). L'État bourgeois protège les intérêts du capital. Objectif : dépérissement de l'État dans la société communiste.",
           fiche: "L'État est l'instrument de la classe dominante (« le comité d'affaires de la bourgeoisie ») ; il a vocation à dépérir dans la société communiste.",
-          citations: ["« L'État n'est que le comité d'affaires de la bourgeoisie »"],
+          citations: [
+            "« Le gouvernement moderne n'est qu'un comité qui gère les affaires communes de la classe bourgeoise tout entière » (Manifeste du parti communiste, 1848, chap. I)",
+          ],
+          modified: true,
         },
       ],
     },
@@ -102,7 +106,67 @@ NOTION("etat", {
           w: "Discours de la servitude volontaire, 1549",
           i: "Pourquoi les hommes obéissent-ils librement à la tyrannie ? Par habitude, éducation, complicité. Le tyran n'a que la puissance qu'on lui donne. La résistance n'exige pas de combattre : il suffit de cesser de servir. Mais la résistance individuelle ne suffit pas — il faut une action collective organisée.",
           fiche: "Servitude volontaire : le tyran n'a que le pouvoir qu'on lui donne ; cesser de servir suffit — mais il faut une action collective organisée.",
-          citations: ["« Un tyran n'a que la puissance que vous lui donnez — cessez de le servir, il tombera »"],
+          citations: [
+            "« Soyez résolus de ne servir plus, et vous voilà libres » (Discours de la servitude volontaire, orthographe modernisée)",
+          ],
+          modified: true,
+        },
+      ],
+    },
+    {
+      n: "Cicéron",
+      ideas: [
+        {
+          w: "De la République, 54–51 av. J.-C.",
+          i: "La chose publique (res publica) est la chose du peuple ; et un peuple n'est pas n'importe quel rassemblement d'hommes, mais une multitude associée par un accord sur le droit et par la communauté des intérêts. Le meilleur régime mêle les trois formes simples (royauté, aristocratie, démocratie), comme la Rome des consuls, du Sénat et des assemblées.",
+          new: true,
+          citations: [
+            "« Est igitur res publica res populi » : la chose publique est donc la chose du peuple (I, 25, 39)",
+          ],
+          fiche: "La res publica est la chose du peuple, uni par le droit et l'intérêt commun ; le meilleur régime est mixte.",
+        },
+      ],
+    },
+    {
+      n: "Machiavel",
+      ideas: [
+        {
+          w: "Le Prince, chap. XV à XVIII (écrit en 1513, publié en 1532)",
+          i: "Machiavel veut parler de la vérité effective des choses plutôt que de républiques imaginées. Le prince doit savoir entrer dans le mal quand la conservation de l'État l'exige : être craint plutôt qu'aimé s'il faut choisir, paraître pieux et loyal plutôt que l'être toujours. La politique a sa logique propre, distincte de la morale privée : on juge le prince à ses résultats, la sauvegarde de l'État.",
+          new: true,
+          citations: [
+            "« Il faut donc qu'un prince qui veut se maintenir apprenne à ne pas être toujours bon, et en user bien ou mal, selon la nécessité » (chap. XV, trad. Périès)",
+            "« Il est plus sûr d'être craint que d'être aimé » (chap. XVII, trad. Périès)",
+          ],
+          fiche: "Le prince doit apprendre à pouvoir ne pas être bon : la politique a sa logique propre, jugée sur la conservation de l'État.",
+        },
+      ],
+    },
+    {
+      n: "Montesquieu",
+      ideas: [
+        {
+          w: "De l'esprit des lois, XI, 4 et 6 (1748)",
+          i: "C'est une expérience éternelle que tout homme qui a du pouvoir est porté à en abuser. La seule garantie est institutionnelle : confier la puissance législative, la puissance exécutrice et celle de juger à des mains différentes, pour qu'elles se limitent l'une l'autre. C'est l'idée d'équilibre (on dit souvent séparation) des pouvoirs, tirée de l'étude de la constitution anglaise.",
+          new: true,
+          citations: [
+            "« Pour qu'on ne puisse abuser du pouvoir, il faut que, par la disposition des choses, le pouvoir arrête le pouvoir » (XI, 4)",
+          ],
+          fiche: "Le pouvoir arrête le pouvoir : confier législatif, exécutif et judiciaire à des mains différentes pour empêcher l'abus.",
+        },
+      ],
+    },
+    {
+      n: "Diderot",
+      ideas: [
+        {
+          w: "Encyclopédie, article « Autorité politique » (1751)",
+          i: "Aucune autorité n'est naturelle, sauf celle du père, qui cesse quand l'enfant peut se conduire seul. Le pouvoir vient soit de la force, et il ne dure que ce que dure la force, soit du consentement des peuples, par un contrat qui en fixe les bornes. Le prince tient son autorité de ses sujets, et elle est limitée par les lois de la nature et de l'État.",
+          new: true,
+          citations: [
+            "« Aucun homme n'a reçu de la nature le droit de commander aux autres » (Encyclopédie, « Autorité politique »)",
+          ],
+          fiche: "Aucun homme n'a reçu de la nature le droit de commander : l'autorité légitime vient du consentement des peuples.",
         },
       ],
     },

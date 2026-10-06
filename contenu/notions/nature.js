@@ -36,7 +36,8 @@ NOTION("nature", {
           w: "Discours sur l'inégalité, 1755",
           i: "Homme naturellement bon, libre et solitaire. La société et la propriété le corrompent. L'état de nature est un mythe régulateur qui sert à critiquer la société présente.",
           fiche: "L'homme est naturellement bon, libre et solitaire ; la société et la propriété le corrompent — l'état de nature est un mythe régulateur pour critiquer le présent.",
-          citations: ["« L'homme est né libre et partout il est dans les fers »"],
+          citations: ["« L'homme est né libre, et partout il est dans les fers » (Du contrat social, I, 1)"],
+          modified: true,
         },
       ],
     },
@@ -48,8 +49,9 @@ NOTION("nature", {
           i: "La technique moderne menace la nature et les générations futures. 'Heuristique de la peur' : anticiper le pire pour agir responsablement. Nouveau devoir envers la nature.",
           fiche: "La technique menace la nature et les générations futures : un nouveau devoir envers la nature, guidé par l'« heuristique de la peur ».",
           citations: [
-            "« Agis de façon que les effets de ton action soient compatibles avec la permanence d'une vie humaine authentique »",
+            "« Agis de façon que les effets de ton action soient compatibles avec la permanence d'une vie authentiquement humaine sur terre » (Le Principe responsabilité, chap. I)",
           ],
+          modified: true,
         },
       ],
     },
@@ -94,7 +96,8 @@ NOTION("nature", {
           w: "Lettre à Ménécée / Maximes Capitales",
           i: "Distinction désirs naturels et nécessaires / naturels et non nécessaires / ni naturels ni nécessaires. Seuls les premiers méritent d'être satisfaits. La nature définit les limites du bonheur réel. Contre la démesure des désirs artificiels.",
           fiche: "La nature borne nos besoins réels : seuls les désirs naturels et nécessaires méritent satisfaction — « la nature nous a fait peu riches de besoins ».",
-          citations: ["« La nature nous a fait peu riches de besoins »"],
+          citations: ["Les désirs naturels et nécessaires sont faciles à satisfaire (Lettre à Ménécée, reformulé)"],
+          modified: true,
         },
       ],
     },
@@ -152,6 +155,101 @@ NOTION("nature", {
           i: "Récit d'une attaque de crocodile en 1985 : l'humain se découvre proie, membre d'une communauté biotique. Le dualisme homme/nature (l'humain comme esprit pur séparé du corps et des animaux) est une construction culturelle millénaire — une erreur profonde. Appel à se réidentifier en termes écologiques : solidarité avec les autres vivants, réformer notre conception de la mort comme nourriture partagée.",
           fiche: "Le dualisme homme/nature est une erreur culturelle : devenue proie d'un crocodile, l'humaine se redécouvre animal parmi les animaux d'une communauté biotique.",
           citations: ["Le dualisme homme/nature est une erreur culturelle : nous sommes des animaux parmi les animaux"],
+        },
+      ],
+    },
+    {
+      n: "Héraclite",
+      ideas: [
+        {
+          w: "Fragments (fr. 123 et 60 DK)",
+          i: "La nature (phusis), le principe qui fait naître et croître les choses, aime à se cacher : elle ne se livre pas aux sens, il faut la déchiffrer comme un oracle. Ce qu'on y découvre, c'est l'unité des contraires : le chemin qui monte et celui qui descend sont un seul et même chemin, le jour et la nuit sont une même chose.",
+          new: true,
+          citations: ["La nature aime à se cacher (fr. 123, reformulé)"],
+          fiche: "La nature aime à se cacher ; sous le visible, l'unité des contraires (le chemin qui monte et celui qui descend sont le même).",
+        },
+      ],
+    },
+    {
+      n: "Lucrèce",
+      ideas: [
+        {
+          w: "De la nature, I (atomes et vide)",
+          i: "Rien ne naît de rien, rien ne retourne au néant : la nature n'est faite que d'atomes éternels, insécables, qui se meuvent dans le vide et se combinent. Tout ce qui existe, astres, plantes, âmes, résulte de leurs rencontres, sans dessein divin. Connaître la nature, c'est cesser de la peupler de dieux.",
+          new: true,
+          citations: ["Rien ne naît de rien, par l'effet d'une puissance divine (I, 150, reformulé)"],
+          fiche: "Rien ne naît de rien : la nature n'est qu'atomes et vide, sans dessein divin.",
+        },
+      ],
+    },
+    {
+      n: "Montaigne",
+      ideas: [
+        {
+          w: "Essais, I, 31, « Des cannibales »",
+          i: "À propos des Tupinambas du Brésil, Montaigne retourne l'accusation : nous appelons barbare ce qui n'est pas de notre usage. Les « sauvages » le sont comme un fruit sauvage, que l'art humain n'a pas abâtardi ; et la cruauté des guerres de religion, où l'on torture des vivants, vaut bien celle qui mange des morts.",
+          new: true,
+          citations: ["« Chacun appelle barbarie ce qui n'est pas de son usage » (I, 31)"],
+          fiche: "Chacun appelle barbarie ce qui n'est pas de son usage : critique de l'ethnocentrisme.",
+        },
+      ],
+    },
+    {
+      n: "Diderot",
+      ideas: [
+        {
+          w: "Supplément au voyage de Bougainville (écrit en 1772, publié en 1796)",
+          i: "Un vieillard tahitien et l'aumônier de l'expédition comparent leurs mœurs. Les interdits européens sur la sexualité, contraires à la nature, produisent hypocrisie et malheur ; chez les Tahitiens, la règle suit la nature et l'utilité commune. Diderot ne prône pas un retour à l'état sauvage : il demande qu'on n'impose pas des lois qui contredisent la nature humaine.",
+          new: true,
+          citations: ["Le vieillard tahitien demande aux Européens de laisser ses mœurs en paix (reformulé)"],
+          fiche: "Des lois contraires à la nature produisent hypocrisie et malheur : la morale doit s'accorder à la nature humaine.",
+        },
+      ],
+    },
+    {
+      n: "Bentham",
+      ideas: [
+        {
+          w: "Introduction aux principes de morale et de législation, chap. XVII, note (1789)",
+          i: "Le jour viendra peut-être où les animaux obtiendront les droits qu'on leur refuse. Ce qui compte moralement n'est ni la raison ni le langage, mais la capacité de souffrir : c'est elle qui donne droit à la considération. Bentham ouvre ainsi l'éthique animale moderne, que reprendra Peter Singer.",
+          new: true,
+          citations: [
+            "« La question n'est pas : peuvent-ils raisonner ? ni : peuvent-ils parler ? mais : peuvent-ils souffrir ? » (chap. XVII, note)",
+          ],
+          fiche: "Ce qui donne droit à la considération morale n'est ni la raison ni la parole, mais la capacité de souffrir.",
+        },
+      ],
+    },
+    {
+      n: "Beauvoir",
+      ideas: [
+        {
+          w: "Le Deuxième Sexe, t. II (1949)",
+          i: "Il n'y a pas d'éternel féminin, ni de destin biologique. La féminité est une situation produite par l'éducation, les mœurs, l'économie : la société fait de la femme l'Autre de l'homme, définie par rapport à lui. Ce qui passe pour la nature féminine est une construction, donc peut changer.",
+          new: true,
+          citations: ["« On ne naît pas femme : on le devient » (t. II, 1re partie, chap. I)"],
+          fiche: "La féminité n'est pas une nature mais une construction sociale : la femme est faite l'Autre de l'homme.",
+        },
+      ],
+    },
+    {
+      n: "Lévi-Strauss",
+      ideas: [
+        {
+          w: "Les Structures élémentaires de la parenté (1949)",
+          i: "Où finit la nature, où commence la culture ? Est naturel ce qui est universel ; est culturel ce qui suit une règle, variable d'une société à l'autre. La prohibition de l'inceste est le seul fait à la fois universel et réglé : elle est le passage même de la nature à la culture. Elle oblige à chercher un conjoint hors de sa famille, donc à échanger, et noue les groupes entre eux.",
+          new: true,
+          citations: [
+            "La prohibition de l'inceste, à la fois universelle et réglée, marque le passage de la nature à la culture (reformulé)",
+          ],
+          fiche: "La prohibition de l'inceste, universelle et réglée, est le passage de la nature à la culture ; elle oblige à l'échange.",
+        },
+        {
+          w: "Race et histoire (1952)",
+          i: "Écrit pour l'Unesco. Toutes les sociétés ont une histoire aussi longue ; aucune n'est primitive. Traiter l'autre de barbare, c'est adopter justement l'attitude qu'on lui reproche. Le progrès vient de la coalition des cultures, de leurs échanges : une civilisation isolée s'appauvrit.",
+          new: true,
+          citations: ["« Le barbare, c'est d'abord l'homme qui croit à la barbarie » (Race et histoire)"],
+          fiche: "Aucune culture n'est primitive ; traiter l'autre de barbare, c'est être soi-même barbare.",
         },
       ],
     },
