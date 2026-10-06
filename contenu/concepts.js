@@ -41,7 +41,7 @@ CONCEPT({
   cat: "Ontologie",
   def: "Doctrine selon laquelle l'être humain n'est pas déterminé d'avance par une <strong>essence</strong>, mais <strong>libre et responsable</strong> de son existence : « l'<em>existence précède l'essence</em> » (Sartre). On distingue l'existentialisme <strong>chrétien</strong> (Jaspers, Gabriel Marcel) et l'existentialisme <strong>athée</strong> (Heidegger, Sartre) ; leur point commun est de faire de l'homme un projet qui se choisit lui-même. <em>Ex.</em> la « mauvaise foi » : se prendre pour une chose déterminée afin de fuir l'angoisse de la liberté.",
   auteur: "Sartre",
-  notions: ["conscience", "liberte", "verite"],
+  notions: ["conscience", "liberte", "verite", "existence"],
   relations: [
     {
       to: "absurde",
@@ -79,7 +79,7 @@ CONCEPT({
   cat: "Existentialisme",
   def: "Chez <strong>Camus</strong>, l'absurde n'est ni dans l'homme ni dans le monde, mais dans leur <em>rencontre</em> : le divorce entre l'exigence humaine de sens et le « silence déraisonnable du monde ». Il ne commande ni le suicide ni l'espérance d'un au-delà, mais la <strong>révolte</strong> — vivre lucidement, sans appel. <em>Ex.</em> Sisyphe, condamné à rouler éternellement son rocher : « Il faut imaginer Sisyphe heureux. »",
   auteur: "Camus",
-  notions: ["temps", "bonheur"],
+  notions: ["temps", "bonheur", "existence"],
   relations: [],
 });
 
@@ -131,7 +131,7 @@ CONCEPT({
   cat: "Épistémologie",
   def: "Critère de scientificité chez <strong>Popper</strong> : une théorie est scientifique non parce qu'elle est <em>vérifiable</em>, mais parce qu'elle est <strong>réfutable</strong> — elle interdit certains faits et s'expose donc à un test qui pourrait la démentir. Une thèse qu'aucune observation ne pourrait contredire (qu'on « immunise ») n'est pas scientifique : c'est le reproche que Popper adresse à la psychanalyse et au marxisme. La science avance par conjectures et réfutations. <em>Ex.</em> « Tous les corbeaux sont noirs » est réfutable : un seul corbeau blanc suffirait à l'infirmer.",
   auteur: "Popper",
-  notions: ["science", "raison", "verite"],
+  notions: ["science", "raison", "verite", "demonstration"],
   relations: [
     {type: "distinction", desc: "Falsifiable ≠ vrai (une théorie peut être falsifiable et fausse)"},
     {type: "distinction", desc: "Falsifiabilité ≠ vérifiabilité (positivisme logique)"},
@@ -160,7 +160,7 @@ CONCEPT({
   cat: "Logique",
   def: "Raisonnement <strong>déductif</strong> formalisé par <strong>Aristote</strong> : « un discours dans lequel, certaines choses étant posées, une autre en résulte nécessairement ». Ex. « Tout homme est mortel ; or Socrate est un homme ; donc Socrate est mortel. » Il est <em>démonstratif</em> si ses prémisses sont vraies et premières, <em>dialectique</em> si elles sont seulement probables, <em>éristique</em> si elles ne le paraissent qu'en apparence.",
   auteur: "Aristote",
-  notions: ["raison"],
+  notions: ["raison", "demonstration"],
   relations: [],
 });
 
@@ -330,11 +330,12 @@ CONCEPT({
   cat: "Existentialisme",
   def: "Sartre : attitude qui consiste à se croire déterminé comme une chose, à nier sa liberté radicale en \"jouant un rôle\". Exemple : le garçon de café qui \"joue\" à être garçon de café. ≠ mensonge (on se ment à soi-même conscient de sa liberté).",
   auteur: "Sartre",
-  notions: ["conscience", "liberte"],
+  notions: ["conscience", "liberte", "existence"],
   relations: [
     {type: "distinction", desc: "Mauvaise foi ≠ mensonge (auto-illusion)"},
     {type: "distinction", desc: "Mauvaise foi ↔ authenticité (assumer sa liberté)"},
   ],
+  modified: true,
 });
 
 CONCEPT({
@@ -421,11 +422,12 @@ CONCEPT({
   cat: "Philosophie politique",
   def: "Théorie de la légitimité politique par accord entre individus. <strong>Hobbes</strong> : abandon total des droits au souverain absolu pour la sécurité. <strong>Locke</strong> : contrat révocable si les droits naturels sont violés. <strong>Rousseau</strong> : aliénation à la volonté générale — \"en obéissant à la loi qu'on s'est prescrite, on est libre\".",
   auteur: "Hobbes / Locke / Rousseau",
-  notions: ["etat", "liberte", "justice"],
+  notions: ["etat", "liberte", "justice", "societe"],
   relations: [
     {type: "distinction", desc: "Sécurité (Hobbes) ≠ droits naturels (Locke) ≠ liberté civile (Rousseau)"},
     {type: "distinction", desc: "Contrat fictif ou historique ?"},
   ],
+  modified: true,
 });
 
 CONCEPT({
@@ -608,11 +610,12 @@ CONCEPT({
   cat: "Vitalisme",
   def: "Bergson (<em>L'Évolution créatrice</em>, 1907) : principe de la vie — force créatrice qui s'exprime à travers l'évolution des espèces. Imprévisible, créateur, non téléologique (≠ finalisme). L'homme est la pointe de cet élan vital grâce à l'intelligence et à l'intuition.",
   auteur: "Bergson",
-  notions: ["nature", "temps", "liberte"],
+  notions: ["nature", "temps", "liberte", "vivant"],
   relations: [
     {type: "distinction", desc: "Élan vital ≠ mécanisme (déterministe)"},
     {type: "distinction", desc: "Élan vital ≠ finalisme (un but préétabli)"},
   ],
+  modified: true,
 });
 
 CONCEPT({
@@ -1456,7 +1459,7 @@ CONCEPT({
   cat: "Philosophie",
   def: "Du grec <em>hermêneutikê</em>, « art d'interpréter ». Théorie de l'<strong>interprétation</strong> des textes (initialement les textes sacrés). Dilthey (<em>Introduction à l'étude des sciences humaines</em>, 1883) : les sciences humaines (histoire, sociologie, philosophie) ne procèdent pas par <em>explication</em> causale (comme les sciences de la nature) mais par <strong>compréhension</strong> (<em>Verstehen</em>) — interprétation des intentions humaines. Heidegger et Ricœur étendent l'herméneutique à toute compréhension de soi et du monde.",
   auteur: "Dilthey / Heidegger / Ricœur",
-  notions: ["langage", "raison", "verite", "conscience"],
+  notions: ["langage", "raison", "verite", "conscience", "interpretation"],
   relations: [
     {
       type: "distinction",
@@ -1465,6 +1468,7 @@ CONCEPT({
     {type: "distinction", desc: "Sciences de la nature ≠ sciences de l'esprit (Dilthey)"},
     {type: "distinction", desc: "Texte ≠ intentions (interprétation toujours partielle)"},
   ],
+  modified: true,
 });
 
 CONCEPT({
@@ -1487,12 +1491,13 @@ CONCEPT({
   cat: "Existentialisme / Religion",
   def: "Pour Kierkegaard (<em>Le Concept d'angoisse</em>, 1844 ; <em>Crainte et Tremblement</em>, 1843) : sentiment fondamental qui révèle la <strong>liberté humaine</strong> face au possible — non peur d'un objet précis, mais vertige devant l'indétermination de l'existence. L'angoisse est <em>formatrice</em> : elle met à nu nos illusions et ouvre à la foi authentique (« le saut »). Heidegger reprend : l'angoisse révèle l'<em>être-pour-la-mort</em>, condition de l'authenticité.",
   auteur: "Kierkegaard / Heidegger / Sartre",
-  notions: ["religion", "liberte", "conscience", "temps"],
+  notions: ["religion", "liberte", "conscience", "temps", "existence"],
   relations: [
     {type: "distinction", desc: "Angoisse ≠ peur (sans objet déterminé)"},
     {type: "distinction", desc: "Angoisse formatrice (Kierkegaard) ≠ angoisse paralysante"},
     {type: "distinction", desc: "Angoisse comme épreuve spirituelle ≠ angoisse comme pathologie"},
   ],
+  modified: true,
 });
 
 CONCEPT({
@@ -1711,7 +1716,7 @@ CONCEPT({
   cat: "Logique",
   def: "Principe fondamental de la logique (Aristote, <em>Métaphysique</em>, livre Γ) : <strong>il est impossible que le même attribut appartienne et n'appartienne pas en même temps au même sujet et sous le même rapport</strong>. Formalisé : ¬(A ∧ ¬A). Principe « le plus ferme de toute démonstration » selon Aristote — celui qu'on ne peut pas refuser sans le présupposer (qui dit « il y a contradiction » s'appuie sur lui). Critère de la <em>vérité-cohérence</em> : une théorie est vraie si elle n'est pas contradictoire.",
   auteur: "Aristote",
-  notions: ["raison", "verite"],
+  notions: ["raison", "verite", "demonstration"],
   relations: [
     {
       type: "distinction",
@@ -1722,6 +1727,7 @@ CONCEPT({
       desc: "Principe formel ≠ contradiction dialectique (Hegel : la contradiction motrice du devenir)",
     },
   ],
+  modified: true,
 });
 
 CONCEPT({
@@ -2000,12 +2006,13 @@ CONCEPT({
   cat: "Métaphysique",
   def: "Thèse métaphysique de l’existence de deux substances distinctes et irréductibles — typiquement l’âme (pensée) et le corps (étendue) chez Descartes, ou l’esprit et la matière.",
   auteur: "Descartes",
-  notions: ["conscience", "inconscient"],
+  notions: ["conscience", "inconscient", "matiere-esprit"],
   relations: [
     {to: "cogito", type: "prolonge", desc: "Le cogito (substance pensante) se distingue du corps étendu."},
     {to: "materialisme", type: "oppose"},
     {term: "monisme", type: "oppose", desc: "Le monisme ne reconnaît qu’une seule substance."},
   ],
+  modified: true,
 });
 
 CONCEPT({
@@ -2014,7 +2021,7 @@ CONCEPT({
   cat: "Métaphysique",
   def: "Doctrine selon laquelle seule la matière existe : la pensée et la conscience sont des produits de l’organisation matérielle. Démocrite (atomisme), Marx (matérialisme historique : les conditions matérielles déterminent les idées).",
   auteur: "Marx",
-  notions: ["conscience", "nature", "travail"],
+  notions: ["conscience", "nature", "travail", "matiere-esprit"],
   relations: [
     {
       to: "idealisme",
@@ -2028,6 +2035,7 @@ CONCEPT({
       desc: "Le matérialisme historique de Marx part de l’économie réelle.",
     },
   ],
+  modified: true,
 });
 
 CONCEPT({
@@ -2083,7 +2091,7 @@ CONCEPT({
   cat: "Métaphysique",
   def: "Explication d’un être ou d’un phénomène par sa fin (cause finale, « ce en vue de quoi »), par opposition à l’explication par des causes mécaniques. La nature semble agir en vue d’une fin (téléologie).",
   auteur: "Aristote",
-  notions: ["nature", "technique", "science"],
+  notions: ["nature", "technique", "science", "vivant"],
   relations: [
     {
       to: "determinisme",
@@ -2092,6 +2100,7 @@ CONCEPT({
     },
     {term: "mécanisme", type: "oppose"},
   ],
+  modified: true,
 });
 
 CONCEPT({
@@ -2218,11 +2227,12 @@ CONCEPT({
   cat: "Métaphysique",
   def: "Thèse métaphysique selon laquelle il n’existe qu’une seule substance ou un seul principe ultime du réel, par opposition au dualisme. Chez Spinoza, il n’y a qu’une substance infinie, Dieu ou la Nature (« Deus sive Natura »), dont l’esprit et le corps sont deux attributs.",
   auteur: "Spinoza",
-  notions: ["conscience", "nature", "religion"],
+  notions: ["conscience", "nature", "religion", "matiere-esprit"],
   relations: [
     {to: "dualisme", type: "oppose", desc: "Une seule substance (monisme) contre deux (dualisme)."},
     {to: "immanence", type: "prolonge", desc: "Spinoza : une substance unique et immanente au monde."},
   ],
+  modified: true,
 });
 
 CONCEPT({
@@ -2231,7 +2241,7 @@ CONCEPT({
   cat: "Philosophie des sciences",
   def: "Doctrine qui explique tous les phénomènes, y compris le vivant, par des causes matérielles et des lois physiques, comme une machine — excluant les causes finales. Descartes réduit l’animal à une « machine » (animal-machine).",
   auteur: "Descartes",
-  notions: ["nature", "science", "technique"],
+  notions: ["nature", "science", "technique", "vivant"],
   relations: [
     {
       to: "finalite",
@@ -2245,6 +2255,7 @@ CONCEPT({
       desc: "Le vitalisme (élan vital) refuse de réduire le vivant à une machine.",
     },
   ],
+  modified: true,
 });
 
 CONCEPT({
@@ -2731,6 +2742,201 @@ CONCEPT({
       to: "ruse-de-la-raison",
       type: "oppose",
       desc: "Hegel fait de la raison le moteur de l'histoire ; Marx « remet sur ses pieds » la dialectique : ce sont les conditions matérielles.",
+    },
+  ],
+});
+
+CONCEPT({
+  new: true,
+  id: "sensation",
+  term: "Sensation",
+  cat: "Théorie de la connaissance",
+  def: "Impression simple reçue par un sens (une couleur, un son, une chaleur, une douleur), avant que l'esprit ne l'organise. La <strong>perception</strong>, elle, saisit un objet : je perçois une table, je n'en sens que la couleur et la dureté. Les empiristes font de la sensation l'origine de toutes nos idées. <em>Ex.</em> Dans le noir, je sens quelque chose de froid et de lisse ; quand j'allume, je perçois un verre.",
+  notions: ["perception", "conscience"],
+  relations: [
+    {
+      type: "distinction",
+      desc: "Sensation (impression simple, reçue) ≠ perception (saisie d'un objet, déjà organisée).",
+    },
+  ],
+});
+
+CONCEPT({
+  new: true,
+  id: "qualites-premieres-secondes",
+  term: "Qualités premières et secondes",
+  cat: "Théorie de la connaissance",
+  def: "Distinction de Locke (<em>Essai sur l'entendement humain</em>, II, 8) : les qualités <strong>premières</strong> (étendue, figure, mouvement, nombre) sont dans les choses elles-mêmes ; les qualités <strong>secondes</strong> (couleur, saveur, odeur, chaleur) ne sont que des effets des choses sur nos sens. Berkeley la conteste : l'étendue n'est jamais perçue sans couleur. <em>Ex.</em> Une même eau tiède paraît chaude à une main froide et froide à une main chaude : la chaleur est en nous ; la forme du récipient, elle, ne varie pas.",
+  auteur: "Locke",
+  notions: ["perception"],
+  relations: [
+    {to: "sensation", type: "complete", desc: "Les qualités secondes n'existent que comme sensations."},
+  ],
+});
+
+CONCEPT({
+  new: true,
+  id: "authenticite",
+  term: "Authenticité",
+  cat: "Existentialisme",
+  def: "Chez Heidegger, manière d'exister qui assume son être propre (sa finitude, sa mort, ses possibilités) au lieu de se perdre dans le « on », ce que tout le monde dit et fait. Sartre en fait l'envers de la mauvaise foi : assumer sa liberté et sa situation. <em>Ex.</em> Choisir ses études parce qu'on y tient, et non parce que « c'est ce qui se fait », quitte à en porter les risques.",
+  auteur: "Heidegger",
+  notions: ["existence"],
+  relations: [
+    {
+      to: "mauvaise-foi",
+      type: "oppose",
+      desc: "L'authenticité assume sa liberté ; la mauvaise foi la fuit en se prenant pour une chose.",
+    },
+  ],
+});
+
+CONCEPT({
+  new: true,
+  id: "animal-machine",
+  term: "Animal-machine",
+  cat: "Philosophie des sciences",
+  def: "Thèse de Descartes (<em>Discours de la méthode</em>, V) : les animaux n'ont pas d'âme pensante ; leurs comportements s'expliquent entièrement par la disposition de leurs organes, comme les mouvements d'une horloge. Thèse vivement discutée dès l'époque (La Fontaine, Leibniz) et aujourd'hui par l'éthologie, qui étudie les émotions et l'intelligence animales. <em>Ex.</em> Un chien qui sursaute au bruit d'une porte réagirait comme un mécanisme, sans rien ressentir.",
+  auteur: "Descartes",
+  notions: ["vivant", "nature"],
+  relations: [
+    {to: "mecanisme", type: "prolonge", desc: "L'animal-machine applique le mécanisme au vivant."},
+  ],
+});
+
+CONCEPT({
+  new: true,
+  id: "selection-naturelle",
+  term: "Sélection naturelle",
+  cat: "Philosophie des sciences",
+  def: "Mécanisme décrit par Darwin (<em>L'Origine des espèces</em>, 1859) : parmi les variations qui apparaissent dans une espèce, celles qui donnent un avantage dans un milieu donné sont transmises plus souvent, car leurs porteurs survivent et se reproduisent davantage. Elle explique l'adaptation sans finalité. <em>Ex.</em> Dans une région où les arbres se couvrent de suie, les papillons de couleur sombre, moins visibles pour les oiseaux, deviennent majoritaires (la phalène du bouleau en Angleterre au XIXe siècle).",
+  auteur: "Darwin",
+  notions: ["vivant", "nature", "science"],
+  relations: [
+    {
+      to: "finalite",
+      type: "oppose",
+      desc: "La sélection naturelle explique l'apparence de finalité sans supposer de fin.",
+    },
+  ],
+});
+
+CONCEPT({
+  new: true,
+  id: "fonctionnalisme",
+  term: "Fonctionnalisme",
+  cat: "Philosophie de l’esprit",
+  def: "Théorie de l'esprit proposée par Hilary Putnam dans les années 1960 : un état mental (une douleur, une croyance) se définit par sa fonction, c'est-à-dire par ses relations avec ce qui le cause, ce qu'il produit et les autres états mentaux, et non par la matière qui le réalise. Le même état pourrait donc exister dans un cerveau humain, animal ou artificiel. <em>Ex.</em> Une calculatrice et un enfant qui fait une addition réalisent la même opération dans des matériaux très différents.",
+  auteur: "Putnam",
+  notions: ["matiere-esprit", "technique"],
+  relations: [
+    {
+      to: "dualisme",
+      type: "oppose",
+      desc: "Le fonctionnalisme n'a pas besoin d'une substance pensante distincte du corps.",
+    },
+    {
+      to: "materialisme",
+      type: "complete",
+      desc: "Compatible avec le matérialisme, il refuse pourtant de réduire l'esprit à un matériau précis.",
+    },
+  ],
+});
+
+CONCEPT({
+  new: true,
+  id: "perspectivisme",
+  term: "Perspectivisme",
+  cat: "Philosophie nietzschéenne",
+  def: "Thèse de Nietzsche : il n'y a pas de connaissance sans point de vue, et chaque point de vue (chaque besoin, chaque force vitale) interprète le monde à sa manière. Il n'y a pas de faits nus, mais des interprétations, plus ou moins favorables à la vie. <em>Ex.</em> Une forêt est pour le bûcheron une réserve de bois, pour le promeneur un paysage, pour le biologiste un écosystème : aucune de ces vues n'est la forêt « en soi ».",
+  auteur: "Nietzsche",
+  notions: ["interpretation", "verite"],
+  relations: [
+    {
+      to: "hermeneutique",
+      type: "prolonge",
+      desc: "Le perspectivisme étend l'interprétation, des textes au monde entier.",
+    },
+  ],
+});
+
+CONCEPT({
+  new: true,
+  id: "cercle-hermeneutique",
+  term: "Cercle herméneutique",
+  cat: "Herméneutique",
+  def: "Principe de l'interprétation selon lequel on ne comprend le tout que par ses parties, et les parties que par le tout : on avance par allers-retours, chaque lecture corrigeant la précédente. Formulé par Schleiermacher et Dilthey, repris par Heidegger, Gadamer et Ricœur. Ce cercle n'est pas vicieux : il est le mouvement même de la compréhension. <em>Ex.</em> Le sens d'une phrase dépend de celui du chapitre, mais on ne comprend le chapitre qu'en lisant ses phrases.",
+  notions: ["interpretation", "langage"],
+  relations: [
+    {
+      to: "hermeneutique",
+      type: "complete",
+      desc: "Le cercle herméneutique décrit comment procède toute interprétation.",
+    },
+  ],
+});
+
+CONCEPT({
+  new: true,
+  id: "axiome",
+  term: "Axiome",
+  cat: "Logique",
+  def: "Proposition admise sans démonstration, qui sert de point de départ à une théorie déductive. Longtemps tenu pour une vérité évidente par elle-même (Euclide, Aristote), l'axiome est devenu depuis les géométries non euclidiennes une hypothèse de départ choisie, dont on demande surtout qu'elle soit cohérente avec les autres. <em>Ex.</em> « Le tout est plus grand que la partie » (une des notions communes d'Euclide) ; ou, en arithmétique, « tout nombre entier a un successeur ».",
+  notions: ["demonstration", "raison", "verite"],
+  relations: [
+    {
+      to: "syllogisme",
+      type: "complete",
+      desc: "L'axiome fournit les prémisses premières d'où la démonstration tire ses conclusions.",
+    },
+  ],
+});
+
+CONCEPT({
+  new: true,
+  id: "verites-raison-fait",
+  term: "Vérités de raison et vérités de fait",
+  cat: "Logique / Épistémologie",
+  def: "Distinction de Leibniz (<em>Monadologie</em>, § 33) : les vérités de raison sont nécessaires, leur contraire est impossible, et elles se démontrent par l'analyse, jusqu'à des identités ; les vérités de fait sont contingentes, leur contraire est possible, et nous ne pouvons pas toujours en atteindre la raison. <em>Ex.</em> « Un triangle a trois côtés » est une vérité de raison ; « César a franchi le Rubicon » est une vérité de fait.",
+  auteur: "Leibniz",
+  notions: ["demonstration", "verite"],
+  relations: [
+    {
+      type: "distinction",
+      desc: "Vérité de raison (nécessaire, démontrable) ≠ vérité de fait (contingente, constatée).",
+    },
+  ],
+});
+
+CONCEPT({
+  new: true,
+  id: "fait-social",
+  term: "Fait social",
+  cat: "Sociologie",
+  def: "Chez Durkheim (<em>Les Règles de la méthode sociologique</em>, 1895), manière d'agir, de penser ou de sentir qui est extérieure aux individus et s'impose à eux par une contrainte, même quand ils ne la ressentent pas. Les faits sociaux doivent être étudiés comme des choses, de l'extérieur, sans se fier aux idées qu'on en a. <em>Ex.</em> La langue qu'on parle, l'usage de la monnaie, la mode, le taux de natalité d'un pays.",
+  auteur: "Durkheim",
+  notions: ["societe"],
+  relations: [
+    {
+      to: "individualisme",
+      type: "oppose",
+      desc: "Le fait social s'impose aux individus ; l'individualisme se croit indépendant de la société.",
+    },
+  ],
+});
+
+CONCEPT({
+  new: true,
+  id: "individualisme",
+  term: "Individualisme",
+  cat: "Philosophie politique",
+  def: "Chez Tocqueville, sentiment propre aux sociétés démocratiques qui porte chacun à se retirer dans un petit cercle de proches et à se désintéresser de la vie commune ; à distinguer de l'égoïsme, amour excessif de soi de tous les temps. Plus largement, doctrine qui fait de l'individu la valeur première, avant les groupes. <em>Ex.</em> Ne plus voter, ne participer à aucune association, en se disant que la politique « ne nous regarde pas ».",
+  auteur: "Tocqueville",
+  notions: ["societe", "liberte"],
+  relations: [
+    {
+      type: "distinction",
+      desc: "Individualisme (retrait paisible hors de la vie commune) ≠ égoïsme (amour passionné et exclusif de soi).",
     },
   ],
 });

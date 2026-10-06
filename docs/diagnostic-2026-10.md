@@ -703,11 +703,42 @@ Hegel (reconnaissance, « rien de grand… »), Husserl (apprésentation),
 Merleau-Ponty (le dialogue), Levinas (le visage), Platon (*Banquet*, 200 e),
 Épicure, Lévi-Strauss, Aron.
 
-**Pour la suite** (autres notions de 2003 : la perception, l'existence, le
-vivant, la matière et l'esprit, l'interprétation, la démonstration, la
-société, le droit ; puis des notions jamais au programme, à choisir
-ensemble) : même chemin, un fichier dans `contenu/notions/`, la clé à la
-fin d'`ORDRE`, le minimum de la question 12.
+**Pour la suite** : même chemin, un fichier dans `contenu/notions/`, la clé
+à la fin d'`ORDRE`, le minimum de la question 12.
+
+### Hors programme, deuxième lot : les autres notions de 2003 (6 octobre 2026)
+
+Sept notions : **Perception, Existence, Vivant, Matière et esprit,
+Interprétation, Démonstration, Société**. Deux notions de 2003 ne sont pas
+ajoutées parce que le programme de 2019 les a reprises sous un autre nom :
+« Théorie et expérience » (devenue la Science) et « La justice et le droit »
+(devenue la Justice). Le programme de 2003 est donc entièrement couvert.
+
+Chaque notion a sa définition et trois sections « Approfondir », 6 auteurs
+déjà présents sur le site (tous de la liste officielle), un texte, un plan
+détaillé, deux exemples, une accroche, quatre sujets, ses liens et ses
+sources. Douze concepts nouveaux (Sensation, Qualités premières et
+secondes, Authenticité, Animal-machine, Sélection naturelle,
+Fonctionnalisme, Perspectivisme, Cercle herméneutique, Axiome, Vérités de
+raison et vérités de fait, Fait social, Individualisme) et vingt concepts
+ou repères existants rattachés (Dualisme, Finalité, Mécanisme,
+Herméneutique, Syllogisme, Mauvaise foi, Falsifiabilité, Expliquer /
+comprendre…).
+
+Citations exactes vérifiées sur le texte : Descartes (*Méditations*, II et
+VI ; *Discours*, II, Wikisource), Leibniz (*Monadologie*, § 17 et 33,
+texte français de Leibniz), Pascal (*De l'esprit géométrique*, Wikisource ;
+*Pensées*, Laf. 201), Spinoza (*Éthique*, II, 7), Sartre (« l'existence
+précède l'essence »), Camus (*Le Mythe de Sisyphe*), Freud (« la voie
+royale », ajout de 1909), Ricœur (« expliquer plus, c'est comprendre
+mieux »), Durkheim (*Règles*, chap. II), Tocqueville (l'individualisme).
+Entrées comme reformulations : Aristote (dont « animal politique », dont
+la traduction varie), Kant (§ 66), Merleau-Ponty, Alain, Condillac,
+Kierkegaard, Heidegger, Jaspers, Bergson, Darwin, Hans Jonas, Lucrèce,
+Putnam, Averroès, Spinoza (*Traité théologico-politique*), Weber, Popper,
+Mauss.
+
+Le site compte désormais 27 notions : 17 au programme et 10 hors programme.
 
 ## Sources
 

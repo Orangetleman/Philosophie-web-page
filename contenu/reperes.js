@@ -50,7 +50,7 @@ REPERE({
   term: "Analyse / Synthèse",
   cat: "Repère",
   def: "<strong>Analyse</strong> : décomposer un tout en ses éléments simples pour les examiner. <strong>Synthèse</strong> : recomposer le tout à partir de ses parties, du simple au complexe. <br><em>Ex.</em> Descartes (<em>Discours de la méthode</em>) recommande de diviser chaque difficulté (analyse), puis de conduire ses pensées par ordre du plus simple au plus composé (synthèse).",
-  notions: ["raison", "science", "conscience"],
+  notions: ["raison", "science", "conscience", "demonstration"],
   relations: [
     {
       type: "distinction",
@@ -65,7 +65,7 @@ REPERE({
   term: "Objectif / Subjectif / Intersubjectif",
   cat: "Repère",
   def: "<strong>Objectif</strong> : ce qui ne dépend que de l'objet, dont la validité est partageable par tous (domaine du savoir). <strong>Subjectif</strong> : ce qui dépend du sujet et varie d'une personne à l'autre (domaine de la croyance, du goût). <strong>Intersubjectif</strong> : accord construit entre plusieurs sujets par le dialogue. <br><em>Ex.</em> « la Terre tourne autour du Soleil » est objectif ; « ce plat est délicieux » est subjectif.",
-  notions: ["verite", "science", "conscience"],
+  notions: ["verite", "science", "conscience", "perception"],
   relations: [
     {
       type: "distinction",
@@ -110,7 +110,7 @@ REPERE({
   term: "Persuader / Convaincre",
   cat: "Repère",
   def: "<strong>Persuader</strong> : emporter l'adhésion en s'adressant aux sentiments et à l'imagination, par la rhétorique. <strong>Convaincre</strong> : emporter l'adhésion par des arguments rationnels et des preuves, valables pour tout esprit. <br><em>Ex.</em> l'orateur persuade une foule ; le mathématicien convainc par une démonstration.",
-  notions: ["raison", "langage", "verite"],
+  notions: ["raison", "langage", "verite", "demonstration"],
   relations: [
     {
       type: "distinction",
@@ -375,7 +375,7 @@ REPERE({
   term: "Exemple / Preuve",
   cat: "Repère",
   def: "<strong>Exemple</strong> : cas particulier qui illustre, éclaire ou fait comprendre une idée. <strong>Preuve</strong> : fait, résultat ou témoignage qui établit la vérité d'une affirmation. <br><em>Ex.</em> des parents donnent l'exemple à leurs enfants — mais un exemple n'est jamais une preuve.",
-  notions: ["verite", "science", "raison"],
+  notions: ["verite", "science", "raison", "demonstration"],
   relations: [
     {
       type: "distinction",
@@ -390,7 +390,7 @@ REPERE({
   term: "Expliquer / Comprendre",
   cat: "Repère",
   def: "<strong>Expliquer</strong> : identifier les causes, dégager une loi à partir des faits (modèle des sciences de la nature). <strong>Comprendre</strong> : saisir le sens, se représenter de l'intérieur une signification (modèle des sciences humaines). <br><em>Ex.</em> la psychanalyse explique un rêve par ses causes ; on comprend une œuvre d'art en en saisissant le sens.",
-  notions: ["science", "conscience", "art"],
+  notions: ["science", "conscience", "art", "interpretation"],
   relations: [
     {
       type: "distinction",
