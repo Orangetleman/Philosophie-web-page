@@ -26,6 +26,9 @@ body.mode-edition .sb-settings{color:var(--color-text-info);border-color:var(--c
 .set-row{display:flex;flex-direction:column;gap:8px}
 .set-row-cur{font-size:13px;color:var(--color-text-secondary)}
 .set-row-cur strong{color:var(--color-text-primary)}
+/* Étape 6 : réglages à choix unique (thème, taille du texte). */
+.set-choix{display:flex;flex-wrap:wrap;gap:6px}
+.set-choix .pbtn{flex:1 1 auto;min-width:0}
 .set-row-desc{font-size:12px;line-height:1.5;color:var(--color-text-tertiary)}
 .set-mode-btn{align-self:flex-start}
 /* En mode RÉVISION (défaut), on cache les OUTILS de contribution (boutons +,

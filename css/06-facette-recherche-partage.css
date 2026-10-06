@@ -104,9 +104,9 @@ body:not(.is-signed-in) .topbar-mine{display:none}
 .share-btn-copy{flex-shrink:0;width:auto;padding:9px 14px;font-size:12.5px;
   background:var(--color-background-secondary);color:var(--color-text-secondary);
   border-color:var(--color-border-tertiary)}
-.share-btn-copy.ok{background:rgba(123,216,143,.15);border-color:rgba(123,216,143,.45);color:#7bd88f}
+.share-btn-copy.ok{background:rgba(123,216,143,.15);border-color:rgba(123,216,143,.45);color:var(--color-ok)}
 .share-native{margin-bottom:16px}
-.share-status{margin-top:10px;font-size:12px;line-height:1.5;min-height:1em;text-align:center;color:#7bd88f}
+.share-status{margin-top:10px;font-size:12px;line-height:1.5;min-height:1em;text-align:center;color:var(--color-ok)}
 
 /* Système de « boîtes » de la modale (une boîte = une proposition).
    .pbox = carte ; menus Type/Cible ; .pbox-fields recevra les champs (étape 1c). */
@@ -122,7 +122,7 @@ body:not(.is-signed-in) .topbar-mine{display:none}
   background:transparent;border:0.5px solid var(--color-border-tertiary);
   color:var(--color-text-tertiary);font-size:11px;cursor:pointer;outline:none;
   display:flex;align-items:center;justify-content:center;transition:all .15s}
-.pbox-del:hover:not(:disabled){border-color:#9d5151;color:#d98c8c}
+.pbox-del:hover:not(:disabled){border-color:var(--color-bad-border);color:var(--color-danger-soft)}
 .pbox-del:disabled{opacity:.3;cursor:not-allowed}
 .pfield{margin-bottom:9px}
 .plabel{display:block;font-size:10px;font-weight:500;letter-spacing:.05em;
@@ -140,7 +140,7 @@ body:not(.is-signed-in) .topbar-mine{display:none}
 .pbox-add:hover{border-color:var(--color-text-tertiary);color:var(--color-text-primary)}
 .phint{font-size:11px;color:var(--color-text-tertiary);font-style:italic;line-height:1.5}
 /* Champs des boîtes (étape 1c) : marqueurs requis, sous-formulaire auteur, cases à cocher */
-.preq{text-transform:none;letter-spacing:0;font-weight:600;font-size:9px;color:#d98c8c}
+.preq{text-transform:none;letter-spacing:0;font-weight:600;font-size:9px;color:var(--color-danger-soft)}
 .popt{text-transform:none;letter-spacing:0;font-weight:400;font-style:italic;font-size:9px;color:var(--color-text-tertiary)}
 .pauth-ok{font-size:11px;color:var(--color-text-info);margin-top:4px}
 .pauth-newmsg{font-size:11px;color:#d3a86a;margin-top:4px}

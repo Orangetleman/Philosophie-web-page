@@ -24,7 +24,7 @@
   font-family:inherit;font-size:10.5px;font-weight:500;line-height:1.3;
   text-align:center;cursor:pointer;outline:none;transition:all .15s}
 .sb-account:hover{color:var(--color-text-info);border-color:var(--color-border-info)}
-body.is-signed-in .sb-account{color:#7bd88f;border-color:rgba(123,216,143,.45)}
+body.is-signed-in .sb-account{color:var(--color-ok);border-color:rgba(123,216,143,.45)}
 .auth-tabs{display:flex;gap:6px;margin-bottom:14px}
 .auth-tab{flex:1;padding:8px;text-align:center;cursor:pointer;font-size:12px;
   border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);
@@ -57,8 +57,8 @@ body.is-signed-in .sb-account{color:#7bd88f;border-color:rgba(123,216,143,.45)}
   color:var(--color-text-tertiary);font-size:11px}
 .auth-sep::before,.auth-sep::after{content:"";flex:1;height:0.5px;background:var(--color-border-tertiary)}
 .auth-status{margin-top:10px;font-size:12px;line-height:1.5;min-height:1em}
-.auth-status.err{color:#f0a3a3}
-.auth-status.ok{color:#7bd88f}
+.auth-status.err{color:var(--color-danger)}
+.auth-status.ok{color:var(--color-ok)}
 .auth-meta{font-size:12px;color:var(--color-text-secondary);line-height:1.6}
 .auth-meta b{color:var(--color-text-primary)}
 .auth-intro{font-size:11.5px;color:var(--color-text-tertiary);line-height:1.5;margin-bottom:12px;text-align:center}
@@ -70,10 +70,10 @@ body.is-signed-in .sb-account{color:#7bd88f;border-color:rgba(123,216,143,.45)}
   text-align:center;cursor:pointer;transition:color .15s}
 .auth-link-btn:hover{color:var(--color-text-info)}
 /* Variante « danger » du lien discret : suppression de compte (irréversible). */
-.auth-link-btn.auth-danger{color:#d98a8a;margin-top:16px}
-.auth-link-btn.auth-danger:hover{color:#f0a3a3}
+.auth-link-btn.auth-danger{color:var(--color-danger-soft);margin-top:16px}
+.auth-link-btn.auth-danger:hover{color:var(--color-danger)}
 
-#quiz-overlay{position:fixed;inset:0;background:rgba(10,14,20,.92);z-index:850;
+#quiz-overlay{position:fixed;inset:0;background:var(--color-overlay-quiz);z-index:850;
   display:none;flex-direction:column;padding:16px;
   padding-bottom:calc(16px + env(safe-area-inset-bottom,0px));overflow-y:auto}
 #quiz-overlay.open{display:flex}
@@ -137,7 +137,7 @@ body.is-signed-in .sb-account{color:#7bd88f;border-color:rgba(123,216,143,.45)}
 .quiz-reveal:hover{filter:brightness(1.12)}
 .quiz-no,.quiz-yes{min-height:52px;flex:1;border-radius:var(--border-radius-md);
   font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;transition:filter .15s;border:0.5px solid}
-.quiz-no{background:#3a1e1e;border-color:#5a2d2d;color:#e08a8a}
+.quiz-no{background:var(--color-bad-bg);border-color:var(--color-bad-border);color:var(--color-bad)}
 .quiz-yes{background:var(--color-background-info);border-color:var(--color-border-info);color:var(--color-text-info)}
 .quiz-no:hover,.quiz-yes:hover{filter:brightness(1.25)}
 .quiz-quit{background:transparent;border:none;color:var(--color-text-tertiary);
@@ -186,7 +186,7 @@ body.is-signed-in .sb-account{color:#7bd88f;border-color:rgba(123,216,143,.45)}
   font-family:inherit;font-size:13px;line-height:1.45;cursor:pointer;transition:all .15s}
 .quiz-choice:hover{border-color:var(--color-border-quiz);color:var(--color-text-primary)}
 .quiz-choice.good{background:var(--color-background-info);border-color:var(--color-border-info);color:var(--color-text-info)}
-.quiz-choice.bad{background:#3a1e1e;border-color:#5a2d2d;color:#e08a8a}
+.quiz-choice.bad{background:var(--color-bad-bg);border-color:var(--color-bad-border);color:var(--color-bad)}
 .quiz-choice[disabled]{cursor:default}
 .quiz-next{min-height:48px;background:var(--color-accent-quiz);border:none;border-radius:var(--border-radius-md);
   color:#fff;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;transition:filter .15s}

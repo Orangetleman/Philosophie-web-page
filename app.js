@@ -2266,7 +2266,10 @@ const LINK_REGEX=new RegExp(
    bord) et mémoïse ses résultats, car linkTerms l'appelle très souvent. */
 const _inkCache={};
 function inkOnDark(hex){
-  if(_inkCache[hex]) return _inkCache[hex];
+  // Étape 6 : en thème clair, on fonce la couleur (vers le noir) jusqu'au
+  // même seuil de contraste contre le fond papier ; cache séparé par thème.
+  const clair=themeEffectif()==='clair', cle=(clair?'c':'s')+hex;
+  if(_inkCache[cle]) return _inkCache[cle];
   // Normaliser « #abc » ou « #aabbcc » en composantes 0..255.
   let h=hex.replace('#','');
   if(h.length===3) h=h.split('').map(x=>x+x).join('');
@@ -2274,16 +2277,20 @@ function inkOnDark(hex){
   // Luminance relative WCAG (linéarisation sRGB d'un canal, puis pondération).
   const lin=v=>{ v/=255; return v<=0.03928 ? v/12.92 : Math.pow((v+0.055)/1.055,2.4); };
   const lum=(r,g,b)=>0.2126*lin(r)+0.7152*lin(g)+0.0722*lin(b);
-  const BG=lum(0x2a,0x2a,0x2a);                       // surface claire de référence
+  const BG=clair?lum(0xf1,0xee,0xe8):lum(0x2a,0x2a,0x2a);   // surface de référence (la plus défavorable)
   const ratio=l=>(Math.max(l,BG)+0.05)/(Math.min(l,BG)+0.05);
-  // Éclaircir vers le blanc (+8 % par palier) jusqu'au seuil 4.5:1, ou blanc.
+  // Sombre : éclaircir vers le blanc (+8 % par palier) jusqu'au seuil 4.5:1.
+  // Clair : foncer vers le noir (-8 % par palier) jusqu'au même seuil.
   for(let i=0; i<14 && ratio(lum(r,g,b))<4.5; i++){
-    r=Math.round(r+(255-r)*0.08);
-    g=Math.round(g+(255-g)*0.08);
-    b=Math.round(b+(255-b)*0.08);
+    if(clair){ r=Math.round(r*0.92); g=Math.round(g*0.92); b=Math.round(b*0.92); }
+    else{
+      r=Math.round(r+(255-r)*0.08);
+      g=Math.round(g+(255-g)*0.08);
+      b=Math.round(b+(255-b)*0.08);
+    }
   }
   const hx=v=>v.toString(16).padStart(2,'0');
-  return _inkCache[hex]='#'+hx(r)+hx(g)+hx(b);
+  return _inkCache[cle]='#'+hx(r)+hx(g)+hx(b);
 }
 
 /* linkTerms(html) — cf. section H ci-dessus : rend cliquables les notions,
@@ -2297,7 +2304,23 @@ function lienVersHP(e){
   return e.t==='n' ? estHP(e.v) : e.t==='c' ? HP_CONCEPTS.has(e.v) : HP_AUTEURS.has(e.v);
 }
 
+/* lienSoi() — la cible de la page affichée (« n:liberte », « a:Kant »,
+   « c:dualisme ») : linkTerms n'y crée jamais de lien (étape 6). */
+function lienSoi(){
+  if(sbMode==='auteurs'&&curAuthor) return 'a:'+curAuthor;
+  if(sbMode==='concepts'||sbMode==='reperes') return 'c:'+curConcept;
+  if(sbMode==='methodo') return '';
+  return 'n:'+cur;
+}
+
 function linkTerms(html){
+  // Étape 6 (oct. 2026), contre l'excès de liens (diagnostic, § 3 : 125 liens
+  // dans l'onglet Auteurs de Liberté, dont 61 vers Liberté elle-même), règle
+  // d'usage de Wikipédia : jamais de lien vers la page où l'on est (lienSoi),
+  // et une même cible liée une seule fois par appel, c'est-à-dire par bloc de
+  // texte (une idée, une définition, une citation). Les liens sont aussi
+  // atteignables au clavier (tabindex, role=link ; Entrée : lienClavier).
+  const soi=lienSoi(), vus=new Set();
   // Découpe la chaîne en BALISES (<...>) et FRAGMENTS DE TEXTE, puis ne
   // linkifie que le texte. Indispensable : une version antérieure ne
   // traitait que le texte ENTRE > et < — le texte avant la 1re balise et
@@ -2311,22 +2334,35 @@ function linkTerms(html){
       // Étape 5 : pas de lien vers du hors programme masqué ; on se replie sur
       // le concept homonyme s'il y en a un (et s'il est visible).
       if(!voirHP() && lienVersHP(e)){ e=e.alt; if(!e || lienVersHP(e)) return m; }
+      const cible=e.t+':'+e.v;
+      if(cible===soi || vus.has(cible)) return m;
+      vus.add(cible);
       if(e.t==='n'){ // lien notion — coloré avec la couleur (éclaircie) de la notion
         // inkOnDark : version assez claire de la couleur de notion pour rester
         // lisible en texte sur fond sombre (WCAG AA). On l'applique au texte ET
         // au soulignement, qui restent ainsi de la même teinte que la notion.
         const col=inkOnDark(D[e.v].c);
-        return `<span class="nterm" style="color:${col};border-color:${col}" onclick="openNotion('${e.v}')" title="Voir la notion : ${D[e.v].l}">${m}</span>`;
+        return `<span class="nterm" role="link" tabindex="0" style="color:${col};border-color:${col}" onclick="openNotion('${e.v}')" title="Voir la notion : ${D[e.v].l}">${m}</span>`;
       }
       if(e.t==='a'){ // lien auteur
         const safe=e.v.replace(/'/g,"\\'");
-        return `<span class="aterm" onclick="openAuthor('${safe}')" title="Voir l'auteur : ${e.v}">${m}</span>`;
+        return `<span class="aterm" role="link" tabindex="0" onclick="openAuthor('${safe}')" title="Voir l'auteur : ${e.v}">${m}</span>`;
       }
       // lien concept
-      return `<span class="cterm" onclick="openConcept('${e.v}')" title="Voir définition : ${m}">${m}</span>`;
+      return `<span class="cterm" role="link" tabindex="0" onclick="openConcept('${e.v}')" title="Voir définition : ${m}">${m}</span>`;
     });
   });
 }
+
+/* lienClavier — Entrée (ou Espace) sur un lien de texte (.nterm, .aterm,
+   .cterm, role=link) l'active comme un clic : ce sont des <span>, que le
+   navigateur n'active pas tout seul au clavier (étape 6, accessibilité). */
+document.addEventListener('keydown',ev=>{
+  const t=ev.target;
+  if((ev.key==='Enter'||ev.key===' ') && t && t.matches && t.matches('.nterm,.aterm,.cterm')){
+    ev.preventDefault(); t.click();
+  }
+});
 /* js/06-contribution.js — morceau du script du site. Le build (outils/construire.mjs)
    recolle js/*.js dans l'ORDRE des noms en UN SEUL script, app.js : les
    fonctions restent visibles d'un morceau à l'autre comme avant, et le code
@@ -3936,6 +3972,54 @@ function toggleFicheMode(){
   applyFicheMode();
 }
 
+/* ── Thème et taille du texte (étape 6, oct. 2026) ───────────────────────
+   « philo-theme » : 'sombre' (défaut), 'clair' ou 'auto' (suit le système).
+   Le script en tête d'index.html pose data-theme avant le premier affichage ;
+   ici, on le change à chaud. « philo-texte » : 'normal', 'grand' ou
+   'tres-grand' (classe sur <body>, zoom de la zone de lecture, css/01).  */
+const THEMES={sombre:'Sombre', clair:'Clair', auto:'Automatique'};
+const TAILLES={normal:'Normale', grand:'Grande', 'tres-grand':'Très grande'};
+function lireReglage(cle, defaut){ try{ return localStorage.getItem(cle)||defaut; }catch(e){ return defaut; } }
+/* themeEffectif() — 'clair' ou 'sombre', une fois « auto » résolu. */
+function themeEffectif(){
+  const t=document.documentElement.dataset.theme||'sombre';
+  if(t!=='auto') return t;
+  return (window.matchMedia&&matchMedia('(prefers-color-scheme: light)').matches)?'clair':'sombre';
+}
+/* appliquerAffichage() — pose thème et taille, met à jour la couleur de la
+   barre du téléphone (theme-color). Ne redessine pas : setTheme s'en charge. */
+function appliquerAffichage(){
+  document.documentElement.dataset.theme=lireReglage('philo-theme','sombre');
+  const taille=lireReglage('philo-texte','normal');
+  document.body.classList.toggle('texte-grand', taille==='grand');
+  document.body.classList.toggle('texte-tres-grand', taille==='tres-grand');
+  const meta=document.querySelector('meta[name="theme-color"]');
+  if(meta) meta.setAttribute('content', themeEffectif()==='clair'?'#e9e6df':'#121212');
+}
+/* setTheme(t) / setTailleTexte(t) — enregistrent, appliquent, redessinent
+   (les couleurs de notion des liens dépendent du thème : inkOnDark) et
+   reportent au compte. */
+function setTheme(t){
+  try{ localStorage.setItem('philo-theme', t); }catch(e){}
+  appliquerAffichage(); renderSB(); renderCurrentView();
+  const ov=document.getElementById('settings-overlay');
+  if(ov && ov.classList.contains('open')) renderSettingsBody();
+  syncOnPrefsChange();
+}
+function setTailleTexte(t){
+  try{ localStorage.setItem('philo-texte', t); }catch(e){}
+  appliquerAffichage();
+  const ov=document.getElementById('settings-overlay');
+  if(ov && ov.classList.contains('open')) renderSettingsBody();
+  syncOnPrefsChange();
+}
+// En « auto », suivre le système quand il passe du clair au sombre.
+if(window.matchMedia){
+  const mq=matchMedia('(prefers-color-scheme: light)');
+  const suivre=()=>{ if(lireReglage('philo-theme','sombre')==='auto'){ appliquerAffichage(); renderSB(); renderCurrentView(); } };
+  if(mq.addEventListener) mq.addEventListener('change', suivre); else if(mq.addListener) mq.addListener(suivre);
+}
+
 /* ── Hors programme : afficher / masquer (étape 5, oct. 2026) ─────────────
    setVoirHP(v) — enregistre le réglage (« philo-hp » : '1' visible, '0'
    masqué), note que la personne a fait son choix (« philo-hp-choix », la
@@ -3986,8 +4070,17 @@ function renderSettingsBody(){
   const body=document.getElementById('settings-body'); if(!body) return;
   const isEd=(localStorage.getItem('philo-mode')||'revision')==='edition';
   const isFiche=localStorage.getItem('philo-fiche')==='1';
+  // Étape 6 : thème et taille du texte, en boutons à choix unique.
+  const choix=(titre, desc, options, actuel, fn)=>'<div class="set-row">'
+    +'<div class="set-row-cur">'+titre+' : <strong>'+options[actuel]+'</strong></div>'
+    +'<div class="set-row-desc">'+desc+'</div>'
+    +'<div class="set-choix" role="group" aria-label="'+titre+'">'
+    +Object.keys(options).map(k=>'<button class="pbtn '+(k===actuel?'pbtn-primary':'pbtn-ghost')+'" aria-pressed="'+(k===actuel)+'" onclick="'+fn+'(\''+k+'\')">'+options[k]+'</button>').join('')
+    +'</div></div>';
   body.innerHTML=
-    '<div class="set-row">'
+    choix('Thème', 'Le thème clair, sur fond papier, repose les yeux pour lire longtemps ; « Automatique » suit le réglage de ton appareil.', THEMES, lireReglage('philo-theme','sombre'), 'setTheme')
+    +choix('Taille du texte', 'Agrandit la zone de lecture (notions, fiches), pas la barre latérale.', TAILLES, lireReglage('philo-texte','normal'), 'setTailleTexte')
+    +'<div class="set-row">'
     +'<div class="set-row-cur">Mode d\'affichage actuel : <strong>'+(isEd?'Édition':'Révision')+'</strong></div>'
     +'<div class="set-row-desc">Le mode <em>édition</em> révèle les badges « ✦ nouveau / ✎ modifié » et les boutons « + » pour proposer du contenu. Le mode <em>révision</em> épure l\'affichage pour se concentrer sur l\'apprentissage.</div>'
     +'<button class="pbtn pbtn-primary set-mode-btn" onclick="togglePhiloMode()">'
@@ -5511,6 +5604,8 @@ function prefsBlobForSync(){
     tour: localStorage.getItem('philo-tour-v1')||'',
     hp: localStorage.getItem('philo-hp')||'',            // étape 5 : hors programme affiché ('1') ou masqué ('0')
     hpChoix: localStorage.getItem('philo-hp-choix')||'', // la proposition d'arrivée a reçu une réponse
+    theme: localStorage.getItem('philo-theme')||'',      // étape 6 : sombre, clair ou auto
+    texte: localStorage.getItem('philo-texte')||'',      // étape 6 : taille du texte
     drafts: drafts,
     nav: nav     // position courante (cross-plateforme : reprendre où l'on en était)
   };
@@ -5527,6 +5622,14 @@ function applyPrefsBlob(p){
   // d'arrivée se ferme si l'autre appareil y a déjà répondu.
   if(p.hp){ const avant=voirHP(); localStorage.setItem('philo-hp',p.hp); if(voirHP()!==avant){ renderSB(); renderCurrentView(); } }
   if(p.hpChoix){ localStorage.setItem('philo-hp-choix',p.hpChoix); fermerHpInvite(); }
+  // Étape 6 : thème et taille du texte suivent aussi le compte.
+  if(p.theme||p.texte){
+    const avant=themeEffectif();
+    if(p.theme) localStorage.setItem('philo-theme',p.theme);
+    if(p.texte) localStorage.setItem('philo-texte',p.texte);
+    appliquerAffichage();
+    if(themeEffectif()!==avant){ renderSB(); renderCurrentView(); }
+  }
   applyPhiloMode();
   // Position distante (cross-plateforme) : on ne l'adopte QUE si l'utilisateur
   // n'a pas encore navigué sur cet appareil (navTouched). Sinon sa position
@@ -5886,6 +5989,7 @@ restoreDraftsFromStorage();   // new (Phase 3) : recharge le brouillon de propos
 restoreNavFromStorage();      // position survit à l'actualisation (philo-nav)
 restoreNavFromAddress();      // … mais une adresse #/… (lien partagé, favori) l'emporte
 restoreNavHistory();          // pile « ← Retour » survit aussi (philo-navhist)
+appliquerAffichage();         // étape 6 : thème et taille du texte (avant le premier rendu)
 renderSB();renderCurrentView();
 initAuth();           // new (comptes) : récupère la session + s'abonne aux changements d'état
 tourStartIfFirst();   // visite guidée auto à la 1re venue (cf. module « Visite guidée »)

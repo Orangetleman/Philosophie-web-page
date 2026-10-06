@@ -99,7 +99,10 @@ const LINK_REGEX=new RegExp(
    bord) et mémoïse ses résultats, car linkTerms l'appelle très souvent. */
 const _inkCache={};
 function inkOnDark(hex){
-  if(_inkCache[hex]) return _inkCache[hex];
+  // Étape 6 : en thème clair, on fonce la couleur (vers le noir) jusqu'au
+  // même seuil de contraste contre le fond papier ; cache séparé par thème.
+  const clair=themeEffectif()==='clair', cle=(clair?'c':'s')+hex;
+  if(_inkCache[cle]) return _inkCache[cle];
   // Normaliser « #abc » ou « #aabbcc » en composantes 0..255.
   let h=hex.replace('#','');
   if(h.length===3) h=h.split('').map(x=>x+x).join('');
@@ -107,16 +110,20 @@ function inkOnDark(hex){
   // Luminance relative WCAG (linéarisation sRGB d'un canal, puis pondération).
   const lin=v=>{ v/=255; return v<=0.03928 ? v/12.92 : Math.pow((v+0.055)/1.055,2.4); };
   const lum=(r,g,b)=>0.2126*lin(r)+0.7152*lin(g)+0.0722*lin(b);
-  const BG=lum(0x2a,0x2a,0x2a);                       // surface claire de référence
+  const BG=clair?lum(0xf1,0xee,0xe8):lum(0x2a,0x2a,0x2a);   // surface de référence (la plus défavorable)
   const ratio=l=>(Math.max(l,BG)+0.05)/(Math.min(l,BG)+0.05);
-  // Éclaircir vers le blanc (+8 % par palier) jusqu'au seuil 4.5:1, ou blanc.
+  // Sombre : éclaircir vers le blanc (+8 % par palier) jusqu'au seuil 4.5:1.
+  // Clair : foncer vers le noir (-8 % par palier) jusqu'au même seuil.
   for(let i=0; i<14 && ratio(lum(r,g,b))<4.5; i++){
-    r=Math.round(r+(255-r)*0.08);
-    g=Math.round(g+(255-g)*0.08);
-    b=Math.round(b+(255-b)*0.08);
+    if(clair){ r=Math.round(r*0.92); g=Math.round(g*0.92); b=Math.round(b*0.92); }
+    else{
+      r=Math.round(r+(255-r)*0.08);
+      g=Math.round(g+(255-g)*0.08);
+      b=Math.round(b+(255-b)*0.08);
+    }
   }
   const hx=v=>v.toString(16).padStart(2,'0');
-  return _inkCache[hex]='#'+hx(r)+hx(g)+hx(b);
+  return _inkCache[cle]='#'+hx(r)+hx(g)+hx(b);
 }
 
 /* linkTerms(html) — cf. section H ci-dessus : rend cliquables les notions,
@@ -130,7 +137,23 @@ function lienVersHP(e){
   return e.t==='n' ? estHP(e.v) : e.t==='c' ? HP_CONCEPTS.has(e.v) : HP_AUTEURS.has(e.v);
 }
 
+/* lienSoi() — la cible de la page affichée (« n:liberte », « a:Kant »,
+   « c:dualisme ») : linkTerms n'y crée jamais de lien (étape 6). */
+function lienSoi(){
+  if(sbMode==='auteurs'&&curAuthor) return 'a:'+curAuthor;
+  if(sbMode==='concepts'||sbMode==='reperes') return 'c:'+curConcept;
+  if(sbMode==='methodo') return '';
+  return 'n:'+cur;
+}
+
 function linkTerms(html){
+  // Étape 6 (oct. 2026), contre l'excès de liens (diagnostic, § 3 : 125 liens
+  // dans l'onglet Auteurs de Liberté, dont 61 vers Liberté elle-même), règle
+  // d'usage de Wikipédia : jamais de lien vers la page où l'on est (lienSoi),
+  // et une même cible liée une seule fois par appel, c'est-à-dire par bloc de
+  // texte (une idée, une définition, une citation). Les liens sont aussi
+  // atteignables au clavier (tabindex, role=link ; Entrée : lienClavier).
+  const soi=lienSoi(), vus=new Set();
   // Découpe la chaîne en BALISES (<...>) et FRAGMENTS DE TEXTE, puis ne
   // linkifie que le texte. Indispensable : une version antérieure ne
   // traitait que le texte ENTRE > et < — le texte avant la 1re balise et
@@ -144,19 +167,32 @@ function linkTerms(html){
       // Étape 5 : pas de lien vers du hors programme masqué ; on se replie sur
       // le concept homonyme s'il y en a un (et s'il est visible).
       if(!voirHP() && lienVersHP(e)){ e=e.alt; if(!e || lienVersHP(e)) return m; }
+      const cible=e.t+':'+e.v;
+      if(cible===soi || vus.has(cible)) return m;
+      vus.add(cible);
       if(e.t==='n'){ // lien notion — coloré avec la couleur (éclaircie) de la notion
         // inkOnDark : version assez claire de la couleur de notion pour rester
         // lisible en texte sur fond sombre (WCAG AA). On l'applique au texte ET
         // au soulignement, qui restent ainsi de la même teinte que la notion.
         const col=inkOnDark(D[e.v].c);
-        return `<span class="nterm" style="color:${col};border-color:${col}" onclick="openNotion('${e.v}')" title="Voir la notion : ${D[e.v].l}">${m}</span>`;
+        return `<span class="nterm" role="link" tabindex="0" style="color:${col};border-color:${col}" onclick="openNotion('${e.v}')" title="Voir la notion : ${D[e.v].l}">${m}</span>`;
       }
       if(e.t==='a'){ // lien auteur
         const safe=e.v.replace(/'/g,"\\'");
-        return `<span class="aterm" onclick="openAuthor('${safe}')" title="Voir l'auteur : ${e.v}">${m}</span>`;
+        return `<span class="aterm" role="link" tabindex="0" onclick="openAuthor('${safe}')" title="Voir l'auteur : ${e.v}">${m}</span>`;
       }
       // lien concept
-      return `<span class="cterm" onclick="openConcept('${e.v}')" title="Voir définition : ${m}">${m}</span>`;
+      return `<span class="cterm" role="link" tabindex="0" onclick="openConcept('${e.v}')" title="Voir définition : ${m}">${m}</span>`;
     });
   });
 }
+
+/* lienClavier — Entrée (ou Espace) sur un lien de texte (.nterm, .aterm,
+   .cterm, role=link) l'active comme un clic : ce sont des <span>, que le
+   navigateur n'active pas tout seul au clavier (étape 6, accessibilité). */
+document.addEventListener('keydown',ev=>{
+  const t=ev.target;
+  if((ev.key==='Enter'||ev.key===' ') && t && t.matches && t.matches('.nterm,.aterm,.cterm')){
+    ev.preventDefault(); t.click();
+  }
+});

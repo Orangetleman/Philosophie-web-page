@@ -10,6 +10,7 @@ restoreDraftsFromStorage();   // new (Phase 3) : recharge le brouillon de propos
 restoreNavFromStorage();      // position survit à l'actualisation (philo-nav)
 restoreNavFromAddress();      // … mais une adresse #/… (lien partagé, favori) l'emporte
 restoreNavHistory();          // pile « ← Retour » survit aussi (philo-navhist)
+appliquerAffichage();         // étape 6 : thème et taille du texte (avant le premier rendu)
 renderSB();renderCurrentView();
 initAuth();           // new (comptes) : récupère la session + s'abonne aux changements d'état
 tourStartIfFirst();   // visite guidée auto à la 1re venue (cf. module « Visite guidée »)

@@ -1,8 +1,26 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
-  "genere_le": "2026-10-06T16:53:06.067Z",
+  "genere_le": "2026-10-06T19:16:10.449Z",
   "commits": [
+    {
+      "hash": "ab2d6a30f1f9c8b37cc314847ed185474e79aa50",
+      "short": "ab2d6a3",
+      "auteur": "Orangentleman",
+      "date": "2026-10-06T21:08:41+02:00",
+      "sujet": "Merge pull request #14 from Orangetleman/claude/hp-notions-2003",
+      "corps": "Hors programme : les sept autres notions du programme de 2003",
+      "tag": ""
+    },
+    {
+      "hash": "98bee231d5961429268a031a618dd818d020c67f",
+      "short": "98bee23",
+      "auteur": "Orangentleman",
+      "date": "2026-10-06T18:53:04+02:00",
+      "sujet": "Carte du projet : références de data.js recalculées après l'ajout des notions",
+      "corps": "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": "Carte du projet"
+    },
     {
       "hash": "fe03fe3a5a4af102bf591c4a21b1d5fa43a4109d",
       "short": "fe03fe3",
