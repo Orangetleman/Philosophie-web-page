@@ -652,6 +652,63 @@ témoins vus ; build `--controle` à jour ; carte 278 symboles à leur place ;
 essai dans le navigateur (fiches, étiquette, recherche « occam », quiz :
 plus aucune carte n'attribue la formule moderne à Platon).
 
+### Étape 5, « Le hors programme » (6 octobre 2026)
+
+**Les trois statuts sont calculés** à partir de `contenu/programme.js`
+(rien ne s'écrit dans le contenu). Une notion absente de la liste est hors
+programme. Un auteur est « au programme » s'il est sur la liste officielle,
+« hors liste » s'il apparaît dans au moins une notion du programme (Camus,
+Tisseron…), « hors programme » s'il n'apparaît que sous des notions hors
+programme (aucun pour l'instant). Un concept est hors programme quand toutes
+ses notions le sont. Chaque fiche d'auteur porte désormais son étiquette.
+
+**Le réglage**, selon la décision du 5 octobre : visible par défaut ; à la
+première visite (après la visite guidée, jamais par-dessus), une carte
+propose « M'en tenir au programme » ou « Tout garder visible ». Le choix se
+change dans les Réglages et suit le compte (préférences synchronisées).
+Masqué, le hors programme disparaît partout : barre latérale, listes et
+filtres d'auteurs et de concepts, notions liées, fiches d'auteur, recherche,
+liens dans le texte (un mot comme « désir » mène alors au concept au lieu
+de la notion), quiz. Une notion hors programme ouverte par un lien direct
+s'affiche quand même, avec un bouton pour réafficher le hors programme.
+
+**L'affichage** : section « Hors programme » repliable en bas de la liste
+des notions ; badge bleu et encadré « Pour aller plus loin » sur la notion ;
+sources sous la définition. **Le quiz** écarte les cartes hors programme
+par défaut, même affichées : le bouton « + Hors programme » les ajoute
+(réglage propre à l'appareil), cocher une notion hors programme aussi.
+
+**Le contrôle** : question 12 du vérificateur, le minimum du protocole
+(§ 4.5) pour toute notion hors programme, témoin vu.
+
+**Premier lot : Autrui, le Désir, l'Histoire**, trois notions du programme
+de 2003, les plus travaillées par les manuels et les annales. Chacune a sa
+définition et ses sections « Approfondir », 6 auteurs (tous déjà sur le
+site, tous de la liste officielle), un texte, un plan détaillé, deux
+exemples, une accroche, quatre sujets, ses liens et ses sources. Six
+concepts nouveaux (Altérité, Conatus, Désir mimétique, Ruse de la raison,
+Insociable sociabilité, Matérialisme historique) et quatre concepts
+existants rattachés (Intersubjectivité, Travail et reconnaissance, Désir,
+Pulsion).
+
+Citations exactes vérifiées : Descartes (*Méditation seconde*, texte de
+Wikisource, avec la variante d'édition signalée), Sartre (*L'Être et le
+Néant*, « autrui est le médiateur indispensable entre moi et moi-même » ;
+*Huis clos*), Spinoza (« Le désir est l'essence même de l'homme »),
+Schopenhauer (§ 38), Freud (*L'Interprétation des rêves*, chap. IV), Kant
+(insociable sociabilité, 4e proposition), Marx (*Manifeste*, *Dix-huit
+Brumaire*), Nietzsche (*Seconde inactuelle*, § 1), Rousseau (*Julie*, VI,
+8). Entrées comme reformulations, faute de texte de référence vérifié :
+Hegel (reconnaissance, « rien de grand… »), Husserl (apprésentation),
+Merleau-Ponty (le dialogue), Levinas (le visage), Platon (*Banquet*, 200 e),
+Épicure, Lévi-Strauss, Aron.
+
+**Pour la suite** (autres notions de 2003 : la perception, l'existence, le
+vivant, la matière et l'esprit, l'interprétation, la démonstration, la
+société, le droit ; puis des notions jamais au programme, à choisir
+ensemble) : même chemin, un fichier dans `contenu/notions/`, la clé à la
+fin d'`ORDRE`, le minimum de la question 12.
+
 ## Sources
 
 - Programme de philosophie de terminale, [BO spécial n° 8 du 25 juillet 2019](https://www.education.gouv.fr/bo/19/Special8/MENE1921238A.htm) ([annexe en PDF](https://cache.media.education.gouv.fr/file/SPE8_MENJ_25_7_2019/16/1/spe238_annexe2_1159161.pdf)) : notions, repères, liste des auteurs et son usage.

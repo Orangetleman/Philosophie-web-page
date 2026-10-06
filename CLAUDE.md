@@ -46,6 +46,12 @@ liste officielle, 5 hors programme, 6 enrichir ; décisions de l'auteur au
   citation exacte entre « » ou reformulation sans guillemets, trois statuts
   programme / hors liste / hors programme, compte rendu). Une citation qu'on
   n'a pas pu vérifier n'entre pas comme citation.
+- **Hors programme** : une notion est hors programme dès que sa clé n'est pas
+  dans `contenu/programme.js` ; on l'ajoute à la fin de `ORDRE`, avec le
+  minimum du protocole (§ 4.5, question 12) dont le champ `sources: [...]`.
+  Les statuts (programme, hors liste, hors programme) se CALCULENT
+  (`statutAuteur`, `statutConcept`, `estHP` dans `js/01-donnees-etat.js`) :
+  ne jamais les écrire dans le contenu.
 - **Tout élément ajouté** (notion, auteur, texte, plan, exemple, accroche,
   concept, sujet) **porte `new:true`** ; un élément corrigé, `modified:true`.
 - **Un seul nom par auteur** : le `n` employé dans les notions est aussi le
@@ -69,10 +75,11 @@ liste officielle, 5 hors programme, 6 enrichir ; décisions de l'auteur au
 
 ## Contrôles
 
-- **`node outils/verifier_contenu.mjs`** : 11 questions sur `data.js` (KEYS,
+- **`node outils/verifier_contenu.mjs`** : 12 questions sur `data.js` (KEYS,
   notions, ids et termes uniques, relations, repères, fiche `AM` de chaque
   auteur, dialogues, guillemets des citations, traces de support de cours,
-  format canonique, programme officiel couvert). `--temoins` glisse une faute par question et vérifie
+  format canonique, programme officiel couvert, minimum d'une notion hors
+  programme). `--temoins` glisse une faute par question et vérifie
   qu'elle est vue : une règle nouvelle = une question + son témoin.
   `--racine <dossier>` contrôle une autre copie du site.
 - **`node outils/construire.mjs --temoins`** : prouve que le contrôle de

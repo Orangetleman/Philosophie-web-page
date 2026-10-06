@@ -48,8 +48,8 @@ D'où trois statuts (décision de l'auteur du 5 octobre 2026) :
 | **Hors programme** | une notion nouvelle, et tout ce qui n'apparaît que sous elle |
 
 Le statut se **calcule** à partir des listes officielles et des notions où
-l'élément apparaît ; il ne s'écrit pas à la main (mise en place à l'étape 5
-de la feuille de route). La liste officielle est dans `contenu/programme.js`
+l'élément apparaît ; il ne s'écrit pas à la main (en place depuis l'étape 5 :
+`statutAuteur`, `statutConcept` et `estHP` dans `js/01-donnees-etat.js`). La liste officielle est dans `contenu/programme.js`
 depuis l'étape 4 : le site en tire l'étiquette « Au programme », et le
 vérificateur (question 11) exige que chacun des 84 auteurs ait sa fiche et
 au moins une idée. Le hors programme est visible par défaut, et le site
@@ -112,7 +112,11 @@ Une notion nouvelle (hors programme, à partir de l'étape 5) ne se publie
 qu'avec un minimum : une définition avec sa section « Approfondir », 3 à 6
 auteurs avec au moins une idée chacun, ses concepts, un plan de
 dissertation, des exemples, des liens vers les notions voisines, et ses
-sources.
+sources (champ `sources: [...]` de la notion, affiché sous la définition).
+La question 12 du vérificateur refuse une notion hors programme à qui il
+manque l'un de ces éléments. On la place à la fin de `contenu/ordre.js` ;
+ses auteurs gardent leur statut (un auteur de la liste officielle reste
+« au programme » même dans une notion hors programme).
 
 ### 4.6 Marquage
 
