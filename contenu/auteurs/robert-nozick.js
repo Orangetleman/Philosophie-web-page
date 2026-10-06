@@ -4,6 +4,8 @@ AUTEUR("Robert Nozick", {
   bio: "Philosophe américain (1938–2002), défenseur du libertarianisme. Il soutient que l'État minimal est le seul légitime et que toute redistribution viole les droits individuels.",
   courant: "Libertarianisme",
   periode: "XXe siècle",
+  naissance: 1938,
+  mort: 2002,
   themes: ["État minimal", "droits individuels", "propriété", "anti-redistribution", "titres légitimes"],
   dialogues: [
     {

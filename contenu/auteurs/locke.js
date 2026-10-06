@@ -4,6 +4,8 @@ AUTEUR("Locke", {
   bio: "Philosophe anglais (1632–1704). Père du libéralisme politique, il défend les droits naturels inaliénables et la légitimité de la révolution contre un gouvernement tyrannique.",
   courant: "Empirisme / Libéralisme",
   periode: "XVIIe siècle",
+  naissance: 1632,
+  mort: 1704,
   themes: ["droits naturels", "contrat révocable", "propriété", "identité mémorielle", "tolérance"],
   dialogues: [
     {

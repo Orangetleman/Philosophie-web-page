@@ -4,6 +4,8 @@ AUTEUR("Watzlawick", {
   bio: "Psychologue et théoricien de la communication austro-américain (1921–2007). Membre de l'École de Palo Alto, il développe une pragmatique de la communication humaine.",
   courant: "Pragmatique de la communication / Psychologie systémique",
   periode: "XXe siècle",
+  naissance: 1921,
+  mort: 2007,
   themes: ["injonction paradoxale", "double bind", "métacommunication", "pragmatique", "communication pathologique"],
   dialogues: [
     {

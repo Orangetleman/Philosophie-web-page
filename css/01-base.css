@@ -43,9 +43,71 @@
   --color-accent-quiz:#3b82d6;
   --border-radius-lg:12px;
   --border-radius-md:8px;
+  /* Étape 6 (oct. 2026) : couleurs auparavant écrites en dur, passées en
+     variables pour que le thème clair puisse les redéfinir. */
+  --color-page:#121212;                       /* fond autour du cadre */
+  --color-accent:var(--color-accent-quiz);    /* était utilisé sans être défini (accroches) */
+  --color-bad:#e08a8a; --color-bad-bg:#3a1e1e; --color-bad-border:#5a2d2d;
+  --color-ok:#7bd88f;
+  --color-danger:#f0a3a3; --color-danger-soft:#d98a8a;
+  --color-warn:#EF9F27;
+  --color-overlay-quiz:rgba(10,14,20,.97);    /* fond du quiz, presque opaque (le texte ne transparaît plus) */
+  --dial-oppose:#e05a5a; --dial-oppose-bg:#3a1a1a; --dial-oppose-border:#6a2a2a;
+  --dial-prolonge:#5aaa5a; --dial-prolonge-bg:#1a3a1a; --dial-prolonge-border:#2a5a2a;
+  --dial-repond:#5a8ae0; --dial-repond-bg:#1a2a3a; --dial-repond-border:#2a4a6a;
+  color-scheme:dark;
 }
+
+/* ── 1 bis. Thème clair (étape 6) ─────────────────────────────────────
+   Réglage « philo-theme » : 'sombre' (défaut, l'apparence historique),
+   'clair', ou 'auto' (suit le système). Le script en tête d'index.html pose
+   data-theme sur <html> avant le premier affichage, pour éviter un éclair
+   sombre. Les deux blocs ci-dessous sont identiques : l'un pour le choix
+   explicite, l'autre pour « auto » quand le système est en clair. Fond
+   légèrement chaud (papier) pour la lecture de longs textes. */
+:root[data-theme="clair"]{
+  --color-page:#e9e6df;
+  --color-background-primary:#fbfaf7; --color-background-secondary:#f1eee8;
+  --color-text-primary:#1d1d1f; --color-text-secondary:#3a3a3f; --color-text-tertiary:#66666c;
+  --color-border-tertiary:#dcd8cf; --color-border-secondary:#b4aea2;
+  --color-background-info:#e5f2e5; --color-border-info:#9cc69c; --color-text-info:#2b6e2f;
+  --color-background-quiz:#e6eefa; --color-border-quiz:#a3bce4; --color-text-quiz:#24589f; --color-accent-quiz:#2f6fd0;
+  --color-new:#8a5a0e; --color-new-bg:#fbf0d9; --color-new-border:#e2c387;
+  --color-mod:#1c6a96; --color-mod-bg:#e2eff8; --color-mod-border:#9cc4de;
+  --color-bad:#a3302a; --color-bad-bg:#fbe7e5; --color-bad-border:#e6aaa4;
+  --color-ok:#2e7d32; --color-danger:#b3261e; --color-danger-soft:#a3302a; --color-warn:#9a5b06;
+  --color-overlay-quiz:rgba(233,230,223,.98);
+  --dial-oppose:#b3261e; --dial-oppose-bg:#fbe7e5; --dial-oppose-border:#e6aaa4;
+  --dial-prolonge:#2e7d32; --dial-prolonge-bg:#e5f2e5; --dial-prolonge-border:#9cc69c;
+  --dial-repond:#24589f; --dial-repond-bg:#e6eefa; --dial-repond-border:#a3bce4;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: light){
+  :root[data-theme="auto"]{
+    --color-page:#e9e6df;
+    --color-background-primary:#fbfaf7; --color-background-secondary:#f1eee8;
+    --color-text-primary:#1d1d1f; --color-text-secondary:#3a3a3f; --color-text-tertiary:#66666c;
+    --color-border-tertiary:#dcd8cf; --color-border-secondary:#b4aea2;
+    --color-background-info:#e5f2e5; --color-border-info:#9cc69c; --color-text-info:#2b6e2f;
+    --color-background-quiz:#e6eefa; --color-border-quiz:#a3bce4; --color-text-quiz:#24589f; --color-accent-quiz:#2f6fd0;
+    --color-new:#8a5a0e; --color-new-bg:#fbf0d9; --color-new-border:#e2c387;
+    --color-mod:#1c6a96; --color-mod-bg:#e2eff8; --color-mod-border:#9cc4de;
+    --color-bad:#a3302a; --color-bad-bg:#fbe7e5; --color-bad-border:#e6aaa4;
+    --color-ok:#2e7d32; --color-danger:#b3261e; --color-danger-soft:#a3302a; --color-warn:#9a5b06;
+    --color-overlay-quiz:rgba(233,230,223,.98);
+    --dial-oppose:#b3261e; --dial-oppose-bg:#fbe7e5; --dial-oppose-border:#e6aaa4;
+    --dial-prolonge:#2e7d32; --dial-prolonge-bg:#e5f2e5; --dial-prolonge-border:#9cc69c;
+    --dial-repond:#24589f; --dial-repond-bg:#e6eefa; --dial-repond-border:#a3bce4;
+    color-scheme:light;
+  }
+}
+/* Taille du texte (étape 6) : réglage « philo-texte ». Le style est écrit en
+   pixels ; on agrandit donc la zone de lecture par zoom, sans toucher à la
+   barre latérale ni aux fenêtres. */
+body.texte-grand .main-content{zoom:1.12}
+body.texte-tres-grand .main-content{zoom:1.25}
 /* ── 2. Layout de base ───────────────────────────────────────────── */
-body{font-family:'Inter',system-ui,sans-serif;background:#121212;height:100vh;height:100dvh;padding:16px;overflow:hidden;}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--color-page);height:100vh;height:100dvh;padding:16px;overflow:hidden;}
 *{box-sizing:border-box;margin:0;padding:0}
 .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
 /* Accessibilité clavier : anneau de focus visible UNIQUEMENT lors de la
@@ -96,7 +158,9 @@ body{font-family:'Inter',system-ui,sans-serif;background:#121212;height:100vh;he
 .slabel{font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.06em;color:var(--color-text-tertiary);margin-bottom:8px}
 
 /* ── 6. Contenu notion — onglet Auteurs (.ag/.ac) ────────────────── */
-.ag{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:9px;margin-bottom:16px}
+/* grid-auto-flow:dense (étape 6) : une carte large (.ac-multi, deux colonnes)
+   ne laisse plus de trou ; une carte simple suivante vient le combler. */
+.ag{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));grid-auto-flow:dense;gap:9px;margin-bottom:16px}
 .ac{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:10px 12px}
 .an{font-size:12px;font-weight:500;margin-bottom:2px}
 .aw{font-size:11px;color:var(--color-text-tertiary);font-style:italic;margin-bottom:4px}
@@ -111,10 +175,10 @@ body{font-family:'Inter',system-ui,sans-serif;background:#121212;height:100vh;he
 /* Plusieurs idées dans une carte → on matérialise les zones par un liseré
    discret (les zones colorées, elles, l'emportent ci-dessous). */
 .ac-multi .a-idea{border-color:var(--color-border-tertiary)}
-.a-idea.is-new{border-color:var(--color-new-border);background:var(--color-new-bg)}
-.a-idea.is-new .aw{color:var(--color-new)}
-.a-idea.is-modified{border-color:var(--color-mod-border);background:var(--color-mod-bg)}
-.a-idea.is-modified .aw{color:var(--color-mod)}
+body.mode-edition .a-idea.is-new{border-color:var(--color-new-border);background:var(--color-new-bg)}
+body.mode-edition .a-idea.is-new .aw{color:var(--color-new)}
+body.mode-edition .a-idea.is-modified{border-color:var(--color-mod-border);background:var(--color-mod-bg)}
+body.mode-edition .a-idea.is-modified .aw{color:var(--color-mod)}
 /* Carte d'un auteur à plusieurs idées : s'élargit sur 2 colonnes (au lieu de
    toute la rangée) pour que les zones d'idées tiennent côte à côte SANS laisser
    de grands vides dans la grille — un span pleine-rangée cassait le flux et
@@ -217,8 +281,8 @@ body.mode-fiche .a-idea .aq-details{display:none}
 .accroche-type{font-size:10px;font-weight:600;letter-spacing:.03em;text-transform:uppercase;color:var(--color-accent);background:var(--color-accent-soft,rgba(120,120,255,.10));padding:2px 9px;border-radius:20px;flex-shrink:0}
 .accroche-body{font-size:13.5px;color:var(--color-text-primary);line-height:1.6}
 .accroche-src{font-size:11px;color:var(--color-text-tertiary);margin-top:6px;font-style:italic;text-align:right}
-.accroche-card.is-new{border-color:var(--color-new-border);border-left-color:var(--color-new);background:var(--color-new-bg)}
-.accroche-card.is-modified{border-color:var(--color-mod-border);border-left-color:var(--color-mod);background:var(--color-mod-bg)}
+body.mode-edition .accroche-card.is-new{border-color:var(--color-new-border);border-left-color:var(--color-new);background:var(--color-new-bg)}
+body.mode-edition .accroche-card.is-modified{border-color:var(--color-mod-border);border-left-color:var(--color-mod);background:var(--color-mod-bg)}
 
 /* ── 6e. Contenu notion — onglets Liens & Dissertations ──────────── */
 .liens-row{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:14px}
@@ -304,15 +368,15 @@ body.mode-fiche .a-idea .aq-details{display:none}
 .hp-invite-note{font-size:11px;color:var(--color-text-tertiary);margin:10px 0 0!important}
 @media (max-width:700px){ .hp-invite{left:16px;right:16px;bottom:16px;max-width:none} }
 .quiz-filters button.quiz-hp{font-style:italic}
-.ac.is-new{border-color:var(--color-new-border);background:var(--color-new-bg)}
-.ac.is-new .an{position:relative}
-.ti2.is-new{background:var(--color-new-bg);border-radius:4px;padding:5px 7px;margin-bottom:2px;border-bottom:none!important}
-.ti2.is-new .tinum{color:var(--color-new)}
-.axe-card.is-new{border-color:var(--color-new-border);background:var(--color-new-bg)}
-.axe-card.is-new .axe-num{color:var(--color-new)}
-.ex-card.is-new{border-color:var(--color-new-border);background:var(--color-new-bg)}
-.dq.is-new{color:var(--color-new);border-bottom-color:var(--color-new-border)}
-.dq.is-new::before{color:var(--color-new)}
+body.mode-edition .ac.is-new{border-color:var(--color-new-border);background:var(--color-new-bg)}
+body.mode-edition .ac.is-new .an{position:relative}
+body.mode-edition .ti2.is-new{background:var(--color-new-bg);border-radius:4px;padding:5px 7px;margin-bottom:2px;border-bottom:none!important}
+body.mode-edition .ti2.is-new .tinum{color:var(--color-new)}
+body.mode-edition .axe-card.is-new{border-color:var(--color-new-border);background:var(--color-new-bg)}
+body.mode-edition .axe-card.is-new .axe-num{color:var(--color-new)}
+body.mode-edition .ex-card.is-new{border-color:var(--color-new-border);background:var(--color-new-bg)}
+body.mode-edition .dq.is-new{color:var(--color-new);border-bottom-color:var(--color-new-border)}
+body.mode-edition .dq.is-new::before{color:var(--color-new)}
 
 /* ── Éléments modifiés ────────────────────────────────────────── */
 :root{
@@ -327,16 +391,16 @@ body.mode-fiche .a-idea .aq-details{display:none}
   border:0.5px solid var(--color-mod-border);
   border-radius:4px;padding:1px 6px;flex-shrink:0;
 }
-.ac.is-modified{border-color:var(--color-mod-border);background:var(--color-mod-bg)}
-.ac.is-modified .an{color:var(--color-mod)!important}
-.ti2.is-modified{background:var(--color-mod-bg);border-radius:4px;padding:5px 7px;margin-bottom:2px;border-bottom:none!important}
-.ti2.is-modified .tinum{color:var(--color-mod)}
-.axe-card.is-modified{border-color:var(--color-mod-border);background:var(--color-mod-bg)}
-.axe-card.is-modified .axe-num{color:var(--color-mod)}
-.ex-card.is-modified{border-color:var(--color-mod-border);background:var(--color-mod-bg)}
-.dq.is-modified{color:var(--color-mod);border-bottom-color:var(--color-mod-border)}
-.dq.is-modified::before{color:var(--color-mod)}
-.idea-card.is-modified{border-color:var(--color-mod-border);background:var(--color-mod-bg)}
+body.mode-edition .ac.is-modified{border-color:var(--color-mod-border);background:var(--color-mod-bg)}
+body.mode-edition .ac.is-modified .an{color:var(--color-mod)!important}
+body.mode-edition .ti2.is-modified{background:var(--color-mod-bg);border-radius:4px;padding:5px 7px;margin-bottom:2px;border-bottom:none!important}
+body.mode-edition .ti2.is-modified .tinum{color:var(--color-mod)}
+body.mode-edition .axe-card.is-modified{border-color:var(--color-mod-border);background:var(--color-mod-bg)}
+body.mode-edition .axe-card.is-modified .axe-num{color:var(--color-mod)}
+body.mode-edition .ex-card.is-modified{border-color:var(--color-mod-border);background:var(--color-mod-bg)}
+body.mode-edition .dq.is-modified{color:var(--color-mod);border-bottom-color:var(--color-mod-border)}
+body.mode-edition .dq.is-modified::before{color:var(--color-mod)}
+body.mode-edition .idea-card.is-modified{border-color:var(--color-mod-border);background:var(--color-mod-bg)}
 
 /* ── Bouton retour ───────────────────────────────────────────── */
 .back-btn{
@@ -362,3 +426,15 @@ body.mode-fiche .a-idea .aq-details{display:none}
 .def-sec-title{font-size:10px;font-weight:600;color:var(--color-text-primary);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
 .def-sec-body{font-size:12px;color:var(--color-text-secondary);line-height:1.65;padding-left:9px;border-left:2px solid var(--color-border-secondary);margin-bottom:7px}
 .def-sec-body strong{color:var(--color-text-primary);font-weight:500}
+
+/* Plans convertis de l'ancien format : la mention « ↻ à enrichir » ne
+   regarde que les contributeurs (mode édition), pas les visiteurs. */
+body:not(.mode-edition) .plan-migr{display:none}
+
+/* Badges « ✦ Nouveau » / « ✎ Modifié » (étape 6) : informations pour les
+   contributeurs. Sans date, ils avaient fini par marquer près de 250
+   éléments (diagnostic, § 3) ; en mode révision (par défaut), ni badge ni
+   teinte (les règles is-new / is-modified ci-dessus sont réservées à
+   body.mode-edition), et les nouveautés sont datées dans Explorer ›
+   Nouveautés. */
+body:not(.mode-edition) .new-badge,body:not(.mode-edition) .modified-badge{display:none}

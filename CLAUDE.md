@@ -15,8 +15,8 @@ liste officielle, 5 hors programme, 6 enrichir ; décisions de l'auteur au
 
 | Chemin | Rôle | On l'édite ? |
 |---|---|---|
-| `contenu/` | **le contenu** : `notions/<clé>.js` (un fichier par notion), `auteurs/<nom>.js` (fiche de chaque auteur), `concepts.js`, `reperes.js`, `ordre.js`, `programme.js` (la liste officielle : 17 notions, 84 auteurs) | **oui** |
-| `js/`, `css/` | **le code** du site, en morceaux numérotés (`01-…` à `14-…`) | **oui** |
+| `contenu/` | **le contenu** : `notions/<clé>.js` (un fichier par notion), `auteurs/<nom>.js` (fiche de chaque auteur), `concepts.js`, `reperes.js`, `ordre.js`, `programme.js` (la liste officielle : 17 notions, 84 auteurs), `sujets-bac.js` (sujets tombés au bac depuis 2021), `nouveautes.js` (journal daté, affiché dans Explorer) | **oui** |
+| `js/`, `css/` | **le code** du site, en morceaux numérotés (`js/01-…` à `16-…`, puis `99-demarrage.js` en dernier ; `css/01-…` à `10-…`) | **oui** |
 | `index.html` | le squelette HTML ; charge `app.css`, `data.js`, puis `app.js` | oui (HTML seulement) |
 | `data.js`, `app.js`, `app.css` | **générés** par le build à partir de `contenu/`, `js/`, `css/` | **jamais** |
 | `sw.js` | service worker ; ses lignes `CACHE` et `PRECACHE` sont écrites par le build | le reste, oui |
@@ -75,11 +75,11 @@ liste officielle, 5 hors programme, 6 enrichir ; décisions de l'auteur au
 
 ## Contrôles
 
-- **`node outils/verifier_contenu.mjs`** : 12 questions sur `data.js` (KEYS,
+- **`node outils/verifier_contenu.mjs`** : 14 questions sur `data.js` (KEYS,
   notions, ids et termes uniques, relations, repères, fiche `AM` de chaque
   auteur, dialogues, guillemets des citations, traces de support de cours,
   format canonique, programme officiel couvert, minimum d'une notion hors
-  programme). `--temoins` glisse une faute par question et vérifie
+  programme, dates des auteurs, sujets du bac et nouveautés). `--temoins` glisse une faute par question et vérifie
   qu'elle est vue : une règle nouvelle = une question + son témoin.
   `--racine <dossier>` contrôle une autre copie du site.
 - **`node outils/construire.mjs --temoins`** : prouve que le contrôle de
@@ -96,11 +96,14 @@ liste officielle, 5 hors programme, 6 enrichir ; décisions de l'auteur au
 
 ## Données (vue d'ensemble)
 
-`data.js` définit cinq globales, déjà au format canonique (le build
+`data.js` définit sept globales, déjà au format canonique (le build
 convertit les anciens formats, cf. `outils/lib/formats.mjs`) :
 `D` (les notions), `KEYS` (leur ordre), `AM` (les fiches d'auteurs),
 `CONCEPTS` (concepts puis repères), `PROGRAMME` (la liste officielle,
-`{source, notions, auteurs:[{bo, periode, fiches}]}`). Formats détaillés, onglets, liens
+`{source, notions, auteurs:[{bo, periode, fiches}]}`), `SUJETS_BAC`
+(`{sources, sujets:[{annee, date, voie, type, q | auteur+oeuvre, notions}]}`)
+et `NOUVEAUTES` (`[{date, titre, texte, liens:[{l, h}]}]`, du plus récent au
+plus ancien). Formats détaillés, onglets, liens
 dynamiques, contribution, interface, quiz : **`docs/architecture.md`**.
 
 Rappels qui reviennent souvent :
@@ -110,7 +113,8 @@ Rappels qui reviennent souvent :
   `type` ∈ `oppose | prolonge | complete | repond | distinction | implique` ;
   un repère a `cat:'Repère'`, un `id` en `rep-…` et au moins une relation
   `distinction` ;
-- fiche d'auteur : `{bio, courant, periode, themes:[…], dialogues:[{dir, auteur, sujet, desc}]}`.
+- fiche d'auteur : `{bio, courant, periode, naissance, mort, datesApprox?, themes:[…], dialogues:[{dir, auteur, sujet, desc}]}`
+  (années entières, négatives avant J.-C. ; `mort: null` pour un vivant ; la frise s'en sert).
 
 ## Pièges connus
 
@@ -126,6 +130,8 @@ Rappels qui reviennent souvent :
   nom et le code « de premier niveau » s'exécute dans cet ordre (une
   `const` d'un morceau n'existe pas encore pour le code de premier niveau
   d'un morceau précédent). Les fonctions, elles, sont visibles partout.
+  C'est pourquoi le démarrage est `js/99-demarrage.js` : il doit passer
+  après tous les autres morceaux, dont il appelle les rendus.
 - Une boîte de contribution de cible `concept` n'a **pas** de `f.notion` :
   ses notions sont dans `f.cnotions` (tableau). Idem dans le JSON généré.
 - En PostgreSQL, un `REVOKE` sur une **colonne** ne retire rien si le rôle

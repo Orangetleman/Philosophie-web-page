@@ -5,6 +5,8 @@ AUTEUR("Cicéron", {
   bio: "Homme politique, orateur et philosophe romain (106–43 av. J.-C.), consul en 63, assassiné sur ordre d'Antoine. Il a transmis en latin la philosophie grecque (stoïciens, académiciens) et forgé une partie du vocabulaire philosophique latin.",
   courant: "Éclectisme / Stoïcisme romain",
   periode: "Antiquité romaine",
+  naissance: -106,
+  mort: -43,
   themes: ["devoir (officium)", "res publica", "loi naturelle", "honnête et utile"],
   dialogues: [
     {

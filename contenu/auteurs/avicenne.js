@@ -5,6 +5,8 @@ AUTEUR("Avicenne", {
   bio: "Ibn Sīnā (980–1037), philosophe et médecin persan. Son Canon de la médecine fut enseigné en Europe jusqu'au XVIIe siècle ; son Livre de la guérison (al-Shifāʾ) réélabore toute la philosophie d'Aristote et marque profondément la scolastique latine.",
   courant: "Falsafa (aristotélisme arabe)",
   periode: "Moyen Âge",
+  naissance: 980,
+  mort: 1037,
   themes: ["homme volant", "âme et corps", "essence et existence", "intellect"],
   dialogues: [
     {

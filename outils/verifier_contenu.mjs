@@ -44,7 +44,7 @@ function charger() {
   vm.createContext(bac);
   // PROGRAMME n'existe que depuis l'étape 4 : une copie plus ancienne (--racine)
   // se charge quand même, et la question 11 dit ce qui manque.
-  const data = vm.runInContext(src + "\n;({D, KEYS, AM, CONCEPTS, PROGRAMME: typeof PROGRAMME === 'undefined' ? null : PROGRAMME})", bac, { filename: 'data.js' });
+  const data = vm.runInContext(src + "\n;({D, KEYS, AM, CONCEPTS, PROGRAMME: typeof PROGRAMME === 'undefined' ? null : PROGRAMME, SUJETS_BAC: typeof SUJETS_BAC === 'undefined' ? null : SUJETS_BAC, NOUVEAUTES: typeof NOUVEAUTES === 'undefined' ? null : NOUVEAUTES})", bac, { filename: 'data.js' });
   // AUTHOR_ALIASES vit dans le code du site : js/*.js depuis l'étape 3 (avant,
   // dans index.html, encore lu pour contrôler une ancienne copie via --racine).
   const dJs = path.join(RACINE, 'js');
@@ -54,6 +54,9 @@ function charger() {
   const m = code.replace(/\r\n/g, '\n').match(/const AUTHOR_ALIASES=(\{[\s\S]*?\n\});/);
   if (!m) throw new Error('AUTHOR_ALIASES introuvable dans js/ (ou index.html)');
   data.ALIASES = m ? vm.runInNewContext('(' + m[1] + ')') : {};
+  // Les noms d'auteurs présents dans les notions (question 14).
+  data.AI_NOMS = new Set();
+  (data.KEYS || []).forEach(k => ((data.D[k] || {}).auteurs || []).forEach(a => data.AI_NOMS.add(a.n)));
   return data;
 }
 
@@ -234,6 +237,48 @@ const QUESTIONS = [
       });
       return { err, warn: [] };
     } },
+  /* 13 (étape 6) — chaque auteur des notions a des dates exploitables par la
+     frise : naissance (année, négative avant J.-C.), mort (année, ou null si
+     vivant), dans le bon ordre et pas dans le futur. */
+  { n: 13, titre: "chaque auteur des notions a ses dates (naissance, mort) pour la frise",
+    f({ D, KEYS, AM }) {
+      const err = [], an = new Date().getFullYear();
+      [...new Set(auteursDe(D, KEYS).map(({ a }) => a.n))].forEach(nom => {
+        const m = AM[nom]; if (!m) return;   // la question 6 s'en charge
+        if (!Number.isInteger(m.naissance)) err.push(`${nom} : naissance absente ou non entière`);
+        else if (m.mort !== null && !Number.isInteger(m.mort)) err.push(`${nom} : mort absente (null si vivant)`);
+        else if (m.mort !== null && m.mort <= m.naissance) err.push(`${nom} : mort (${m.mort}) avant la naissance (${m.naissance})`);
+        else if ((m.mort ?? m.naissance) > an) err.push(`${nom} : date dans le futur`);
+      });
+      return { err, warn: [] };
+    } },
+  /* 14 (étape 6) — les sujets tombés au bac et le journal des nouveautés
+     pointent vers des notions, des auteurs et des pages qui existent. */
+  { n: 14, titre: "sujets du bac et nouveautés renvoient à des notions, auteurs et pages existants",
+    f({ D, AI_NOMS, SUJETS_BAC, NOUVEAUTES }) {
+      const err = [];
+      if (!SUJETS_BAC) err.push('SUJETS_BAC absent de data.js (contenu/sujets-bac.js, puis le build)');
+      else SUJETS_BAC.sujets.forEach(x => {
+        const ou = `${x.annee} ${x.voie} : ${x.q || x.auteur}`;
+        if (!['générale', 'technologique'].includes(x.voie)) err.push(`${ou} : voie inconnue`);
+        if (!Number.isInteger(x.annee)) err.push(`${ou} : année non entière`);
+        (x.notions || []).forEach(k => { if (!D[k]) err.push(`${ou} : notion inconnue « ${k} »`); });
+        if (x.type === 'explication' && !AI_NOMS.has(x.auteur)) err.push(`${ou} : auteur sans fiche dans les notions`);
+      });
+      if (!NOUVEAUTES) err.push('NOUVEAUTES absent de data.js (contenu/nouveautes.js, puis le build)');
+      else NOUVEAUTES.forEach((e, i) => {
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(e.date || '')) err.push(`nouveauté n° ${i + 1} : date au format AAAA-MM-JJ attendue`);
+        if (i && e.date > NOUVEAUTES[i - 1].date) err.push(`nouveauté « ${e.titre} » : plus récente que la précédente (ordre attendu : du plus récent au plus ancien)`);
+        (e.liens || []).forEach(l => {
+          const m = /^#\/(notion|auteur|explorer)\/([^/]+)/.exec(l.h || '');
+          if (!m) err.push(`nouveauté « ${e.titre} » : adresse inattendue « ${l.h} »`);
+          else if (m[1] === 'notion' && !D[decodeURIComponent(m[2])]) err.push(`nouveauté « ${e.titre} » : notion inconnue « ${m[2]} »`);
+          else if (m[1] === 'auteur' && !AI_NOMS.has(decodeURIComponent(m[2]))) err.push(`nouveauté « ${e.titre} » : auteur inconnu « ${m[2]} »`);
+          else if (m[1] === 'explorer' && !['frise', 'graphe', 'sujets', 'nouveautes'].includes(m[2])) err.push(`nouveauté « ${e.titre} » : page Explorer inconnue « ${m[2]} »`);
+        });
+      });
+      return { err, warn: [] };
+    } },
 ];
 
 /* ── Les témoins : une faute par question, glissée dans une COPIE ────── */
@@ -249,6 +294,8 @@ const TEMOINS = {
   9: d => { d.D[d.KEYS[0]].auteurs[0].w = 'Une œuvre, 1900 (TEXTE 4)'; },
   10: d => { d.CONCEPTS[0].tensions = ['A ≠ B']; },
   11: d => { d.KEYS.forEach(k => { d.D[k].auteurs = d.D[k].auteurs.filter(a => a.n !== 'Montaigne'); }); },
+  14: d => { d.SUJETS_BAC.sujets[0].notions = ['notion-imaginaire']; },
+  13: d => { const nom = d.D[d.KEYS[0]].auteurs[0].n; delete d.AM[nom].naissance; },
   12: d => { d.D['temoin-hp'] = { c: '#000', l: 'Témoin', s: '?', def: 'x', auteurs: [], plans: [], exemples: [], liens: [], diss: [] }; d.KEYS.push('temoin-hp'); },
 };
 

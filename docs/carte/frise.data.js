@@ -1,8 +1,53 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
-  "genere_le": "2026-10-06T16:53:06.067Z",
+  "genere_le": "2026-10-06T19:33:50.298Z",
   "commits": [
+    {
+      "hash": "6914b7427e28d8fa14330f053a1e7f1ae649be95",
+      "short": "6914b74",
+      "auteur": "Orangentleman",
+      "date": "2026-10-06T21:32:50+02:00",
+      "sujet": "Étape 6, bac : sujets réels, nouveautés datées, fiche imprimable",
+      "corps": "- Sujets tombés au bac de 2021 à 2026 (France métropolitaine, voies\n  générale et technologique), recoupés sur plusieurs sources :\n  contenu/sujets-bac.js → SUJETS_BAC. Affichés dans Explorer (filtres par\n  voie et par notion), dans l'onglet Dissertations de chaque notion, sur\n  la fiche des auteurs dont un texte est tombé, et dans la recherche.\n- Journal daté des nouveautés (contenu/nouveautes.js → NOUVEAUTES), dans\n  Explorer. Les badges « Nouveau / Modifié » et leurs teintes, sans date et\n  devenus omniprésents, sont réservés au mode édition.\n- Fiche de révision imprimable (ou en PDF) pour chaque notion : bouton\n  « 🖨 Fiche », définition dépliée, auteurs, concepts, plans, sujets, sources.\n- Question 14 du vérificateur (notions, auteurs et adresses des sujets et\n  des nouveautés), avec son témoin.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": "Étape 6, bac"
+    },
+    {
+      "hash": "6259dda8a35b5e57575c0802ee5a1706eef9da80",
+      "short": "6259dda",
+      "auteur": "Orangentleman",
+      "date": "2026-10-06T21:24:22+02:00",
+      "sujet": "Étape 6, explorer : frise des auteurs et graphe des idées",
+      "corps": "- Nouvel onglet « Explorer » (#/explorer/frise, #/explorer/graphe).\n- Frise : les auteurs des notions groupés par période de naissance, une\n  barre par vie, couleur du courant ; filtres « au programme » et par\n  notion ; graduations courtes sur téléphone.\n- Graphe : dialogues entre auteurs, relations entre concepts ou liens\n  entre notions, dessinés par forces (sans bibliothèque) ; zoom, déplacement,\n  voisins mis en valeur au survol ou au clavier, liste textuelle des\n  relations. Le hors programme masqué l'est aussi ici.\n- Dates structurées des 123 auteurs des notions (naissance, mort,\n  datesApprox) dans contenu/auteurs/, et question 13 du vérificateur avec\n  son témoin.\n- Couleurs pour les 27 courants qui n'en avaient pas.\n- Le démarrage devient js/99-demarrage.js : il doit s'exécuter après\n  tous les autres morceaux.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": "Étape 6, explorer"
+    },
+    {
+      "hash": "3f73d4075f441b6f8d4a3151bfe709b7333ed942",
+      "short": "3f73d40",
+      "auteur": "Orangentleman",
+      "date": "2026-10-06T21:16:08+02:00",
+      "sujet": "Étape 6, lecture : thème clair, taille du texte, liens allégés et accessibles",
+      "corps": "- Thème sombre (défaut), clair (fond papier) ou automatique, dans les\n  Réglages : couleurs en variables CSS redéfinies pour le clair, posées\n  avant le premier affichage (script en tête d'index.html), synchronisées\n  avec le compte. inkOnDark fonce les couleurs de notion en thème clair.\n- Taille du texte : normale, grande, très grande (zone de lecture).\n- Liens : jamais vers la page affichée, une même cible une fois par bloc\n  (onglet Auteurs de Liberté : environ 90 liens visibles avant, 60 après,\n  et plus aucun des 43 qui renvoyaient à Liberté elle-même) ; atteignables\n  au clavier (Tab, Entrée).\n- Détails : plus de trous dans la grille des cartes d'auteur, fond du quiz\n  opaque, mention « à enrichir » réservée au mode édition, variable\n  --color-accent enfin définie, feuille de style dans <head>, en-tête\n  d'index.html à jour.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": "Étape 6, lecture"
+    },
+    {
+      "hash": "ab2d6a30f1f9c8b37cc314847ed185474e79aa50",
+      "short": "ab2d6a3",
+      "auteur": "Orangentleman",
+      "date": "2026-10-06T21:08:41+02:00",
+      "sujet": "Merge pull request #14 from Orangetleman/claude/hp-notions-2003",
+      "corps": "Hors programme : les sept autres notions du programme de 2003",
+      "tag": ""
+    },
+    {
+      "hash": "98bee231d5961429268a031a618dd818d020c67f",
+      "short": "98bee23",
+      "auteur": "Orangentleman",
+      "date": "2026-10-06T18:53:04+02:00",
+      "sujet": "Carte du projet : références de data.js recalculées après l'ajout des notions",
+      "corps": "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": "Carte du projet"
+    },
     {
       "hash": "fe03fe3a5a4af102bf591c4a21b1d5fa43a4109d",
       "short": "fe03fe3",

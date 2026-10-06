@@ -1,0 +1,95 @@
+/* css/09-explorer.css — mode Explorer (étape 6, oct. 2026) : frise des
+   auteurs et graphe des idées (js/15-explorer.js). Uniquement des variables
+   du thème : la vue marche en sombre comme en clair. */
+.explorer-intro{font-size:13px;line-height:1.6;color:var(--color-text-secondary);margin-bottom:12px;max-width:760px}
+.explorer-filtres{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-bottom:14px;font-size:12.5px;color:var(--color-text-secondary)}
+.explorer-filtres select{
+  font:inherit;font-size:12.5px;padding:5px 8px;border-radius:var(--border-radius-md);
+  background:var(--color-background-secondary);color:var(--color-text-primary);border:0.5px solid var(--color-border-secondary);
+}
+.explorer-check{display:inline-flex;align-items:center;gap:6px;cursor:pointer}
+.explorer-compte{color:var(--color-text-tertiary);font-size:12px}
+.explorer-vide{padding:20px 0;color:var(--color-text-tertiary);font-size:13px}
+.explorer-note{margin-top:14px;font-size:11.5px;color:var(--color-text-tertiary)}
+
+/* ── Frise ── */
+.frise-periode{margin-bottom:18px}
+.frise-titre{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--color-text-tertiary);margin:0 0 6px}
+.frise-ligne{display:flex;align-items:center;min-height:22px}
+.frise-nom{
+  flex:0 0 150px;font-size:12.5px;color:var(--color-text-secondary);cursor:pointer;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-right:8px;
+}
+.frise-nom:hover,.frise-nom:focus-visible{color:var(--color-text-primary);text-decoration:underline}
+.frise-prog{font-weight:600;color:var(--color-text-primary)}
+.frise-piste{position:relative;flex:1;height:22px;border-left:0.5px solid var(--color-border-tertiary)}
+.frise-axe{min-height:18px}
+.frise-axe .frise-piste{height:18px;border-bottom:0.5px solid var(--color-border-secondary)}
+.frise-grad{position:absolute;bottom:2px;transform:translateX(-50%);font-size:10px;color:var(--color-text-tertiary);white-space:nowrap}
+.fg-court{display:none}
+.frise-barre{position:absolute;top:7px;height:8px;border-radius:4px;min-width:4px;opacity:.9}
+.frise-approx{opacity:.55;outline:1px dashed var(--color-text-tertiary);outline-offset:1px}
+.frise-vivant{border-top-right-radius:0;border-bottom-right-radius:0;
+  -webkit-mask-image:linear-gradient(to right,#000 85%,transparent);mask-image:linear-gradient(to right,#000 85%,transparent)}
+.frise-dates{position:absolute;top:4px;font-size:10.5px;color:var(--color-text-tertiary);white-space:nowrap}
+
+/* ── Graphe ── */
+.graphe-cadre{position:relative;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);background:var(--color-background-secondary);overflow:hidden}
+#graphe-svg{display:block;width:100%;height:min(70vh,640px);cursor:grab;touch-action:none;user-select:none}
+#graphe-svg.g-glisse{cursor:grabbing}
+.graphe-boutons{position:absolute;top:8px;right:8px;display:flex;flex-direction:column;gap:4px;z-index:2}
+.graphe-boutons button{
+  width:30px;height:30px;border-radius:var(--border-radius-md);font:inherit;font-size:16px;cursor:pointer;
+  background:var(--color-background-primary);color:var(--color-text-primary);border:0.5px solid var(--color-border-secondary);
+}
+.g-arete{stroke-width:1.4;opacity:.75}
+.g-oppose{stroke:var(--dial-oppose);fill:var(--dial-oppose)}
+.g-prolonge{stroke:var(--dial-prolonge);fill:var(--dial-prolonge)}
+.g-repond{stroke:var(--dial-repond);fill:var(--dial-repond)}
+.g-complete{stroke:#534AB7;fill:#534AB7}
+.g-distinction{stroke:#9A7B4F;fill:#9A7B4F}
+.g-implique{stroke:#A03E7E;fill:#A03E7E}
+.g-lien{stroke:var(--color-border-secondary);fill:var(--color-border-secondary)}
+.g-fleche{stroke:none}
+.g-noeud{cursor:pointer;outline:none}
+.g-noeud circle{stroke:var(--color-background-primary);stroke-width:1.5}
+.g-noeud text{font-size:11px;fill:var(--color-text-secondary);paint-order:stroke;stroke:var(--color-background-secondary);stroke-width:3px;stroke-linejoin:round}
+.g-noeud:focus-visible circle{stroke:var(--color-text-quiz);stroke-width:3}
+.g-hp text{font-style:italic}
+/* Survol ou focus : le point, ses voisins et ses liens restent nets, le reste s'estompe. */
+.g-actif .g-noeud,.g-actif .g-arete{opacity:.15;transition:opacity .15s}
+.g-actif .g-noeud.g-voisin,.g-actif .g-arete.g-voisin{opacity:1}
+.g-actif .g-noeud.g-voisin text{fill:var(--color-text-primary);font-weight:600}
+.graphe-legende{display:flex;flex-wrap:wrap;gap:14px;margin:10px 0;font-size:12px;color:var(--color-text-secondary)}
+.graphe-legende span{display:inline-flex;align-items:center;gap:6px}
+.g-leg{display:inline-block;width:18px;height:3px;border-radius:2px}
+.g-leg.g-oppose{background:var(--dial-oppose)} .g-leg.g-prolonge{background:var(--dial-prolonge)} .g-leg.g-repond{background:var(--dial-repond)}
+.g-leg.g-complete{background:#534AB7} .g-leg.g-distinction{background:#9A7B4F} .g-leg.g-implique{background:#A03E7E} .g-leg.g-lien{background:var(--color-border-secondary)}
+.g-leg-hp{display:inline-block;width:18px;font-style:italic}
+.g-leg-hp::before{content:'Abc'}
+.graphe-liste{margin-top:8px;font-size:12.5px;color:var(--color-text-secondary)}
+.graphe-liste summary{cursor:pointer;color:var(--color-text-tertiary)}
+.graphe-liste ul{margin:8px 0 0 18px;line-height:1.7}
+.graphe-liste .g-lienliste{color:var(--color-text-primary);cursor:pointer;text-decoration:underline;text-decoration-color:var(--color-border-secondary)}
+@media (max-width:700px){
+  .frise-nom{flex-basis:104px;font-size:11.5px}
+  .frise-dates{display:none}
+  .fg-long,.frise-grad-impaire{display:none}
+  .fg-court{display:inline}
+  #graphe-svg{height:62vh}
+}
+
+/* ── Sujets du bac (Explorer, onglet Dissertations, fiche d'auteur) ── */
+.bac-annee{margin-bottom:16px}
+.bac-liste{list-style:none;margin:0 0 14px;padding:0}
+.bac-sujet{padding:7px 0;border-bottom:0.5px solid var(--color-border-tertiary);font-size:12.5px;line-height:1.5;color:var(--color-text-secondary)}
+.bac-quand{font-size:11px;color:var(--color-text-tertiary);white-space:nowrap;margin-left:4px}
+.bac-pills{display:flex;flex-wrap:wrap;gap:5px;margin-top:5px}
+.bac-auteur{margin-top:9px;font-size:12px;color:var(--color-text-info);background:var(--color-background-info);border:0.5px solid var(--color-border-info);border-radius:var(--border-radius-md);padding:6px 9px}
+
+/* ── Nouveautés ── */
+.nouveaute{padding:12px 0 14px;border-bottom:0.5px solid var(--color-border-tertiary);max-width:760px}
+.nouveaute-date{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--color-text-tertiary)}
+.nouveaute-titre{font-size:15px;font-weight:600;color:var(--color-text-primary);margin:3px 0 5px}
+.nouveaute p{font-size:13px;line-height:1.6;color:var(--color-text-secondary);margin:0}
+.nouveaute-liens{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}

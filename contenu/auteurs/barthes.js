@@ -4,6 +4,8 @@ AUTEUR("Barthes", {
   bio: "Sémiologue, critique et théoricien de la littérature français (1915–1980). Héritier de Saussure, il étend l'analyse des signes à toute la culture (Mythologies, 1957) avant d'explorer, dans une écriture plus intime, le sujet et ses affects (Fragments d'un discours amoureux, 1977 ; La Chambre claire, 1980).",
   courant: "Structuralisme / Sémiologie",
   periode: "XXe siècle",
+  naissance: 1915,
+  mort: 1980,
   themes: ["sémiologie", "mythologies", "discours amoureux", "temps vécu de l'attente", "écriture"],
   dialogues: [
     {

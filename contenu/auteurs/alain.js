@@ -4,6 +4,8 @@ AUTEUR("Alain", {
   bio: "Philosophe français (1868–1951), professeur emblématique de la Troisième République. Il développe une philosophie de la résistance à la puissance et de la formation du sujet par le travail.",
   courant: "Rationalisme républicain",
   periode: "XIXe–XXe siècle",
+  naissance: 1868,
+  mort: 1951,
   themes: ["résistance aux pouvoirs", "formation du sujet", "travail manuel", "bonheur", "propos"],
   dialogues: [
     {

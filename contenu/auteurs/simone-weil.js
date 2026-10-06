@@ -4,6 +4,8 @@ AUTEUR("Simone Weil", {
   bio: "Philosophe et militante française (1909–1943). Elle combine engagement politique (usines, guerre d'Espagne) et réflexion sur le travail, l'enracinement et la condition ouvrière.",
   courant: "Philosophie sociale / Mysticisme",
   periode: "XXe siècle",
+  naissance: 1909,
+  mort: 1943,
   themes: ["condition ouvrière", "enracinement", "travail non servile", "devoir de l'ingénieur", "attention"],
   dialogues: [
     {

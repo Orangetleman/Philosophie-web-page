@@ -4,6 +4,8 @@ AUTEUR("Feuerbach", {
   bio: "Philosophe allemand (1804–1872), élève critique de Hegel. Sa thèse de la projection religieuse fait de la théologie une anthropologie déguisée — Dieu = essence humaine projetée hors de soi. Inspirera directement Marx.",
   courant: "Hégélianisme de gauche / Matérialisme anthropologique",
   periode: "XIXe siècle",
+  naissance: 1804,
+  mort: 1872,
   themes: [
     "aliénation religieuse",
     "projection",

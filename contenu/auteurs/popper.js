@@ -4,6 +4,8 @@ AUTEUR("Popper", {
   bio: "Philosophe des sciences austro-britannique (1902–1994). Il développe le principe de falsifiabilité (réfutabilité) comme critère de démarcation entre science et non-science.",
   courant: "Épistémologie critique",
   periode: "XXe siècle",
+  naissance: 1902,
+  mort: 1994,
   themes: [
     "falsifiabilité",
     "conjectures et réfutations",

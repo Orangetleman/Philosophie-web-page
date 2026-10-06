@@ -1,0 +1,40 @@
+/* css/10-impression.css — fiche imprimable d'une notion (étape 6,
+   js/16-impression.js). À l'écran, #impression n'apparaît jamais ; à
+   l'impression, lui seul est imprimé, en noir sur blanc, quel que soit le
+   thème. Ctrl+P sans passer par le bouton imprime la page telle quelle. */
+#impression{display:none}
+.fiche-btn{
+  margin-left:auto;align-self:flex-start;flex-shrink:0;font:inherit;font-size:12px;cursor:pointer;
+  padding:5px 10px;border-radius:var(--border-radius-md);
+  background:var(--color-background-secondary);color:var(--color-text-secondary);border:0.5px solid var(--color-border-secondary);
+}
+.fiche-btn:hover{color:var(--color-text-primary)}
+@media print{
+  @page{margin:16mm 14mm}
+  body.impression-prete{background:#fff!important;padding:0!important;height:auto!important;overflow:visible!important}
+  body.impression-prete > *:not(#impression){display:none!important}
+  body.impression-prete #impression{display:block;color:#111;font:10.5pt/1.45 'Inter',system-ui,sans-serif}
+  /* Le contenu reprend des classes du site (définitions, mots-clés) dont les
+     couleurs suivent le thème : tout est forcé en encre noire sur papier. */
+  #impression *{color:#111!important;background:transparent!important;border-color:#bbb!important;box-shadow:none!important}
+  #impression h1{font-size:20pt;margin:2pt 0 2pt}
+  #impression h2{font-size:12.5pt;margin:12pt 0 5pt;padding-bottom:2pt;border-bottom:0.6pt solid #999;break-after:avoid}
+  #impression .imp-site{font-size:8.5pt;color:#555;text-transform:uppercase;letter-spacing:.06em}
+  #impression .imp-question{font-style:italic;font-size:12pt;color:#333}
+  #impression .imp-def summary{display:none}
+  #impression .def-sec{margin-top:5pt}
+  #impression .def-sec-title{font-weight:600}
+  #impression .imp-auteur{break-inside:avoid;margin-bottom:6pt}
+  #impression .imp-nom{font-weight:600}
+  #impression .imp-etiq{font-weight:400;font-size:8pt;border:0.5pt solid #777;border-radius:6pt;padding:0 4pt;margin-left:4pt}
+  #impression .imp-oeuvre{font-style:italic;color:#444}
+  #impression .imp-cit{font-style:italic;color:#333;margin:2pt 0 0 8pt}
+  #impression ul,#impression ol{margin:2pt 0 4pt 16pt}
+  #impression li{margin-bottom:2pt}
+  #impression .imp-plan{break-inside:avoid;margin-bottom:6pt}
+  #impression .imp-plan-q{font-weight:600}
+  #impression .imp-pb{font-size:9.5pt;color:#333;margin:2pt 0}
+  #impression .imp-quand{color:#555;font-size:9pt}
+  #impression .imp-pied{margin-top:14pt;font-size:8pt;color:#666;border-top:0.5pt solid #bbb;padding-top:4pt}
+  #impression a,#impression span{color:inherit!important;border:0!important}
+}

@@ -56,7 +56,7 @@ const lireTexte = f => fs.readFileSync(f, 'utf8').replace(/\r\n/g, '\n');
    et renvoie {ordre, notions:{cle→objet}, auteurs:{nom→objet}, concepts:[], reperes:[],
    programme}. */
 export function chargerSources() {
-  const s = { ordre: null, notions: {}, auteurs: {}, concepts: [], reperes: [], programme: null };
+  const s = { ordre: null, notions: {}, auteurs: {}, concepts: [], reperes: [], programme: null, sujetsBac: null, nouveautes: null };
   const bac = {
     ORDRE: cles => { if (s.ordre) echec('ORDRE déclaré deux fois'); s.ordre = cles; },
     NOTION: (cle, n) => { if (s.notions[cle]) echec(`notion « ${cle} » déclarée deux fois`); s.notions[cle] = n; },
@@ -64,6 +64,8 @@ export function chargerSources() {
     CONCEPT: c => s.concepts.push(c),
     REPERE: c => s.reperes.push(c),
     PROGRAMME: p => { if (s.programme) echec('PROGRAMME déclaré deux fois'); s.programme = p; },
+    SUJETS_BAC: x => { if (s.sujetsBac) echec('SUJETS_BAC déclaré deux fois'); s.sujetsBac = x; },   // étape 6
+    NOUVEAUTES: x => { if (s.nouveautes) echec('NOUVEAUTES déclaré deux fois'); s.nouveautes = x; },  // étape 6
   };
   vm.createContext(bac);
   const jouer = f => {
@@ -78,6 +80,10 @@ export function chargerSources() {
   jouer(path.join(CONTENU, 'concepts.js'));
   jouer(path.join(CONTENU, 'reperes.js'));
   jouer(path.join(CONTENU, 'programme.js'));
+  jouer(path.join(CONTENU, 'sujets-bac.js'));
+  jouer(path.join(CONTENU, 'nouveautes.js'));
+  if (!s.sujetsBac) echec('contenu/sujets-bac.js ne déclare pas SUJETS_BAC({...})');
+  if (!s.nouveautes) echec('contenu/nouveautes.js ne déclare pas NOUVEAUTES([...])');
   if (!s.programme) echec('contenu/programme.js ne déclare pas PROGRAMME({...})');
   if (!s.ordre) echec('contenu/ordre.js ne déclare pas ORDRE([...])');
   Object.keys(s.notions).filter(k => !s.ordre.includes(k)).forEach(k => echec(`notion « ${k} » absente de ORDRE (contenu/ordre.js)`));
@@ -92,7 +98,22 @@ export function assembler(s) {
   const AM = {};
   Object.keys(s.auteurs).sort((a, b) => a.localeCompare(b, 'fr')).forEach(n => { AM[n] = s.auteurs[n]; });
   const CONCEPTS = s.concepts.concat(s.reperes).map(normaliserConcept);
-  return { D, KEYS: s.ordre.slice(), AM, CONCEPTS, PROGRAMME: programmeCanonique(s.programme) };
+  return { D, KEYS: s.ordre.slice(), AM, CONCEPTS, PROGRAMME: programmeCanonique(s.programme),
+    SUJETS_BAC: sujetsCanoniques(s.sujetsBac), NOUVEAUTES: s.nouveautes.slice() };
+}
+
+/* sujetsCanoniques(x) — les sessions de contenu/sujets-bac.js mises à plat :
+   {sources, sujets:[{annee, date, voie, type:'dissertation', q, notions}
+   | {annee, date, voie, type:'explication', auteur, oeuvre, notions}]},
+   du plus récent au plus ancien (étape 6). */
+export function sujetsCanoniques(x) {
+  const sujets = [];
+  x.sessions.slice().sort((a, b) => b.annee - a.annee).forEach(se => {
+    const base = { annee: se.annee, date: se.date, voie: se.voie };
+    se.dissertations.forEach(d => sujets.push({ ...base, type: 'dissertation', q: d.q, notions: d.notions.slice() }));
+    if (se.explication) sujets.push({ ...base, type: 'explication', auteur: se.explication.auteur, oeuvre: se.explication.oeuvre, notions: se.explication.notions.slice() });
+  });
+  return { sources: x.sources.slice(), sujets };
 }
 
 /* programmeCanonique(p) — la liste officielle sous la forme que lit le site :
@@ -109,12 +130,13 @@ export function programmeCanonique(p) {
 }
 
 /* ecrireData(d) — le texte de data.js : un élément par ligne (diffs lisibles). */
-export function ecrireData({ D, KEYS, AM, CONCEPTS, PROGRAMME }) {
+export function ecrireData({ D, KEYS, AM, CONCEPTS, PROGRAMME, SUJETS_BAC, NOUVEAUTES }) {
   const j = v => JSON.stringify(v);
   return [
     '/* data.js — GÉNÉRÉ par outils/construire.mjs à partir de contenu/. NE PAS ÉDITER :',
     '   modifier les fichiers de contenu/, puis lancer « node outils/construire.mjs ».',
-    '   Chargé en <script src> AVANT app.js : D, KEYS, AM, CONCEPTS, PROGRAMME deviennent',
+    '   Chargé en <script src> AVANT app.js : D, KEYS, AM, CONCEPTS, PROGRAMME, SUJETS_BAC,',
+    '   NOUVEAUTES deviennent',
     '   des globales, déjà au format canonique (cf. CLAUDE.md). */',
     'const D={',
     KEYS.map(k => j(k) + ':' + j(D[k])).join(',\n'),
@@ -128,6 +150,9 @@ export function ecrireData({ D, KEYS, AM, CONCEPTS, PROGRAMME }) {
     '];',
     '// Le programme officiel (contenu/programme.js) : notions et auteurs « au programme ».',
     'const PROGRAMME=' + j(PROGRAMME) + ';',
+    '// Sujets tombés au bac (contenu/sujets-bac.js) et journal des nouveautés (contenu/nouveautes.js).',
+    'const SUJETS_BAC=' + j(SUJETS_BAC) + ';',
+    'const NOUVEAUTES=' + j(NOUVEAUTES) + ';',
     ''
   ].join('\n');
 }

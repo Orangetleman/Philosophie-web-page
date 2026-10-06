@@ -4,6 +4,8 @@ AUTEUR("Russell", {
   bio: "Philosophe, logicien et mathématicien britannique (1872–1970). Co-auteur des Principia Mathematica avec Whitehead, prix Nobel de littérature (1950), militant pacifiste. Critique radical de la religion (« Pourquoi je ne suis pas chrétien »), théoricien du problème de l'induction et de la « théière de Russell » comme image du fardeau de la preuve.",
   courant: "Philosophie analytique / Empirisme logique",
   periode: "XIXe–XXe siècle",
+  naissance: 1872,
+  mort: 1970,
   themes: ["problème de l'induction", "théière de Russell", "logique", "athéisme rationnel", "science et religion"],
   dialogues: [
     {

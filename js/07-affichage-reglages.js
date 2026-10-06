@@ -44,6 +44,54 @@ function toggleFicheMode(){
   applyFicheMode();
 }
 
+/* ── Thème et taille du texte (étape 6, oct. 2026) ───────────────────────
+   « philo-theme » : 'sombre' (défaut), 'clair' ou 'auto' (suit le système).
+   Le script en tête d'index.html pose data-theme avant le premier affichage ;
+   ici, on le change à chaud. « philo-texte » : 'normal', 'grand' ou
+   'tres-grand' (classe sur <body>, zoom de la zone de lecture, css/01).  */
+const THEMES={sombre:'Sombre', clair:'Clair', auto:'Automatique'};
+const TAILLES={normal:'Normale', grand:'Grande', 'tres-grand':'Très grande'};
+function lireReglage(cle, defaut){ try{ return localStorage.getItem(cle)||defaut; }catch(e){ return defaut; } }
+/* themeEffectif() — 'clair' ou 'sombre', une fois « auto » résolu. */
+function themeEffectif(){
+  const t=document.documentElement.dataset.theme||'sombre';
+  if(t!=='auto') return t;
+  return (window.matchMedia&&matchMedia('(prefers-color-scheme: light)').matches)?'clair':'sombre';
+}
+/* appliquerAffichage() — pose thème et taille, met à jour la couleur de la
+   barre du téléphone (theme-color). Ne redessine pas : setTheme s'en charge. */
+function appliquerAffichage(){
+  document.documentElement.dataset.theme=lireReglage('philo-theme','sombre');
+  const taille=lireReglage('philo-texte','normal');
+  document.body.classList.toggle('texte-grand', taille==='grand');
+  document.body.classList.toggle('texte-tres-grand', taille==='tres-grand');
+  const meta=document.querySelector('meta[name="theme-color"]');
+  if(meta) meta.setAttribute('content', themeEffectif()==='clair'?'#e9e6df':'#121212');
+}
+/* setTheme(t) / setTailleTexte(t) — enregistrent, appliquent, redessinent
+   (les couleurs de notion des liens dépendent du thème : inkOnDark) et
+   reportent au compte. */
+function setTheme(t){
+  try{ localStorage.setItem('philo-theme', t); }catch(e){}
+  appliquerAffichage(); renderSB(); renderCurrentView();
+  const ov=document.getElementById('settings-overlay');
+  if(ov && ov.classList.contains('open')) renderSettingsBody();
+  syncOnPrefsChange();
+}
+function setTailleTexte(t){
+  try{ localStorage.setItem('philo-texte', t); }catch(e){}
+  appliquerAffichage();
+  const ov=document.getElementById('settings-overlay');
+  if(ov && ov.classList.contains('open')) renderSettingsBody();
+  syncOnPrefsChange();
+}
+// En « auto », suivre le système quand il passe du clair au sombre.
+if(window.matchMedia){
+  const mq=matchMedia('(prefers-color-scheme: light)');
+  const suivre=()=>{ if(lireReglage('philo-theme','sombre')==='auto'){ appliquerAffichage(); renderSB(); renderCurrentView(); } };
+  if(mq.addEventListener) mq.addEventListener('change', suivre); else if(mq.addListener) mq.addListener(suivre);
+}
+
 /* ── Hors programme : afficher / masquer (étape 5, oct. 2026) ─────────────
    setVoirHP(v) — enregistre le réglage (« philo-hp » : '1' visible, '0'
    masqué), note que la personne a fait son choix (« philo-hp-choix », la
@@ -94,8 +142,17 @@ function renderSettingsBody(){
   const body=document.getElementById('settings-body'); if(!body) return;
   const isEd=(localStorage.getItem('philo-mode')||'revision')==='edition';
   const isFiche=localStorage.getItem('philo-fiche')==='1';
+  // Étape 6 : thème et taille du texte, en boutons à choix unique.
+  const choix=(titre, desc, options, actuel, fn)=>'<div class="set-row">'
+    +'<div class="set-row-cur">'+titre+' : <strong>'+options[actuel]+'</strong></div>'
+    +'<div class="set-row-desc">'+desc+'</div>'
+    +'<div class="set-choix" role="group" aria-label="'+titre+'">'
+    +Object.keys(options).map(k=>'<button class="pbtn '+(k===actuel?'pbtn-primary':'pbtn-ghost')+'" aria-pressed="'+(k===actuel)+'" onclick="'+fn+'(\''+k+'\')">'+options[k]+'</button>').join('')
+    +'</div></div>';
   body.innerHTML=
-    '<div class="set-row">'
+    choix('Thème', 'Le thème clair, sur fond papier, repose les yeux pour lire longtemps ; « Automatique » suit le réglage de ton appareil.', THEMES, lireReglage('philo-theme','sombre'), 'setTheme')
+    +choix('Taille du texte', 'Agrandit la zone de lecture (notions, fiches), pas la barre latérale.', TAILLES, lireReglage('philo-texte','normal'), 'setTailleTexte')
+    +'<div class="set-row">'
     +'<div class="set-row-cur">Mode d\'affichage actuel : <strong>'+(isEd?'Édition':'Révision')+'</strong></div>'
     +'<div class="set-row-desc">Le mode <em>édition</em> révèle les badges « ✦ nouveau / ✎ modifié » et les boutons « + » pour proposer du contenu. Le mode <em>révision</em> épure l\'affichage pour se concentrer sur l\'apprentissage.</div>'
     +'<button class="pbtn pbtn-primary set-mode-btn" onclick="togglePhiloMode()">'

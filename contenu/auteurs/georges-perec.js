@@ -4,6 +4,8 @@ AUTEUR("Georges Perec", {
   bio: "Écrivain français (1936–1982), membre majeur de l'OULIPO (Ouvroir de Littérature Potentielle, fondé par Queneau et Le Lionnais en 1960). La Disparition (1969) est un roman écrit sans la lettre 'e'.",
   courant: "OULIPO / Littérature à contraintes",
   periode: "XXe siècle",
+  naissance: 1936,
+  mort: 1982,
   themes: ["lipogramme", "contrainte créatrice", "palindrome", "jeux littéraires", "langage comme matériau"],
   dialogues: [
     {

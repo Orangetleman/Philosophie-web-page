@@ -4,6 +4,8 @@ AUTEUR("Orwell", {
   bio: "Écrivain et journaliste britannique (1903–1950). Ses romans 1984 et La Ferme des animaux sont des analyses politiques du totalitarisme sous forme littéraire.",
   courant: "Littérature politique / Socialisme démocratique",
   periode: "XXe siècle",
+  naissance: 1903,
+  mort: 1950,
   themes: ["novlangue", "totalitarisme", "propagande", "langage et pouvoir", "doublethink"],
   dialogues: [
     {

@@ -4,6 +4,8 @@ AUTEUR("Hume", {
   bio: "Philosophe écossais (1711–1776), figure centrale de l'empirisme. Il montre que nos certitudes rationnelles (causalité, substance, moi) ne sont que des habitudes psychologiques.",
   courant: "Empirisme / Scepticisme",
   periode: "XVIIIe siècle",
+  naissance: 1711,
+  mort: 1776,
   themes: [
     "causalité comme habitude",
     "bundle theory du moi",

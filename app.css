@@ -45,9 +45,71 @@
   --color-accent-quiz:#3b82d6;
   --border-radius-lg:12px;
   --border-radius-md:8px;
+  /* Étape 6 (oct. 2026) : couleurs auparavant écrites en dur, passées en
+     variables pour que le thème clair puisse les redéfinir. */
+  --color-page:#121212;                       /* fond autour du cadre */
+  --color-accent:var(--color-accent-quiz);    /* était utilisé sans être défini (accroches) */
+  --color-bad:#e08a8a; --color-bad-bg:#3a1e1e; --color-bad-border:#5a2d2d;
+  --color-ok:#7bd88f;
+  --color-danger:#f0a3a3; --color-danger-soft:#d98a8a;
+  --color-warn:#EF9F27;
+  --color-overlay-quiz:rgba(10,14,20,.97);    /* fond du quiz, presque opaque (le texte ne transparaît plus) */
+  --dial-oppose:#e05a5a; --dial-oppose-bg:#3a1a1a; --dial-oppose-border:#6a2a2a;
+  --dial-prolonge:#5aaa5a; --dial-prolonge-bg:#1a3a1a; --dial-prolonge-border:#2a5a2a;
+  --dial-repond:#5a8ae0; --dial-repond-bg:#1a2a3a; --dial-repond-border:#2a4a6a;
+  color-scheme:dark;
 }
+
+/* ── 1 bis. Thème clair (étape 6) ─────────────────────────────────────
+   Réglage « philo-theme » : 'sombre' (défaut, l'apparence historique),
+   'clair', ou 'auto' (suit le système). Le script en tête d'index.html pose
+   data-theme sur <html> avant le premier affichage, pour éviter un éclair
+   sombre. Les deux blocs ci-dessous sont identiques : l'un pour le choix
+   explicite, l'autre pour « auto » quand le système est en clair. Fond
+   légèrement chaud (papier) pour la lecture de longs textes. */
+:root[data-theme="clair"]{
+  --color-page:#e9e6df;
+  --color-background-primary:#fbfaf7; --color-background-secondary:#f1eee8;
+  --color-text-primary:#1d1d1f; --color-text-secondary:#3a3a3f; --color-text-tertiary:#66666c;
+  --color-border-tertiary:#dcd8cf; --color-border-secondary:#b4aea2;
+  --color-background-info:#e5f2e5; --color-border-info:#9cc69c; --color-text-info:#2b6e2f;
+  --color-background-quiz:#e6eefa; --color-border-quiz:#a3bce4; --color-text-quiz:#24589f; --color-accent-quiz:#2f6fd0;
+  --color-new:#8a5a0e; --color-new-bg:#fbf0d9; --color-new-border:#e2c387;
+  --color-mod:#1c6a96; --color-mod-bg:#e2eff8; --color-mod-border:#9cc4de;
+  --color-bad:#a3302a; --color-bad-bg:#fbe7e5; --color-bad-border:#e6aaa4;
+  --color-ok:#2e7d32; --color-danger:#b3261e; --color-danger-soft:#a3302a; --color-warn:#9a5b06;
+  --color-overlay-quiz:rgba(233,230,223,.98);
+  --dial-oppose:#b3261e; --dial-oppose-bg:#fbe7e5; --dial-oppose-border:#e6aaa4;
+  --dial-prolonge:#2e7d32; --dial-prolonge-bg:#e5f2e5; --dial-prolonge-border:#9cc69c;
+  --dial-repond:#24589f; --dial-repond-bg:#e6eefa; --dial-repond-border:#a3bce4;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: light){
+  :root[data-theme="auto"]{
+    --color-page:#e9e6df;
+    --color-background-primary:#fbfaf7; --color-background-secondary:#f1eee8;
+    --color-text-primary:#1d1d1f; --color-text-secondary:#3a3a3f; --color-text-tertiary:#66666c;
+    --color-border-tertiary:#dcd8cf; --color-border-secondary:#b4aea2;
+    --color-background-info:#e5f2e5; --color-border-info:#9cc69c; --color-text-info:#2b6e2f;
+    --color-background-quiz:#e6eefa; --color-border-quiz:#a3bce4; --color-text-quiz:#24589f; --color-accent-quiz:#2f6fd0;
+    --color-new:#8a5a0e; --color-new-bg:#fbf0d9; --color-new-border:#e2c387;
+    --color-mod:#1c6a96; --color-mod-bg:#e2eff8; --color-mod-border:#9cc4de;
+    --color-bad:#a3302a; --color-bad-bg:#fbe7e5; --color-bad-border:#e6aaa4;
+    --color-ok:#2e7d32; --color-danger:#b3261e; --color-danger-soft:#a3302a; --color-warn:#9a5b06;
+    --color-overlay-quiz:rgba(233,230,223,.98);
+    --dial-oppose:#b3261e; --dial-oppose-bg:#fbe7e5; --dial-oppose-border:#e6aaa4;
+    --dial-prolonge:#2e7d32; --dial-prolonge-bg:#e5f2e5; --dial-prolonge-border:#9cc69c;
+    --dial-repond:#24589f; --dial-repond-bg:#e6eefa; --dial-repond-border:#a3bce4;
+    color-scheme:light;
+  }
+}
+/* Taille du texte (étape 6) : réglage « philo-texte ». Le style est écrit en
+   pixels ; on agrandit donc la zone de lecture par zoom, sans toucher à la
+   barre latérale ni aux fenêtres. */
+body.texte-grand .main-content{zoom:1.12}
+body.texte-tres-grand .main-content{zoom:1.25}
 /* ── 2. Layout de base ───────────────────────────────────────────── */
-body{font-family:'Inter',system-ui,sans-serif;background:#121212;height:100vh;height:100dvh;padding:16px;overflow:hidden;}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--color-page);height:100vh;height:100dvh;padding:16px;overflow:hidden;}
 *{box-sizing:border-box;margin:0;padding:0}
 .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
 /* Accessibilité clavier : anneau de focus visible UNIQUEMENT lors de la
@@ -98,7 +160,9 @@ body{font-family:'Inter',system-ui,sans-serif;background:#121212;height:100vh;he
 .slabel{font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.06em;color:var(--color-text-tertiary);margin-bottom:8px}
 
 /* ── 6. Contenu notion — onglet Auteurs (.ag/.ac) ────────────────── */
-.ag{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:9px;margin-bottom:16px}
+/* grid-auto-flow:dense (étape 6) : une carte large (.ac-multi, deux colonnes)
+   ne laisse plus de trou ; une carte simple suivante vient le combler. */
+.ag{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));grid-auto-flow:dense;gap:9px;margin-bottom:16px}
 .ac{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:10px 12px}
 .an{font-size:12px;font-weight:500;margin-bottom:2px}
 .aw{font-size:11px;color:var(--color-text-tertiary);font-style:italic;margin-bottom:4px}
@@ -113,10 +177,10 @@ body{font-family:'Inter',system-ui,sans-serif;background:#121212;height:100vh;he
 /* Plusieurs idées dans une carte → on matérialise les zones par un liseré
    discret (les zones colorées, elles, l'emportent ci-dessous). */
 .ac-multi .a-idea{border-color:var(--color-border-tertiary)}
-.a-idea.is-new{border-color:var(--color-new-border);background:var(--color-new-bg)}
-.a-idea.is-new .aw{color:var(--color-new)}
-.a-idea.is-modified{border-color:var(--color-mod-border);background:var(--color-mod-bg)}
-.a-idea.is-modified .aw{color:var(--color-mod)}
+body.mode-edition .a-idea.is-new{border-color:var(--color-new-border);background:var(--color-new-bg)}
+body.mode-edition .a-idea.is-new .aw{color:var(--color-new)}
+body.mode-edition .a-idea.is-modified{border-color:var(--color-mod-border);background:var(--color-mod-bg)}
+body.mode-edition .a-idea.is-modified .aw{color:var(--color-mod)}
 /* Carte d'un auteur à plusieurs idées : s'élargit sur 2 colonnes (au lieu de
    toute la rangée) pour que les zones d'idées tiennent côte à côte SANS laisser
    de grands vides dans la grille — un span pleine-rangée cassait le flux et
@@ -219,8 +283,8 @@ body.mode-fiche .a-idea .aq-details{display:none}
 .accroche-type{font-size:10px;font-weight:600;letter-spacing:.03em;text-transform:uppercase;color:var(--color-accent);background:var(--color-accent-soft,rgba(120,120,255,.10));padding:2px 9px;border-radius:20px;flex-shrink:0}
 .accroche-body{font-size:13.5px;color:var(--color-text-primary);line-height:1.6}
 .accroche-src{font-size:11px;color:var(--color-text-tertiary);margin-top:6px;font-style:italic;text-align:right}
-.accroche-card.is-new{border-color:var(--color-new-border);border-left-color:var(--color-new);background:var(--color-new-bg)}
-.accroche-card.is-modified{border-color:var(--color-mod-border);border-left-color:var(--color-mod);background:var(--color-mod-bg)}
+body.mode-edition .accroche-card.is-new{border-color:var(--color-new-border);border-left-color:var(--color-new);background:var(--color-new-bg)}
+body.mode-edition .accroche-card.is-modified{border-color:var(--color-mod-border);border-left-color:var(--color-mod);background:var(--color-mod-bg)}
 
 /* ── 6e. Contenu notion — onglets Liens & Dissertations ──────────── */
 .liens-row{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:14px}
@@ -306,15 +370,15 @@ body.mode-fiche .a-idea .aq-details{display:none}
 .hp-invite-note{font-size:11px;color:var(--color-text-tertiary);margin:10px 0 0!important}
 @media (max-width:700px){ .hp-invite{left:16px;right:16px;bottom:16px;max-width:none} }
 .quiz-filters button.quiz-hp{font-style:italic}
-.ac.is-new{border-color:var(--color-new-border);background:var(--color-new-bg)}
-.ac.is-new .an{position:relative}
-.ti2.is-new{background:var(--color-new-bg);border-radius:4px;padding:5px 7px;margin-bottom:2px;border-bottom:none!important}
-.ti2.is-new .tinum{color:var(--color-new)}
-.axe-card.is-new{border-color:var(--color-new-border);background:var(--color-new-bg)}
-.axe-card.is-new .axe-num{color:var(--color-new)}
-.ex-card.is-new{border-color:var(--color-new-border);background:var(--color-new-bg)}
-.dq.is-new{color:var(--color-new);border-bottom-color:var(--color-new-border)}
-.dq.is-new::before{color:var(--color-new)}
+body.mode-edition .ac.is-new{border-color:var(--color-new-border);background:var(--color-new-bg)}
+body.mode-edition .ac.is-new .an{position:relative}
+body.mode-edition .ti2.is-new{background:var(--color-new-bg);border-radius:4px;padding:5px 7px;margin-bottom:2px;border-bottom:none!important}
+body.mode-edition .ti2.is-new .tinum{color:var(--color-new)}
+body.mode-edition .axe-card.is-new{border-color:var(--color-new-border);background:var(--color-new-bg)}
+body.mode-edition .axe-card.is-new .axe-num{color:var(--color-new)}
+body.mode-edition .ex-card.is-new{border-color:var(--color-new-border);background:var(--color-new-bg)}
+body.mode-edition .dq.is-new{color:var(--color-new);border-bottom-color:var(--color-new-border)}
+body.mode-edition .dq.is-new::before{color:var(--color-new)}
 
 /* ── Éléments modifiés ────────────────────────────────────────── */
 :root{
@@ -329,16 +393,16 @@ body.mode-fiche .a-idea .aq-details{display:none}
   border:0.5px solid var(--color-mod-border);
   border-radius:4px;padding:1px 6px;flex-shrink:0;
 }
-.ac.is-modified{border-color:var(--color-mod-border);background:var(--color-mod-bg)}
-.ac.is-modified .an{color:var(--color-mod)!important}
-.ti2.is-modified{background:var(--color-mod-bg);border-radius:4px;padding:5px 7px;margin-bottom:2px;border-bottom:none!important}
-.ti2.is-modified .tinum{color:var(--color-mod)}
-.axe-card.is-modified{border-color:var(--color-mod-border);background:var(--color-mod-bg)}
-.axe-card.is-modified .axe-num{color:var(--color-mod)}
-.ex-card.is-modified{border-color:var(--color-mod-border);background:var(--color-mod-bg)}
-.dq.is-modified{color:var(--color-mod);border-bottom-color:var(--color-mod-border)}
-.dq.is-modified::before{color:var(--color-mod)}
-.idea-card.is-modified{border-color:var(--color-mod-border);background:var(--color-mod-bg)}
+body.mode-edition .ac.is-modified{border-color:var(--color-mod-border);background:var(--color-mod-bg)}
+body.mode-edition .ac.is-modified .an{color:var(--color-mod)!important}
+body.mode-edition .ti2.is-modified{background:var(--color-mod-bg);border-radius:4px;padding:5px 7px;margin-bottom:2px;border-bottom:none!important}
+body.mode-edition .ti2.is-modified .tinum{color:var(--color-mod)}
+body.mode-edition .axe-card.is-modified{border-color:var(--color-mod-border);background:var(--color-mod-bg)}
+body.mode-edition .axe-card.is-modified .axe-num{color:var(--color-mod)}
+body.mode-edition .ex-card.is-modified{border-color:var(--color-mod-border);background:var(--color-mod-bg)}
+body.mode-edition .dq.is-modified{color:var(--color-mod);border-bottom-color:var(--color-mod-border)}
+body.mode-edition .dq.is-modified::before{color:var(--color-mod)}
+body.mode-edition .idea-card.is-modified{border-color:var(--color-mod-border);background:var(--color-mod-bg)}
 
 /* ── Bouton retour ───────────────────────────────────────────── */
 .back-btn{
@@ -364,6 +428,18 @@ body.mode-fiche .a-idea .aq-details{display:none}
 .def-sec-title{font-size:10px;font-weight:600;color:var(--color-text-primary);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
 .def-sec-body{font-size:12px;color:var(--color-text-secondary);line-height:1.65;padding-left:9px;border-left:2px solid var(--color-border-secondary);margin-bottom:7px}
 .def-sec-body strong{color:var(--color-text-primary);font-weight:500}
+
+/* Plans convertis de l'ancien format : la mention « ↻ à enrichir » ne
+   regarde que les contributeurs (mode édition), pas les visiteurs. */
+body:not(.mode-edition) .plan-migr{display:none}
+
+/* Badges « ✦ Nouveau » / « ✎ Modifié » (étape 6) : informations pour les
+   contributeurs. Sans date, ils avaient fini par marquer près de 250
+   éléments (diagnostic, § 3) ; en mode révision (par défaut), ni badge ni
+   teinte (les règles is-new / is-modified ci-dessus sont réservées à
+   body.mode-edition), et les nouveautés sont datées dans Explorer ›
+   Nouveautés. */
+body:not(.mode-edition) .new-badge,body:not(.mode-edition) .modified-badge{display:none}
 /* css/02-barre-laterale.css — morceau de la feuille de style du site. Le build
    (outils/construire.mjs) recolle css/*.css dans l'ORDRE des noms pour
    produire app.css : l'ordre compte (cascade CSS). */
@@ -438,7 +514,7 @@ body.mode-fiche .a-idea .aq-details{display:none}
 
 /* ── Idea cards ─────────────────────────────────────────────── */
 .idea-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:12px 14px;margin-bottom:10px}
-.idea-card.is-new{border-color:var(--color-new-border);background:var(--color-new-bg)}
+body.mode-edition .idea-card.is-new{border-color:var(--color-new-border);background:var(--color-new-bg)}
 .idea-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:5px}
 .idea-card-work{font-size:11px;color:var(--color-text-tertiary);font-style:italic;flex:1}
 .idea-card-body{font-size:12px;color:var(--color-text-secondary);line-height:1.55}
@@ -459,9 +535,9 @@ body.mode-fiche .a-idea .aq-details{display:none}
 /* ── Dialogue cards ─────────────────────────────────────────── */
 .dial-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:11px 13px;margin-bottom:8px;display:flex;gap:10px;align-items:flex-start}
 .dial-dir{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:3px 7px;border-radius:20px;flex-shrink:0;margin-top:1px;white-space:nowrap}
-.dial-oppose{background:#3a1a1a;color:#e05a5a;border:0.5px solid #6a2a2a}
-.dial-prolonge{background:#1a3a1a;color:#5aaa5a;border:0.5px solid #2a5a2a}
-.dial-repond{background:#1a2a3a;color:#5a8ae0;border:0.5px solid #2a4a6a}
+.dial-oppose{background:var(--dial-oppose-bg);color:var(--dial-oppose);border:0.5px solid var(--dial-oppose-border)}
+.dial-prolonge{background:var(--dial-prolonge-bg);color:var(--dial-prolonge);border:0.5px solid var(--dial-prolonge-border)}
+.dial-repond{background:var(--dial-repond-bg);color:var(--dial-repond);border:0.5px solid var(--dial-repond-border)}
 .dial-body{flex:1}
 .dial-auteur{font-size:12px;font-weight:500;color:var(--color-text-primary);cursor:pointer;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:2px}
 .dial-auteur:hover{color:var(--color-text-secondary)}
@@ -569,6 +645,9 @@ body.mode-edition .sb-settings{color:var(--color-text-info);border-color:var(--c
 .set-row{display:flex;flex-direction:column;gap:8px}
 .set-row-cur{font-size:13px;color:var(--color-text-secondary)}
 .set-row-cur strong{color:var(--color-text-primary)}
+/* Étape 6 : réglages à choix unique (thème, taille du texte). */
+.set-choix{display:flex;flex-wrap:wrap;gap:6px}
+.set-choix .pbtn{flex:1 1 auto;min-width:0}
 .set-row-desc{font-size:12px;line-height:1.5;color:var(--color-text-tertiary)}
 .set-mode-btn{align-self:flex-start}
 /* En mode RÉVISION (défaut), on cache les OUTILS de contribution (boutons +,
@@ -604,7 +683,7 @@ body:not(.mode-edition) .sb-propose{display:none!important}
   font-family:inherit;font-size:10.5px;font-weight:500;line-height:1.3;
   text-align:center;cursor:pointer;outline:none;transition:all .15s}
 .sb-account:hover{color:var(--color-text-info);border-color:var(--color-border-info)}
-body.is-signed-in .sb-account{color:#7bd88f;border-color:rgba(123,216,143,.45)}
+body.is-signed-in .sb-account{color:var(--color-ok);border-color:rgba(123,216,143,.45)}
 .auth-tabs{display:flex;gap:6px;margin-bottom:14px}
 .auth-tab{flex:1;padding:8px;text-align:center;cursor:pointer;font-size:12px;
   border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);
@@ -637,8 +716,8 @@ body.is-signed-in .sb-account{color:#7bd88f;border-color:rgba(123,216,143,.45)}
   color:var(--color-text-tertiary);font-size:11px}
 .auth-sep::before,.auth-sep::after{content:"";flex:1;height:0.5px;background:var(--color-border-tertiary)}
 .auth-status{margin-top:10px;font-size:12px;line-height:1.5;min-height:1em}
-.auth-status.err{color:#f0a3a3}
-.auth-status.ok{color:#7bd88f}
+.auth-status.err{color:var(--color-danger)}
+.auth-status.ok{color:var(--color-ok)}
 .auth-meta{font-size:12px;color:var(--color-text-secondary);line-height:1.6}
 .auth-meta b{color:var(--color-text-primary)}
 .auth-intro{font-size:11.5px;color:var(--color-text-tertiary);line-height:1.5;margin-bottom:12px;text-align:center}
@@ -650,10 +729,10 @@ body.is-signed-in .sb-account{color:#7bd88f;border-color:rgba(123,216,143,.45)}
   text-align:center;cursor:pointer;transition:color .15s}
 .auth-link-btn:hover{color:var(--color-text-info)}
 /* Variante « danger » du lien discret : suppression de compte (irréversible). */
-.auth-link-btn.auth-danger{color:#d98a8a;margin-top:16px}
-.auth-link-btn.auth-danger:hover{color:#f0a3a3}
+.auth-link-btn.auth-danger{color:var(--color-danger-soft);margin-top:16px}
+.auth-link-btn.auth-danger:hover{color:var(--color-danger)}
 
-#quiz-overlay{position:fixed;inset:0;background:rgba(10,14,20,.92);z-index:850;
+#quiz-overlay{position:fixed;inset:0;background:var(--color-overlay-quiz);z-index:850;
   display:none;flex-direction:column;padding:16px;
   padding-bottom:calc(16px + env(safe-area-inset-bottom,0px));overflow-y:auto}
 #quiz-overlay.open{display:flex}
@@ -717,7 +796,7 @@ body.is-signed-in .sb-account{color:#7bd88f;border-color:rgba(123,216,143,.45)}
 .quiz-reveal:hover{filter:brightness(1.12)}
 .quiz-no,.quiz-yes{min-height:52px;flex:1;border-radius:var(--border-radius-md);
   font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;transition:filter .15s;border:0.5px solid}
-.quiz-no{background:#3a1e1e;border-color:#5a2d2d;color:#e08a8a}
+.quiz-no{background:var(--color-bad-bg);border-color:var(--color-bad-border);color:var(--color-bad)}
 .quiz-yes{background:var(--color-background-info);border-color:var(--color-border-info);color:var(--color-text-info)}
 .quiz-no:hover,.quiz-yes:hover{filter:brightness(1.25)}
 .quiz-quit{background:transparent;border:none;color:var(--color-text-tertiary);
@@ -766,7 +845,7 @@ body.is-signed-in .sb-account{color:#7bd88f;border-color:rgba(123,216,143,.45)}
   font-family:inherit;font-size:13px;line-height:1.45;cursor:pointer;transition:all .15s}
 .quiz-choice:hover{border-color:var(--color-border-quiz);color:var(--color-text-primary)}
 .quiz-choice.good{background:var(--color-background-info);border-color:var(--color-border-info);color:var(--color-text-info)}
-.quiz-choice.bad{background:#3a1e1e;border-color:#5a2d2d;color:#e08a8a}
+.quiz-choice.bad{background:var(--color-bad-bg);border-color:var(--color-bad-border);color:var(--color-bad)}
 .quiz-choice[disabled]{cursor:default}
 .quiz-next{min-height:48px;background:var(--color-accent-quiz);border:none;border-radius:var(--border-radius-md);
   color:#fff;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;transition:filter .15s}
@@ -1072,9 +1151,9 @@ body:not(.is-signed-in) .topbar-mine{display:none}
 .share-btn-copy{flex-shrink:0;width:auto;padding:9px 14px;font-size:12.5px;
   background:var(--color-background-secondary);color:var(--color-text-secondary);
   border-color:var(--color-border-tertiary)}
-.share-btn-copy.ok{background:rgba(123,216,143,.15);border-color:rgba(123,216,143,.45);color:#7bd88f}
+.share-btn-copy.ok{background:rgba(123,216,143,.15);border-color:rgba(123,216,143,.45);color:var(--color-ok)}
 .share-native{margin-bottom:16px}
-.share-status{margin-top:10px;font-size:12px;line-height:1.5;min-height:1em;text-align:center;color:#7bd88f}
+.share-status{margin-top:10px;font-size:12px;line-height:1.5;min-height:1em;text-align:center;color:var(--color-ok)}
 
 /* Système de « boîtes » de la modale (une boîte = une proposition).
    .pbox = carte ; menus Type/Cible ; .pbox-fields recevra les champs (étape 1c). */
@@ -1090,7 +1169,7 @@ body:not(.is-signed-in) .topbar-mine{display:none}
   background:transparent;border:0.5px solid var(--color-border-tertiary);
   color:var(--color-text-tertiary);font-size:11px;cursor:pointer;outline:none;
   display:flex;align-items:center;justify-content:center;transition:all .15s}
-.pbox-del:hover:not(:disabled){border-color:#9d5151;color:#d98c8c}
+.pbox-del:hover:not(:disabled){border-color:var(--color-bad-border);color:var(--color-danger-soft)}
 .pbox-del:disabled{opacity:.3;cursor:not-allowed}
 .pfield{margin-bottom:9px}
 .plabel{display:block;font-size:10px;font-weight:500;letter-spacing:.05em;
@@ -1108,7 +1187,7 @@ body:not(.is-signed-in) .topbar-mine{display:none}
 .pbox-add:hover{border-color:var(--color-text-tertiary);color:var(--color-text-primary)}
 .phint{font-size:11px;color:var(--color-text-tertiary);font-style:italic;line-height:1.5}
 /* Champs des boîtes (étape 1c) : marqueurs requis, sous-formulaire auteur, cases à cocher */
-.preq{text-transform:none;letter-spacing:0;font-weight:600;font-size:9px;color:#d98c8c}
+.preq{text-transform:none;letter-spacing:0;font-weight:600;font-size:9px;color:var(--color-danger-soft)}
 .popt{text-transform:none;letter-spacing:0;font-weight:400;font-style:italic;font-size:9px;color:var(--color-text-tertiary)}
 .pauth-ok{font-size:11px;color:var(--color-text-info);margin-top:4px}
 .pauth-newmsg{font-size:11px;color:#d3a86a;margin-top:4px}
@@ -1183,7 +1262,7 @@ body:not(.is-signed-in) .topbar-mine{display:none}
 .notice-banner.hide{opacity:0;transform:translateY(-6px);pointer-events:none}
 .notice-banner-text{flex:1}
 .notice-banner-text strong{color:var(--color-text-primary);font-weight:600}
-.notice-banner-link{color:#EF9F27;text-decoration:underline;text-underline-offset:2px;
+.notice-banner-link{color:var(--color-warn);text-decoration:underline;text-underline-offset:2px;
   cursor:pointer;font-weight:500}
 .notice-banner-link:hover{opacity:.82}
 .notice-banner-close{flex-shrink:0;background:transparent;border:0;
@@ -1382,3 +1461,138 @@ body.sb-open .sb-backdrop{display:block;opacity:1}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:var(--color-border-tertiary);border-radius:5px}
 ::-webkit-scrollbar-thumb:hover{background:var(--color-border-secondary)}
+/* css/09-explorer.css — mode Explorer (étape 6, oct. 2026) : frise des
+   auteurs et graphe des idées (js/15-explorer.js). Uniquement des variables
+   du thème : la vue marche en sombre comme en clair. */
+.explorer-intro{font-size:13px;line-height:1.6;color:var(--color-text-secondary);margin-bottom:12px;max-width:760px}
+.explorer-filtres{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-bottom:14px;font-size:12.5px;color:var(--color-text-secondary)}
+.explorer-filtres select{
+  font:inherit;font-size:12.5px;padding:5px 8px;border-radius:var(--border-radius-md);
+  background:var(--color-background-secondary);color:var(--color-text-primary);border:0.5px solid var(--color-border-secondary);
+}
+.explorer-check{display:inline-flex;align-items:center;gap:6px;cursor:pointer}
+.explorer-compte{color:var(--color-text-tertiary);font-size:12px}
+.explorer-vide{padding:20px 0;color:var(--color-text-tertiary);font-size:13px}
+.explorer-note{margin-top:14px;font-size:11.5px;color:var(--color-text-tertiary)}
+
+/* ── Frise ── */
+.frise-periode{margin-bottom:18px}
+.frise-titre{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--color-text-tertiary);margin:0 0 6px}
+.frise-ligne{display:flex;align-items:center;min-height:22px}
+.frise-nom{
+  flex:0 0 150px;font-size:12.5px;color:var(--color-text-secondary);cursor:pointer;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-right:8px;
+}
+.frise-nom:hover,.frise-nom:focus-visible{color:var(--color-text-primary);text-decoration:underline}
+.frise-prog{font-weight:600;color:var(--color-text-primary)}
+.frise-piste{position:relative;flex:1;height:22px;border-left:0.5px solid var(--color-border-tertiary)}
+.frise-axe{min-height:18px}
+.frise-axe .frise-piste{height:18px;border-bottom:0.5px solid var(--color-border-secondary)}
+.frise-grad{position:absolute;bottom:2px;transform:translateX(-50%);font-size:10px;color:var(--color-text-tertiary);white-space:nowrap}
+.fg-court{display:none}
+.frise-barre{position:absolute;top:7px;height:8px;border-radius:4px;min-width:4px;opacity:.9}
+.frise-approx{opacity:.55;outline:1px dashed var(--color-text-tertiary);outline-offset:1px}
+.frise-vivant{border-top-right-radius:0;border-bottom-right-radius:0;
+  -webkit-mask-image:linear-gradient(to right,#000 85%,transparent);mask-image:linear-gradient(to right,#000 85%,transparent)}
+.frise-dates{position:absolute;top:4px;font-size:10.5px;color:var(--color-text-tertiary);white-space:nowrap}
+
+/* ── Graphe ── */
+.graphe-cadre{position:relative;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);background:var(--color-background-secondary);overflow:hidden}
+#graphe-svg{display:block;width:100%;height:min(70vh,640px);cursor:grab;touch-action:none;user-select:none}
+#graphe-svg.g-glisse{cursor:grabbing}
+.graphe-boutons{position:absolute;top:8px;right:8px;display:flex;flex-direction:column;gap:4px;z-index:2}
+.graphe-boutons button{
+  width:30px;height:30px;border-radius:var(--border-radius-md);font:inherit;font-size:16px;cursor:pointer;
+  background:var(--color-background-primary);color:var(--color-text-primary);border:0.5px solid var(--color-border-secondary);
+}
+.g-arete{stroke-width:1.4;opacity:.75}
+.g-oppose{stroke:var(--dial-oppose);fill:var(--dial-oppose)}
+.g-prolonge{stroke:var(--dial-prolonge);fill:var(--dial-prolonge)}
+.g-repond{stroke:var(--dial-repond);fill:var(--dial-repond)}
+.g-complete{stroke:#534AB7;fill:#534AB7}
+.g-distinction{stroke:#9A7B4F;fill:#9A7B4F}
+.g-implique{stroke:#A03E7E;fill:#A03E7E}
+.g-lien{stroke:var(--color-border-secondary);fill:var(--color-border-secondary)}
+.g-fleche{stroke:none}
+.g-noeud{cursor:pointer;outline:none}
+.g-noeud circle{stroke:var(--color-background-primary);stroke-width:1.5}
+.g-noeud text{font-size:11px;fill:var(--color-text-secondary);paint-order:stroke;stroke:var(--color-background-secondary);stroke-width:3px;stroke-linejoin:round}
+.g-noeud:focus-visible circle{stroke:var(--color-text-quiz);stroke-width:3}
+.g-hp text{font-style:italic}
+/* Survol ou focus : le point, ses voisins et ses liens restent nets, le reste s'estompe. */
+.g-actif .g-noeud,.g-actif .g-arete{opacity:.15;transition:opacity .15s}
+.g-actif .g-noeud.g-voisin,.g-actif .g-arete.g-voisin{opacity:1}
+.g-actif .g-noeud.g-voisin text{fill:var(--color-text-primary);font-weight:600}
+.graphe-legende{display:flex;flex-wrap:wrap;gap:14px;margin:10px 0;font-size:12px;color:var(--color-text-secondary)}
+.graphe-legende span{display:inline-flex;align-items:center;gap:6px}
+.g-leg{display:inline-block;width:18px;height:3px;border-radius:2px}
+.g-leg.g-oppose{background:var(--dial-oppose)} .g-leg.g-prolonge{background:var(--dial-prolonge)} .g-leg.g-repond{background:var(--dial-repond)}
+.g-leg.g-complete{background:#534AB7} .g-leg.g-distinction{background:#9A7B4F} .g-leg.g-implique{background:#A03E7E} .g-leg.g-lien{background:var(--color-border-secondary)}
+.g-leg-hp{display:inline-block;width:18px;font-style:italic}
+.g-leg-hp::before{content:'Abc'}
+.graphe-liste{margin-top:8px;font-size:12.5px;color:var(--color-text-secondary)}
+.graphe-liste summary{cursor:pointer;color:var(--color-text-tertiary)}
+.graphe-liste ul{margin:8px 0 0 18px;line-height:1.7}
+.graphe-liste .g-lienliste{color:var(--color-text-primary);cursor:pointer;text-decoration:underline;text-decoration-color:var(--color-border-secondary)}
+@media (max-width:700px){
+  .frise-nom{flex-basis:104px;font-size:11.5px}
+  .frise-dates{display:none}
+  .fg-long,.frise-grad-impaire{display:none}
+  .fg-court{display:inline}
+  #graphe-svg{height:62vh}
+}
+
+/* ── Sujets du bac (Explorer, onglet Dissertations, fiche d'auteur) ── */
+.bac-annee{margin-bottom:16px}
+.bac-liste{list-style:none;margin:0 0 14px;padding:0}
+.bac-sujet{padding:7px 0;border-bottom:0.5px solid var(--color-border-tertiary);font-size:12.5px;line-height:1.5;color:var(--color-text-secondary)}
+.bac-quand{font-size:11px;color:var(--color-text-tertiary);white-space:nowrap;margin-left:4px}
+.bac-pills{display:flex;flex-wrap:wrap;gap:5px;margin-top:5px}
+.bac-auteur{margin-top:9px;font-size:12px;color:var(--color-text-info);background:var(--color-background-info);border:0.5px solid var(--color-border-info);border-radius:var(--border-radius-md);padding:6px 9px}
+
+/* ── Nouveautés ── */
+.nouveaute{padding:12px 0 14px;border-bottom:0.5px solid var(--color-border-tertiary);max-width:760px}
+.nouveaute-date{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--color-text-tertiary)}
+.nouveaute-titre{font-size:15px;font-weight:600;color:var(--color-text-primary);margin:3px 0 5px}
+.nouveaute p{font-size:13px;line-height:1.6;color:var(--color-text-secondary);margin:0}
+.nouveaute-liens{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+/* css/10-impression.css — fiche imprimable d'une notion (étape 6,
+   js/16-impression.js). À l'écran, #impression n'apparaît jamais ; à
+   l'impression, lui seul est imprimé, en noir sur blanc, quel que soit le
+   thème. Ctrl+P sans passer par le bouton imprime la page telle quelle. */
+#impression{display:none}
+.fiche-btn{
+  margin-left:auto;align-self:flex-start;flex-shrink:0;font:inherit;font-size:12px;cursor:pointer;
+  padding:5px 10px;border-radius:var(--border-radius-md);
+  background:var(--color-background-secondary);color:var(--color-text-secondary);border:0.5px solid var(--color-border-secondary);
+}
+.fiche-btn:hover{color:var(--color-text-primary)}
+@media print{
+  @page{margin:16mm 14mm}
+  body.impression-prete{background:#fff!important;padding:0!important;height:auto!important;overflow:visible!important}
+  body.impression-prete > *:not(#impression){display:none!important}
+  body.impression-prete #impression{display:block;color:#111;font:10.5pt/1.45 'Inter',system-ui,sans-serif}
+  /* Le contenu reprend des classes du site (définitions, mots-clés) dont les
+     couleurs suivent le thème : tout est forcé en encre noire sur papier. */
+  #impression *{color:#111!important;background:transparent!important;border-color:#bbb!important;box-shadow:none!important}
+  #impression h1{font-size:20pt;margin:2pt 0 2pt}
+  #impression h2{font-size:12.5pt;margin:12pt 0 5pt;padding-bottom:2pt;border-bottom:0.6pt solid #999;break-after:avoid}
+  #impression .imp-site{font-size:8.5pt;color:#555;text-transform:uppercase;letter-spacing:.06em}
+  #impression .imp-question{font-style:italic;font-size:12pt;color:#333}
+  #impression .imp-def summary{display:none}
+  #impression .def-sec{margin-top:5pt}
+  #impression .def-sec-title{font-weight:600}
+  #impression .imp-auteur{break-inside:avoid;margin-bottom:6pt}
+  #impression .imp-nom{font-weight:600}
+  #impression .imp-etiq{font-weight:400;font-size:8pt;border:0.5pt solid #777;border-radius:6pt;padding:0 4pt;margin-left:4pt}
+  #impression .imp-oeuvre{font-style:italic;color:#444}
+  #impression .imp-cit{font-style:italic;color:#333;margin:2pt 0 0 8pt}
+  #impression ul,#impression ol{margin:2pt 0 4pt 16pt}
+  #impression li{margin-bottom:2pt}
+  #impression .imp-plan{break-inside:avoid;margin-bottom:6pt}
+  #impression .imp-plan-q{font-weight:600}
+  #impression .imp-pb{font-size:9.5pt;color:#333;margin:2pt 0}
+  #impression .imp-quand{color:#555;font-size:9pt}
+  #impression .imp-pied{margin-top:14pt;font-size:8pt;color:#666;border-top:0.5pt solid #bbb;padding-top:4pt}
+  #impression a,#impression span{color:inherit!important;border:0!important}
+}

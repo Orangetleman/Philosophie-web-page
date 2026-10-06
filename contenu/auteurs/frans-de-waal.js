@@ -5,6 +5,8 @@ AUTEUR("Frans de Waal", {
   bio: "Primatologue et éthologue néerlando-américain (1948–2024). L'observation des chimpanzés et des bonobos le conduit à chercher dans l'empathie et la coopération animales les racines naturelles de la morale.",
   courant: "Naturalisme évolutionniste",
   periode: "XXe–XXIe siècles",
+  naissance: 1948,
+  mort: 2024,
   themes: ["empathie", "racines de la morale", "primates", "coopération"],
   dialogues: [
     {

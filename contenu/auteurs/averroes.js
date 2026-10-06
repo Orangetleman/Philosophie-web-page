@@ -5,6 +5,8 @@ AUTEUR("Averroès", {
   bio: "Ibn Rushd (1126–1198), juriste, médecin et philosophe de Cordoue. Ses commentaires d'Aristote lui valent, dans l'Europe latine, le surnom de « Commentateur ». Son Discours décisif défend le droit de la philosophie en terre d'islam.",
   courant: "Falsafa (aristotélisme arabe)",
   periode: "Moyen Âge",
+  naissance: 1126,
+  mort: 1198,
   themes: ["philosophie et Loi révélée", "interprétation", "unité de l'intellect"],
   dialogues: [
     {

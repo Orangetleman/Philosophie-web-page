@@ -5,6 +5,8 @@ AUTEUR("Michel Serres", {
   bio: "Philosophe français (1930–2019), historien des sciences et membre de l'Académie française. Dans Le Contrat naturel (1990), il appelle à compléter le contrat social par un contrat avec la Terre.",
   courant: "Philosophie des sciences / Éthique environnementale",
   periode: "XXe–XXIe siècles",
+  naissance: 1930,
+  mort: 2019,
   themes: ["contrat naturel", "parasitisme", "symbiose", "Terre"],
   dialogues: [
     {

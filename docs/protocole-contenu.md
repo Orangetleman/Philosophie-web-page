@@ -92,10 +92,25 @@ propose de le masquer à la première visite.
 
 - Toute entrée d'auteur dans une notion a **sa fiche `AM` sous le même
   nom** : biographie (dates, nationalité, ce qui le caractérise en une ou
-  deux phrases), courant, période, thèmes, dialogues.
+  deux phrases), courant, période, **dates structurées** (`naissance`,
+  `mort`, `datesApprox` si elles sont approximatives : la question 13 les
+  exige, la frise s'en sert), thèmes, dialogues. Un courant nouveau reçoit
+  sa couleur dans `CC` (`js/01-donnees-etat.js`).
 - Un dialogue (`oppose`, `prolonge`, `repond`) doit être **établi** : l'un
   répond explicitement à l'autre, ou la filiation est reconnue. Pas de
   dialogue « par affinité ».
+
+### 4.3 bis Les sujets du bac et les nouveautés
+
+- Un sujet n'entre dans `contenu/sujets-bac.js` que **recoupé sur deux
+  sources** au moins (sujet officiel, presse spécialisée, sites d'annales),
+  avec sa date et sa voie. Les notions associées sont un choix éditorial :
+  celles qu'un élève mobilise d'abord ; on les laisse vides pour une
+  explication de texte dont on ne connaît que l'œuvre.
+- Une mise en ligne notable (notion, lot d'auteurs, fonction) reçoit une
+  entrée datée dans `contenu/nouveautes.js`, en tête de liste : c'est ce
+  que voient les visiteurs ; les badges « Nouveau » ne s'affichent plus
+  qu'en mode édition.
 
 ### 4.4 Les concepts et repères
 

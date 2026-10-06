@@ -5,6 +5,8 @@ AUTEUR("Maïmonide", {
   bio: "Moïse Maïmonide (1138–1204), rabbin, médecin et philosophe juif né à Cordoue, mort au Caire. Son Guide des égarés concilie la Loi juive et la philosophie d'Aristote ; il est lu par Thomas d'Aquin et par Spinoza.",
   courant: "Philosophie juive médiévale",
   periode: "Moyen Âge",
+  naissance: 1138,
+  mort: 1204,
   themes: ["théologie négative", "interprétation des Écritures", "foi et raison"],
   dialogues: [
     {

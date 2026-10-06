@@ -4,6 +4,8 @@ AUTEUR("Hans Jonas", {
   bio: "Philosophe allemand (1903–1993). Face aux risques de la technique moderne, il propose une éthique de la responsabilité orientée vers la préservation de la vie future.",
   courant: "Éthique de la responsabilité",
   periode: "XXe siècle",
+  naissance: 1903,
+  mort: 1993,
   themes: ["principe responsabilité", "heuristique de la peur", "générations futures", "irréversible", "technique"],
   dialogues: [
     {

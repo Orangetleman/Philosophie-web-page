@@ -4,6 +4,8 @@ AUTEUR("Austin", {
   bio: "Philosophe britannique (1911–1960), fondateur de la philosophie du langage ordinaire. Sa distinction performatif/constatif révolutionne la conception du langage.",
   courant: "Philosophie analytique du langage",
   periode: "XXe siècle",
+  naissance: 1911,
+  mort: 1960,
   themes: [
     "performatif/constatif",
     "actes de langage",

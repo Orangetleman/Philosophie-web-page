@@ -608,6 +608,11 @@ function renderCrumbs(){
     segs.push(seg('Méthodo','mode','methodo',false));
     const t=METHODO_TOPICS.find(t=>t.id===methodoTopic);
     if(t) segs.push(seg(t.label,'',null,true));
+  }else if(sbMode==='explorer'){
+    // Explorer (étape 6) : racine « Explorer » + sujet courant.
+    segs.push(seg('Explorer','mode','explorer',false));
+    const t=EXPLORER_TOPICS.find(t=>t.id===explorerTopic);
+    if(t) segs.push(seg(t.label,'',null,true));
   }
   el.innerHTML=segs.join(sep);
 }
@@ -621,6 +626,7 @@ function goMode(mode){
   else if(mode==='concepts'){ const c0=realConcepts().find(c=>c.id===curConcept)||realConcepts()[0]; if(c0) curConcept=c0.id; renderSB(); renderConceptContent(); }
   else if(mode==='reperes'){ const r0=REPERES().find(c=>c.id===curConcept)||REPERES()[0]; if(r0) curConcept=r0.id; renderSB(); renderConceptContent(); }
   else if(mode==='methodo'){ renderSB(); renderMethodoContent(); }   // guide de méthodologie
+  else if(mode==='explorer'){ renderSB(); renderExplorerContent(); }   // étape 6 : frise, graphe
 }
 
 /* openAuthor(name) — ouvre la fiche d'un auteur depuis n'importe où :
@@ -727,8 +733,11 @@ function renderAuthorContent(){
   </div>
 </div>`;
 
+  // Étape 6 : un texte de cet auteur est-il tombé à l'explication de texte ?
+  const bacAuteur=sujetsDAuteur(curAuthor);
+  const bacHTML=bacAuteur.length?`<div class="bac-auteur">🎓 Tombé au bac : ${bacAuteur.map(x=>`<em>${x.oeuvre}</em> (${x.annee}, voie ${x.voie})`).join(' ; ')}.</div>`:'';
   if(meta.bio){
-    html+=`<div class="author-def-box">${linkTerms('<span>'+meta.bio+'</span>')}`;
+    html+=`<div class="author-def-box">${linkTerms('<span>'+meta.bio+'</span>')}${bacHTML}`;
     if(meta.periode||meta.themes.length){
       html+=`<details><summary>Période &amp; thèmes majeurs</summary>`;
       if(meta.periode) html+=`<div style="margin-top:8px;font-size:12px"><span style="font-weight:500;color:var(--color-text-primary)">Période :</span> ${meta.periode}</div>`;
@@ -888,6 +897,7 @@ function renderContent(){
 <div class="notion-head">
   <div class="nbadge" style="background:${c}"></div>
   <div><div class="ntitle">${n.l}${estHP(cur)?' '+hpBadgeHTML():''}</div><div class="nsub">${n.s}</div></div>
+  <button class="fiche-btn" onclick="imprimerFiche('${cur}')" title="Imprimer la fiche de révision de la notion, ou l'enregistrer en PDF">🖨 Fiche</button>
 </div>
 ${estHP(cur)?hpNoticeHTML():''}
 <div class="def-box">${linkTerms(n.def)}${sourcesHTML(n.sources)}${pPlus('ajout','notion',cur,'Définition / approfondissement de '+n.l)}</div>`;
@@ -1107,6 +1117,12 @@ ${estHP(cur)?hpNoticeHTML():''}
     if(!plans.length) html+=`<div style="color:var(--color-text-tertiary);font-size:12px;padding:6px 0 10px">Aucun plan détaillé pour l'instant.</div>`;
     plans.forEach(p=>{ html+=planCardHTML(p); });
     html+=pPlusCat('plan',cur,'Proposer un plan');
+    // 2 bis) Étape 6 : les sujets réellement tombés au bac où la notion est en
+    // jeu (SUJETS_BAC), avec leur année et leur voie.
+    const bac=sujetsDeNotion(cur);
+    if(bac.length){
+      html+=`<div class="slabel">Tombés au bac depuis 2021 (${bac.length})</div><ul class="bac-liste">${bac.map(x=>sujetBacHTML(x,false)).join('')}</ul>`;
+    }
     // 3) Autres sujets de dissertation (questions simples)
     html+=`<div class="slabel">Autres sujets de dissertation</div>
     <div class="diss-list">`;

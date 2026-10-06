@@ -4,6 +4,8 @@ AUTEUR("Leibniz", {
   bio: "Philosophe, mathématicien et savant allemand (1646–1716), co-inventeur du calcul infinitésimal. <strong>Rationaliste</strong>, il fonde tout raisonnement sur deux grands principes : la <strong>non-contradiction</strong> et la <strong>raison suffisante</strong> (« rien n'est sans raison »). Auteur de la <em>Monadologie</em> (1714) et de la thèse du « meilleur des mondes possibles », que Voltaire raillera dans <em>Candide</em>.",
   courant: "Rationalisme",
   periode: "XVIIe–XVIIIe siècle",
+  naissance: 1646,
+  mort: 1716,
   themes: ["principe de raison suffisante", "non-contradiction", "monade", "calcul", "meilleur des mondes"],
   dialogues: [
     {

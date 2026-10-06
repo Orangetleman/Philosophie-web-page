@@ -4,6 +4,8 @@ AUTEUR("Ricœur", {
   bio: "Philosophe français (1913–2005). Il développe une herméneutique de soi et de l'identité narrative, cherchant à réconcilier interprétation et réflexion.",
   courant: "Herméneutique / Phénoménologie",
   periode: "XXe siècle",
+  naissance: 1913,
+  mort: 2005,
   themes: ["identité narrative", "idem/ipse", "herméneutique", "récit de soi", "mémoire"],
   dialogues: [
     {

@@ -4,6 +4,8 @@ AUTEUR("Thoreau", {
   bio: "Écrivain et philosophe américain (1817–1862). Partisan du retour à la nature (Walden) et inventeur du concept de désobéissance civile contre les lois injustes.",
   courant: "Transcendantalisme / Anarchisme pacifiste",
   periode: "XIXe siècle",
+  naissance: 1817,
+  mort: 1862,
   themes: ["désobéissance civile", "nature", "simplicité volontaire", "résistance non-violente", "conscience morale"],
   dialogues: [
     {

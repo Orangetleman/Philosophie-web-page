@@ -72,7 +72,7 @@
 
 /* ── Idea cards ─────────────────────────────────────────────── */
 .idea-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:12px 14px;margin-bottom:10px}
-.idea-card.is-new{border-color:var(--color-new-border);background:var(--color-new-bg)}
+body.mode-edition .idea-card.is-new{border-color:var(--color-new-border);background:var(--color-new-bg)}
 .idea-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:5px}
 .idea-card-work{font-size:11px;color:var(--color-text-tertiary);font-style:italic;flex:1}
 .idea-card-body{font-size:12px;color:var(--color-text-secondary);line-height:1.55}
@@ -93,9 +93,9 @@
 /* ── Dialogue cards ─────────────────────────────────────────── */
 .dial-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:11px 13px;margin-bottom:8px;display:flex;gap:10px;align-items:flex-start}
 .dial-dir{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:3px 7px;border-radius:20px;flex-shrink:0;margin-top:1px;white-space:nowrap}
-.dial-oppose{background:#3a1a1a;color:#e05a5a;border:0.5px solid #6a2a2a}
-.dial-prolonge{background:#1a3a1a;color:#5aaa5a;border:0.5px solid #2a5a2a}
-.dial-repond{background:#1a2a3a;color:#5a8ae0;border:0.5px solid #2a4a6a}
+.dial-oppose{background:var(--dial-oppose-bg);color:var(--dial-oppose);border:0.5px solid var(--dial-oppose-border)}
+.dial-prolonge{background:var(--dial-prolonge-bg);color:var(--dial-prolonge);border:0.5px solid var(--dial-prolonge-border)}
+.dial-repond{background:var(--dial-repond-bg);color:var(--dial-repond);border:0.5px solid var(--dial-repond-border)}
 .dial-body{flex:1}
 .dial-auteur{font-size:12px;font-weight:500;color:var(--color-text-primary);cursor:pointer;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:2px}
 .dial-auteur:hover{color:var(--color-text-secondary)}

@@ -4,6 +4,8 @@ AUTEUR("Mill", {
   bio: "Philosophe et économiste britannique (1806–1873). Chef de file de l'utilitarisme, il défend aussi les libertés individuelles contre la 'tyrannie de la majorité'.",
   courant: "Utilitarisme / Libéralisme",
   periode: "XIXe siècle",
+  naissance: 1806,
+  mort: 1873,
   themes: [
     "principe de non-nuisance",
     "bonheur du plus grand nombre",

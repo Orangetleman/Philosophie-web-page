@@ -4,6 +4,8 @@ AUTEUR("Sartre", {
   bio: "Philosophe français (1905–1980), chef de file de l'existentialisme. Sa thèse centrale : l'existence précède l'essence — l'homme se définit uniquement par ses actes.",
   courant: "Existentialisme / Phénoménologie",
   periode: "XXe siècle",
+  naissance: 1905,
+  mort: 1980,
   themes: ["liberté radicale", "mauvaise foi", "existence précède l'essence", "intersubjectivité", "engagement"],
   dialogues: [
     {

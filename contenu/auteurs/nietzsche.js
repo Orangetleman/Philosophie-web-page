@@ -4,6 +4,8 @@ AUTEUR("Nietzsche", {
   bio: "Philosophe allemand (1844–1900). Critique radical de la morale chrétienne et du rationalisme occidental. Il annonce la 'mort de Dieu' et propose la figure du 'surhomme'.",
   courant: "Généalogie / Philosophie de la vie",
   periode: "XIXe siècle",
+  naissance: 1844,
+  mort: 1900,
   themes: [
     "volonté de puissance",
     "mort de Dieu",

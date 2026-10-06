@@ -5,6 +5,8 @@ AUTEUR("Cournot", {
   bio: "Antoine-Augustin Cournot (1801–1877), mathématicien, économiste et philosophe français, recteur d'académie. Pionnier de l'économie mathématique, il donne une définition objective du hasard et réfléchit sur les fondements de nos connaissances.",
   courant: "Rationalisme critique / Philosophie des sciences",
   periode: "XIXe siècle",
+  naissance: 1801,
+  mort: 1877,
   themes: ["hasard", "séries causales indépendantes", "probabilités", "ordre et hasard dans l'histoire"],
   dialogues: [],
 });

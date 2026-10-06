@@ -4,6 +4,8 @@ AUTEUR("Augustin", {
   bio: "Théologien et philosophe romain d'Afrique du Nord (354–430), Père et docteur de l'Église. Ses Confessions inaugurent l'autobiographie spirituelle ; sa Cité de Dieu fonde la philosophie chrétienne de l'histoire.",
   courant: "Patristique / Augustinisme",
   periode: "Antiquité tardive",
+  naissance: 354,
+  mort: 430,
   themes: [
     "foi",
     "sentiment de finitude",

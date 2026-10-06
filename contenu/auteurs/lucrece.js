@@ -5,6 +5,9 @@ AUTEUR("Lucrèce", {
   bio: "Poète et philosophe latin (vers 98 – vers 55 av. J.-C.), dont on ne sait presque rien. Son poème De la nature (De rerum natura) expose en vers la physique et la morale d'Épicure, pour délivrer les hommes de la peur des dieux et de la mort.",
   courant: "Épicurisme",
   periode: "Antiquité romaine",
+  naissance: -98,
+  mort: -55,
+  datesApprox: true,
   themes: ["atomes et vide", "clinamen", "critique de la religion", "mort"],
   dialogues: [
     {

@@ -12,15 +12,14 @@
   STRUCTURE DU FICHIER
   ────────────────────
   1. <head>                  Métadonnées, favicon SVG inline, manifeste PWA,
-                             theme-color, police Google Fonts (Inter)
-  2. <style>                 Tout le CSS (variables, layout, composants UI,
-                             thème quiz bleu, responsive ≤ 700 px)
-  3. <body> HTML             Squelette : sidebar (#sb) + zone principale (#main)
+                             theme-color, police Google Fonts (Inter), petit
+                             script qui pose le thème (étape 6), app.css
+                             (GÉNÉRÉ depuis css/ par outils/construire.mjs)
+  2. <body> HTML             Squelette : sidebar (#sb) + zone principale (#main)
                              + overlays (modale contribution, quiz, onboarding)
-  4. <script src="data.js">  Données GLOBALES : D, KEYS, AM, CONCEPTS
-  5. <script> Supabase CDN   Client @supabase/supabase-js (compte + sync)
-  6. <script> principal      const CC (couleurs par courant) + TOUTE la logique
-                             JS et le rendu (consomme les données globales)
+  3. <script src="data.js">  Données GLOBALES : D, KEYS, AM, CONCEPTS, PROGRAMME
+  4. <script> Supabase CDN   Client @supabase/supabase-js (compte + sync)
+  5. <script src="app.js">   TOUTE la logique et le rendu (GÉNÉRÉ depuis js/)
 
   DONNÉES (dans data.js — globales ; script classique, pas de module)
   ────────────────────────────────────────────────────────────────────
@@ -89,9 +88,13 @@
 <meta name="theme-color" content="#121212">
 <link rel="apple-touch-icon" href="icon.svg">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<!-- Thème (étape 6) : posé AVANT le premier affichage, pour éviter un éclair
+     sombre en thème clair. 'sombre' (défaut), 'clair' ou 'auto' ; le reste
+     (réglage, changement à chaud) est dans js/07-affichage-reglages.js. -->
+<script>try{document.documentElement.dataset.theme=localStorage.getItem('philo-theme')||'sombre';}catch(e){document.documentElement.dataset.theme='sombre';}</script>
+<link rel="stylesheet" href="app.css">
 </head>
 <body>
-<link rel="stylesheet" href="app.css">
 
 <div class="sr-only">Graphe de révision philosophie — 17 notions du programme de Terminale avec auteurs, citations, concepts, plans de dissertation et exemples ; mode quiz et proposition de contenu</div>
 <!-- Tiroir responsive : voile (visible uniquement ≤700px ; burger inline ci-dessous) -->

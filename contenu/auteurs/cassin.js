@@ -4,6 +4,8 @@ AUTEUR("Cassin", {
   bio: "Philosophe et philologue française (née en 1947). Directrice de recherche au CNRS, elle développe une réflexion sur les 'intraduisibles' philosophiques et la politique de la mémoire.",
   courant: "Philosophie du langage / Philologie",
   periode: "XXe–XXIe siècle",
+  naissance: 1947,
+  mort: null,
   themes: ["intraduisibles", "logos/phone", "politique de la mémoire", "sophistique", "traduction philosophique"],
   dialogues: [
     {

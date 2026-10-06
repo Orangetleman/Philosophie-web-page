@@ -4,6 +4,8 @@ AUTEUR("Lafargue", {
   bio: "Journaliste et militant politique franco-cubain (1842–1911), gendre de Marx. Son pamphlet 'Le Droit à la paresse' dénonce le culte du travail.",
   courant: "Socialisme / Critique du travail",
   periode: "XIXe siècle",
+  naissance: 1842,
+  mort: 1911,
   themes: ["droit à la paresse", "culte du travail", "exploitation ouvrière", "temps libre", "émancipation"],
   dialogues: [
     {

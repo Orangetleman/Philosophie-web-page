@@ -4,6 +4,8 @@ AUTEUR("Freud", {
   bio: "Neurologue autrichien (1856–1939), fondateur de la psychanalyse. Il découvre l'inconscient comme instance psychique déterminant nos actes à notre insu.",
   courant: "Psychanalyse",
   periode: "XIXe–XXe siècle",
+  naissance: 1856,
+  mort: 1939,
   themes: ["inconscient", "ça/moi/surmoi", "refoulement", "rêve", "pulsions"],
   dialogues: [
     {

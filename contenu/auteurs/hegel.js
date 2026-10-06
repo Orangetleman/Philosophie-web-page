@@ -4,6 +4,8 @@ AUTEUR("Hegel", {
   bio: "Philosophe allemand (1770–1831), figure majeure de l'idéalisme. Sa dialectique (thèse/antithèse/synthèse) est une méthode pour comprendre le devenir de l'Esprit dans l'histoire.",
   courant: "Idéalisme allemand",
   periode: "XVIIIe–XIXe siècle",
+  naissance: 1770,
+  mort: 1831,
   themes: ["dialectique", "maître/esclave", "Esprit", "liberté objective", "État éthique"],
   dialogues: [
     {

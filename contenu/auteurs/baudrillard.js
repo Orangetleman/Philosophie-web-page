@@ -4,6 +4,8 @@ AUTEUR("Baudrillard", {
   bio: "Sociologue et philosophe français (1929–2007). Il analyse la société de consommation comme un système de signes qui remplace la réalité par des simulacres.",
   courant: "Philosophie de la culture / Postmodernisme",
   periode: "XXe siècle",
+  naissance: 1929,
+  mort: 2007,
   themes: ["simulation", "simulacre", "société de consommation", "hyperréalité", "objets et rêves"],
   dialogues: [
     {

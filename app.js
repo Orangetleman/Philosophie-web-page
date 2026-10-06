@@ -65,6 +65,7 @@ let repereSearch='';
 //   'dissertation' | 'explication'. METHODO_TOPICS pilote la liste de la
 //   sidebar et le fil d'Ariane (défini plus bas, près de METHODO_GUIDE).
 let methodoTopic='dissertation';
+let explorerTopic='frise';   // étape 6 : sujet du mode Explorer (frise | graphe)
 // REPERES() / vrais concepts : helpers de partition du tableau CONCEPTS.
 //   isRepere(c)    → ce concept est-il un repère méthodologique ?
 //   REPERES()      → liste des repères (onglet Repères)
@@ -294,7 +295,19 @@ const CC={
   'Phénoménologie / Éthique':'#534AB7','Existentialisme / Féminisme':'#993556',
   'Structuralisme / Anthropologie':'#6B4FA0','Philosophie analytique / Éthique des vertus':'#185FA5',
   'Platonisme moral':'#534AB7','Archéologie du savoir / Généalogie':'#993556',
-  'Philosophie analytique / Pragmatisme':'#6B4FA0'
+  'Philosophie analytique / Pragmatisme':'#6B4FA0',
+  // Étape 6 : les courants restés sans couleur (barres grises de la frise).
+  'Psychanalyse / Psychologie des médias':'#993556','Psychanalyse lacanienne / Philosophie clinique':'#993556',
+  'Sociologie positiviste':'#D4537E','Action non violente':'#1D9E75','Patristique / Augustinisme':'#EF9F27',
+  'Scolastique / Thomisme':'#EF9F27','Hégélianisme de gauche / Matérialisme anthropologique':'#D85A30',
+  'Existentialisme chrétien':'#534AB7','Philosophie analytique / Empirisme logique':'#6B4FA0',
+  'Physique théorique / Spinozisme moderne':'#2E86AB','Sociologie de la consommation / Hypermodernité':'#5F5E5A',
+  'Positivisme':'#2E86AB','Dadaïsme':'#C2603A','Surréalisme':'#C2603A','OULIPO / Littérature à contraintes':'#C2603A',
+  'Libéralisme égalitaire / Approche par les capabilités':'#EF9F27','Naturalisme évolutionniste':'#3B6D11',
+  'Philosophie du droit / Éthique environnementale':'#1D9E75','Éthique environnementale':'#1D9E75',
+  'Philosophie des sciences / Éthique environnementale':'#1D9E75','Écoféminisme / Éthique environnementale':'#1D9E75',
+  'Épistémologie historique / Phénoménologie poétique':'#2E86AB','Pragmatisme':'#6B4FA0',
+  'Structuralisme / Sémiologie':'#6B4FA0','Théorie critique / Sociologie':'#5F5E5A'
 };
 /* js/02-navigation.js — morceau du script du site. Le build (outils/construire.mjs)
    recolle js/*.js dans l'ORDRE des noms en UN SEUL script, app.js : les
@@ -328,8 +341,8 @@ function pushHistory(){
   // Ne pas pousser si on est déjà sur la même page
   if(last&&last.sbMode===sbMode&&last.cur===cur&&last.curTab===curTab
     &&last.curAuthor===curAuthor&&last.curAuthorTab===curAuthorTab
-    &&last.curConcept===curConcept&&last.methodoTopic===methodoTopic) return;
-  navHistory.push({sbMode,cur,curTab,curAuthor,curAuthorTab,curConcept,methodoTopic});
+    &&last.curConcept===curConcept&&last.methodoTopic===methodoTopic&&last.explorerTopic===explorerTopic) return;
+  navHistory.push({sbMode,cur,curTab,curAuthor,curAuthorTab,curConcept,methodoTopic,explorerTopic});
   if(navHistory.length>50) navHistory.shift();
   updateBackBtn();
 }
@@ -343,11 +356,9 @@ function goBack(){
   sbMode=s.sbMode; cur=s.cur; curTab=s.curTab;
   curAuthor=s.curAuthor; curAuthorTab=s.curAuthorTab; curConcept=s.curConcept;
   if(s.methodoTopic) methodoTopic=s.methodoTopic;
+  if(s.explorerTopic) explorerTopic=s.explorerTopic;
   renderSB();
-  if(sbMode==='auteurs'&&curAuthor) renderAuthorContent();
-  else if(sbMode==='concepts'||sbMode==='reperes') renderConceptContent();
-  else if(sbMode==='methodo') renderMethodoContent();   // guide de méthodologie
-  else renderContent();
+  renderCurrentView();
   _navigating=false;
   updateBackBtn();
 }
@@ -378,13 +389,14 @@ function renderCurrentView(){
   if(sbMode==='auteurs'&&curAuthor) renderAuthorContent();
   else if(sbMode==='concepts'||sbMode==='reperes') renderConceptContent();
   else if(sbMode==='methodo') renderMethodoContent();
+  else if(sbMode==='explorer') renderExplorerContent();   // étape 6 : frise, graphe
   else renderContent();
 }
 
 /* navStateNow() — capture la position courante sous forme d'objet sérialisable. */
 function navStateNow(){
   return {sbMode,cur,curTab,curConceptSubTab,curExempleSubTab,
-          curAuthor,curAuthorTab,curConcept,methodoTopic};
+          curAuthor,curAuthorTab,curConcept,methodoTopic,explorerTopic};
 }
 
 /* sameNav(a,b) — deux états désignent-ils la même page ? (champs « cœur »,
@@ -392,7 +404,8 @@ function navStateNow(){
 function sameNav(a,b){
   return !!a&&!!b&&a.sbMode===b.sbMode&&a.cur===b.cur&&a.curTab===b.curTab
     &&a.curAuthor===b.curAuthor&&a.curAuthorTab===b.curAuthorTab
-    &&a.curConcept===b.curConcept&&a.methodoTopic===b.methodoTopic;
+    &&a.curConcept===b.curConcept&&a.methodoTopic===b.methodoTopic
+    &&a.explorerTopic===b.explorerTopic;
 }
 
 /* persistNav() — sauvegarde la position dans localStorage à chaque rendu (donc
@@ -436,6 +449,11 @@ function applyNavState(s){
     sbMode='methodo';
     return true;
   }
+  if(m==='explorer'){
+    explorerTopic=(EXPLORER_TOPICS.find(t=>t.id===s.explorerTopic))?s.explorerTopic:'frise';
+    sbMode='explorer';
+    return true;
+  }
   return false;
 }
 
@@ -453,7 +471,7 @@ function navEntryValid(s){
   if(s.sbMode==='notions') return !!D[s.cur];
   if(s.sbMode==='auteurs') return !!(s.curAuthor&&AI[s.curAuthor]);
   if(s.sbMode==='concepts'||s.sbMode==='reperes') return !!CONCEPTS.find(x=>x&&x.id===s.curConcept);
-  if(s.sbMode==='methodo') return true;
+  if(s.sbMode==='methodo'||s.sbMode==='explorer') return true;
   return false;
 }
 
@@ -477,6 +495,7 @@ function backBtnHTML(){
    Chaque vue a son adresse, dans le fragment de l'URL (après le #) :
      #/notion/<clé>[/<onglet>]      #/auteur/<nom>[/<onglet>]
      #/concept/<id>                 #/repere/<id>      #/methodo/<parcours>
+     #/explorer/frise | graphe      (étape 6)
    Le # plutôt qu'un vrai chemin : il marche partout, y compris index.html
    ouvert par double-clic, et Vercel n'a aucune réécriture à faire.
    Ce que ça apporte : un lien partagé ouvre la bonne page (« Partager »
@@ -498,6 +517,7 @@ function adresseDe(s){
   if(s.sbMode==='concepts'&&s.curConcept) return '#/concept/'+e(s.curConcept);
   if(s.sbMode==='reperes'&&s.curConcept) return '#/repere/'+e(s.curConcept);
   if(s.sbMode==='methodo') return '#/methodo/'+e(s.methodoTopic||'dissertation');
+  if(s.sbMode==='explorer') return '#/explorer/'+e(s.explorerTopic||'frise');
   return '#/notion/'+e(s.cur)+(s.curTab&&s.curTab!=='auteurs'?'/'+e(s.curTab):'');
 }
 
@@ -516,6 +536,7 @@ function etatDe(h){
     case 'concept': return {sbMode:'concepts',curConcept:v};
     case 'repere':  return {sbMode:'reperes',curConcept:v};
     case 'methodo': return {sbMode:'methodo',methodoTopic:v};
+    case 'explorer': return {sbMode:'explorer',explorerTopic:v};
   }
   return null;
 }
@@ -526,6 +547,7 @@ function titrePage(){
   if(sbMode==='auteurs'&&curAuthor) t=curAuthor;
   else if((sbMode==='concepts'||sbMode==='reperes')&&curConcept){ const c=CONCEPTS.find(x=>x.id===curConcept); t=c?c.term:''; }
   else if(sbMode==='methodo') t='Méthodo';
+  else if(sbMode==='explorer'){ const x=EXPLORER_TOPICS.find(x=>x.id===explorerTopic); t=x?x.label:'Explorer'; }
   else if(D[cur]) t=D[cur].l;
   return (t?t+' · ':'')+'Graphe Philosophie';
 }
@@ -673,6 +695,7 @@ function renderSB(){
     <div class="sb-tab${sbMode==='concepts'?' active':''}" onclick="if(sbMode!=='concepts'){sbMode='concepts';const c0=realConcepts().find(c=>c.id===curConcept)||realConcepts()[0];if(c0)curConcept=c0.id;renderSB();renderConceptContent();}" style="font-size:9px">Concepts</div>
     <div class="sb-tab${sbMode==='reperes'?' active':''}" onclick="if(sbMode!=='reperes'){sbMode='reperes';const r0=REPERES().find(c=>c.id===curConcept)||REPERES()[0];if(r0)curConcept=r0.id;renderSB();renderConceptContent();}" style="font-size:9px" title="Repères du programme : les distinctions conceptuelles (absolu/relatif, légal/légitime…)">Repères</div>
     <div class="sb-tab${sbMode==='methodo'?' active':''}" onclick="if(sbMode!=='methodo'){sbMode='methodo';renderSB();renderMethodoContent();}" style="font-size:9px" title="Méthode pas à pas : dissertation et explication de texte">Méthodo</div>
+    <div class="sb-tab${sbMode==='explorer'?' active':''}" onclick="if(sbMode!=='explorer'){pushHistory();sbMode='explorer';renderSB();renderExplorerContent();}" style="font-size:9px" title="Frise des auteurs et graphe des idées">Explorer</div>
   </div>`;
 
   // ── Bouton « 🎯 Réviser » (mode quiz) : AU-DESSUS de .sb-propose ──
@@ -865,6 +888,15 @@ function renderSB(){
     listWrap.id='sb-reperes-list';
     list.appendChild(listWrap);
     renderSBReperesList();
+  } else if(sbMode==='explorer'){
+    // ── Explorer (étape 6) : frise des auteurs, graphe des idées ──
+    EXPLORER_TOPICS.forEach(t=>{
+      const el=document.createElement('div');
+      el.className='nb'+(t.id===explorerTopic?' active':'');
+      el.innerHTML=`<span class="dot" style="background:var(--color-accent-quiz,#4f9dff)"></span>${t.label}`;
+      el.onclick=()=>{pushHistory();explorerTopic=t.id;renderSB();renderExplorerContent();};
+      list.appendChild(el);
+    });
   } else {
     // ── Méthodo (guide) : liste des deux parcours méthodologiques ──
     // Pas de recherche : la liste est minuscule (Dissertation / Explication
@@ -1616,6 +1648,11 @@ function renderCrumbs(){
     segs.push(seg('Méthodo','mode','methodo',false));
     const t=METHODO_TOPICS.find(t=>t.id===methodoTopic);
     if(t) segs.push(seg(t.label,'',null,true));
+  }else if(sbMode==='explorer'){
+    // Explorer (étape 6) : racine « Explorer » + sujet courant.
+    segs.push(seg('Explorer','mode','explorer',false));
+    const t=EXPLORER_TOPICS.find(t=>t.id===explorerTopic);
+    if(t) segs.push(seg(t.label,'',null,true));
   }
   el.innerHTML=segs.join(sep);
 }
@@ -1629,6 +1666,7 @@ function goMode(mode){
   else if(mode==='concepts'){ const c0=realConcepts().find(c=>c.id===curConcept)||realConcepts()[0]; if(c0) curConcept=c0.id; renderSB(); renderConceptContent(); }
   else if(mode==='reperes'){ const r0=REPERES().find(c=>c.id===curConcept)||REPERES()[0]; if(r0) curConcept=r0.id; renderSB(); renderConceptContent(); }
   else if(mode==='methodo'){ renderSB(); renderMethodoContent(); }   // guide de méthodologie
+  else if(mode==='explorer'){ renderSB(); renderExplorerContent(); }   // étape 6 : frise, graphe
 }
 
 /* openAuthor(name) — ouvre la fiche d'un auteur depuis n'importe où :
@@ -1735,8 +1773,11 @@ function renderAuthorContent(){
   </div>
 </div>`;
 
+  // Étape 6 : un texte de cet auteur est-il tombé à l'explication de texte ?
+  const bacAuteur=sujetsDAuteur(curAuthor);
+  const bacHTML=bacAuteur.length?`<div class="bac-auteur">🎓 Tombé au bac : ${bacAuteur.map(x=>`<em>${x.oeuvre}</em> (${x.annee}, voie ${x.voie})`).join(' ; ')}.</div>`:'';
   if(meta.bio){
-    html+=`<div class="author-def-box">${linkTerms('<span>'+meta.bio+'</span>')}`;
+    html+=`<div class="author-def-box">${linkTerms('<span>'+meta.bio+'</span>')}${bacHTML}`;
     if(meta.periode||meta.themes.length){
       html+=`<details><summary>Période &amp; thèmes majeurs</summary>`;
       if(meta.periode) html+=`<div style="margin-top:8px;font-size:12px"><span style="font-weight:500;color:var(--color-text-primary)">Période :</span> ${meta.periode}</div>`;
@@ -1896,6 +1937,7 @@ function renderContent(){
 <div class="notion-head">
   <div class="nbadge" style="background:${c}"></div>
   <div><div class="ntitle">${n.l}${estHP(cur)?' '+hpBadgeHTML():''}</div><div class="nsub">${n.s}</div></div>
+  <button class="fiche-btn" onclick="imprimerFiche('${cur}')" title="Imprimer la fiche de révision de la notion, ou l'enregistrer en PDF">🖨 Fiche</button>
 </div>
 ${estHP(cur)?hpNoticeHTML():''}
 <div class="def-box">${linkTerms(n.def)}${sourcesHTML(n.sources)}${pPlus('ajout','notion',cur,'Définition / approfondissement de '+n.l)}</div>`;
@@ -2115,6 +2157,12 @@ ${estHP(cur)?hpNoticeHTML():''}
     if(!plans.length) html+=`<div style="color:var(--color-text-tertiary);font-size:12px;padding:6px 0 10px">Aucun plan détaillé pour l'instant.</div>`;
     plans.forEach(p=>{ html+=planCardHTML(p); });
     html+=pPlusCat('plan',cur,'Proposer un plan');
+    // 2 bis) Étape 6 : les sujets réellement tombés au bac où la notion est en
+    // jeu (SUJETS_BAC), avec leur année et leur voie.
+    const bac=sujetsDeNotion(cur);
+    if(bac.length){
+      html+=`<div class="slabel">Tombés au bac depuis 2021 (${bac.length})</div><ul class="bac-liste">${bac.map(x=>sujetBacHTML(x,false)).join('')}</ul>`;
+    }
     // 3) Autres sujets de dissertation (questions simples)
     html+=`<div class="slabel">Autres sujets de dissertation</div>
     <div class="diss-list">`;
@@ -2266,7 +2314,10 @@ const LINK_REGEX=new RegExp(
    bord) et mémoïse ses résultats, car linkTerms l'appelle très souvent. */
 const _inkCache={};
 function inkOnDark(hex){
-  if(_inkCache[hex]) return _inkCache[hex];
+  // Étape 6 : en thème clair, on fonce la couleur (vers le noir) jusqu'au
+  // même seuil de contraste contre le fond papier ; cache séparé par thème.
+  const clair=themeEffectif()==='clair', cle=(clair?'c':'s')+hex;
+  if(_inkCache[cle]) return _inkCache[cle];
   // Normaliser « #abc » ou « #aabbcc » en composantes 0..255.
   let h=hex.replace('#','');
   if(h.length===3) h=h.split('').map(x=>x+x).join('');
@@ -2274,16 +2325,20 @@ function inkOnDark(hex){
   // Luminance relative WCAG (linéarisation sRGB d'un canal, puis pondération).
   const lin=v=>{ v/=255; return v<=0.03928 ? v/12.92 : Math.pow((v+0.055)/1.055,2.4); };
   const lum=(r,g,b)=>0.2126*lin(r)+0.7152*lin(g)+0.0722*lin(b);
-  const BG=lum(0x2a,0x2a,0x2a);                       // surface claire de référence
+  const BG=clair?lum(0xf1,0xee,0xe8):lum(0x2a,0x2a,0x2a);   // surface de référence (la plus défavorable)
   const ratio=l=>(Math.max(l,BG)+0.05)/(Math.min(l,BG)+0.05);
-  // Éclaircir vers le blanc (+8 % par palier) jusqu'au seuil 4.5:1, ou blanc.
+  // Sombre : éclaircir vers le blanc (+8 % par palier) jusqu'au seuil 4.5:1.
+  // Clair : foncer vers le noir (-8 % par palier) jusqu'au même seuil.
   for(let i=0; i<14 && ratio(lum(r,g,b))<4.5; i++){
-    r=Math.round(r+(255-r)*0.08);
-    g=Math.round(g+(255-g)*0.08);
-    b=Math.round(b+(255-b)*0.08);
+    if(clair){ r=Math.round(r*0.92); g=Math.round(g*0.92); b=Math.round(b*0.92); }
+    else{
+      r=Math.round(r+(255-r)*0.08);
+      g=Math.round(g+(255-g)*0.08);
+      b=Math.round(b+(255-b)*0.08);
+    }
   }
   const hx=v=>v.toString(16).padStart(2,'0');
-  return _inkCache[hex]='#'+hx(r)+hx(g)+hx(b);
+  return _inkCache[cle]='#'+hx(r)+hx(g)+hx(b);
 }
 
 /* linkTerms(html) — cf. section H ci-dessus : rend cliquables les notions,
@@ -2297,7 +2352,23 @@ function lienVersHP(e){
   return e.t==='n' ? estHP(e.v) : e.t==='c' ? HP_CONCEPTS.has(e.v) : HP_AUTEURS.has(e.v);
 }
 
+/* lienSoi() — la cible de la page affichée (« n:liberte », « a:Kant »,
+   « c:dualisme ») : linkTerms n'y crée jamais de lien (étape 6). */
+function lienSoi(){
+  if(sbMode==='auteurs'&&curAuthor) return 'a:'+curAuthor;
+  if(sbMode==='concepts'||sbMode==='reperes') return 'c:'+curConcept;
+  if(sbMode==='methodo'||sbMode==='explorer') return '';
+  return 'n:'+cur;
+}
+
 function linkTerms(html){
+  // Étape 6 (oct. 2026), contre l'excès de liens (diagnostic, § 3 : 125 liens
+  // dans l'onglet Auteurs de Liberté, dont 61 vers Liberté elle-même), règle
+  // d'usage de Wikipédia : jamais de lien vers la page où l'on est (lienSoi),
+  // et une même cible liée une seule fois par appel, c'est-à-dire par bloc de
+  // texte (une idée, une définition, une citation). Les liens sont aussi
+  // atteignables au clavier (tabindex, role=link ; Entrée : lienClavier).
+  const soi=lienSoi(), vus=new Set();
   // Découpe la chaîne en BALISES (<...>) et FRAGMENTS DE TEXTE, puis ne
   // linkifie que le texte. Indispensable : une version antérieure ne
   // traitait que le texte ENTRE > et < — le texte avant la 1re balise et
@@ -2311,22 +2382,35 @@ function linkTerms(html){
       // Étape 5 : pas de lien vers du hors programme masqué ; on se replie sur
       // le concept homonyme s'il y en a un (et s'il est visible).
       if(!voirHP() && lienVersHP(e)){ e=e.alt; if(!e || lienVersHP(e)) return m; }
+      const cible=e.t+':'+e.v;
+      if(cible===soi || vus.has(cible)) return m;
+      vus.add(cible);
       if(e.t==='n'){ // lien notion — coloré avec la couleur (éclaircie) de la notion
         // inkOnDark : version assez claire de la couleur de notion pour rester
         // lisible en texte sur fond sombre (WCAG AA). On l'applique au texte ET
         // au soulignement, qui restent ainsi de la même teinte que la notion.
         const col=inkOnDark(D[e.v].c);
-        return `<span class="nterm" style="color:${col};border-color:${col}" onclick="openNotion('${e.v}')" title="Voir la notion : ${D[e.v].l}">${m}</span>`;
+        return `<span class="nterm" role="link" tabindex="0" style="color:${col};border-color:${col}" onclick="openNotion('${e.v}')" title="Voir la notion : ${D[e.v].l}">${m}</span>`;
       }
       if(e.t==='a'){ // lien auteur
         const safe=e.v.replace(/'/g,"\\'");
-        return `<span class="aterm" onclick="openAuthor('${safe}')" title="Voir l'auteur : ${e.v}">${m}</span>`;
+        return `<span class="aterm" role="link" tabindex="0" onclick="openAuthor('${safe}')" title="Voir l'auteur : ${e.v}">${m}</span>`;
       }
       // lien concept
-      return `<span class="cterm" onclick="openConcept('${e.v}')" title="Voir définition : ${m}">${m}</span>`;
+      return `<span class="cterm" role="link" tabindex="0" onclick="openConcept('${e.v}')" title="Voir définition : ${m}">${m}</span>`;
     });
   });
 }
+
+/* lienClavier — Entrée (ou Espace) sur un lien de texte (.nterm, .aterm,
+   .cterm, role=link) l'active comme un clic : ce sont des <span>, que le
+   navigateur n'active pas tout seul au clavier (étape 6, accessibilité). */
+document.addEventListener('keydown',ev=>{
+  const t=ev.target;
+  if((ev.key==='Enter'||ev.key===' ') && t && t.matches && t.matches('.nterm,.aterm,.cterm')){
+    ev.preventDefault(); t.click();
+  }
+});
 /* js/06-contribution.js — morceau du script du site. Le build (outils/construire.mjs)
    recolle js/*.js dans l'ORDRE des noms en UN SEUL script, app.js : les
    fonctions restent visibles d'un morceau à l'autre comme avant, et le code
@@ -3936,6 +4020,54 @@ function toggleFicheMode(){
   applyFicheMode();
 }
 
+/* ── Thème et taille du texte (étape 6, oct. 2026) ───────────────────────
+   « philo-theme » : 'sombre' (défaut), 'clair' ou 'auto' (suit le système).
+   Le script en tête d'index.html pose data-theme avant le premier affichage ;
+   ici, on le change à chaud. « philo-texte » : 'normal', 'grand' ou
+   'tres-grand' (classe sur <body>, zoom de la zone de lecture, css/01).  */
+const THEMES={sombre:'Sombre', clair:'Clair', auto:'Automatique'};
+const TAILLES={normal:'Normale', grand:'Grande', 'tres-grand':'Très grande'};
+function lireReglage(cle, defaut){ try{ return localStorage.getItem(cle)||defaut; }catch(e){ return defaut; } }
+/* themeEffectif() — 'clair' ou 'sombre', une fois « auto » résolu. */
+function themeEffectif(){
+  const t=document.documentElement.dataset.theme||'sombre';
+  if(t!=='auto') return t;
+  return (window.matchMedia&&matchMedia('(prefers-color-scheme: light)').matches)?'clair':'sombre';
+}
+/* appliquerAffichage() — pose thème et taille, met à jour la couleur de la
+   barre du téléphone (theme-color). Ne redessine pas : setTheme s'en charge. */
+function appliquerAffichage(){
+  document.documentElement.dataset.theme=lireReglage('philo-theme','sombre');
+  const taille=lireReglage('philo-texte','normal');
+  document.body.classList.toggle('texte-grand', taille==='grand');
+  document.body.classList.toggle('texte-tres-grand', taille==='tres-grand');
+  const meta=document.querySelector('meta[name="theme-color"]');
+  if(meta) meta.setAttribute('content', themeEffectif()==='clair'?'#e9e6df':'#121212');
+}
+/* setTheme(t) / setTailleTexte(t) — enregistrent, appliquent, redessinent
+   (les couleurs de notion des liens dépendent du thème : inkOnDark) et
+   reportent au compte. */
+function setTheme(t){
+  try{ localStorage.setItem('philo-theme', t); }catch(e){}
+  appliquerAffichage(); renderSB(); renderCurrentView();
+  const ov=document.getElementById('settings-overlay');
+  if(ov && ov.classList.contains('open')) renderSettingsBody();
+  syncOnPrefsChange();
+}
+function setTailleTexte(t){
+  try{ localStorage.setItem('philo-texte', t); }catch(e){}
+  appliquerAffichage();
+  const ov=document.getElementById('settings-overlay');
+  if(ov && ov.classList.contains('open')) renderSettingsBody();
+  syncOnPrefsChange();
+}
+// En « auto », suivre le système quand il passe du clair au sombre.
+if(window.matchMedia){
+  const mq=matchMedia('(prefers-color-scheme: light)');
+  const suivre=()=>{ if(lireReglage('philo-theme','sombre')==='auto'){ appliquerAffichage(); renderSB(); renderCurrentView(); } };
+  if(mq.addEventListener) mq.addEventListener('change', suivre); else if(mq.addListener) mq.addListener(suivre);
+}
+
 /* ── Hors programme : afficher / masquer (étape 5, oct. 2026) ─────────────
    setVoirHP(v) — enregistre le réglage (« philo-hp » : '1' visible, '0'
    masqué), note que la personne a fait son choix (« philo-hp-choix », la
@@ -3986,8 +4118,17 @@ function renderSettingsBody(){
   const body=document.getElementById('settings-body'); if(!body) return;
   const isEd=(localStorage.getItem('philo-mode')||'revision')==='edition';
   const isFiche=localStorage.getItem('philo-fiche')==='1';
+  // Étape 6 : thème et taille du texte, en boutons à choix unique.
+  const choix=(titre, desc, options, actuel, fn)=>'<div class="set-row">'
+    +'<div class="set-row-cur">'+titre+' : <strong>'+options[actuel]+'</strong></div>'
+    +'<div class="set-row-desc">'+desc+'</div>'
+    +'<div class="set-choix" role="group" aria-label="'+titre+'">'
+    +Object.keys(options).map(k=>'<button class="pbtn '+(k===actuel?'pbtn-primary':'pbtn-ghost')+'" aria-pressed="'+(k===actuel)+'" onclick="'+fn+'(\''+k+'\')">'+options[k]+'</button>').join('')
+    +'</div></div>';
   body.innerHTML=
-    '<div class="set-row">'
+    choix('Thème', 'Le thème clair, sur fond papier, repose les yeux pour lire longtemps ; « Automatique » suit le réglage de ton appareil.', THEMES, lireReglage('philo-theme','sombre'), 'setTheme')
+    +choix('Taille du texte', 'Agrandit la zone de lecture (notions, fiches), pas la barre latérale.', TAILLES, lireReglage('philo-texte','normal'), 'setTailleTexte')
+    +'<div class="set-row">'
     +'<div class="set-row-cur">Mode d\'affichage actuel : <strong>'+(isEd?'Édition':'Révision')+'</strong></div>'
     +'<div class="set-row-desc">Le mode <em>édition</em> révèle les badges « ✦ nouveau / ✎ modifié » et les boutons « + » pour proposer du contenu. Le mode <em>révision</em> épure l\'affichage pour se concentrer sur l\'apprentissage.</div>'
     +'<button class="pbtn pbtn-primary set-mode-btn" onclick="togglePhiloMode()">'
@@ -5511,6 +5652,8 @@ function prefsBlobForSync(){
     tour: localStorage.getItem('philo-tour-v1')||'',
     hp: localStorage.getItem('philo-hp')||'',            // étape 5 : hors programme affiché ('1') ou masqué ('0')
     hpChoix: localStorage.getItem('philo-hp-choix')||'', // la proposition d'arrivée a reçu une réponse
+    theme: localStorage.getItem('philo-theme')||'',      // étape 6 : sombre, clair ou auto
+    texte: localStorage.getItem('philo-texte')||'',      // étape 6 : taille du texte
     drafts: drafts,
     nav: nav     // position courante (cross-plateforme : reprendre où l'on en était)
   };
@@ -5527,6 +5670,14 @@ function applyPrefsBlob(p){
   // d'arrivée se ferme si l'autre appareil y a déjà répondu.
   if(p.hp){ const avant=voirHP(); localStorage.setItem('philo-hp',p.hp); if(voirHP()!==avant){ renderSB(); renderCurrentView(); } }
   if(p.hpChoix){ localStorage.setItem('philo-hp-choix',p.hpChoix); fermerHpInvite(); }
+  // Étape 6 : thème et taille du texte suivent aussi le compte.
+  if(p.theme||p.texte){
+    const avant=themeEffectif();
+    if(p.theme) localStorage.setItem('philo-theme',p.theme);
+    if(p.texte) localStorage.setItem('philo-texte',p.texte);
+    appliquerAffichage();
+    if(themeEffectif()!==avant){ renderSB(); renderCurrentView(); }
+  }
   applyPhiloMode();
   // Position distante (cross-plateforme) : on ne l'adopte QUE si l'utilisateur
   // n'a pas encore navigué sur cet appareil (navTouched). Sinon sa position
@@ -5873,54 +6024,6 @@ function syncResetState(){
   syncMeta.quiz=null; syncMeta.prefs=null;
   syncDirty.quiz=0; syncDirty.prefs=0;
   clearTimeout(syncQuizTimer); clearTimeout(syncPrefsTimer);
-}
-/* js/12-demarrage.js — morceau du script du site. Le build (outils/construire.mjs)
-   recolle js/*.js dans l'ORDRE des noms en UN SEUL script, app.js : les
-   fonctions restent visibles d'un morceau à l'autre comme avant, et le code
-   « de premier niveau » s'exécute dans cet ordre. */
-/* ── I. INITIALISATION ───────────────────────────────────────────────
-   Appel initial au chargement de la page :
-   renderSB()      → construit la sidebar avec la première notion active
-   renderContent() → affiche le contenu de cette première notion        */
-restoreDraftsFromStorage();   // new (Phase 3) : recharge le brouillon de proposition local
-restoreNavFromStorage();      // position survit à l'actualisation (philo-nav)
-restoreNavFromAddress();      // … mais une adresse #/… (lien partagé, favori) l'emporte
-restoreNavHistory();          // pile « ← Retour » survit aussi (philo-navhist)
-renderSB();renderCurrentView();
-initAuth();           // new (comptes) : récupère la session + s'abonne aux changements d'état
-tourStartIfFirst();   // visite guidée auto à la 1re venue (cf. module « Visite guidée »)
-hpInviterSiBesoin();  // étape 5 : propose de masquer le hors programme (une fois, hors visite)
-initNotice();         // bandeau « contenu en construction » (auto-fermeture à 1 min)
-
-/* ── PWA — enregistrement du service worker + mise à jour automatique ──
-   Le service worker rend le site installable et utilisable hors-ligne.
-   Désormais il sert le HTML/JS en « réseau d'abord » (cf. sw.js) : une
-   simple actualisation récupère la dernière version déployée, sans la
-   manip manuelle de vidage de cache.
-
-   Mise à jour transparente : quand un nouveau service worker prend le
-   contrôle de la page (événement `controllerchange`), on recharge UNE
-   seule fois pour basculer sur la nouvelle version. Le garde
-   `navigator.serviceWorker.controller` évite de recharger à la toute
-   première visite (aucun contrôleur encore actif = rien à remplacer).
-   `reg.update()` force la vérification d'une nouvelle version à chaque
-   chargement. Aucune erreur si le navigateur ne supporte pas. */
-if('serviceWorker' in navigator){
-  let swReloading=false;        // garde anti-boucle de rechargement
-  // Un contrôleur déjà présent = on a une version installée susceptible
-  // d'être remplacée → on s'autorise le rechargement auto à la bascule.
-  if(navigator.serviceWorker.controller){
-    navigator.serviceWorker.addEventListener('controllerchange',()=>{
-      if(swReloading) return;
-      swReloading=true;
-      window.location.reload();
-    });
-  }
-  window.addEventListener('load',()=>{
-    navigator.serviceWorker.register('sw.js')
-      .then(reg=>{ reg.update().catch(()=>{}); })   // cherche une MAJ dès le chargement
-      .catch(()=>{});
-  });
 }
 /* js/13-quiz.js — morceau du script du site. Le build (outils/construire.mjs)
    recolle js/*.js dans l'ORDRE des noms en UN SEUL script, app.js : les
@@ -7078,6 +7181,12 @@ const PALETTE_INDEX=(function(){
         cible:{notion:k, onglet:'exemples', sel:'.ex-card', extrait:ti}});
     });
   });
+  // Sujets tombés au bac (étape 6) : ouvrent Explorer › Sujets du bac.
+  SUJETS_BAC.sujets.forEach((x,i)=>{
+    const lab=x.type==='explication'?'Explication : '+x.auteur+', '+stripHtml(x.oeuvre):x.q;
+    out.push({type:'sujet', id:(x.notions||[])[0]||'', label:court(lab), sub:'Bac '+x.annee+' · voie '+x.voie,
+      color:'#888', norm:paletteNorm(lab+' bac '+x.annee), cible:{explorer:'sujets'}});
+  });
   return out;
 })();
 
@@ -7221,6 +7330,7 @@ function paletteActivate(){
    changement d'onglet ci-dessous) de faire briller l'élément (c.sel) dont le
    texte contient le début de l'extrait, au lieu de l'en-tête. */
 function ouvrirResultat(c){
+  if(c.explorer){ pushHistory(); sbMode='explorer'; explorerTopic=c.explorer; renderSB(); renderExplorerContent(); return; }   // étape 6
   pendingCible={sel:c.sel, extrait:c.extrait};
   if(c.auteur){ openAuthor(c.auteur); curAuthorTab=c.onglet; renderAuthorContent(); }
   else if(c.notion){
@@ -7262,3 +7372,454 @@ function ouvrirResultat(c){
     }
   });
 })();
+/* js/15-explorer.js — morceau du script du site. Le build (outils/construire.mjs)
+   recolle js/*.js dans l'ORDRE des noms en UN SEUL script, app.js : les
+   fonctions restent visibles d'un morceau à l'autre comme avant, et le code
+   « de premier niveau » s'exécute dans cet ordre. */
+/* ── EXPLORER : frise des auteurs et graphe des idées (étape 6, oct. 2026) ──
+   Un mode de la barre latérale (sbMode='explorer'), sur le modèle de Méthodo :
+   deux sujets (explorerTopic), rendus dans la zone principale par
+   renderExplorerContent. Adresses : #/explorer/frise, #/explorer/graphe.
+   · Frise : les auteurs des notions, groupés par période de naissance, une
+     barre par vie (naissance → mort, AM.naissance / AM.mort), couleur du
+     courant. Filtres : programme seulement, une notion.
+   · Graphe : trois réseaux déjà présents dans les données. Dialogues entre
+     auteurs (AM.dialogues), relations entre concepts (CONCEPTS.relations),
+     liens entre notions (D.liens). Disposition par forces (un ressort par
+     lien, une répulsion entre nœuds), calculée ici, sans bibliothèque.
+     Zoom et déplacement à la souris, au doigt ou aux boutons ; un clic ouvre
+     la fiche ; la liste des relations est aussi donnée en texte.
+   Le hors programme masqué dans les Réglages l'est aussi ici.             */
+const EXPLORER_TOPICS=[
+  {id:'frise', label:'Frise des auteurs'},
+  {id:'graphe', label:'Graphe des idées'},
+  {id:'sujets', label:'Sujets du bac'},
+  {id:'nouveautes', label:'Nouveautés'},
+];
+let sujetsNotion='', sujetsVoie='';                // filtres des sujets du bac
+let friseProgramme=false, friseNotion='';          // filtres de la frise
+let grapheMode='auteurs', grapheNotion='';         // réseau affiché et notion filtrée
+
+/* renderExplorerContent() — en-tête commun (onglets Frise / Graphe) puis le
+   sujet courant. */
+function renderExplorerContent(){
+  renderCrumbs();
+  const mainEl=document.getElementById('main');
+  if(!mainEl.querySelector('.tabs')||!mainEl.querySelector('.main-content')){
+    mainEl.innerHTML='<div class="tabs"></div><div class="main-content"></div>';
+  }
+  const tabsEl=mainEl.querySelector('.tabs'), mc=mainEl.querySelector('.main-content');
+  tabsEl.innerHTML=backBtnHTML()+EXPLORER_TOPICS.map(t=>`<div class="tab${explorerTopic===t.id?' active':''}" onclick="explorerTopic='${t.id}';renderSB();renderExplorerContent()">${t.label}</div>`).join('');
+  mc.innerHTML=explorerTopic==='graphe'?grapheHTML()
+    :explorerTopic==='sujets'?sujetsHTML()
+    :explorerTopic==='nouveautes'?nouveautesHTML()
+    :friseHTML();
+  if(explorerTopic==='graphe') grapheBrancher();
+}
+
+/* optionsNotions(val) — les <option> d'un filtre par notion (notions visibles). */
+function optionsNotions(val){
+  return `<option value="">Toutes les notions</option>`+notionsVisibles().map(k=>`<option value="${k}"${k===val?' selected':''}>${D[k].l}${estHP(k)?' (hors programme)':''}</option>`).join('');
+}
+/* anneeTxt(a) — « 1724 », « 428 av. J.-C. ». */
+function anneeTxt(a){ return a<0?(-a)+' av. J.-C.':String(a); }
+
+/* ── Frise ─────────────────────────────────────────────────────────── */
+// Périodes, par année de NAISSANCE ; pas de graduation adapté à chacune.
+const FRISE_PERIODES=[
+  {l:'Antiquité', de:-800, a:476, pas:100},
+  {l:'Moyen Âge', de:476, a:1453, pas:100},
+  {l:'Renaissance et âge classique (XVe–XVIIe s.)', de:1453, a:1700, pas:25},
+  {l:'Lumières (XVIIIe s.)', de:1700, a:1800, pas:25},
+  {l:'XIXe siècle', de:1800, a:1900, pas:25},
+  {l:'XXe et XXIe siècles', de:1900, a:3000, pas:25},
+];
+
+/* friseHTML() — filtres, puis une section par période : un axe gradué
+   propre à la période (pour que les siècles creux ne prennent pas de place)
+   et une ligne par auteur. */
+function friseHTML(){
+  const an=new Date().getFullYear();
+  const noms=Object.keys(AI).filter(n=>{
+    const m=AM[n]; if(!m||!Number.isInteger(m.naissance)) return false;
+    if(!auteurVisible(n)) return false;
+    if(friseProgramme && statutAuteur(n)!=='programme') return false;
+    if(friseNotion && !AI[n].notions.includes(friseNotion)) return false;
+    return true;
+  }).sort((a,b)=>AM[a].naissance-AM[b].naissance||a.localeCompare(b,'fr'));
+  let html=`<div class="explorer-intro">Situer les auteurs les uns par rapport aux autres : qui a pu lire qui, qui écrivait en même temps. Chaque barre va de la naissance à la mort ; sa couleur est celle du courant.</div>
+  <div class="explorer-filtres">
+    <label class="explorer-check"><input type="checkbox"${friseProgramme?' checked':''} onchange="friseProgramme=this.checked;renderExplorerContent()"> Auteurs au programme seulement</label>
+    <select aria-label="Filtrer par notion" onchange="friseNotion=this.value;renderExplorerContent()">${optionsNotions(friseNotion)}</select>
+    <span class="explorer-compte">${noms.length} auteur${noms.length>1?'s':''}</span>
+  </div>`;
+  if(!noms.length) return html+`<div class="explorer-vide">Aucun auteur pour ce filtre.</div>`;
+  FRISE_PERIODES.forEach(p=>{
+    const liste=noms.filter(n=>AM[n].naissance>=p.de&&AM[n].naissance<p.a);
+    if(!liste.length) return;
+    const fin=n=>AM[n].mort===null?an:AM[n].mort;
+    const debut=Math.floor(Math.min(...liste.map(n=>AM[n].naissance))/p.pas)*p.pas;
+    const finAxe=Math.ceil(Math.max(...liste.map(fin))/p.pas)*p.pas;
+    const pos=a=>((a-debut)/(finAxe-debut)*100).toFixed(2)+'%';
+    let graduations='';
+    // Deux formes de chaque graduation : longue (« 600 av. J.-C. ») et courte
+    // (« −600 »), et une sur deux marquée « impaire » : sur téléphone, on
+    // n'affiche que la forme courte d'une graduation sur deux (css/09).
+    let gi=0;
+    for(let a=debut;a<=finAxe;a+=p.pas,gi++) graduations+=`<span class="frise-grad${gi%2?' frise-grad-impaire':''}" style="left:${pos(a)}"><span class="fg-long">${anneeTxt(a)}</span><span class="fg-court">${a<0?'−'+(-a):a}</span></span>`;
+    html+=`<section class="frise-periode"><h3 class="frise-titre">${p.l}</h3>
+      <div class="frise-ligne frise-axe"><span class="frise-nom"></span><span class="frise-piste">${graduations}</span></div>`;
+    liste.forEach(n=>{
+      const m=AM[n], col=CC[m.courant]||'#888', vivant=m.mort===null;
+      const dates=(m.datesApprox?'vers ':'')+anneeTxt(m.naissance)+' – '+(vivant?'':anneeTxt(m.mort));
+      const prog=statutAuteur(n)==='programme';
+      const safe=n.replace(/'/g,"\\'");
+      html+=`<div class="frise-ligne">
+        <span class="frise-nom${prog?' frise-prog':''}" role="link" tabindex="0" onclick="openAuthor('${safe}')" onkeydown="if(event.key==='Enter')openAuthor('${safe}')" title="${prog?'Au programme · ':''}${m.courant||''}">${n}</span>
+        <span class="frise-piste"><span class="frise-barre${vivant?' frise-vivant':''}${m.datesApprox?' frise-approx':''}" style="left:${pos(m.naissance)};width:calc(${pos(fin(n))} - ${pos(m.naissance)});background:${col}" title="${n} (${dates})"></span><span class="frise-dates" style="left:calc(${pos(fin(n))} + 4px)">${dates}</span></span>
+      </div>`;
+    });
+    html+=`</section>`;
+  });
+  html+=`<div class="explorer-note">Noms en gras : auteurs au programme. Pointillés : dates approximatives. Barre ouverte : auteur vivant.</div>`;
+  return html;
+}
+
+/* ── Graphe ────────────────────────────────────────────────────────── */
+const GRAPHE_MODES={auteurs:'Dialogues entre auteurs', concepts:'Relations entre concepts', notions:'Liens entre notions'};
+const GRAPHE_TYPES={oppose:"s'oppose à", prolonge:'prolonge', repond:'répond à', complete:'complète', distinction:'se distingue de', implique:'implique', lien:'est liée à'};
+let grapheVue=null;   // {x,y,w,h} : la portion du dessin affichée (zoom, déplacement)
+let grapheBoite=null; // la vue d'origine (pour « recentrer »)
+
+/* grapheDonnees() — {noeuds:[{id,label,col,ouvrir}], aretes:[{de,vers,type,desc}]}
+   pour le mode et la notion choisis. Les nœuds sans aucun lien sont écartés
+   (ils encombreraient le dessin sans rien montrer). */
+function grapheDonnees(){
+  const noeuds=new Map(), aretes=[], vues=new Set();
+  const ajouter=(de,vers,type,desc)=>{
+    if(de===vers) return;
+    const cle=[de,vers].sort().join('|')+'|'+type;
+    if(vues.has(cle)) return; vues.add(cle);
+    aretes.push({de,vers,type,desc:desc||''});
+  };
+  const dansNotion=ns=>!grapheNotion||ns.includes(grapheNotion);
+  if(grapheMode==='auteurs'){
+    const ok=n=>AI[n]&&auteurVisible(n)&&dansNotion(AI[n].notions);
+    Object.keys(AI).filter(ok).forEach(n=>{
+      ((AM[n]||{}).dialogues||[]).forEach(d=>{
+        const v=AI[d.auteur]?d.auteur:AUTHOR_ALIASES[d.auteur];
+        if(!v||!AI[v]||!auteurVisible(v)) return;
+        if(grapheNotion && !ok(v) && !ok(n)) return;
+        ajouter(n,v,d.dir,d.sujet);
+      });
+    });
+    aretes.forEach(a=>[a.de,a.vers].forEach(n=>{ if(!noeuds.has(n)){ const sn=n.replace(/'/g,"\\'"); noeuds.set(n,{id:n,label:n,col:CC[(AM[n]||{}).courant]||'#888',ouvrir:`openAuthor('${sn}')`}); } }));
+  } else if(grapheMode==='concepts'){
+    const parId={}; CONCEPTS.forEach(c=>{ parId[c.id]=c; });
+    CONCEPTS.filter(c=>!isRepere(c)&&conceptVisible(c)&&dansNotion(c.notions||[])).forEach(c=>{
+      (c.relations||[]).forEach(r=>{
+        const v=r.to&&parId[r.to]; if(!v||isRepere(v)||!conceptVisible(v)) return;
+        ajouter(c.id,v.id,r.type,r.desc);
+      });
+    });
+    aretes.forEach(a=>[a.de,a.vers].forEach(id=>{ if(!noeuds.has(id)){ const c=parId[id], k=(c.notions||[]).find(x=>D[x]); noeuds.set(id,{id,label:c.term,col:k?D[k].c:'#888',ouvrir:`openConcept('${id}')`}); } }));
+  } else {
+    const parLibelle={}; KEYS.forEach(k=>{ parLibelle[D[k].l]=k; });
+    notionsVisibles().forEach(k=>{
+      (D[k].liens||[]).forEach(l=>{ const v=D[l]?l:parLibelle[l]; if(v&&notionVisible(v)) ajouter(k,v,'lien',''); });
+    });
+    aretes.forEach(a=>[a.de,a.vers].forEach(k=>{ if(!noeuds.has(k)) noeuds.set(k,{id:k,label:D[k].l,col:D[k].c,ouvrir:`openNotion('${k}')`,hp:estHP(k)}); }));
+  }
+  return {noeuds:[...noeuds.values()], aretes};
+}
+
+/* grapheDisposer(noeuds, aretes, W, H) — disposition par forces
+   (Fruchterman et Reingold, 1991) : les nœuds se repoussent, les liens les
+   rapprochent comme des ressorts, une légère gravité garde l'ensemble
+   groupé ; la « température » (pas maximal) décroît à chaque tour. Départ
+   en cercle, dans un ordre fixe : le même graphe donne toujours le même
+   dessin. */
+function grapheDisposer(noeuds, aretes, W, H){
+  const n=noeuds.length; if(!n) return;
+  noeuds.forEach((nd,i)=>{ const a=2*Math.PI*i/n; nd.x=W/2+W*0.4*Math.cos(a); nd.y=H/2+H*0.4*Math.sin(a); });
+  const idx=new Map(noeuds.map((nd,i)=>[nd.id,i]));
+  const k=Math.sqrt(W*H/n)*0.75;
+  let t=W/8;
+  for(let it=0; it<350; it++){
+    const dx=new Float64Array(n), dy=new Float64Array(n);
+    for(let i=0;i<n;i++) for(let j=i+1;j<n;j++){
+      let ex=noeuds[i].x-noeuds[j].x, ey=noeuds[i].y-noeuds[j].y;
+      const d=Math.hypot(ex,ey)||0.01, f=k*k/d; ex/=d; ey/=d;
+      dx[i]+=ex*f; dy[i]+=ey*f; dx[j]-=ex*f; dy[j]-=ey*f;
+    }
+    aretes.forEach(a=>{
+      const i=idx.get(a.de), j=idx.get(a.vers);
+      let ex=noeuds[i].x-noeuds[j].x, ey=noeuds[i].y-noeuds[j].y;
+      const d=Math.hypot(ex,ey)||0.01, f=d*d/k; ex/=d; ey/=d;
+      dx[i]-=ex*f; dy[i]-=ey*f; dx[j]+=ex*f; dy[j]+=ey*f;
+    });
+    for(let i=0;i<n;i++){
+      dx[i]+=(W/2-noeuds[i].x)*0.12; dy[i]+=(H/2-noeuds[i].y)*0.12;   // gravité vers le centre
+      const d=Math.hypot(dx[i],dy[i])||1, m=Math.min(d,t);
+      // Les points restent dans le cadre (sinon un petit groupe isolé, repoussé
+      // au loin, forcerait à dézoomer tout le dessin).
+      noeuds[i].x=Math.min(W-30, Math.max(30, noeuds[i].x+dx[i]/d*m));
+      noeuds[i].y=Math.min(H-20, Math.max(20, noeuds[i].y+dy[i]/d*m));
+    }
+    t=Math.max(t*0.985, 0.5);
+  }
+}
+
+/* grapheHTML() — filtres, le dessin SVG (liens puis nœuds), la légende et la
+   liste textuelle des relations. */
+function grapheHTML(){
+  const {noeuds, aretes}=grapheDonnees();
+  let html=`<div class="explorer-intro">Le site s'appelle « Graphe Philosophie » : voici les liens qu'il contient. Survole un point pour voir ses relations, clique pour ouvrir sa fiche. Molette ou boutons pour zoomer, glisser pour se déplacer.</div>
+  <div class="explorer-filtres">
+    <select aria-label="Réseau affiché" onchange="grapheMode=this.value;grapheVue=null;renderExplorerContent()">${Object.keys(GRAPHE_MODES).map(m=>`<option value="${m}"${m===grapheMode?' selected':''}>${GRAPHE_MODES[m]}</option>`).join('')}</select>
+    ${grapheMode!=='notions'?`<select aria-label="Filtrer par notion" onchange="grapheNotion=this.value;grapheVue=null;renderExplorerContent()">${optionsNotions(grapheNotion)}</select>`:''}
+    <span class="explorer-compte">${noeuds.length} points · ${aretes.length} liens</span>
+  </div>`;
+  if(!aretes.length) return html+`<div class="explorer-vide">Aucune relation pour ce filtre.</div>`;
+  const W=1000, H=Math.max(560, Math.min(1100, 260+noeuds.length*9));
+  grapheDisposer(noeuds, aretes, W, H);
+  const xs=noeuds.map(n=>n.x), ys=noeuds.map(n=>n.y), marge=60;
+  grapheBoite={x:Math.min(...xs)-marge, y:Math.min(...ys)-marge, w:Math.max(...xs)-Math.min(...xs)+2*marge+80, h:Math.max(...ys)-Math.min(...ys)+2*marge};
+  if(!grapheVue) grapheVue=Object.assign({}, grapheBoite);
+  const deg={}; aretes.forEach(a=>{ deg[a.de]=(deg[a.de]||0)+1; deg[a.vers]=(deg[a.vers]||0)+1; });
+  const pos={}; noeuds.forEach(n=>{ pos[n.id]=n; });
+  const fleche=t=>(t==='prolonge'||t==='repond'||t==='implique')?` marker-end="url(#gf-${t})"`:'';
+  const lignes=aretes.map((a,i)=>{
+    const p=pos[a.de], q=pos[a.vers], r=5+Math.sqrt(deg[a.vers]||1)*2;
+    const d=Math.hypot(q.x-p.x,q.y-p.y)||1, x2=q.x-(q.x-p.x)/d*(r+3), y2=q.y-(q.y-p.y)/d*(r+3);   // la flèche s'arrête au bord du point
+    return `<line class="g-arete g-${a.type}" data-de="${pEscAttr(a.de)}" data-vers="${pEscAttr(a.vers)}" x1="${p.x.toFixed(1)}" y1="${p.y.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}"${fleche(a.type)}><title>${pEscAttr(pos[a.de].label+' '+GRAPHE_TYPES[a.type]+' '+pos[a.vers].label+(a.desc?' : '+stripHtml(a.desc):''))}</title></line>`;
+  }).join('');
+  const points=noeuds.map(n=>{
+    const r=5+Math.sqrt(deg[n.id]||1)*2;
+    return `<g class="g-noeud${n.hp?' g-hp':''}" data-id="${pEscAttr(n.id)}" tabindex="0" role="link" aria-label="${pEscAttr(n.label)}" onclick="${n.ouvrir}" onkeydown="if(event.key==='Enter')${n.ouvrir.replace(/"/g,'&quot;')}">
+      <circle cx="${n.x.toFixed(1)}" cy="${n.y.toFixed(1)}" r="${r.toFixed(1)}" fill="${n.col}"/>
+      <text x="${(n.x+r+3).toFixed(1)}" y="${(n.y+4).toFixed(1)}">${n.label}</text></g>`;
+  }).join('');
+  const marq=['prolonge','repond','implique'].map(t=>`<marker id="gf-${t}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="g-fleche g-${t}"/></marker>`).join('');
+  const v=grapheVue;
+  html+=`<div class="graphe-cadre">
+    <div class="graphe-boutons"><button onclick="grapheZoom(0.8)" aria-label="Zoomer">+</button><button onclick="grapheZoom(1.25)" aria-label="Dézoomer">−</button><button onclick="grapheRecentrer()" aria-label="Recentrer" title="Recentrer">⤢</button></div>
+    <svg id="graphe-svg" viewBox="${v.x} ${v.y} ${v.w} ${v.h}" role="group" aria-label="${GRAPHE_MODES[grapheMode]}"><defs>${marq}</defs><g class="g-aretes">${lignes}</g><g class="g-noeuds">${points}</g></svg>
+  </div>`;
+  const types=[...new Set(aretes.map(a=>a.type))];
+  html+=`<div class="graphe-legende">${types.map(t=>`<span><i class="g-leg g-${t}"></i>${GRAPHE_TYPES[t]}</span>`).join('')}${grapheMode==='notions'?'<span><i class="g-leg-hp"></i>notion hors programme</span>':''}</div>`;
+  html+=`<details class="graphe-liste"><summary>Les ${aretes.length} relations, en liste</summary><ul>${aretes.map(a=>`<li><span role="link" tabindex="0" class="g-lienliste" onclick="${pos[a.de].ouvrir}">${pos[a.de].label}</span> ${GRAPHE_TYPES[a.type]} <span role="link" tabindex="0" class="g-lienliste" onclick="${pos[a.vers].ouvrir}">${pos[a.vers].label}</span>${a.desc?' : '+stripHtml(a.desc):''}</li>`).join('')}</ul></details>`;
+  return html;
+}
+
+/* pEscAttr(s) — texte sûr dans un attribut ou un <title> SVG. */
+function pEscAttr(s){ return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+
+/* grapheAppliquerVue() / grapheZoom(f) / grapheRecentrer() — le zoom et le
+   déplacement modifient seulement le viewBox du SVG. */
+function grapheAppliquerVue(){ const s=document.getElementById('graphe-svg'); if(s&&grapheVue) s.setAttribute('viewBox',`${grapheVue.x} ${grapheVue.y} ${grapheVue.w} ${grapheVue.h}`); }
+function grapheZoom(f, cx, cy){
+  const v=grapheVue; if(!v) return;
+  cx=cx??v.x+v.w/2; cy=cy??v.y+v.h/2;
+  const w=Math.min(Math.max(v.w*f, 120), grapheBoite.w*3), h=w*v.h/v.w;
+  grapheVue={x:cx-(cx-v.x)*w/v.w, y:cy-(cy-v.y)*h/v.h, w, h};
+  grapheAppliquerVue();
+}
+function grapheRecentrer(){ grapheVue=Object.assign({}, grapheBoite); grapheAppliquerVue(); }
+
+/* grapheBrancher() — après le rendu : molette (zoom autour du pointeur),
+   glisser (déplacement, souris et doigt), survol ou focus d'un point (mise
+   en valeur de ses voisins). */
+function grapheBrancher(){
+  const svg=document.getElementById('graphe-svg'); if(!svg) return;
+  const versDessin=(ev)=>{ const r=svg.getBoundingClientRect(), v=grapheVue; return [v.x+(ev.clientX-r.left)/r.width*v.w, v.y+(ev.clientY-r.top)/r.height*v.h]; };
+  svg.addEventListener('wheel',ev=>{ ev.preventDefault(); const [x,y]=versDessin(ev); grapheZoom(ev.deltaY>0?1.12:0.89, x, y); },{passive:false});
+  let glisse=null;
+  svg.addEventListener('pointerdown',ev=>{ if(ev.target.closest('.g-noeud')) return; glisse={x:ev.clientX, y:ev.clientY, v:Object.assign({},grapheVue)}; svg.setPointerCapture(ev.pointerId); svg.classList.add('g-glisse'); });
+  svg.addEventListener('pointermove',ev=>{
+    if(!glisse) return;
+    const r=svg.getBoundingClientRect();
+    grapheVue=Object.assign({}, glisse.v, {x:glisse.v.x-(ev.clientX-glisse.x)/r.width*glisse.v.w, y:glisse.v.y-(ev.clientY-glisse.y)/r.height*glisse.v.h});
+    grapheAppliquerVue();
+  });
+  const fin=()=>{ glisse=null; svg.classList.remove('g-glisse'); };
+  svg.addEventListener('pointerup',fin); svg.addEventListener('pointercancel',fin);
+  // Mise en valeur des voisins d'un point survolé ou atteint au clavier.
+  const voisins={};
+  svg.querySelectorAll('.g-arete').forEach(l=>{ const a=l.dataset.de, b=l.dataset.vers; (voisins[a]||=new Set()).add(b); (voisins[b]||=new Set()).add(a); });
+  const allumer=id=>{
+    svg.classList.add('g-actif');
+    svg.querySelectorAll('.g-noeud').forEach(g=>g.classList.toggle('g-voisin', g.dataset.id===id||(voisins[id]&&voisins[id].has(g.dataset.id))));
+    svg.querySelectorAll('.g-arete').forEach(l=>l.classList.toggle('g-voisin', l.dataset.de===id||l.dataset.vers===id));
+  };
+  const eteindre=()=>{ svg.classList.remove('g-actif'); svg.querySelectorAll('.g-voisin').forEach(e=>e.classList.remove('g-voisin')); };
+  svg.querySelectorAll('.g-noeud').forEach(g=>{
+    g.addEventListener('mouseenter',()=>allumer(g.dataset.id)); g.addEventListener('focus',()=>allumer(g.dataset.id));
+    g.addEventListener('mouseleave',eteindre); g.addEventListener('blur',eteindre);
+  });
+}
+
+/* ── Sujets du bac (SUJETS_BAC, contenu/sujets-bac.js) ──────────────── */
+/* sujetBacHTML(x, avecNotions) — un sujet : la question (ou le texte à
+   expliquer, avec un lien vers la fiche de l'auteur), l'année et la voie,
+   et au besoin les notions en jeu (pastilles qui ouvrent l'onglet
+   Dissertations de la notion). */
+function sujetBacHTML(x, avecNotions){
+  const quand=`<span class="bac-quand">${x.annee} · voie ${x.voie}</span>`;
+  const corps=x.type==='explication'
+    ? `Explication de texte : <span class="aterm" role="link" tabindex="0" onclick="openAuthor('${x.auteur.replace(/'/g,"\\'")}')">${x.auteur}</span>, <em>${x.oeuvre}</em>`
+    : `« ${x.q} »`;
+  const pills=avecNotions?(x.notions||[]).filter(notionVisible).map(k=>`<span class="notion-pill" style="color:${D[k].c};border-color:${D[k].c}40;background:${D[k].c}12" onclick="pushHistory();cur='${k}';curTab='diss';sbMode='notions';renderSB();renderContent()">${D[k].l} →</span>`).join(''):'';
+  return `<li class="bac-sujet"><div>${corps} ${quand}</div>${pills?`<div class="bac-pills">${pills}</div>`:''}</li>`;
+}
+/* sujetsDeNotion(k) / sujetsDAuteur(nom) — les sujets d'une notion (onglet
+   Dissertations) ou les textes d'un auteur tombés à l'explication. */
+function sujetsDeNotion(k){ return SUJETS_BAC.sujets.filter(x=>(x.notions||[]).includes(k)); }
+function sujetsDAuteur(nom){ return SUJETS_BAC.sujets.filter(x=>x.type==='explication'&&x.auteur===nom); }
+
+/* sujetsHTML() — tous les sujets depuis 2021, par année, filtrables. */
+function sujetsHTML(){
+  const liste=SUJETS_BAC.sujets.filter(x=>(!sujetsVoie||x.voie===sujetsVoie)&&(!sujetsNotion||(x.notions||[]).includes(sujetsNotion)));
+  let html=`<div class="explorer-intro">Les sujets réellement tombés au bac depuis le programme actuel (première session en 2021), en France métropolitaine. Pour chaque session : deux sujets de dissertation et un texte à expliquer, par voie. Les notions indiquées sont celles qu'on mobilise d'abord ; elles ne figurent pas sur la copie.</div>
+  <div class="explorer-filtres">
+    <select aria-label="Voie" onchange="sujetsVoie=this.value;renderExplorerContent()"><option value="">Les deux voies</option><option value="générale"${sujetsVoie==='générale'?' selected':''}>Voie générale</option><option value="technologique"${sujetsVoie==='technologique'?' selected':''}>Voie technologique</option></select>
+    <select aria-label="Filtrer par notion" onchange="sujetsNotion=this.value;renderExplorerContent()">${optionsNotions(sujetsNotion)}</select>
+    <span class="explorer-compte">${liste.length} sujet${liste.length>1?'s':''}</span>
+  </div>`;
+  if(!liste.length) return html+`<div class="explorer-vide">Aucun sujet pour ce filtre.</div>`;
+  [...new Set(liste.map(x=>x.annee))].forEach(an=>{
+    const de=liste.filter(x=>x.annee===an);
+    html+=`<section class="bac-annee"><h3 class="frise-titre">${an}${de[0].date?' · '+de[0].date:''}</h3><ul class="bac-liste">${de.map(x=>sujetBacHTML(x,true)).join('')}</ul></section>`;
+  });
+  html+=`<div class="explorer-note">Sources : ${SUJETS_BAC.sources.join(' ; ')}.</div>`;
+  return html;
+}
+
+/* ── Nouveautés (NOUVEAUTES, contenu/nouveautes.js) ─────────────────── */
+const MOIS=['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+function dateLongue(iso){ const [a,m,j]=iso.split('-').map(Number); return j+' '+MOIS[m-1]+' '+a; }
+/* ouvrirAdresse(h) — suit une adresse #/… du site depuis un lien interne. */
+function ouvrirAdresse(h){
+  const s=etatDe(h); if(!s) return;
+  pushHistory();
+  if(applyNavState(s)){ renderSB(); renderCurrentView(); }
+}
+function nouveautesHTML(){
+  return `<div class="explorer-intro">Ce qui a changé sur le site, du plus récent au plus ancien.</div>`
+    +NOUVEAUTES.map(e=>`<article class="nouveaute">
+      <div class="nouveaute-date">${dateLongue(e.date)}</div>
+      <h3 class="nouveaute-titre">${e.titre}</h3>
+      <p>${e.texte}</p>
+      ${(e.liens||[]).length?`<div class="nouveaute-liens">${e.liens.map(l=>`<button class="pbtn pbtn-ghost" onclick="ouvrirAdresse('${l.h}')">${l.l} →</button>`).join('')}</div>`:''}
+    </article>`).join('');
+}
+/* js/16-impression.js — morceau du script du site. Le build (outils/construire.mjs)
+   recolle js/*.js dans l'ORDRE des noms en UN SEUL script, app.js : les
+   fonctions restent visibles d'un morceau à l'autre comme avant, et le code
+   « de premier niveau » s'exécute dans cet ordre. */
+/* ── FICHE IMPRIMABLE D'UNE NOTION (étape 6, oct. 2026) ──────────────────
+   Le point fort historique de Fiches BUT : une fiche de révision à
+   imprimer (ou à enregistrer en PDF depuis la fenêtre d'impression). Le
+   bouton « 🖨 Fiche » de l'en-tête d'une notion compose la fiche dans
+   #impression, invisible à l'écran ; la feuille css/10-impression.css
+   n'imprime que lui. Contenu : question et définition (sections
+   « Approfondir » dépliées), auteurs (synthèse de chaque idée et première
+   citation exacte), concepts, plans (problématique et parties), sujets
+   (dont ceux tombés au bac), sources. */
+
+/* ficheImpressionHTML(k) — le HTML de la fiche de la notion k. */
+function ficheImpressionHTML(k){
+  const n=D[k], e=s=>String(s||'');
+  const def=e(n.def).replace(/<details>/g,'<details open>');
+  // Auteurs, dans l'ordre des cartes de la notion (compareAuthors).
+  const parNom={}; (n.auteurs||[]).forEach(a=>{ (parNom[a.n]=parNom[a.n]||[]).push(...(a.ideas||[])); });
+  const noms=Object.keys(parNom).sort(compareAuthors);
+  const auteurs=noms.map(nom=>{
+    const st=statutAuteur(nom), etiq=st==='programme'?' <span class="imp-etiq">programme</span>':'';
+    const idees=parNom[nom].map(it=>{
+      const cit=(it.citations||[]).find(c=>/[«“]/.test(c));
+      return `<li><span class="imp-oeuvre">${e(it.w)}</span> : ${e(it.fiche||quizThesis(it)||stripHtml(it.i))}${cit?`<div class="imp-cit">${cit}</div>`:''}</li>`;
+    }).join('');
+    return `<div class="imp-auteur"><div class="imp-nom">${nom}${etiq}</div><ul>${idees}</ul></div>`;
+  }).join('');
+  const concepts=CONCEPTS.filter(c=>!isRepere(c)&&(c.notions||[]).includes(k)).map(c=>`<li><strong>${c.term}</strong> : ${stripHtml(c.def)}</li>`).join('');
+  const plans=(n.plans||[]).map(p=>`<div class="imp-plan"><div class="imp-plan-q">${e(p.q)}</div>${p.pb?`<div class="imp-pb">${p.pb}</div>`:''}<ol>${(p.axes||[]).map(a=>`<li>${e(a.t)||'(partie)'}${(a.sps||[]).length?`<ul>${a.sps.map(s=>`<li>${e(s.t)}${s.auteurs?' ('+s.auteurs+')':''}</li>`).join('')}</ul>`:''}</li>`).join('')}</ol></div>`).join('');
+  const bac=sujetsDeNotion(k).map(x=>`<li>${x.type==='explication'?'Explication : '+x.auteur+', <em>'+x.oeuvre+'</em>':x.q} <span class="imp-quand">(bac ${x.annee}, voie ${x.voie})</span></li>`).join('');
+  const diss=(n.diss||[]).map(d=>`<li>${typeof d==='object'?d.q:d}</li>`).join('');
+  const sources=(n.sources||[]).map(s=>`<li>${s}</li>`).join('');
+  const adresse=location.origin+location.pathname+'#/notion/'+k;
+  return `<header class="imp-tete"><div class="imp-site">Graphe Philosophie · fiche de révision${estHP(k)?' · hors programme':''}</div>
+      <h1>${n.l}</h1><div class="imp-question">${e(n.s)}</div></header>
+    <section><h2>Définition</h2><div class="imp-def">${def}</div></section>
+    ${auteurs?`<section><h2>Auteurs et idées clés</h2>${auteurs}</section>`:''}
+    ${concepts?`<section><h2>Concepts</h2><ul class="imp-concepts">${concepts}</ul></section>`:''}
+    ${plans?`<section><h2>Plans de dissertation</h2>${plans}</section>`:''}
+    ${bac?`<section><h2>Tombés au bac</h2><ul>${bac}</ul></section>`:''}
+    ${diss?`<section><h2>Autres sujets</h2><ul>${diss}</ul></section>`:''}
+    ${sources?`<section><h2>Sources</h2><ul>${sources}</ul></section>`:''}
+    <footer class="imp-pied">${adresse}</footer>`;
+}
+
+/* imprimerFiche(k) — compose la fiche et ouvre la fenêtre d'impression du
+   navigateur ; la fiche est retirée une fois l'impression terminée. */
+function imprimerFiche(k){
+  k=k||cur;
+  let box=document.getElementById('impression');
+  if(!box){ box=document.createElement('div'); box.id='impression'; document.body.appendChild(box); }
+  box.innerHTML=ficheImpressionHTML(k);
+  document.body.classList.add('impression-prete');
+  const fin=()=>{ document.body.classList.remove('impression-prete'); box.innerHTML=''; window.removeEventListener('afterprint',fin); };
+  window.addEventListener('afterprint',fin);
+  window.print();
+}
+/* js/99-demarrage.js — morceau du script du site. Numéroté 99 (étape 6) pour
+   s'exécuter EN DERNIER : le démarrage appelle des rendus qui lisent les
+   constantes de tous les autres morceaux (ex. js/15-explorer.js). Le build (outils/construire.mjs)
+   recolle js/*.js dans l'ORDRE des noms en UN SEUL script, app.js : les
+   fonctions restent visibles d'un morceau à l'autre comme avant, et le code
+   « de premier niveau » s'exécute dans cet ordre. */
+/* ── I. INITIALISATION ───────────────────────────────────────────────
+   Appel initial au chargement de la page :
+   renderSB()      → construit la sidebar avec la première notion active
+   renderContent() → affiche le contenu de cette première notion        */
+restoreDraftsFromStorage();   // new (Phase 3) : recharge le brouillon de proposition local
+restoreNavFromStorage();      // position survit à l'actualisation (philo-nav)
+restoreNavFromAddress();      // … mais une adresse #/… (lien partagé, favori) l'emporte
+restoreNavHistory();          // pile « ← Retour » survit aussi (philo-navhist)
+appliquerAffichage();         // étape 6 : thème et taille du texte (avant le premier rendu)
+renderSB();renderCurrentView();
+initAuth();           // new (comptes) : récupère la session + s'abonne aux changements d'état
+tourStartIfFirst();   // visite guidée auto à la 1re venue (cf. module « Visite guidée »)
+hpInviterSiBesoin();  // étape 5 : propose de masquer le hors programme (une fois, hors visite)
+initNotice();         // bandeau « contenu en construction » (auto-fermeture à 1 min)
+
+/* ── PWA — enregistrement du service worker + mise à jour automatique ──
+   Le service worker rend le site installable et utilisable hors-ligne.
+   Désormais il sert le HTML/JS en « réseau d'abord » (cf. sw.js) : une
+   simple actualisation récupère la dernière version déployée, sans la
+   manip manuelle de vidage de cache.
+
+   Mise à jour transparente : quand un nouveau service worker prend le
+   contrôle de la page (événement `controllerchange`), on recharge UNE
+   seule fois pour basculer sur la nouvelle version. Le garde
+   `navigator.serviceWorker.controller` évite de recharger à la toute
+   première visite (aucun contrôleur encore actif = rien à remplacer).
+   `reg.update()` force la vérification d'une nouvelle version à chaque
+   chargement. Aucune erreur si le navigateur ne supporte pas. */
+if('serviceWorker' in navigator){
+  let swReloading=false;        // garde anti-boucle de rechargement
+  // Un contrôleur déjà présent = on a une version installée susceptible
+  // d'être remplacée → on s'autorise le rechargement auto à la bascule.
+  if(navigator.serviceWorker.controller){
+    navigator.serviceWorker.addEventListener('controllerchange',()=>{
+      if(swReloading) return;
+      swReloading=true;
+      window.location.reload();
+    });
+  }
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('sw.js')
+      .then(reg=>{ reg.update().catch(()=>{}); })   // cherche une MAJ dès le chargement
+      .catch(()=>{});
+  });
+}

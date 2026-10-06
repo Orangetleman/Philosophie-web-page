@@ -30,8 +30,8 @@ function pushHistory(){
   // Ne pas pousser si on est déjà sur la même page
   if(last&&last.sbMode===sbMode&&last.cur===cur&&last.curTab===curTab
     &&last.curAuthor===curAuthor&&last.curAuthorTab===curAuthorTab
-    &&last.curConcept===curConcept&&last.methodoTopic===methodoTopic) return;
-  navHistory.push({sbMode,cur,curTab,curAuthor,curAuthorTab,curConcept,methodoTopic});
+    &&last.curConcept===curConcept&&last.methodoTopic===methodoTopic&&last.explorerTopic===explorerTopic) return;
+  navHistory.push({sbMode,cur,curTab,curAuthor,curAuthorTab,curConcept,methodoTopic,explorerTopic});
   if(navHistory.length>50) navHistory.shift();
   updateBackBtn();
 }
@@ -45,11 +45,9 @@ function goBack(){
   sbMode=s.sbMode; cur=s.cur; curTab=s.curTab;
   curAuthor=s.curAuthor; curAuthorTab=s.curAuthorTab; curConcept=s.curConcept;
   if(s.methodoTopic) methodoTopic=s.methodoTopic;
+  if(s.explorerTopic) explorerTopic=s.explorerTopic;
   renderSB();
-  if(sbMode==='auteurs'&&curAuthor) renderAuthorContent();
-  else if(sbMode==='concepts'||sbMode==='reperes') renderConceptContent();
-  else if(sbMode==='methodo') renderMethodoContent();   // guide de méthodologie
-  else renderContent();
+  renderCurrentView();
   _navigating=false;
   updateBackBtn();
 }
@@ -80,13 +78,14 @@ function renderCurrentView(){
   if(sbMode==='auteurs'&&curAuthor) renderAuthorContent();
   else if(sbMode==='concepts'||sbMode==='reperes') renderConceptContent();
   else if(sbMode==='methodo') renderMethodoContent();
+  else if(sbMode==='explorer') renderExplorerContent();   // étape 6 : frise, graphe
   else renderContent();
 }
 
 /* navStateNow() — capture la position courante sous forme d'objet sérialisable. */
 function navStateNow(){
   return {sbMode,cur,curTab,curConceptSubTab,curExempleSubTab,
-          curAuthor,curAuthorTab,curConcept,methodoTopic};
+          curAuthor,curAuthorTab,curConcept,methodoTopic,explorerTopic};
 }
 
 /* sameNav(a,b) — deux états désignent-ils la même page ? (champs « cœur »,
@@ -94,7 +93,8 @@ function navStateNow(){
 function sameNav(a,b){
   return !!a&&!!b&&a.sbMode===b.sbMode&&a.cur===b.cur&&a.curTab===b.curTab
     &&a.curAuthor===b.curAuthor&&a.curAuthorTab===b.curAuthorTab
-    &&a.curConcept===b.curConcept&&a.methodoTopic===b.methodoTopic;
+    &&a.curConcept===b.curConcept&&a.methodoTopic===b.methodoTopic
+    &&a.explorerTopic===b.explorerTopic;
 }
 
 /* persistNav() — sauvegarde la position dans localStorage à chaque rendu (donc
@@ -138,6 +138,11 @@ function applyNavState(s){
     sbMode='methodo';
     return true;
   }
+  if(m==='explorer'){
+    explorerTopic=(EXPLORER_TOPICS.find(t=>t.id===s.explorerTopic))?s.explorerTopic:'frise';
+    sbMode='explorer';
+    return true;
+  }
   return false;
 }
 
@@ -155,7 +160,7 @@ function navEntryValid(s){
   if(s.sbMode==='notions') return !!D[s.cur];
   if(s.sbMode==='auteurs') return !!(s.curAuthor&&AI[s.curAuthor]);
   if(s.sbMode==='concepts'||s.sbMode==='reperes') return !!CONCEPTS.find(x=>x&&x.id===s.curConcept);
-  if(s.sbMode==='methodo') return true;
+  if(s.sbMode==='methodo'||s.sbMode==='explorer') return true;
   return false;
 }
 
@@ -179,6 +184,7 @@ function backBtnHTML(){
    Chaque vue a son adresse, dans le fragment de l'URL (après le #) :
      #/notion/<clé>[/<onglet>]      #/auteur/<nom>[/<onglet>]
      #/concept/<id>                 #/repere/<id>      #/methodo/<parcours>
+     #/explorer/frise | graphe      (étape 6)
    Le # plutôt qu'un vrai chemin : il marche partout, y compris index.html
    ouvert par double-clic, et Vercel n'a aucune réécriture à faire.
    Ce que ça apporte : un lien partagé ouvre la bonne page (« Partager »
@@ -200,6 +206,7 @@ function adresseDe(s){
   if(s.sbMode==='concepts'&&s.curConcept) return '#/concept/'+e(s.curConcept);
   if(s.sbMode==='reperes'&&s.curConcept) return '#/repere/'+e(s.curConcept);
   if(s.sbMode==='methodo') return '#/methodo/'+e(s.methodoTopic||'dissertation');
+  if(s.sbMode==='explorer') return '#/explorer/'+e(s.explorerTopic||'frise');
   return '#/notion/'+e(s.cur)+(s.curTab&&s.curTab!=='auteurs'?'/'+e(s.curTab):'');
 }
 
@@ -218,6 +225,7 @@ function etatDe(h){
     case 'concept': return {sbMode:'concepts',curConcept:v};
     case 'repere':  return {sbMode:'reperes',curConcept:v};
     case 'methodo': return {sbMode:'methodo',methodoTopic:v};
+    case 'explorer': return {sbMode:'explorer',explorerTopic:v};
   }
   return null;
 }
@@ -228,6 +236,7 @@ function titrePage(){
   if(sbMode==='auteurs'&&curAuthor) t=curAuthor;
   else if((sbMode==='concepts'||sbMode==='reperes')&&curConcept){ const c=CONCEPTS.find(x=>x.id===curConcept); t=c?c.term:''; }
   else if(sbMode==='methodo') t='Méthodo';
+  else if(sbMode==='explorer'){ const x=EXPLORER_TOPICS.find(x=>x.id===explorerTopic); t=x?x.label:'Explorer'; }
   else if(D[cur]) t=D[cur].l;
   return (t?t+' · ':'')+'Graphe Philosophie';
 }

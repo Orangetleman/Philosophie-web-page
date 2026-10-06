@@ -5,6 +5,8 @@ AUTEUR("Beauvoir", {
   bio: "Simone de Beauvoir (1908–1986), philosophe et romancière française, figure de l'existentialisme avec Sartre. Le Deuxième Sexe (1949) analyse la condition des femmes comme une construction sociale et fonde le féminisme moderne.",
   courant: "Existentialisme / Féminisme",
   periode: "XXe siècle",
+  naissance: 1908,
+  mort: 1986,
   themes: ["on ne naît pas femme", "l'Autre", "situation et liberté", "morale de l'ambiguïté"],
   dialogues: [
     {

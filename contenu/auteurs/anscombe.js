@@ -5,6 +5,8 @@ AUTEUR("Anscombe", {
   bio: "Elizabeth Anscombe (1919–2001), philosophe britannique, élève, traductrice et exécutrice testamentaire de Wittgenstein. Elle renouvelle la philosophie de l'action (L'Intention, 1957) et relance l'éthique des vertus (La Philosophie morale moderne, 1958).",
   courant: "Philosophie analytique / Éthique des vertus",
   periode: "XXe siècle",
+  naissance: 1919,
+  mort: 2001,
   themes: ["intention", "action et description", "critique du conséquentialisme", "éthique des vertus"],
   dialogues: [
     {

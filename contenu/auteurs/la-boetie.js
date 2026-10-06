@@ -4,6 +4,8 @@ AUTEUR("La Boétie", {
   bio: "Humaniste français (1530–1563). Son unique grand texte analyse le mécanisme de la servitude volontaire : pourquoi des millions d'hommes obéissent-ils librement à un seul tyran ?",
   courant: "Humanisme de la Renaissance",
   periode: "XVIe siècle",
+  naissance: 1530,
+  mort: 1563,
   themes: ["servitude volontaire", "tyrannie", "résistance passive", "habitude", "liberté politique"],
   dialogues: [
     {

@@ -24,7 +24,9 @@ tenues à jour par le build) ou par une recherche dans `js/`.
 | `js/09-compte.js` | authentification Supabase |
 | `js/10-partage.js` | modale de partage |
 | `js/11-synchro.js` | synchronisation du compte (quiz, préférences) |
-| `js/12-demarrage.js` | démarrage et service worker |
+| `js/15-explorer.js` | mode Explorer : frise des auteurs, graphe des idées, sujets du bac, nouveautés (étape 6) |
+| `js/16-impression.js` | fiche imprimable d'une notion (étape 6) |
+| `js/99-demarrage.js` | démarrage et service worker (en dernier : il lit les constantes de tous les morceaux) |
 | `js/13-quiz.js` | mode quiz |
 | `js/14-recherche.js` | recherche globale Ctrl/⌘+K |
 
@@ -513,7 +515,7 @@ README de `philo-aggregator/` (section « Accès mobile »).
   courant, ambigu). `applyPhiloMode()` pose la classe `body.mode-edition` et
   rafraîchit le menu s'il est ouvert ; `togglePhiloMode()` bascule + synchronise.
 - **PWA** : `manifest.json` + `sw.js` + `icon.svg`, enregistrés depuis
-  `js/12-demarrage.js`. Installable et hors-ligne. **Stratégie de cache mixte** :
+  `js/99-demarrage.js`. Installable et hors-ligne. **Stratégie de cache mixte** :
   HTML/JS de même origine (le « code », qui change à chaque déploiement) en
   **réseau d'abord** (cache en repli hors-ligne) → une **simple
   actualisation** récupère la dernière version, sans vidage manuel ; le reste

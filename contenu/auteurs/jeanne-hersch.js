@@ -5,6 +5,8 @@ AUTEUR("Jeanne Hersch", {
   bio: "Philosophe suisse (1910–2000), élève et traductrice de Jaspers, professeure à Genève. Directrice de la division de philosophie de l'Unesco (1966–1968), elle s'est consacrée à la liberté et aux droits de l'homme.",
   courant: "Philosophie de l'existence",
   periode: "XXe siècle",
+  naissance: 1910,
+  mort: 2000,
   themes: ["étonnement", "liberté", "droits de l'homme"],
   dialogues: [
     {

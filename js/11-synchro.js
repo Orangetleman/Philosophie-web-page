@@ -87,6 +87,8 @@ function prefsBlobForSync(){
     tour: localStorage.getItem('philo-tour-v1')||'',
     hp: localStorage.getItem('philo-hp')||'',            // étape 5 : hors programme affiché ('1') ou masqué ('0')
     hpChoix: localStorage.getItem('philo-hp-choix')||'', // la proposition d'arrivée a reçu une réponse
+    theme: localStorage.getItem('philo-theme')||'',      // étape 6 : sombre, clair ou auto
+    texte: localStorage.getItem('philo-texte')||'',      // étape 6 : taille du texte
     drafts: drafts,
     nav: nav     // position courante (cross-plateforme : reprendre où l'on en était)
   };
@@ -103,6 +105,14 @@ function applyPrefsBlob(p){
   // d'arrivée se ferme si l'autre appareil y a déjà répondu.
   if(p.hp){ const avant=voirHP(); localStorage.setItem('philo-hp',p.hp); if(voirHP()!==avant){ renderSB(); renderCurrentView(); } }
   if(p.hpChoix){ localStorage.setItem('philo-hp-choix',p.hpChoix); fermerHpInvite(); }
+  // Étape 6 : thème et taille du texte suivent aussi le compte.
+  if(p.theme||p.texte){
+    const avant=themeEffectif();
+    if(p.theme) localStorage.setItem('philo-theme',p.theme);
+    if(p.texte) localStorage.setItem('philo-texte',p.texte);
+    appliquerAffichage();
+    if(themeEffectif()!==avant){ renderSB(); renderCurrentView(); }
+  }
   applyPhiloMode();
   // Position distante (cross-plateforme) : on ne l'adopte QUE si l'utilisateur
   // n'a pas encore navigué sur cet appareil (navTouched). Sinon sa position

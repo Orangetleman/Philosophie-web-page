@@ -5,6 +5,8 @@ AUTEUR("Darwin", {
   bio: "Naturaliste anglais (1809–1882). Sa théorie de l'évolution par sélection naturelle (L'Origine des espèces, 1859) explique la diversité du vivant sans recourir à une finalité, et inscrit l'homme dans l'histoire animale (La Filiation de l'homme, 1871).",
   courant: "Naturalisme évolutionniste",
   periode: "XIXe siècle",
+  naissance: 1809,
+  mort: 1882,
   themes: ["sélection naturelle", "évolution", "origine de l'homme", "instincts sociaux"],
   dialogues: [],
 });
