@@ -5,6 +5,8 @@ AUTEUR("Jankélévitch", {
   bio: "Vladimir Jankélévitch (1903–1985), philosophe et musicologue français, résistant. Professeur à la Sorbonne, il écrit sur le temps, la mort, le pardon, la musique, dans un style de moraliste. Il refuse, après la guerre, de lire les philosophes allemands.",
   courant: "Philosophie morale / Philosophie de la durée",
   periode: "XXe siècle",
+  naissance: 1903,
+  mort: 1985,
   themes: ["irréversible", "nostalgie", "pardon", "imprescriptible", "le je-ne-sais-quoi"],
   dialogues: [
     {

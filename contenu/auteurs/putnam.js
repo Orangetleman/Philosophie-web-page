@@ -5,6 +5,8 @@ AUTEUR("Putnam", {
   bio: "Hilary Putnam (1926–2016), philosophe américain, professeur à Harvard. Logicien, philosophe des sciences et de l'esprit, il a souvent changé d'avis publiquement ; ses expériences de pensée (Terre jumelle, cerveaux dans une cuve) sont devenues classiques.",
   courant: "Philosophie analytique / Pragmatisme",
   periode: "XXe–XXIe siècle",
+  naissance: 1926,
+  mort: 2016,
   themes: ["cerveaux dans une cuve", "Terre jumelle", "externalisme", "réalisme interne"],
   dialogues: [
     {

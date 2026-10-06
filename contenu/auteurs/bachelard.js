@@ -4,6 +4,8 @@ AUTEUR("Bachelard", {
   bio: "Philosophe et épistémologue français (1884–1962), philosophe à la fois des sciences et de l'imagination poétique. Penseur de la rupture épistémologique et des obstacles à la connaissance.",
   courant: "Épistémologie historique / Phénoménologie poétique",
   periode: "XXe siècle",
+  naissance: 1884,
+  mort: 1962,
   themes: [
     "obstacle épistémologique",
     "rupture épistémologique",

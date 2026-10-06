@@ -1,4 +1,6 @@
-/* js/12-demarrage.js — morceau du script du site. Le build (outils/construire.mjs)
+/* js/99-demarrage.js — morceau du script du site. Numéroté 99 (étape 6) pour
+   s'exécuter EN DERNIER : le démarrage appelle des rendus qui lisent les
+   constantes de tous les autres morceaux (ex. js/15-explorer.js). Le build (outils/construire.mjs)
    recolle js/*.js dans l'ORDRE des noms en UN SEUL script, app.js : les
    fonctions restent visibles d'un morceau à l'autre comme avant, et le code
    « de premier niveau » s'exécute dans cet ordre. */

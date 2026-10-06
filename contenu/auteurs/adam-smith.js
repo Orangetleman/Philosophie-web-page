@@ -5,6 +5,8 @@ AUTEUR("Adam Smith", {
   bio: "Philosophe et économiste écossais (1723–1790), professeur de philosophie morale à Glasgow. Il fonde la morale sur la sympathie (Théorie des sentiments moraux, 1759) puis l'économie politique classique (Recherches sur la nature et les causes de la richesse des nations, 1776).",
   courant: "Lumières écossaises / Économie politique classique",
   periode: "XVIIIe siècle",
+  naissance: 1723,
+  mort: 1790,
   themes: ["division du travail", "intérêt et échange", "main invisible", "sympathie", "spectateur impartial"],
   dialogues: [
     {

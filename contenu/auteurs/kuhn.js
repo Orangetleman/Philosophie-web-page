@@ -4,6 +4,8 @@ AUTEUR("Kuhn", {
   bio: "Historien et philosophe des sciences américain (1922–1996). Sa notion de 'paradigme' et de 'révolution scientifique' a transformé l'épistémologie.",
   courant: "Histoire et philosophie des sciences",
   periode: "XXe siècle",
+  naissance: 1922,
+  mort: 1996,
   themes: ["paradigme", "révolution scientifique", "incommensurabilité", "science normale", "communauté scientifique"],
   dialogues: [
     {

@@ -4,6 +4,9 @@ AUTEUR("Sextus Empiricus", {
   bio: "Médecin et philosophe grec (v. 160–210), principal témoin du <strong>scepticisme pyrrhonien</strong>. Ses <em>Esquisses pyrrhoniennes</em> exposent les « tropes » (modes) qui mènent à la <strong>suspension du jugement</strong> (<em>épochè</em>) : faute de pouvoir trancher entre thèses opposées, le sceptique s'abstient — et y gagne la tranquillité de l'âme (<em>ataraxie</em>).",
   courant: "Scepticisme",
   periode: "Antiquité grecque",
+  naissance: 160,
+  mort: 210,
+  datesApprox: true,
   themes: ["scepticisme", "tropes d'Agrippa", "suspension du jugement", "époché", "ataraxie"],
   dialogues: [
     {

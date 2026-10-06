@@ -4,6 +4,8 @@ AUTEUR("Gunther Anders", {
   bio: "Philosophe et écrivain autrichien (1902–1992). Il développe une philosophie de la technique fondée sur la 'honte prométhéenne' de l'homme face à ses propres machines.",
   courant: "Philosophie de la technique / Philosophie de l'existence",
   periode: "XXe siècle",
+  naissance: 1902,
+  mort: 1992,
   themes: ["honte prométhéenne", "genre mortel", "Hiroshima", "obsolescence de l'homme", "technique et puissance"],
   dialogues: [
     {

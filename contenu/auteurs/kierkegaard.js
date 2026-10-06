@@ -4,6 +4,8 @@ AUTEUR("Kierkegaard", {
   bio: "Philosophe et théologien danois (1813–1855), considéré comme le père de l'existentialisme. Sa pensée explore la subjectivité, l'angoisse, le désespoir et le saut de la foi face à l'absurde.",
   courant: "Existentialisme chrétien",
   periode: "XIXe siècle",
+  naissance: 1813,
+  mort: 1855,
   themes: ["foi", "angoisse", "saut", "stades existentiels", "subjectivité", "absurde", "chevalier de la foi"],
   dialogues: [
     {

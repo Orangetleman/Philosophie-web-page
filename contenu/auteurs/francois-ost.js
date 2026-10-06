@@ -5,6 +5,8 @@ AUTEUR("François Ost", {
   bio: "Juriste et philosophe du droit belge (né en 1952), professeur à l'Université Saint-Louis de Bruxelles. Dans La Nature hors la loi (1995), il cherche une voie entre la nature-objet et la nature sujet de droits.",
   courant: "Philosophie du droit / Éthique environnementale",
   periode: "XXe–XXIe siècles",
+  naissance: 1952,
+  mort: null,
   themes: ["droit de l'environnement", "responsabilité", "patrimoine", "droits de la nature"],
   dialogues: [
     {

@@ -5,6 +5,8 @@ AUTEUR("Condillac", {
   bio: "Étienne Bonnot de Condillac (1714–1780), abbé et philosophe. Il pousse l'empirisme de Locke jusqu'au bout : toutes nos facultés naissent de la sensation (Traité des sensations, 1754), et la pensée dépend des signes, donc du langage.",
   courant: "Empirisme / Sensualisme",
   periode: "XVIIIe siècle",
+  naissance: 1714,
+  mort: 1780,
   themes: ["la statue", "sensations transformées", "langue bien faite", "signes et pensée"],
   dialogues: [
     {

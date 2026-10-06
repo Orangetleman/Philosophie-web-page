@@ -4,6 +4,8 @@ AUTEUR("Aristote", {
   bio: "Philosophe grec (384–322 av. J.-C.), disciple de Platon. Sa philosophie est empirique et encyclopédique — il fonde la logique, l'éthique et la politique sur l'observation du réel.",
   courant: "Empirisme antique / Aristotélisme",
   periode: "Antiquité grecque",
+  naissance: -384,
+  mort: -322,
   themes: ["eudaimonia", "vertu", "forme/matière", "animal politique", "technê / main"],
   dialogues: [
     {

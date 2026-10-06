@@ -4,6 +4,8 @@ AUTEUR("Camus", {
   bio: "Écrivain, dramaturge et philosophe français (1913–1960), prix Nobel de littérature 1957. Penseur de l'<strong>absurde</strong> (Le Mythe de Sisyphe, 1942) puis de la <strong>révolte</strong> (L'Homme révolté, 1951), il refusait l'étiquette d'« existentialiste ». Aussi romancier (L'Étranger, 1942 ; La Peste, 1947).",
   courant: "Philosophie de l'absurde",
   periode: "XXe siècle",
+  naissance: 1913,
+  mort: 1960,
   themes: ["absurde", "suicide", "révolte", "Sisyphe", "sens de l'existence"],
   dialogues: [
     {

@@ -4,6 +4,8 @@ AUTEUR("Descartes", {
   bio: "Philosophe et mathématicien français (1596–1650). Fondateur du rationalisme moderne, il cherche à atteindre des vérités certaines par le doute méthodique.",
   courant: "Rationalisme",
   periode: "XVIIe siècle",
+  naissance: 1596,
+  mort: 1650,
   themes: ["cogito", "dualisme corps/âme", "méthode", "maîtrise de la nature", "certitude"],
   dialogues: [
     {

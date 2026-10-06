@@ -4,6 +4,8 @@ AUTEUR("Simondon", {
   bio: "Philosophe français (1924–1989). Il développe une philosophie des objets techniques dépassant à la fois la technophobie et l'enthousiasme naïf.",
   courant: "Philosophie de la technique",
   periode: "XXe siècle",
+  naissance: 1924,
+  mort: 1989,
   themes: [
     "individuation",
     "culture technique",

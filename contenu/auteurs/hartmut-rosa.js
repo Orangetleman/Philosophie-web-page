@@ -4,6 +4,8 @@ AUTEUR("Hartmut Rosa", {
   bio: "Sociologue et philosophe allemand (né en 1965), héritier de la théorie critique de l'École de Francfort. Il diagnostique l'<strong>accélération sociale</strong> comme trait central de la modernité tardive (Accélération, 2005) et lui oppose la <strong>résonance</strong> — un rapport vibrant et réciproque au monde — comme remède à l'aliénation contemporaine (Résonance, 2016).",
   courant: "Théorie critique / Sociologie",
   periode: "XXe–XXIe siècle",
+  naissance: 1965,
+  mort: null,
   themes: ["accélération sociale", "résonance", "aliénation", "modernité tardive", "rapport au monde"],
   dialogues: [
     {

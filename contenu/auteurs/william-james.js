@@ -4,6 +4,8 @@ AUTEUR("William James", {
   bio: "Philosophe et psychologue américain (1842–1910), figure majeure du pragmatisme. Frère du romancier Henry James. Son Pragmatisme (1907) propose une conception instrumentale de la vérité : une idée est vraie en tant qu'elle est utile, opérante, féconde — non par adéquation abstraite à un réel inaccessible.",
   courant: "Pragmatisme",
   periode: "XIXe–XXe siècle",
+  naissance: 1842,
+  mort: 1910,
   themes: [
     "pragmatisme",
     "vérité instrumentale",

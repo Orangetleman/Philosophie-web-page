@@ -5,6 +5,9 @@ AUTEUR("Zhuangzi", {
   bio: "Penseur chinois (vers 369 – vers 286 av. J.-C.), aussi transcrit Tchouang-tseu. Le livre qui porte son nom, avec le Laozi, fonde le taoïsme : par des récits et des paradoxes, il critique les distinctions figées et invite à suivre le cours spontané des choses (le dao).",
   courant: "Taoïsme",
   periode: "Antiquité chinoise",
+  naissance: -369,
+  mort: -286,
+  datesApprox: true,
   themes: ["rêve du papillon", "relativité des points de vue", "dao", "non-agir"],
   dialogues: [],
 });

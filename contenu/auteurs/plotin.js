@@ -5,6 +5,8 @@ AUTEUR("Plotin", {
   bio: "Philosophe grec né en Égypte (205–270), qui enseigna à Rome. Son disciple Porphyre a classé ses traités en six groupes de neuf : les Ennéades. Fondateur du néoplatonisme, il fait tout procéder de l'Un et décrit le retour de l'âme vers lui.",
   courant: "Néoplatonisme",
   periode: "Antiquité tardive",
+  naissance: 205,
+  mort: 270,
   themes: ["l'Un", "beauté", "procession et conversion", "union mystique"],
   dialogues: [
     {

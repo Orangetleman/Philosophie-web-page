@@ -4,6 +4,8 @@ AUTEUR("Benveniste", {
   bio: "Linguiste français d'origine syrienne (1902–1976). Spécialiste de linguistique générale et de linguistique indo-européenne, il développe une réflexion sur la subjectivité dans le langage.",
   courant: "Linguistique / Phénoménologie du langage",
   periode: "XXe siècle",
+  naissance: 1902,
+  mort: 1976,
   themes: [
     "signal/symbole",
     "subjectivité dans le langage",

@@ -4,6 +4,8 @@ AUTEUR("Saussure", {
   bio: "Linguiste suisse (1857–1913), fondateur de la linguistique structurale. Son Cours de linguistique générale (reconstitué par ses étudiants) pose les bases de la sémiologie moderne.",
   courant: "Structuralisme / Linguistique",
   periode: "XIXe–XXe siècle",
+  naissance: 1857,
+  mort: 1913,
   themes: [
     "signifiant/signifié",
     "arbitraire du signe",

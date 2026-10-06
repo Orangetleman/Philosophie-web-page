@@ -4,6 +4,8 @@ AUTEUR("Boroditsky", {
   bio: "Linguiste cognitive américaine (née en 1975). Ses recherches expérimentales montrent que la langue maternelle influence profondément la cognition : perception du temps, de l'espace, des couleurs, de la causalité.",
   courant: "Linguistique cognitive / Relativisme linguistique",
   periode: "XXe–XXIe siècle",
+  naissance: 1975,
+  mort: null,
   themes: ["relativisme linguistique", "Sapir-Whorf", "espace et langue", "genre grammatical", "temps et langue"],
   dialogues: [
     {

@@ -5,6 +5,8 @@ AUTEUR("Husserl", {
   bio: "Edmund Husserl (1859–1938), mathématicien devenu philosophe, fondateur de la phénoménologie. Exclu de l'université de Fribourg par les lois antisémites nazies, il laisse une œuvre immense (Recherches logiques, Idées directrices, Méditations cartésiennes, La Crise des sciences européennes).",
   courant: "Phénoménologie",
   periode: "XIXe–XXe siècle",
+  naissance: 1859,
+  mort: 1938,
   themes: ["intentionnalité", "épochè", "retour aux choses mêmes", "monde de la vie", "crise des sciences"],
   dialogues: [
     {

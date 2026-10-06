@@ -5,6 +5,8 @@ AUTEUR("Machiavel", {
   bio: "Nicolas Machiavel (1469–1527), secrétaire de la République de Florence, chassé du pouvoir au retour des Médicis en 1512. En exil, il écrit Le Prince (1513) et les Discours sur la première décade de Tite-Live. Il fonde la pensée politique moderne en étudiant le pouvoir tel qu'il est, non tel qu'il devrait être.",
   courant: "Réalisme politique / Républicanisme",
   periode: "XVIe siècle",
+  naissance: 1469,
+  mort: 1527,
   themes: ["vérité effective", "virtù et fortune", "conservation de l'État", "être craint ou aimé"],
   dialogues: [],
 });

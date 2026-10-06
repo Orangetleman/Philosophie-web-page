@@ -102,6 +102,7 @@ function renderSB(){
     <div class="sb-tab${sbMode==='concepts'?' active':''}" onclick="if(sbMode!=='concepts'){sbMode='concepts';const c0=realConcepts().find(c=>c.id===curConcept)||realConcepts()[0];if(c0)curConcept=c0.id;renderSB();renderConceptContent();}" style="font-size:9px">Concepts</div>
     <div class="sb-tab${sbMode==='reperes'?' active':''}" onclick="if(sbMode!=='reperes'){sbMode='reperes';const r0=REPERES().find(c=>c.id===curConcept)||REPERES()[0];if(r0)curConcept=r0.id;renderSB();renderConceptContent();}" style="font-size:9px" title="Repères du programme : les distinctions conceptuelles (absolu/relatif, légal/légitime…)">Repères</div>
     <div class="sb-tab${sbMode==='methodo'?' active':''}" onclick="if(sbMode!=='methodo'){sbMode='methodo';renderSB();renderMethodoContent();}" style="font-size:9px" title="Méthode pas à pas : dissertation et explication de texte">Méthodo</div>
+    <div class="sb-tab${sbMode==='explorer'?' active':''}" onclick="if(sbMode!=='explorer'){pushHistory();sbMode='explorer';renderSB();renderExplorerContent();}" style="font-size:9px" title="Frise des auteurs et graphe des idées">Explorer</div>
   </div>`;
 
   // ── Bouton « 🎯 Réviser » (mode quiz) : AU-DESSUS de .sb-propose ──
@@ -294,6 +295,15 @@ function renderSB(){
     listWrap.id='sb-reperes-list';
     list.appendChild(listWrap);
     renderSBReperesList();
+  } else if(sbMode==='explorer'){
+    // ── Explorer (étape 6) : frise des auteurs, graphe des idées ──
+    EXPLORER_TOPICS.forEach(t=>{
+      const el=document.createElement('div');
+      el.className='nb'+(t.id===explorerTopic?' active':'');
+      el.innerHTML=`<span class="dot" style="background:var(--color-accent-quiz,#4f9dff)"></span>${t.label}`;
+      el.onclick=()=>{pushHistory();explorerTopic=t.id;renderSB();renderExplorerContent();};
+      list.appendChild(el);
+    });
   } else {
     // ── Méthodo (guide) : liste des deux parcours méthodologiques ──
     // Pas de recherche : la liste est minuscule (Dissertation / Explication

@@ -4,6 +4,9 @@ AUTEUR("Épictète", {
   bio: "Philosophe stoïcien grec (v. 50–135 ap. J.-C.), ancien esclave. Il enseigne que la liberté intérieure est possible même dans les pires conditions extérieures.",
   courant: "Stoïcisme",
   periode: "Antiquité gréco-romaine",
+  naissance: 50,
+  mort: 135,
+  datesApprox: true,
   themes: ["dichotomie du contrôle", "liberté intérieure", "représentations", "indifférents", "sagesse stoïcienne"],
   dialogues: [
     {

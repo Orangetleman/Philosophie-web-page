@@ -5,6 +5,8 @@ AUTEUR("Foucault", {
   bio: "Michel Foucault (1926–1984), philosophe et historien français, professeur au Collège de France. Il étudie comment la folie, la prison, la sexualité et les sciences humaines ont été produites par des rapports de savoir et de pouvoir.",
   courant: "Archéologie du savoir / Généalogie",
   periode: "XXe siècle",
+  naissance: 1926,
+  mort: 1984,
   themes: ["savoir et pouvoir", "discipline", "panoptique", "grand renfermement", "mort de l'homme"],
   dialogues: [
     {

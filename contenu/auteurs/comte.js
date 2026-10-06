@@ -4,6 +4,8 @@ AUTEUR("Comte", {
   bio: "Philosophe français (1798–1857), fondateur du <strong>positivisme</strong> et inventeur du mot « sociologie ». Sa <em>loi des trois états</em> (théologique → métaphysique → positif) propose une philosophie de l'histoire où la science finit par remplacer la religion et la métaphysique dans l'explication du monde. Cours de philosophie positive (1830-1842), Système de politique positive (1851-1854).",
   courant: "Positivisme",
   periode: "XIXe siècle",
+  naissance: 1798,
+  mort: 1857,
   themes: ["positivisme", "loi des trois états", "hiérarchie des sciences", "sociologie", "religion de l'Humanité"],
   dialogues: [
     {

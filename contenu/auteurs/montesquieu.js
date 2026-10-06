@@ -5,6 +5,8 @@ AUTEUR("Montesquieu", {
   bio: "Charles-Louis de Secondat, baron de La Brède et de Montesquieu (1689–1755), magistrat bordelais. Après les Lettres persanes (1721), il consacre vingt ans à De l'esprit des lois (1748), qui étudie les lois comme des rapports et défend la distribution des pouvoirs.",
   courant: "Lumières / Libéralisme politique",
   periode: "XVIIIe siècle",
+  naissance: 1689,
+  mort: 1755,
   themes: ["le pouvoir arrête le pouvoir", "liberté politique", "esprit des lois", "types de gouvernement"],
   dialogues: [
     {

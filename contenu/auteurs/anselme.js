@@ -5,6 +5,8 @@ AUTEUR("Anselme", {
   bio: "Anselme de Cantorbéry (1033–1109), moine bénédictin né à Aoste, abbé du Bec en Normandie puis archevêque de Cantorbéry. Il veut comprendre par la raison ce que la foi croit ; son Proslogion contient la preuve de l'existence de Dieu que Kant appellera « ontologique ».",
   courant: "Scolastique / Augustinisme",
   periode: "Moyen Âge",
+  naissance: 1033,
+  mort: 1109,
   themes: ["preuve ontologique", "foi et raison", "credo ut intelligam"],
   dialogues: [
     {

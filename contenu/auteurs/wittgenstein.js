@@ -5,6 +5,8 @@ AUTEUR("Wittgenstein", {
   bio: "Ludwig Wittgenstein (1889–1951), philosophe autrichien installé à Cambridge. Il publie de son vivant un seul livre, le Tractatus logico-philosophicus (1921), puis le critique lui-même dans les Recherches philosophiques (posthumes, 1953). Les deux ont transformé la philosophie du langage.",
   courant: "Philosophie analytique du langage",
   periode: "XXe siècle",
+  naissance: 1889,
+  mort: 1951,
   themes: ["limites du langage", "dire et montrer", "jeux de langage", "signification et usage", "langage privé"],
   dialogues: [
     {

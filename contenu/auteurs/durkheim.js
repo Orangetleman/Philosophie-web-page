@@ -4,6 +4,8 @@ AUTEUR("Durkheim", {
   bio: "Sociologue français (1858–1917), fondateur de la sociologie française moderne. Son analyse du sacré, du suicide et de la division du travail établit la sociologie comme science autonome.",
   courant: "Sociologie positiviste",
   periode: "XIXe–XXe siècle",
+  naissance: 1858,
+  mort: 1917,
   themes: [
     "sacré/profane",
     "fait social",

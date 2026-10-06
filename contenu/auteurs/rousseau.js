@@ -4,6 +4,8 @@ AUTEUR("Rousseau", {
   bio: "Philosophe genevois (1712–1778). Il théorise le contrat social et la volonté générale, et soutient que l'homme est naturellement bon mais corrompu par la société.",
   courant: "Lumières / Contractualisme",
   periode: "XVIIIe siècle",
+  naissance: 1712,
+  mort: 1778,
   themes: ["contrat social", "volonté générale", "liberté civile", "état de nature", "inégalité"],
   dialogues: [
     {

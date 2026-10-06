@@ -4,6 +4,8 @@ AUTEUR("André Breton", {
   bio: "Poète et écrivain français (1896–1966), fondateur du surréalisme. Auteur du Manifeste du surréalisme (1924). Il théorise l'écriture automatique comme accès direct à l'inconscient.",
   courant: "Surréalisme",
   periode: "XXe siècle",
+  naissance: 1896,
+  mort: 1966,
   themes: ["écriture automatique", "inconscient créateur", "cadavre exquis", "hasard objectif", "révolte"],
   dialogues: [
     {

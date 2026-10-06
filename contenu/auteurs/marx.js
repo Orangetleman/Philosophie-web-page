@@ -4,6 +4,8 @@ AUTEUR("Marx", {
   bio: "Philosophe et économiste allemand (1818–1883). Fondateur du matérialisme historique : les rapports de production déterminent la superstructure sociale, juridique et idéologique.",
   courant: "Matérialisme historique",
   periode: "XIXe siècle",
+  naissance: 1818,
+  mort: 1883,
   themes: [
     "aliénation",
     "plus-value",

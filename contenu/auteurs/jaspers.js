@@ -5,6 +5,8 @@ AUTEUR("Jaspers", {
   bio: "Karl Jaspers (1883–1969), psychiatre puis philosophe allemand. Écarté de l'enseignement sous le nazisme (sa femme était juive), il pose après la guerre la question de la culpabilité allemande. Il fut le directeur de thèse et l'ami d'Hannah Arendt.",
   courant: "Philosophie de l'existence",
   periode: "XXe siècle",
+  naissance: 1883,
+  mort: 1969,
   themes: ["situations-limites", "existence", "communication", "foi philosophique", "culpabilité"],
   dialogues: [
     {

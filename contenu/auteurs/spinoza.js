@@ -4,6 +4,8 @@ AUTEUR("Spinoza", {
   bio: "Philosophe néerlandais (1632–1677). Il développe un panthéisme rationnel : Dieu est identique à la Nature. Sa philosophie vise la libération par la connaissance.",
   courant: "Rationalisme / Panthéisme",
   periode: "XVIIe siècle",
+  naissance: 1632,
+  mort: 1677,
   themes: ["Dieu-Nature", "liberté comme nécessité comprise", "conatus", "déterminisme", "Éthique"],
   dialogues: [
     {

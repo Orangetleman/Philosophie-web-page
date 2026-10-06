@@ -4,6 +4,8 @@ AUTEUR("Weber", {
   bio: "Sociologue et économiste allemand (1864–1920). Il analyse les fondements de la légitimité politique et le processus de rationalisation des sociétés modernes.",
   courant: "Sociologie compréhensive",
   periode: "XIXe–XXe siècle",
+  naissance: 1864,
+  mort: 1920,
   themes: [
     "monopole violence légitime",
     "légitimité (3 types)",

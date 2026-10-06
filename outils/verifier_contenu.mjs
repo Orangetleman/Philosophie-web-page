@@ -234,6 +234,21 @@ const QUESTIONS = [
       });
       return { err, warn: [] };
     } },
+  /* 13 (étape 6) — chaque auteur des notions a des dates exploitables par la
+     frise : naissance (année, négative avant J.-C.), mort (année, ou null si
+     vivant), dans le bon ordre et pas dans le futur. */
+  { n: 13, titre: "chaque auteur des notions a ses dates (naissance, mort) pour la frise",
+    f({ D, KEYS, AM }) {
+      const err = [], an = new Date().getFullYear();
+      [...new Set(auteursDe(D, KEYS).map(({ a }) => a.n))].forEach(nom => {
+        const m = AM[nom]; if (!m) return;   // la question 6 s'en charge
+        if (!Number.isInteger(m.naissance)) err.push(`${nom} : naissance absente ou non entière`);
+        else if (m.mort !== null && !Number.isInteger(m.mort)) err.push(`${nom} : mort absente (null si vivant)`);
+        else if (m.mort !== null && m.mort <= m.naissance) err.push(`${nom} : mort (${m.mort}) avant la naissance (${m.naissance})`);
+        else if ((m.mort ?? m.naissance) > an) err.push(`${nom} : date dans le futur`);
+      });
+      return { err, warn: [] };
+    } },
 ];
 
 /* ── Les témoins : une faute par question, glissée dans une COPIE ────── */
@@ -249,6 +264,7 @@ const TEMOINS = {
   9: d => { d.D[d.KEYS[0]].auteurs[0].w = 'Une œuvre, 1900 (TEXTE 4)'; },
   10: d => { d.CONCEPTS[0].tensions = ['A ≠ B']; },
   11: d => { d.KEYS.forEach(k => { d.D[k].auteurs = d.D[k].auteurs.filter(a => a.n !== 'Montaigne'); }); },
+  13: d => { const nom = d.D[d.KEYS[0]].auteurs[0].n; delete d.AM[nom].naissance; },
   12: d => { d.D['temoin-hp'] = { c: '#000', l: 'Témoin', s: '?', def: 'x', auteurs: [], plans: [], exemples: [], liens: [], diss: [] }; d.KEYS.push('temoin-hp'); },
 };
 

@@ -5,6 +5,8 @@ AUTEUR("Mauss", {
   bio: "Marcel Mauss (1872–1950), neveu et collaborateur de Durkheim, souvent appelé le père de l'anthropologie française. Sans jamais faire de terrain lui-même, il compare les sociétés du monde entier : l'Essai sur le don (1925) et Les Techniques du corps (1934) sont des classiques.",
   courant: "Sociologie durkheimienne / Anthropologie",
   periode: "XXe siècle",
+  naissance: 1872,
+  mort: 1950,
   themes: ["don et contre-don", "fait social total", "techniques du corps"],
   dialogues: [
     {

@@ -4,6 +4,8 @@ AUTEUR("Bourdieu", {
   bio: "Sociologue français (1930–2002). Il analyse les mécanismes de reproduction sociale et développe les concepts d'habitus, de capital culturel et de violence symbolique.",
   courant: "Sociologie critique",
   periode: "XXe siècle",
+  naissance: 1930,
+  mort: 2002,
   themes: ["habitus", "capital culturel", "violence symbolique", "reproduction sociale", "goût de classe"],
   dialogues: [
     {

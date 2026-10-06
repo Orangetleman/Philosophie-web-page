@@ -4,6 +4,9 @@ AUTEUR("Sénèque", {
   bio: "Philosophe stoïcien, dramaturge et homme d'État romain (v. 4 av. J.-C.–65 ap. J.-C.), précepteur de Néron. Ses traités et ses Lettres à Lucilius font du stoïcisme une sagesse pratique : bien user du temps, se rendre maître de ses jugements, habiter le présent (De la brièveté de la vie).",
   courant: "Stoïcisme",
   periode: "Antiquité romaine",
+  naissance: -4,
+  mort: 65,
+  datesApprox: true,
   themes: ["brièveté de la vie", "usage du temps", "présent", "tranquillité de l'âme", "sagesse stoïcienne"],
   dialogues: [
     {

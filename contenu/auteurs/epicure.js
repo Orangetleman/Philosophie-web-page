@@ -4,6 +4,8 @@ AUTEUR("Épicure", {
   bio: "Philosophe grec (341–270 av. J.-C.), fondateur de l'épicurisme. Sa philosophie vise l'ataraxie (paix de l'âme) par le calcul raisonné des désirs et la retraite dans le jardin.",
   courant: "Épicurisme",
   periode: "Antiquité grecque",
+  naissance: -341,
+  mort: -270,
   themes: ["ataraxie", "aponie", "classification des désirs", "amitié", "mort sans crainte"],
   dialogues: [
     {

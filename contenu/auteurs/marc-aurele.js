@@ -5,6 +5,8 @@ AUTEUR("Marc Aurèle", {
   bio: "Empereur romain de 161 à 180, né en 121. Pendant ses campagnes sur le Danube, il écrit en grec, pour lui seul, des notes d'exercice spirituel, publiées sous le titre Pensées pour moi-même. C'est le dernier grand stoïcien.",
   courant: "Stoïcisme",
   periode: "Antiquité romaine",
+  naissance: 121,
+  mort: 180,
   themes: ["ce qui dépend de nous", "retraite intérieure", "présent", "mort"],
   dialogues: [
     {

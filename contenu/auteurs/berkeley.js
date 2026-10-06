@@ -5,6 +5,8 @@ AUTEUR("Berkeley", {
   bio: "George Berkeley (1685–1753), philosophe et évêque anglican irlandais. Son Traité des principes de la connaissance humaine (1710) défend l'immatérialisme : il n'existe que des esprits et des idées, et l'être des choses sensibles est d'être perçu.",
   courant: "Empirisme / Immatérialisme",
   periode: "XVIIIe siècle",
+  naissance: 1685,
+  mort: 1753,
   themes: ["esse est percipi", "immatérialisme", "critique des idées abstraites"],
   dialogues: [
     {

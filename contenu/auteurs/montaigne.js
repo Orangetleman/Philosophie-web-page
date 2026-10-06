@@ -5,6 +5,8 @@ AUTEUR("Montaigne", {
   bio: "Michel de Montaigne (1533–1592), magistrat bordelais, maire de Bordeaux, ami de La Boétie. Retiré dans sa « librairie », il invente un genre, l'essai : ses Essais (1580–1595) font de l'examen de soi une enquête sur l'humaine condition.",
   courant: "Humanisme de la Renaissance",
   periode: "XVIe siècle",
+  naissance: 1533,
+  mort: 1592,
   themes: [
     "connaissance de soi",
     "scepticisme (Que sais-je ?)",

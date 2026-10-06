@@ -4,6 +4,9 @@ AUTEUR("Platon", {
   bio: "Philosophe grec (v. 428–348 av. J.-C.), disciple de Socrate. Il développe la théorie des Idées : le monde sensible n'est que l'ombre d'un monde intelligible parfait.",
   courant: "Idéalisme platonicien",
   periode: "Antiquité grecque",
+  naissance: -428,
+  mort: -348,
+  datesApprox: true,
   themes: ["théorie des Idées", "justice", "âme", "cité idéale", "imitation (mimésis)"],
   dialogues: [
     {

@@ -5,6 +5,8 @@ AUTEUR("Levinas", {
   bio: "Emmanuel Levinas (1906–1995), philosophe français né en Lituanie. Traducteur de Husserl, il introduit la phénoménologie en France ; prisonnier de guerre, il perd presque toute sa famille dans la Shoah. Il fait de l'éthique, la responsabilité pour autrui, la philosophie première.",
   courant: "Phénoménologie / Éthique",
   periode: "XXe siècle",
+  naissance: 1906,
+  mort: 1995,
   themes: ["visage", "responsabilité pour autrui", "éthique comme philosophie première", "le tiers et la justice"],
   dialogues: [
     {

@@ -5,6 +5,8 @@ AUTEUR("Walter Benjamin", {
   bio: "Philosophe et critique allemand (1892–1940). Proche de l'École de Francfort, il pense ensemble l'art, la technique et l'histoire. Fuyant le nazisme, il se donne la mort à la frontière espagnole, à Portbou. Hannah Arendt a fait connaître ses textes.",
   courant: "Théorie critique / Philosophie de la culture",
   periode: "XXe siècle",
+  naissance: 1892,
+  mort: 1940,
   themes: ["aura", "reproductibilité technique", "ange de l'histoire", "mémoire des vaincus"],
   dialogues: [
     {

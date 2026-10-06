@@ -608,6 +608,11 @@ function renderCrumbs(){
     segs.push(seg('Méthodo','mode','methodo',false));
     const t=METHODO_TOPICS.find(t=>t.id===methodoTopic);
     if(t) segs.push(seg(t.label,'',null,true));
+  }else if(sbMode==='explorer'){
+    // Explorer (étape 6) : racine « Explorer » + sujet courant.
+    segs.push(seg('Explorer','mode','explorer',false));
+    const t=EXPLORER_TOPICS.find(t=>t.id===explorerTopic);
+    if(t) segs.push(seg(t.label,'',null,true));
   }
   el.innerHTML=segs.join(sep);
 }
@@ -621,6 +626,7 @@ function goMode(mode){
   else if(mode==='concepts'){ const c0=realConcepts().find(c=>c.id===curConcept)||realConcepts()[0]; if(c0) curConcept=c0.id; renderSB(); renderConceptContent(); }
   else if(mode==='reperes'){ const r0=REPERES().find(c=>c.id===curConcept)||REPERES()[0]; if(r0) curConcept=r0.id; renderSB(); renderConceptContent(); }
   else if(mode==='methodo'){ renderSB(); renderMethodoContent(); }   // guide de méthodologie
+  else if(mode==='explorer'){ renderSB(); renderExplorerContent(); }   // étape 6 : frise, graphe
 }
 
 /* openAuthor(name) — ouvre la fiche d'un auteur depuis n'importe où :

@@ -4,6 +4,8 @@ AUTEUR("Kant", {
   bio: "Philosophe allemand (1724–1804), auteur des trois Critiques. Sa 'révolution copernicienne' : c'est le sujet qui structure l'expérience possible, non l'inverse.",
   courant: "Idéalisme transcendantal",
   periode: "XVIIIe siècle",
+  naissance: 1724,
+  mort: 1804,
   themes: ["impératif catégorique", "autonomie morale", "beau sans concept", "génie", "devoir"],
   dialogues: [
     {

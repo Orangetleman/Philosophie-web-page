@@ -4,6 +4,8 @@ AUTEUR("Merleau-Ponty", {
   bio: "Philosophe français (1908–1961). Il développe une phénoménologie du corps vécu, montrant que la perception est toujours déjà corporelle et engagée dans le monde.",
   courant: "Phénoménologie du corps",
   periode: "XXe siècle",
+  naissance: 1908,
+  mort: 1961,
   themes: ["corps vécu", "perception", "chair du monde", "intersubjectivité", "art et expression"],
   dialogues: [
     {

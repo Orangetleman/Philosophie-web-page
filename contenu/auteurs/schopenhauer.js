@@ -4,6 +4,8 @@ AUTEUR("Schopenhauer", {
   bio: "Philosophe allemand (1788–1860). Il développe un pessimisme métaphysique fondé sur la 'volonté de vivre' — force aveugle et insatiable à l'origine de toute souffrance.",
   courant: "Pessimisme / Volontarisme",
   periode: "XIXe siècle",
+  naissance: 1788,
+  mort: 1860,
   themes: ["volonté de vivre", "pessimisme", "désir insatiable", "art comme salut", "ascèse"],
   dialogues: [
     {

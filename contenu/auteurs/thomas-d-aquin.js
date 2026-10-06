@@ -4,6 +4,8 @@ AUTEUR("Thomas d'Aquin", {
   bio: "Théologien et philosophe italien dominicain (1224–1274). Sa Somme théologique (1266-1274) est la grande synthèse scolastique du christianisme et de l'aristotélisme. Docteur de l'Église, dit « Docteur angélique ».",
   courant: "Scolastique / Thomisme",
   periode: "Moyen Âge",
+  naissance: 1224,
+  mort: 1274,
   themes: [
     "raison et foi",
     "cinq voies",

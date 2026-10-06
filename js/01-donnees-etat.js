@@ -63,6 +63,7 @@ let repereSearch='';
 //   'dissertation' | 'explication'. METHODO_TOPICS pilote la liste de la
 //   sidebar et le fil d'Ariane (défini plus bas, près de METHODO_GUIDE).
 let methodoTopic='dissertation';
+let explorerTopic='frise';   // étape 6 : sujet du mode Explorer (frise | graphe)
 // REPERES() / vrais concepts : helpers de partition du tableau CONCEPTS.
 //   isRepere(c)    → ce concept est-il un repère méthodologique ?
 //   REPERES()      → liste des repères (onglet Repères)
@@ -292,5 +293,17 @@ const CC={
   'Phénoménologie / Éthique':'#534AB7','Existentialisme / Féminisme':'#993556',
   'Structuralisme / Anthropologie':'#6B4FA0','Philosophie analytique / Éthique des vertus':'#185FA5',
   'Platonisme moral':'#534AB7','Archéologie du savoir / Généalogie':'#993556',
-  'Philosophie analytique / Pragmatisme':'#6B4FA0'
+  'Philosophie analytique / Pragmatisme':'#6B4FA0',
+  // Étape 6 : les courants restés sans couleur (barres grises de la frise).
+  'Psychanalyse / Psychologie des médias':'#993556','Psychanalyse lacanienne / Philosophie clinique':'#993556',
+  'Sociologie positiviste':'#D4537E','Action non violente':'#1D9E75','Patristique / Augustinisme':'#EF9F27',
+  'Scolastique / Thomisme':'#EF9F27','Hégélianisme de gauche / Matérialisme anthropologique':'#D85A30',
+  'Existentialisme chrétien':'#534AB7','Philosophie analytique / Empirisme logique':'#6B4FA0',
+  'Physique théorique / Spinozisme moderne':'#2E86AB','Sociologie de la consommation / Hypermodernité':'#5F5E5A',
+  'Positivisme':'#2E86AB','Dadaïsme':'#C2603A','Surréalisme':'#C2603A','OULIPO / Littérature à contraintes':'#C2603A',
+  'Libéralisme égalitaire / Approche par les capabilités':'#EF9F27','Naturalisme évolutionniste':'#3B6D11',
+  'Philosophie du droit / Éthique environnementale':'#1D9E75','Éthique environnementale':'#1D9E75',
+  'Philosophie des sciences / Éthique environnementale':'#1D9E75','Écoféminisme / Éthique environnementale':'#1D9E75',
+  'Épistémologie historique / Phénoménologie poétique':'#2E86AB','Pragmatisme':'#6B4FA0',
+  'Structuralisme / Sémiologie':'#6B4FA0','Théorie critique / Sociologie':'#5F5E5A'
 };

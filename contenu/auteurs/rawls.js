@@ -4,6 +4,8 @@ AUTEUR("Rawls", {
   bio: "Philosophe politique américain (1921–2002). Sa Théorie de la justice propose un modèle fondé sur le 'voile d'ignorance' et le principe de différence.",
   courant: "Libéralisme égalitaire",
   periode: "XXe siècle",
+  naissance: 1921,
+  mort: 2002,
   themes: [
     "voile d'ignorance",
     "principe de différence",

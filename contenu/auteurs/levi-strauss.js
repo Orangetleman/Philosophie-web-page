@@ -5,6 +5,8 @@ AUTEUR("Lévi-Strauss", {
   bio: "Claude Lévi-Strauss (1908–2009), anthropologue français, fondateur de l'anthropologie structurale. Après des enquêtes au Brésil (Tristes tropiques, 1955), il étudie la parenté, les mythes et la pensée des peuples sans écriture comme des systèmes.",
   courant: "Structuralisme / Anthropologie",
   periode: "XXe siècle",
+  naissance: 1908,
+  mort: 2009,
   themes: ["nature et culture", "prohibition de l'inceste", "ethnocentrisme", "pensée sauvage", "bricolage"],
   dialogues: [
     {

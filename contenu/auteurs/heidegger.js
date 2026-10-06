@@ -4,6 +4,8 @@ AUTEUR("Heidegger", {
   bio: "Philosophe allemand (1889–1976). Sa question centrale est celle du sens de l'Être. Il analyse la technique moderne comme un mode de dévoilement réduisant le réel à un 'fonds disponible'.",
   courant: "Ontologie / Phénoménologie existentiale",
   periode: "XXe siècle",
+  naissance: 1889,
+  mort: 1976,
   themes: ["être-là (Dasein)", "technique comme dévoilement", "fonds disponible", "authenticité", "finitude"],
   dialogues: [
     {

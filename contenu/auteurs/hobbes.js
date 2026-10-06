@@ -4,6 +4,8 @@ AUTEUR("Hobbes", {
   bio: "Philosophe anglais (1588–1679). Il théorise un État souverain absolu (le Léviathan) comme seul garant de la paix civile contre la violence de l'état de nature.",
   courant: "Contractualisme / Absolutisme",
   periode: "XVIIe siècle",
+  naissance: 1588,
+  mort: 1679,
   themes: ["état de nature", "Léviathan", "contrat social", "sécurité", "guerre de tous contre tous"],
   dialogues: [
     {

@@ -4,6 +4,8 @@ AUTEUR("Stephen Jay Gould", {
   bio: "Paléontologue et historien des sciences américain (1941–2002). Théoricien des équilibres ponctués en évolution, il propose le principe NOMA (Non-Overlapping Magisteria) sur les rapports entre science et religion.",
   courant: "Histoire et philosophie des sciences",
   periode: "XXe siècle",
+  naissance: 1941,
+  mort: 2002,
   themes: ["NOMA", "équilibres ponctués", "évolution", "science et religion", "contingence évolutive"],
   dialogues: [
     {

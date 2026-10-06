@@ -4,6 +4,8 @@ AUTEUR("Engels", {
   bio: "Philosophe et économiste allemand (1820–1895). Co-fondateur du marxisme avec Marx, il développe le matérialisme dialectique et l'analyse de l'État comme instrument de domination.",
   courant: "Matérialisme dialectique",
   periode: "XIXe siècle",
+  naissance: 1820,
+  mort: 1895,
   themes: [
     "matérialisme dialectique",
     "État et domination",

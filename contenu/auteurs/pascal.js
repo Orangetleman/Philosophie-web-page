@@ -4,6 +4,8 @@ AUTEUR("Pascal", {
   bio: "Mathématicien, physicien et philosophe français (1623–1662). Sa pensée oscille entre l'apologétique chrétienne et une lucidité radicale sur la condition humaine ('roseau pensant').",
   courant: "Augustinisme / Apologétique",
   periode: "XVIIe siècle",
+  naissance: 1623,
+  mort: 1662,
   themes: ["roseau pensant", "divertissement", "misère et grandeur de l'homme", "pari", "cœur et raison"],
   dialogues: [
     {

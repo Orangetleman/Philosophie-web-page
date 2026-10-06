@@ -5,6 +5,8 @@ AUTEUR("Iris Murdoch", {
   bio: "Philosophe et romancière britannique (1919–1999), enseignante à Oxford, autrice de vingt-six romans. Dans La Souveraineté du bien (1970), elle s'oppose aux morales du choix et place au cœur de la vie morale l'attention portée au réel.",
   courant: "Platonisme moral",
   periode: "XXe siècle",
+  naissance: 1919,
+  mort: 1999,
   themes: ["attention", "décentrement", "le Bien", "art et vertu"],
   dialogues: [
     {

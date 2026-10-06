@@ -142,7 +142,7 @@ function lienVersHP(e){
 function lienSoi(){
   if(sbMode==='auteurs'&&curAuthor) return 'a:'+curAuthor;
   if(sbMode==='concepts'||sbMode==='reperes') return 'c:'+curConcept;
-  if(sbMode==='methodo') return '';
+  if(sbMode==='methodo'||sbMode==='explorer') return '';
   return 'n:'+cur;
 }
 

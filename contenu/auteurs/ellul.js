@@ -5,6 +5,8 @@ AUTEUR("Ellul", {
   bio: "Historien du droit, sociologue et théologien protestant français (1912–1994). Il voit dans la technique non un ensemble d'outils mais un système autonome qui impose sa propre logique à la société.",
   courant: "Philosophie de la technique",
   periode: "XXe siècle",
+  naissance: 1912,
+  mort: 1994,
   themes: ["système technicien", "autonomie de la technique", "efficacité", "technocritique"],
   dialogues: [],
 });

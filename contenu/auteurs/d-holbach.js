@@ -4,6 +4,8 @@ AUTEUR("D'Holbach", {
   bio: "Philosophe français des Lumières (1723–1789). Il défend un matérialisme et un athéisme radical : la nature obéit à des lois mécaniques, et la liberté humaine est une illusion.",
   courant: "Matérialisme / Athéisme des Lumières",
   periode: "XVIIIe siècle",
+  naissance: 1723,
+  mort: 1789,
   themes: ["déterminisme physique", "matérialisme", "athéisme", "liberté illusoire", "nature mécaniste"],
   dialogues: [
     {

@@ -1,8 +1,17 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
-  "genere_le": "2026-10-06T19:16:10.449Z",
+  "genere_le": "2026-10-06T19:24:25.100Z",
   "commits": [
+    {
+      "hash": "3f73d4075f441b6f8d4a3151bfe709b7333ed942",
+      "short": "3f73d40",
+      "auteur": "Orangentleman",
+      "date": "2026-10-06T21:16:08+02:00",
+      "sujet": "Étape 6, lecture : thème clair, taille du texte, liens allégés et accessibles",
+      "corps": "- Thème sombre (défaut), clair (fond papier) ou automatique, dans les\n  Réglages : couleurs en variables CSS redéfinies pour le clair, posées\n  avant le premier affichage (script en tête d'index.html), synchronisées\n  avec le compte. inkOnDark fonce les couleurs de notion en thème clair.\n- Taille du texte : normale, grande, très grande (zone de lecture).\n- Liens : jamais vers la page affichée, une même cible une fois par bloc\n  (onglet Auteurs de Liberté : environ 90 liens visibles avant, 60 après,\n  et plus aucun des 43 qui renvoyaient à Liberté elle-même) ; atteignables\n  au clavier (Tab, Entrée).\n- Détails : plus de trous dans la grille des cartes d'auteur, fond du quiz\n  opaque, mention « à enrichir » réservée au mode édition, variable\n  --color-accent enfin définie, feuille de style dans <head>, en-tête\n  d'index.html à jour.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": "Étape 6, lecture"
+    },
     {
       "hash": "ab2d6a30f1f9c8b37cc314847ed185474e79aa50",
       "short": "ab2d6a3",

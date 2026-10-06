@@ -5,6 +5,8 @@ AUTEUR("Raymond Aron", {
   bio: "Raymond Aron (1905–1983), philosophe, sociologue et éditorialiste français. Camarade de Sartre à l'École normale, il devient son adversaire politique pendant la guerre froide. Il introduit Max Weber en France et défend une pensée libérale lucide.",
   courant: "Libéralisme politique / Sociologie",
   periode: "XXe siècle",
+  naissance: 1905,
+  mort: 1983,
   themes: ["philosophie critique de l'histoire", "religions séculières", "démocratie et totalitarisme"],
   dialogues: [
     {

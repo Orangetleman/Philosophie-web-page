@@ -4,6 +4,8 @@ AUTEUR("Hannah Arendt", {
   bio: "Philosophe politique américano-allemande (1906–1975). Elle analyse les régimes totalitaires et la condition humaine moderne. Son concept de 'banalité du mal' est central.",
   courant: "Phénoménologie / Philosophie politique",
   periode: "XXe siècle",
+  naissance: 1906,
+  mort: 1975,
   themes: ["banalité du mal", "labor/work/action", "culture de masse", "totalitarisme", "permanence de l'œuvre"],
   dialogues: [
     {

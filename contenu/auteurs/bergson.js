@@ -4,6 +4,8 @@ AUTEUR("Bergson", {
   bio: "Philosophe français (1859–1941). Il développe une philosophie de la durée et de l'élan vital, en opposition au mécanisme et au déterminisme scientiste.",
   courant: "Vitalisme / Philosophie de la durée",
   periode: "XIXe–XXe siècle",
+  naissance: 1859,
+  mort: 1941,
   themes: ["durée", "élan vital", "homo faber", "mémoire", "intuition"],
   dialogues: [
     {

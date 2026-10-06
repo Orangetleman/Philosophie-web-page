@@ -5,6 +5,8 @@ AUTEUR("Vico", {
   bio: "Giambattista Vico (1668–1744), professeur de rhétorique à Naples. Contre Descartes, il soutient qu'on ne connaît vraiment que ce qu'on a fait ; sa Science nouvelle (1725, refondue en 1744) en tire une science de l'histoire des nations.",
   courant: "Philosophie de l'histoire",
   periode: "XVIIIe siècle",
+  naissance: 1668,
+  mort: 1744,
   themes: ["verum factum", "science de l'histoire", "trois âges", "corsi e ricorsi"],
   dialogues: [
     {
