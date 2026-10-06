@@ -33,6 +33,10 @@ CONCEPTS.forEach(c=>{
   if(c.id.startsWith('notion-')) return;
   const key=c.term.toLowerCase();
   if(!LINK_MAP[key]) LINK_MAP[key]={t:'c',v:c.id};
+  // Étape 5 : un concept homonyme d'une notion HORS PROGRAMME (« Désir ») est
+  // gardé en repli (alt) : si le hors programme est masqué, le mot mène au
+  // concept au lieu de redevenir du texte simple (cf. linkTerms).
+  else if(LINK_MAP[key].t==='n' && estHP(LINK_MAP[key].v) && !LINK_MAP[key].alt) LINK_MAP[key].alt={t:'c',v:c.id};
 });
 // 3. Auteurs — clés de AI (garantit que openAuthor reconnaîtra le nom)
 Object.keys(AI).forEach(name=>{
@@ -117,6 +121,15 @@ function inkOnDark(hex){
 
 /* linkTerms(html) — cf. section H ci-dessus : rend cliquables les notions,
    concepts et auteurs détectés dans un fragment HTML. */
+/* lienVersHP(e) — vrai si l'entrée e de LINK_MAP vise du hors programme (une
+   notion, un concept ou un auteur qui n'existe que hors programme). Les
+   ensembles sont calculés une fois : les statuts ne bougent qu'au build. */
+const HP_CONCEPTS=new Set(CONCEPTS.filter(c=>statutConcept(c)==='hors-programme').map(c=>c.id));
+const HP_AUTEURS=new Set(Object.keys(AI).filter(n=>statutAuteur(n)==='hors-programme'));
+function lienVersHP(e){
+  return e.t==='n' ? estHP(e.v) : e.t==='c' ? HP_CONCEPTS.has(e.v) : HP_AUTEURS.has(e.v);
+}
+
 function linkTerms(html){
   // Découpe la chaîne en BALISES (<...>) et FRAGMENTS DE TEXTE, puis ne
   // linkifie que le texte. Indispensable : une version antérieure ne
@@ -126,8 +139,11 @@ function linkTerms(html){
   return html.replace(/<[^>]+>|[^<]+/g,(chunk)=>{
     if(chunk[0]==='<') return chunk; // c'est une balise : on n'y touche pas
     return chunk.replace(LINK_REGEX,(m)=>{
-      const e=LINK_MAP[m.toLowerCase()];
+      let e=LINK_MAP[m.toLowerCase()];
       if(!e) return m;
+      // Étape 5 : pas de lien vers du hors programme masqué ; on se replie sur
+      // le concept homonyme s'il y en a un (et s'il est visible).
+      if(!voirHP() && lienVersHP(e)){ e=e.alt; if(!e || lienVersHP(e)) return m; }
       if(e.t==='n'){ // lien notion — coloré avec la couleur (éclaircie) de la notion
         // inkOnDark : version assez claire de la couleur de notion pour rester
         // lisible en texte sur fond sombre (WCAG AA). On l'applique au texte ET

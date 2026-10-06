@@ -252,7 +252,7 @@ function renderConceptContent(){
   // de CE concept dans son contenu (openNotionFromConcept — retour contributeur).
   const safeCid=c.id.replace(/'/g,"\\'");
   const notionPills=c.notions.map(k=>{
-    const nd=D[k]; if(!nd) return '';
+    const nd=D[k]; if(!nd||!notionVisible(k)) return '';   // étape 5 : HP masqué
     return `<span class="notion-pill" style="color:${nd.c};border-color:${nd.c}40;background:${nd.c}12"
       onclick="openNotionFromConcept('${k}','${safeCid}')">${nd.l} →</span>`;
   }).join('');
@@ -266,7 +266,7 @@ function renderConceptContent(){
   let html=`
 <div class="notion-head">
   <div>
-    <div class="concept-title">${c.term}</div>
+    <div class="concept-title">${c.term}${statutConcept(c)==='hors-programme'?' '+hpBadgeHTML():''}</div>
     ${c.cat?`<span class="concept-cat-badge facet-clickable" title="Voir les concepts de cette catégorie" onclick="openFacet('cat','${String(c.cat).replace(/'/g,"\\'")}')">${c.cat}</span>`:''}
   </div>
 </div>
@@ -698,7 +698,9 @@ function renderAuthorContent(){
   const mc=mainEl.querySelector('.main-content');
 
   if(!curAuthor||!AI[curAuthor]){mc.innerHTML='';tabsEl.innerHTML='';return;}
-  const entry=AI[curAuthor];
+  // Étape 5 : hors programme masqué → la fiche ne montre que les notions
+  // visibles (idées, citations, œuvres). Copie : AI n'est pas modifié.
+  const entry=voirHP()?AI[curAuthor]:Object.assign({},AI[curAuthor],{notions:AI[curAuthor].notions.filter(notionVisible)});
   const meta=AM[curAuthor]||{bio:'',courant:'',periode:'',themes:[],dialogues:[]};
   const cc=CC[meta.courant]||'#888';
   // Nom de l'auteur échappé pour les attributs onclick (pastilles de notion
@@ -718,7 +720,7 @@ function renderAuthorContent(){
   <div>
     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
       <div class="author-title">${curAuthor}</div>
-      ${progBadgeHTML(curAuthor)}
+      ${statutAuteurHTML(curAuthor)}
       ${meta.courant?`<span class="author-courant facet-clickable" style="background:${cc}18;color:${cc};border:0.5px solid ${cc}40" title="Voir les auteurs de ce courant" onclick="openFacet('courant','${String(meta.courant).replace(/'/g,"\\'")}')">${meta.courant}</span>`:''}
     </div>
     <div style="display:flex;gap:3px;align-items:center;margin-top:5px">${notionBdgs}<span style="font-size:10px;color:var(--color-text-tertiary);margin-left:4px">${entry.notions.length} notion${entry.notions.length>1?'s':''}</span></div>
@@ -846,6 +848,23 @@ function renderAuthorContent(){
      · diss      → questions de dissertation (.dq) + liens vers notions liées
    La définition (.def-box) est toujours affichée en haut, quelle que soit
    l'onglet actif.                                                         */
+/* hpNoticeHTML() — encadré en tête d'une notion hors programme (étape 5) :
+   dit à l'élève ce que c'est et ce qui reste utile pour le bac ; si le hors
+   programme est masqué (on est arrivé par un lien), propose de l'afficher. */
+function hpNoticeHTML(){
+  const masque=!voirHP();
+  return `<div class="hp-notice" role="note"><strong>Pour aller plus loin.</strong> Cette notion n'est pas au programme de terminale. Elle reste utile pour nourrir une dissertation : les auteurs de la liste officielle y gardent leur étiquette « Programme ».`
+    +(masque?` Le hors programme est masqué dans tes Réglages. <button class="hp-notice-btn" onclick="setVoirHP(true)">L'afficher</button>`:'')
+    +`</div>`;
+}
+/* sourcesHTML(src) — les sources d'une notion (champ facultatif sources:[…],
+   exigé pour une notion hors programme, docs/protocole-contenu.md § 4.5),
+   dans un déroulant sous la définition. '' s'il n'y en a pas. */
+function sourcesHTML(src){
+  if(!Array.isArray(src)||!src.length) return '';
+  return `<details class="notion-sources"><summary>Sources</summary><ul>${src.map(s=>`<li>${s}</li>`).join('')}</ul></details>`;
+}
+
 function renderContent(){
   renderCrumbs();
   const mainEl=document.getElementById('main');
@@ -868,9 +887,10 @@ function renderContent(){
   let html=`
 <div class="notion-head">
   <div class="nbadge" style="background:${c}"></div>
-  <div><div class="ntitle">${n.l}</div><div class="nsub">${n.s}</div></div>
+  <div><div class="ntitle">${n.l}${estHP(cur)?' '+hpBadgeHTML():''}</div><div class="nsub">${n.s}</div></div>
 </div>
-<div class="def-box">${linkTerms(n.def)}${pPlus('ajout','notion',cur,'Définition / approfondissement de '+n.l)}</div>`;
+${estHP(cur)?hpNoticeHTML():''}
+<div class="def-box">${linkTerms(n.def)}${sourcesHTML(n.sources)}${pPlus('ajout','notion',cur,'Définition / approfondissement de '+n.l)}</div>`;
 
   if(curTab==='auteurs'){
     // Fusion VOULUE : toutes les idées d'un même auteur pour cette notion
@@ -1078,7 +1098,7 @@ function renderContent(){
     if(liens.length){
       html+=`<div class="slabel">Liens avec d'autres notions</div>
       <div class="liens-row">
-        ${liens.map(l=>{const k=KEYS.find(k=>D[k].l===l);return k?`<div class="lpill" style="border-color:${D[k].c};color:${D[k].c}" onclick="pushHistory();cur='${k}';curTab='auteurs';sbMode='notions';renderSB();renderContent()">${l}</div>`:''}).join('')}
+        ${liens.map(l=>{const k=KEYS.find(k=>D[k].l===l);return (k&&notionVisible(k))?`<div class="lpill" style="border-color:${D[k].c};color:${D[k].c}" onclick="pushHistory();cur='${k}';curTab='auteurs';sbMode='notions';renderSB();renderContent()">${l}</div>`:''}).join('')}
       </div>`;
     }
     // 2) Plans de dissertation détaillés (cartes déroulables)
@@ -1120,7 +1140,7 @@ function renderSBList(){
     const fa=authorFilter.size>0;
     // Compteur TOUJOURS affiché : total d'auteurs, ou « filtrés / total »
     // quand une recherche/un filtre est actif.
-    const total=Object.keys(AI).length;
+    const total=Object.keys(AI).filter(auteurVisible).length;   // étape 5
     const hasFilter=authorSearch||fa;
     const countTxt=hasFilter
       ?`${list.length} / ${total} auteurs`
@@ -1128,7 +1148,7 @@ function renderSBList(){
     html+=`<div class="sb-results-count">${countTxt}</div>`;
     list.forEach(name=>{
       const entry=AI[name];
-      const bdgs=entry.notions.map(k=>`<span class="ab-bdg" style="background:${D[k].c}" title="${D[k].l}"></span>`).join('');
+      const bdgs=entry.notions.filter(notionVisible).map(k=>`<span class="ab-bdg" style="background:${D[k].c}" title="${D[k].l}"></span>`).join('');
       const safeN=name.replace(/'/g,"\\'");
       html+=`<div class="ab${name===curAuthor?' active':''}" onclick="pushHistory();curAuthor='${safeN}';curAuthorTab='idees';renderSBList();renderAuthorContent()">
         <div class="ab-name">${name}</div><div class="ab-badges">${bdgs}</div>

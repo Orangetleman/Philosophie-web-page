@@ -542,6 +542,7 @@ function endTour(){
   applyPhiloMode();                              // restaure le mode (édition tempo)
   try{ localStorage.setItem('philo-tour-v1','1'); }catch(e){}
   syncOnPrefsChange();                           // new (Phase 2) : « visite vue » suit le compte
+  setTimeout(hpInviterSiBesoin,400);             // étape 5 : la proposition hors programme vient après la visite
 }
 
 /* tourNext() — avance dans la SÉQUENCE ACTIVE (tourSeq(), filtrée par le mode).

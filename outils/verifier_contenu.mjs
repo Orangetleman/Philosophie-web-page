@@ -212,6 +212,28 @@ const QUESTIONS = [
       if (PROGRAMME.auteurs.length !== 84) warn.push(`${PROGRAMME.auteurs.length} auteurs au programme (le BO en compte 84)`);
       return { err, warn };
     } },
+  /* 12 (étape 5) — une notion HORS PROGRAMME (absente de PROGRAMME.notions)
+     ne se publie qu'avec le minimum de docs/protocole-contenu.md, § 4.5 :
+     définition avec « Approfondir », 3 à 6 auteurs ayant chacun une idée,
+     au moins un concept, un plan, un exemple, des liens et des sources. */
+  { n: 12, titre: "chaque notion hors programme a le minimum (protocole § 4.5)",
+    f({ D, KEYS, CONCEPTS, PROGRAMME }) {
+      const err = [];
+      if (!PROGRAMME) return { err, warn: [] };
+      KEYS.filter(k => D[k] && !PROGRAMME.notions.includes(k)).forEach(k => {
+        const n = D[k], manque = m => err.push(`${k} (hors programme) : ${m}`);
+        if (!/<details/.test(texte(n.def))) manque('définition sans section « Approfondir »');
+        const noms = [...new Set((n.auteurs || []).map(a => a.n))];
+        if (noms.length < 3 || noms.length > 6) manque(`${noms.length} auteur(s), il en faut 3 à 6`);
+        (n.auteurs || []).forEach(a => { if (!(a.ideas || []).some(i => texte(i.i).trim())) manque(`${a.n} sans idée rédigée`); });
+        if (!CONCEPTS.some(c => (c.notions || []).includes(k))) manque('aucun concept rattaché');
+        if (!(n.plans || []).length) manque('aucun plan de dissertation');
+        if (!(n.exemples || []).length) manque('aucun exemple');
+        if (!(n.liens || []).length) manque('aucun lien vers une autre notion');
+        if (!(n.sources || []).length) manque('aucune source (champ sources)');
+      });
+      return { err, warn: [] };
+    } },
 ];
 
 /* ── Les témoins : une faute par question, glissée dans une COPIE ────── */
@@ -227,6 +249,7 @@ const TEMOINS = {
   9: d => { d.D[d.KEYS[0]].auteurs[0].w = 'Une œuvre, 1900 (TEXTE 4)'; },
   10: d => { d.CONCEPTS[0].tensions = ['A ≠ B']; },
   11: d => { d.KEYS.forEach(k => { d.D[k].auteurs = d.D[k].auteurs.filter(a => a.n !== 'Montaigne'); }); },
+  12: d => { d.D['temoin-hp'] = { c: '#000', l: 'Témoin', s: '?', def: 'x', auteurs: [], plans: [], exemples: [], liens: [], diss: [] }; d.KEYS.push('temoin-hp'); },
 };
 
 function lancer(data) {

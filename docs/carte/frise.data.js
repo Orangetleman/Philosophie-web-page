@@ -1,8 +1,26 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
-  "genere_le": "2026-10-06T00:13:46.218Z",
+  "genere_le": "2026-10-06T13:41:09.106Z",
   "commits": [
+    {
+      "hash": "87f44ca10a6bc2cf0d60319b87b631baa7768765",
+      "short": "87f44ca",
+      "auteur": "Orangentleman",
+      "date": "2026-10-06T15:22:01+02:00",
+      "sujet": "Merge pull request #12 from Orangetleman/claude/etape-4-auteurs",
+      "corps": "Mise à jour, étape 4 : les 84 auteurs de la liste officielle, citations revues",
+      "tag": ""
+    },
+    {
+      "hash": "a1a47fe25a40094f612755d15338eb06e26907a6",
+      "short": "a1a47fe",
+      "auteur": "Orangentleman",
+      "date": "2026-10-06T02:13:45+02:00",
+      "sujet": "Documentation de l'étape 4 : compte rendu des sources, liste officielle et règles des citations traduites",
+      "corps": "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": "Documentation de l'étape 4"
+    },
     {
       "hash": "097bb29319598c581c47a07a6c4e5a629e3bda6a",
       "short": "097bb29",
