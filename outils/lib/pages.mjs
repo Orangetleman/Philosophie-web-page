@@ -271,6 +271,22 @@ function llms(d, ctx) {
     `\n\n## Outil interactif\n\n- [Graphe, quiz et méthodologie](${SITE}/): application web (JavaScript), installable et utilisable hors ligne.\n`;
 }
 
+/* prerenduAccueil(d) — le contenu PRÉ-RENDU de index.html (nov. 2026) :
+   {sb, main}. Les robots qui ne lancent pas le JavaScript lisent ainsi,
+   dans le HTML brut, un <h1>, une présentation et de vrais liens vers les
+   pages statiques. `sb` va DANS #sb (renderSB le vide à son premier appel),
+   `main` DANS .main-content (chaque rendu de fiche le remplace) : une fois
+   l'app démarrée, il n'en reste rien, donc rien en double. Les classes
+   reprennent celles de l'app (.nb, .ntitle, .nsub) : même aspect pendant
+   l'instant où la page s'affiche avant le script. */
+export function prerenduAccueil(d) {
+  const prog = d.KEYS.filter(k => d.PROGRAMME.notions.includes(k));
+  const lien = k => `<a class="nb" href="notions/${slugNotion(k)}/"><span class="dot" style="background:${d.D[k].c}"></span>${esc(d.D[k].l)}</a>`;
+  const sb = `<nav class="prerendu-nav" aria-label="Les notions du programme">\n${prog.map(lien).join('\n')}\n<a class="nb" href="fiches/">Toutes les fiches et les auteurs</a>\n</nav>`;
+  const main = `<div class="prerendu-intro">\n<h1 class="ntitle">Fiches de révision de philosophie : les 17 notions du programme de Terminale</h1>\n<p class="nsub">Pour chaque notion du bac de philo : définitions, auteurs et citations, plans de dissertation, sujets tombés au bac et exemples, reliés en graphe interactif, avec un quiz pour réviser. Gratuit, utilisable hors ligne.</p>\n<p class="nsub">Les notions : ${prog.map(k => `<a href="notions/${slugNotion(k)}/">${esc(d.D[k].l)}</a>`).join(', ')}. Et aussi <a href="fiches/">toutes les fiches d’auteurs</a>.</p>\n</div>`;
+  return { sb, main };
+}
+
 /* cheminsPages(d) — {notions:{clé→chemin}, auteurs:{nom→chemin}} : l'adresse
    de la page statique de chaque fiche (auteurs cités dans une notion
    seulement, comme genererPages). Écrit dans data.js (PAGES_STATIQUES) pour
