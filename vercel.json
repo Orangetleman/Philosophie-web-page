@@ -1,13 +1,5 @@
 {
   "trailingSlash": true,
-  "redirects": [
-    {
-      "source": "/:chemin*",
-      "has": [{ "type": "host", "value": "philosophie-fiches-web-chris.vercel.app" }],
-      "destination": "https://philo.myprisme.fr/:chemin*",
-      "permanent": true
-    }
-  ],
   "headers": [
     { "source": "/(notions|auteurs|fiches)/(.*)", "headers": [{ "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }] },
     { "source": "/llms.txt", "headers": [{ "key": "Content-Type", "value": "text/plain; charset=utf-8" }] }

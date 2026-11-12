@@ -1,8 +1,26 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
-  "genere_le": "2026-11-12T01:13:29.948Z",
+  "genere_le": "2026-11-12T01:52:38.050Z",
   "commits": [
+    {
+      "hash": "c12f50d41cd2b8c4c804a61414bdd6c7a572f662",
+      "short": "c12f50d",
+      "auteur": "Orangentleman",
+      "date": "2026-11-12T02:16:13+01:00",
+      "sujet": "Merge pull request #18 from Orangetleman/claude/domaine-myprisme",
+      "corps": "Domaine : le site passe sur philo.myprisme.fr",
+      "tag": ""
+    },
+    {
+      "hash": "beaed913bc34bd9982da43077616ed1121cd3bfd",
+      "short": "beaed91",
+      "auteur": "Orangentleman",
+      "date": "2026-11-12T02:13:28+01:00",
+      "sujet": "Domaine : le site passe sur philo.myprisme.fr",
+      "corps": "Adresse canonique, Open Graph, JSON-LD, sitemap, robots.txt et llms.txt\npointent sur https://philo.myprisme.fr (SITE dans outils/lib/pages.mjs,\nindex.html). vercel.json : redirection permanente (301) de\nphilosophie-fiches-web-chris.vercel.app vers le nouveau domaine, en\ngardant le chemin ; le navigateur garde le #/… des liens partagés.\n\nÀ fusionner SEULEMENT une fois le domaine ajouté dans Vercel et le DNS en\nplace, sinon l'ancienne adresse redirigerait vers un domaine muet.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": "Domaine"
+    },
     {
       "hash": "7bf80986ac1c9c8d79435cb94c39c5ab9dde750c",
       "short": "7bf8098",

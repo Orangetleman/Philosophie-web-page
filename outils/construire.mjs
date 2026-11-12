@@ -43,7 +43,7 @@ import crypto from 'crypto';
 import { spawnSync } from 'child_process';
 import { fileURLToPath } from 'url';
 import { normaliserNotion, normaliserConcept } from './lib/formats.mjs';
-import { genererPages, cheminsPages } from './lib/pages.mjs';
+import { genererPages, cheminsPages, prerenduAccueil } from './lib/pages.mjs';
 
 const RACINE = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const CONTENU = path.join(RACINE, 'contenu');
@@ -224,6 +224,19 @@ function ecrireSw(sw, produits) {
     .replace(/^const PRECACHE = \[[^\n]*\];$/m, 'const PRECACHE = [' + PRECACHE.map(f => `'${f}'`).join(', ') + '];');
 }
 
+/* injecterPrerendu(html, blocs) — remplace le contenu entre chaque paire de
+   repères <!--PRERENDU:nom--> et <!--/PRERENDU:nom--> par blocs[nom].
+   Un repère manquant arrête le build (index.html a été mal édité). */
+function injecterPrerendu(html, blocs) {
+  Object.entries(blocs).forEach(([nom, contenu]) => {
+    const debut = `<!--PRERENDU:${nom}-->`, fin = `<!--/PRERENDU:${nom}-->`;
+    const i = html.indexOf(debut), j = html.indexOf(fin);
+    if (i < 0 || j < i) echec(`index.html : repères ${debut} … ${fin} introuvables`);
+    html = html.slice(0, i + debut.length) + contenu + html.slice(j);
+  });
+  return html;
+}
+
 const ENTETE_JS = "/* app.js — GÉNÉRÉ par outils/construire.mjs : js/*.js recollés dans l'ordre des noms.\n   NE PAS ÉDITER : modifier js/, puis lancer « node outils/construire.mjs ». */\n";
 const ENTETE_CSS = "/* app.css — GÉNÉRÉ par outils/construire.mjs : css/*.css recollés dans l'ordre des noms.\n   NE PAS ÉDITER : modifier css/, puis lancer « node outils/construire.mjs ». */\n";
 
@@ -243,6 +256,10 @@ function main() {
     'app.js': app.texte,
     'app.css': recoller('css', '.css', ENTETE_CSS).texte,
   };
+  // 4 bis. Pré-rendu de l'accueil : index.html reçoit, entre ses repères
+  //    <!--PRERENDU:x-->…<!--/PRERENDU:x-->, un <h1> et les liens des notions
+  //    (prerenduAccueil). Avant sw.js, dont la version dépend d'index.html.
+  produits['index.html'] = injecterPrerendu(lireTexte(path.join(RACINE, 'index.html')), prerenduAccueil(donnees));
   const fSw = path.join(RACINE, 'sw.js');
   produits['sw.js'] = ecrireSw(lireTexte(fSw).replace(/[ \t]*\/\/ version calculée[^\n]*/, ''), produits);
   // 5 bis. Pages statiques (référencement) : une page HTML par fiche + sitemap,

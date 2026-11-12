@@ -123,7 +123,31 @@
 <!-- Tiroir responsive : voile (visible uniquement ≤700px ; burger inline ci-dessous) -->
 <div class="sb-backdrop" id="sb-backdrop" aria-hidden="true"></div>
 <div class="wrap">
-<div class="sidebar" id="sb"></div>
+<!-- PRÉ-RENDU (nov. 2026) : entre les repères PRERENDU, le build
+     (outils/construire.mjs, prerenduAccueil) écrit des liens vers les notions
+     et un <h1>, lisibles SANS JavaScript. L'app les remplace au démarrage
+     (renderSB vide #sb, le rendu d'une fiche remplace .main-content).
+     Ne pas éditer entre les repères. -->
+<div class="sidebar" id="sb"><!--PRERENDU:sb--><nav class="prerendu-nav" aria-label="Les notions du programme">
+<a class="nb" href="notions/la-conscience/"><span class="dot" style="background:#534AB7"></span>Conscience</a>
+<a class="nb" href="notions/l-inconscient/"><span class="dot" style="background:#7B4F9E"></span>Inconscient</a>
+<a class="nb" href="notions/le-devoir/"><span class="dot" style="background:#993556"></span>Devoir</a>
+<a class="nb" href="notions/la-liberte/"><span class="dot" style="background:#D4537E"></span>Liberté</a>
+<a class="nb" href="notions/le-bonheur/"><span class="dot" style="background:#EF9F27"></span>Bonheur</a>
+<a class="nb" href="notions/la-religion/"><span class="dot" style="background:#C4682A"></span>Religion</a>
+<a class="nb" href="notions/le-langage/"><span class="dot" style="background:#6B4FA0"></span>Langage</a>
+<a class="nb" href="notions/l-art/"><span class="dot" style="background:#8B5E3C"></span>Art</a>
+<a class="nb" href="notions/la-technique/"><span class="dot" style="background:#185FA5"></span>Technique</a>
+<a class="nb" href="notions/le-travail/"><span class="dot" style="background:#3B6D11"></span>Travail</a>
+<a class="nb" href="notions/la-justice/"><span class="dot" style="background:#D85A30"></span>Justice</a>
+<a class="nb" href="notions/l-etat/"><span class="dot" style="background:#5F5E5A"></span>État</a>
+<a class="nb" href="notions/la-nature/"><span class="dot" style="background:#1D9E75"></span>Nature</a>
+<a class="nb" href="notions/la-raison/"><span class="dot" style="background:#2E86AB"></span>Raison</a>
+<a class="nb" href="notions/la-science/"><span class="dot" style="background:#1A7A4A"></span>Science</a>
+<a class="nb" href="notions/la-verite/"><span class="dot" style="background:#8A6B2E"></span>Vérité</a>
+<a class="nb" href="notions/le-temps/"><span class="dot" style="background:#4E6D8C"></span>Temps</a>
+<a class="nb" href="fiches/">Toutes les fiches et les auteurs</a>
+</nav><!--/PRERENDU:sb--></div>
 <!-- new: <main> (et non plus <div>) pour fournir le repère « main landmark »
      attendu par les lecteurs d'écran et l'audit d'accessibilité. L'id et la
      classe restent identiques : le CSS et le JS (getElementById('main'))
@@ -167,7 +191,11 @@
     </div>
   </div>
   <div class="tabs"></div>
-  <div class="main-content"></div>
+  <div class="main-content"><!--PRERENDU:main--><div class="prerendu-intro">
+<h1 class="ntitle">Fiches de révision de philosophie : les 17 notions du programme de Terminale</h1>
+<p class="nsub">Pour chaque notion du bac de philo : définitions, auteurs et citations, plans de dissertation, sujets tombés au bac et exemples, reliés en graphe interactif, avec un quiz pour réviser. Gratuit, utilisable hors ligne.</p>
+<p class="nsub">Les notions : <a href="notions/la-conscience/">Conscience</a>, <a href="notions/l-inconscient/">Inconscient</a>, <a href="notions/le-devoir/">Devoir</a>, <a href="notions/la-liberte/">Liberté</a>, <a href="notions/le-bonheur/">Bonheur</a>, <a href="notions/la-religion/">Religion</a>, <a href="notions/le-langage/">Langage</a>, <a href="notions/l-art/">Art</a>, <a href="notions/la-technique/">Technique</a>, <a href="notions/le-travail/">Travail</a>, <a href="notions/la-justice/">Justice</a>, <a href="notions/l-etat/">État</a>, <a href="notions/la-nature/">Nature</a>, <a href="notions/la-raison/">Raison</a>, <a href="notions/la-science/">Science</a>, <a href="notions/la-verite/">Vérité</a>, <a href="notions/le-temps/">Temps</a>. Et aussi <a href="fiches/">toutes les fiches d’auteurs</a>.</p>
+</div><!--/PRERENDU:main--></div>
 </main>
 </div>
 
