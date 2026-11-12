@@ -1,8 +1,26 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
-  "genere_le": "2026-11-12T00:59:35.963Z",
+  "genere_le": "2026-11-12T01:13:29.948Z",
   "commits": [
+    {
+      "hash": "7bf80986ac1c9c8d79435cb94c39c5ab9dde750c",
+      "short": "7bf8098",
+      "auteur": "Orangentleman",
+      "date": "2026-11-12T02:05:11+01:00",
+      "sujet": "Merge pull request #17 from Orangetleman/claude/seo-audit-dom",
+      "corps": "Référencement, accueil : vrais liens, titre h1, pied de fiche, bandeau reformulé",
+      "tag": ""
+    },
+    {
+      "hash": "10ee8be166ab8920dbeee57aba82f957f87a747e",
+      "short": "10ee8be",
+      "auteur": "Orangentleman",
+      "date": "2026-11-12T01:59:34+01:00",
+      "sujet": "Référencement, accueil : vrais liens, titre h1, pied de fiche, bandeau reformulé",
+      "corps": "Audit du rendu de l'accueil : la page rendue n'avait AUCUN lien <a href>\nni titre h1/h2 (notions de la barre latérale en <div onclick>). Les\nmodales, elles, ne pèsent qu'une cinquantaine de mots sur 2 300 (leur\ncontenu est déjà injecté à l'ouverture) : laissées telles quelles.\n\n- data.js : PAGES_STATIQUES (adresses des pages statiques, cheminsPages).\n- Barre latérale : les notions sont des <a href=\"notions/…/\"> ; un clic\n  normal reste dans l'app, Ctrl/clic molette ouvrent la page simple.\n- Titre de la notion en <h1> (même aspect).\n- piedNotionHTML : sous chaque fiche, une phrase de présentation du site\n  et des liens (version simple, auteurs de la fiche, toutes les fiches).\n- Bandeau : « Projet collaboratif de révision, relu et enrichi\n  régulièrement. Une erreur, une idée ? » (même lien de participation) ;\n  pied des pages statiques aligné.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": "Référencement, accueil"
+    },
     {
       "hash": "aa2cf7dcaf65d320e2dc5d96c214621956a3ff3b",
       "short": "aa2cf7d",

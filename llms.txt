@@ -6,163 +6,163 @@ Contenu rédigé par des élèves, relu mais pouvant contenir des erreurs. Les c
 
 ## Notions du programme
 
-- [La conscience](https://philosophie-fiches-web-chris.vercel.app/notions/la-conscience/): Qu'est-ce que la conscience ?
-- [L’inconscient](https://philosophie-fiches-web-chris.vercel.app/notions/l-inconscient/): L'inconscient remet-il en cause notre liberté ?
-- [Le devoir](https://philosophie-fiches-web-chris.vercel.app/notions/le-devoir/): Sommes-nous obligés d'agir moralement ?
-- [La liberté](https://philosophie-fiches-web-chris.vercel.app/notions/la-liberte/): Sommes-nous vraiment libres ?
-- [Le bonheur](https://philosophie-fiches-web-chris.vercel.app/notions/le-bonheur/): En quoi consiste le bonheur ?
-- [La religion](https://philosophie-fiches-web-chris.vercel.app/notions/la-religion/): La religion est-elle compatible avec la raison ?
-- [Le langage](https://philosophie-fiches-web-chris.vercel.app/notions/le-langage/): Le langage ne sert-il qu'à communiquer ?
-- [L’art](https://philosophie-fiches-web-chris.vercel.app/notions/l-art/): L'artiste travaille-t-il ?
-- [La technique](https://philosophie-fiches-web-chris.vercel.app/notions/la-technique/): La technique nous libère-t-elle ou nous aliène-t-elle ?
-- [Le travail](https://philosophie-fiches-web-chris.vercel.app/notions/le-travail/): Le travail libère-t-il ou aliène-t-il ?
-- [La justice](https://philosophie-fiches-web-chris.vercel.app/notions/la-justice/): Qu'est-ce qu'une société juste ?
-- [L’État](https://philosophie-fiches-web-chris.vercel.app/notions/l-etat/): L'État est-il nécessaire ?
-- [La nature](https://philosophie-fiches-web-chris.vercel.app/notions/la-nature/): Qu'est-ce qui est naturel ?
-- [La raison](https://philosophie-fiches-web-chris.vercel.app/notions/la-raison/): La raison peut-elle tout expliquer ?
-- [La science](https://philosophie-fiches-web-chris.vercel.app/notions/la-science/): La science peut-elle tout expliquer ?
-- [La vérité](https://philosophie-fiches-web-chris.vercel.app/notions/la-verite/): Peut-on douter de tout ?
-- [Le temps](https://philosophie-fiches-web-chris.vercel.app/notions/le-temps/): Pouvons-nous maîtriser le temps ?
+- [La conscience](https://philo.myprisme.fr/notions/la-conscience/): Qu'est-ce que la conscience ?
+- [L’inconscient](https://philo.myprisme.fr/notions/l-inconscient/): L'inconscient remet-il en cause notre liberté ?
+- [Le devoir](https://philo.myprisme.fr/notions/le-devoir/): Sommes-nous obligés d'agir moralement ?
+- [La liberté](https://philo.myprisme.fr/notions/la-liberte/): Sommes-nous vraiment libres ?
+- [Le bonheur](https://philo.myprisme.fr/notions/le-bonheur/): En quoi consiste le bonheur ?
+- [La religion](https://philo.myprisme.fr/notions/la-religion/): La religion est-elle compatible avec la raison ?
+- [Le langage](https://philo.myprisme.fr/notions/le-langage/): Le langage ne sert-il qu'à communiquer ?
+- [L’art](https://philo.myprisme.fr/notions/l-art/): L'artiste travaille-t-il ?
+- [La technique](https://philo.myprisme.fr/notions/la-technique/): La technique nous libère-t-elle ou nous aliène-t-elle ?
+- [Le travail](https://philo.myprisme.fr/notions/le-travail/): Le travail libère-t-il ou aliène-t-il ?
+- [La justice](https://philo.myprisme.fr/notions/la-justice/): Qu'est-ce qu'une société juste ?
+- [L’État](https://philo.myprisme.fr/notions/l-etat/): L'État est-il nécessaire ?
+- [La nature](https://philo.myprisme.fr/notions/la-nature/): Qu'est-ce qui est naturel ?
+- [La raison](https://philo.myprisme.fr/notions/la-raison/): La raison peut-elle tout expliquer ?
+- [La science](https://philo.myprisme.fr/notions/la-science/): La science peut-elle tout expliquer ?
+- [La vérité](https://philo.myprisme.fr/notions/la-verite/): Peut-on douter de tout ?
+- [Le temps](https://philo.myprisme.fr/notions/le-temps/): Pouvons-nous maîtriser le temps ?
 
 ## Notions complémentaires
 
-- [Autrui](https://philosophie-fiches-web-chris.vercel.app/notions/autrui/): Ai-je besoin d’autrui pour être moi-même ?
-- [Le désir](https://philosophie-fiches-web-chris.vercel.app/notions/le-desir/): Le désir est-il la marque de notre imperfection ?
-- [L’histoire](https://philosophie-fiches-web-chris.vercel.app/notions/l-histoire/): L’histoire a-t-elle un sens ?
-- [La perception](https://philosophie-fiches-web-chris.vercel.app/notions/la-perception/): Percevoir, est-ce connaître ?
-- [L’existence](https://philosophie-fiches-web-chris.vercel.app/notions/l-existence/): Exister, est-ce seulement être là ?
-- [Le vivant](https://philosophie-fiches-web-chris.vercel.app/notions/le-vivant/): Le vivant n'est-il qu'une machine ?
-- [La matière et esprit](https://philosophie-fiches-web-chris.vercel.app/notions/la-matiere-et-l-esprit/): L'esprit est-il autre chose que la matière ?
-- [L’interprétation](https://philosophie-fiches-web-chris.vercel.app/notions/l-interpretation/): Tout est-il affaire d'interprétation ?
-- [La démonstration](https://philosophie-fiches-web-chris.vercel.app/notions/la-demonstration/): Peut-on tout démontrer ?
-- [La société](https://philosophie-fiches-web-chris.vercel.app/notions/la-societe/): La société est-elle naturelle ?
+- [Autrui](https://philo.myprisme.fr/notions/autrui/): Ai-je besoin d’autrui pour être moi-même ?
+- [Le désir](https://philo.myprisme.fr/notions/le-desir/): Le désir est-il la marque de notre imperfection ?
+- [L’histoire](https://philo.myprisme.fr/notions/l-histoire/): L’histoire a-t-elle un sens ?
+- [La perception](https://philo.myprisme.fr/notions/la-perception/): Percevoir, est-ce connaître ?
+- [L’existence](https://philo.myprisme.fr/notions/l-existence/): Exister, est-ce seulement être là ?
+- [Le vivant](https://philo.myprisme.fr/notions/le-vivant/): Le vivant n'est-il qu'une machine ?
+- [La matière et esprit](https://philo.myprisme.fr/notions/la-matiere-et-l-esprit/): L'esprit est-il autre chose que la matière ?
+- [L’interprétation](https://philo.myprisme.fr/notions/l-interpretation/): Tout est-il affaire d'interprétation ?
+- [La démonstration](https://philo.myprisme.fr/notions/la-demonstration/): Peut-on tout démontrer ?
+- [La société](https://philo.myprisme.fr/notions/la-societe/): La société est-elle naturelle ?
 
 ## Auteurs
 
-- [Adam Smith](https://philosophie-fiches-web-chris.vercel.app/auteurs/adam-smith/)
-- [Alain](https://philosophie-fiches-web-chris.vercel.app/auteurs/alain/)
-- [Amartya Sen](https://philosophie-fiches-web-chris.vercel.app/auteurs/amartya-sen/)
-- [André Breton](https://philosophie-fiches-web-chris.vercel.app/auteurs/andre-breton/)
-- [Anscombe](https://philosophie-fiches-web-chris.vercel.app/auteurs/anscombe/)
-- [Anselme](https://philosophie-fiches-web-chris.vercel.app/auteurs/anselme/)
-- [Aristote](https://philosophie-fiches-web-chris.vercel.app/auteurs/aristote/)
-- [Augustin](https://philosophie-fiches-web-chris.vercel.app/auteurs/augustin/)
-- [Austin](https://philosophie-fiches-web-chris.vercel.app/auteurs/austin/)
-- [Averroès](https://philosophie-fiches-web-chris.vercel.app/auteurs/averroes/)
-- [Avicenne](https://philosophie-fiches-web-chris.vercel.app/auteurs/avicenne/)
-- [Bachelard](https://philosophie-fiches-web-chris.vercel.app/auteurs/bachelard/)
-- [Bacon](https://philosophie-fiches-web-chris.vercel.app/auteurs/bacon/)
-- [Baptiste Morizot](https://philosophie-fiches-web-chris.vercel.app/auteurs/baptiste-morizot/)
-- [Barthes](https://philosophie-fiches-web-chris.vercel.app/auteurs/barthes/)
-- [Baudrillard](https://philosophie-fiches-web-chris.vercel.app/auteurs/baudrillard/)
-- [Beauvoir](https://philosophie-fiches-web-chris.vercel.app/auteurs/beauvoir/)
-- [Bentham](https://philosophie-fiches-web-chris.vercel.app/auteurs/bentham/)
-- [Benveniste](https://philosophie-fiches-web-chris.vercel.app/auteurs/benveniste/)
-- [Bergson](https://philosophie-fiches-web-chris.vercel.app/auteurs/bergson/)
-- [Berkeley](https://philosophie-fiches-web-chris.vercel.app/auteurs/berkeley/)
-- [Boroditsky](https://philosophie-fiches-web-chris.vercel.app/auteurs/boroditsky/)
-- [Bourdieu](https://philosophie-fiches-web-chris.vercel.app/auteurs/bourdieu/)
-- [Camus](https://philosophie-fiches-web-chris.vercel.app/auteurs/camus/)
-- [Cassin](https://philosophie-fiches-web-chris.vercel.app/auteurs/cassin/)
-- [Christopher Stone](https://philosophie-fiches-web-chris.vercel.app/auteurs/christopher-stone/)
-- [Cicéron](https://philosophie-fiches-web-chris.vercel.app/auteurs/ciceron/)
-- [Comte](https://philosophie-fiches-web-chris.vercel.app/auteurs/comte/)
-- [Condillac](https://philosophie-fiches-web-chris.vercel.app/auteurs/condillac/)
-- [Cournot](https://philosophie-fiches-web-chris.vercel.app/auteurs/cournot/)
-- [D'Holbach](https://philosophie-fiches-web-chris.vercel.app/auteurs/d-holbach/)
-- [Darwin](https://philosophie-fiches-web-chris.vercel.app/auteurs/darwin/)
-- [Descartes](https://philosophie-fiches-web-chris.vercel.app/auteurs/descartes/)
-- [Diderot](https://philosophie-fiches-web-chris.vercel.app/auteurs/diderot/)
-- [Durkheim](https://philosophie-fiches-web-chris.vercel.app/auteurs/durkheim/)
-- [Einstein](https://philosophie-fiches-web-chris.vercel.app/auteurs/einstein/)
-- [Ellul](https://philosophie-fiches-web-chris.vercel.app/auteurs/ellul/)
-- [Engels](https://philosophie-fiches-web-chris.vercel.app/auteurs/engels/)
-- [Épictète](https://philosophie-fiches-web-chris.vercel.app/auteurs/epictete/)
-- [Épicure](https://philosophie-fiches-web-chris.vercel.app/auteurs/epicure/)
-- [Feuerbach](https://philosophie-fiches-web-chris.vercel.app/auteurs/feuerbach/)
-- [Foucault](https://philosophie-fiches-web-chris.vercel.app/auteurs/foucault/)
-- [François Ost](https://philosophie-fiches-web-chris.vercel.app/auteurs/francois-ost/)
-- [Frans de Waal](https://philosophie-fiches-web-chris.vercel.app/auteurs/frans-de-waal/)
-- [Freud](https://philosophie-fiches-web-chris.vercel.app/auteurs/freud/)
-- [Georges Perec](https://philosophie-fiches-web-chris.vercel.app/auteurs/georges-perec/)
-- [Guillaume d'Ockham](https://philosophie-fiches-web-chris.vercel.app/auteurs/guillaume-d-ockham/)
-- [Gunther Anders](https://philosophie-fiches-web-chris.vercel.app/auteurs/gunther-anders/)
-- [Hannah Arendt](https://philosophie-fiches-web-chris.vercel.app/auteurs/hannah-arendt/)
-- [Hans Jonas](https://philosophie-fiches-web-chris.vercel.app/auteurs/hans-jonas/)
-- [Hartmut Rosa](https://philosophie-fiches-web-chris.vercel.app/auteurs/hartmut-rosa/)
-- [Hegel](https://philosophie-fiches-web-chris.vercel.app/auteurs/hegel/)
-- [Heidegger](https://philosophie-fiches-web-chris.vercel.app/auteurs/heidegger/)
-- [Héraclite](https://philosophie-fiches-web-chris.vercel.app/auteurs/heraclite/)
-- [Hobbes](https://philosophie-fiches-web-chris.vercel.app/auteurs/hobbes/)
-- [Hume](https://philosophie-fiches-web-chris.vercel.app/auteurs/hume/)
-- [Husserl](https://philosophie-fiches-web-chris.vercel.app/auteurs/husserl/)
-- [Iris Murdoch](https://philosophie-fiches-web-chris.vercel.app/auteurs/iris-murdoch/)
-- [Jakobson](https://philosophie-fiches-web-chris.vercel.app/auteurs/jakobson/)
-- [Jankélévitch](https://philosophie-fiches-web-chris.vercel.app/auteurs/jankelevitch/)
-- [Jaspers](https://philosophie-fiches-web-chris.vercel.app/auteurs/jaspers/)
-- [Jeanne Hersch](https://philosophie-fiches-web-chris.vercel.app/auteurs/jeanne-hersch/)
-- [Kant](https://philosophie-fiches-web-chris.vercel.app/auteurs/kant/)
-- [Kierkegaard](https://philosophie-fiches-web-chris.vercel.app/auteurs/kierkegaard/)
-- [Kuhn](https://philosophie-fiches-web-chris.vercel.app/auteurs/kuhn/)
-- [La Boétie](https://philosophie-fiches-web-chris.vercel.app/auteurs/la-boetie/)
-- [Lafargue](https://philosophie-fiches-web-chris.vercel.app/auteurs/lafargue/)
-- [Leguil](https://philosophie-fiches-web-chris.vercel.app/auteurs/leguil/)
-- [Leibniz](https://philosophie-fiches-web-chris.vercel.app/auteurs/leibniz/)
-- [Lévi-Strauss](https://philosophie-fiches-web-chris.vercel.app/auteurs/levi-strauss/)
-- [Levinas](https://philosophie-fiches-web-chris.vercel.app/auteurs/levinas/)
-- [Lipovetsky](https://philosophie-fiches-web-chris.vercel.app/auteurs/lipovetsky/)
-- [Locke](https://philosophie-fiches-web-chris.vercel.app/auteurs/locke/)
-- [Lucrèce](https://philosophie-fiches-web-chris.vercel.app/auteurs/lucrece/)
-- [Machiavel](https://philosophie-fiches-web-chris.vercel.app/auteurs/machiavel/)
-- [Maïmonide](https://philosophie-fiches-web-chris.vercel.app/auteurs/maimonide/)
-- [Malebranche](https://philosophie-fiches-web-chris.vercel.app/auteurs/malebranche/)
-- [Marc Aurèle](https://philosophie-fiches-web-chris.vercel.app/auteurs/marc-aurele/)
-- [Marx](https://philosophie-fiches-web-chris.vercel.app/auteurs/marx/)
-- [Mauss](https://philosophie-fiches-web-chris.vercel.app/auteurs/mauss/)
-- [Merleau-Ponty](https://philosophie-fiches-web-chris.vercel.app/auteurs/merleau-ponty/)
-- [Michel Serres](https://philosophie-fiches-web-chris.vercel.app/auteurs/michel-serres/)
-- [Mill](https://philosophie-fiches-web-chris.vercel.app/auteurs/mill/)
-- [Montaigne](https://philosophie-fiches-web-chris.vercel.app/auteurs/montaigne/)
-- [Montesquieu](https://philosophie-fiches-web-chris.vercel.app/auteurs/montesquieu/)
-- [Nāgārjuna](https://philosophie-fiches-web-chris.vercel.app/auteurs/nagarjuna/)
-- [Nietzsche](https://philosophie-fiches-web-chris.vercel.app/auteurs/nietzsche/)
-- [Orwell](https://philosophie-fiches-web-chris.vercel.app/auteurs/orwell/)
-- [Parménide](https://philosophie-fiches-web-chris.vercel.app/auteurs/parmenide/)
-- [Pascal](https://philosophie-fiches-web-chris.vercel.app/auteurs/pascal/)
-- [Platon](https://philosophie-fiches-web-chris.vercel.app/auteurs/platon/)
-- [Plotin](https://philosophie-fiches-web-chris.vercel.app/auteurs/plotin/)
-- [Popper](https://philosophie-fiches-web-chris.vercel.app/auteurs/popper/)
-- [Putnam](https://philosophie-fiches-web-chris.vercel.app/auteurs/putnam/)
-- [Rawls](https://philosophie-fiches-web-chris.vercel.app/auteurs/rawls/)
-- [Raymond Aron](https://philosophie-fiches-web-chris.vercel.app/auteurs/raymond-aron/)
-- [Ricœur](https://philosophie-fiches-web-chris.vercel.app/auteurs/ricoeur/)
-- [Robert Nozick](https://philosophie-fiches-web-chris.vercel.app/auteurs/robert-nozick/)
-- [Rousseau](https://philosophie-fiches-web-chris.vercel.app/auteurs/rousseau/)
-- [Russell](https://philosophie-fiches-web-chris.vercel.app/auteurs/russell/)
-- [Sartre](https://philosophie-fiches-web-chris.vercel.app/auteurs/sartre/)
-- [Saussure](https://philosophie-fiches-web-chris.vercel.app/auteurs/saussure/)
-- [Schopenhauer](https://philosophie-fiches-web-chris.vercel.app/auteurs/schopenhauer/)
-- [Sénèque](https://philosophie-fiches-web-chris.vercel.app/auteurs/seneque/)
-- [Sextus Empiricus](https://philosophie-fiches-web-chris.vercel.app/auteurs/sextus-empiricus/)
-- [Simondon](https://philosophie-fiches-web-chris.vercel.app/auteurs/simondon/)
-- [Simone Weil](https://philosophie-fiches-web-chris.vercel.app/auteurs/simone-weil/)
-- [Spinoza](https://philosophie-fiches-web-chris.vercel.app/auteurs/spinoza/)
-- [Srdja Popovic](https://philosophie-fiches-web-chris.vercel.app/auteurs/srdja-popovic/)
-- [Stephen Jay Gould](https://philosophie-fiches-web-chris.vercel.app/auteurs/stephen-jay-gould/)
-- [Thomas d'Aquin](https://philosophie-fiches-web-chris.vercel.app/auteurs/thomas-d-aquin/)
-- [Thoreau](https://philosophie-fiches-web-chris.vercel.app/auteurs/thoreau/)
-- [Tisseron](https://philosophie-fiches-web-chris.vercel.app/auteurs/tisseron/)
-- [Tocqueville](https://philosophie-fiches-web-chris.vercel.app/auteurs/tocqueville/)
-- [Tristan Tzara](https://philosophie-fiches-web-chris.vercel.app/auteurs/tristan-tzara/)
-- [Val Plumwood](https://philosophie-fiches-web-chris.vercel.app/auteurs/val-plumwood/)
-- [Vico](https://philosophie-fiches-web-chris.vercel.app/auteurs/vico/)
-- [Walter Benjamin](https://philosophie-fiches-web-chris.vercel.app/auteurs/walter-benjamin/)
-- [Watzlawick](https://philosophie-fiches-web-chris.vercel.app/auteurs/watzlawick/)
-- [Weber](https://philosophie-fiches-web-chris.vercel.app/auteurs/weber/)
-- [William James](https://philosophie-fiches-web-chris.vercel.app/auteurs/william-james/)
-- [Wittgenstein](https://philosophie-fiches-web-chris.vercel.app/auteurs/wittgenstein/)
-- [Zhuangzi](https://philosophie-fiches-web-chris.vercel.app/auteurs/zhuangzi/)
+- [Adam Smith](https://philo.myprisme.fr/auteurs/adam-smith/)
+- [Alain](https://philo.myprisme.fr/auteurs/alain/)
+- [Amartya Sen](https://philo.myprisme.fr/auteurs/amartya-sen/)
+- [André Breton](https://philo.myprisme.fr/auteurs/andre-breton/)
+- [Anscombe](https://philo.myprisme.fr/auteurs/anscombe/)
+- [Anselme](https://philo.myprisme.fr/auteurs/anselme/)
+- [Aristote](https://philo.myprisme.fr/auteurs/aristote/)
+- [Augustin](https://philo.myprisme.fr/auteurs/augustin/)
+- [Austin](https://philo.myprisme.fr/auteurs/austin/)
+- [Averroès](https://philo.myprisme.fr/auteurs/averroes/)
+- [Avicenne](https://philo.myprisme.fr/auteurs/avicenne/)
+- [Bachelard](https://philo.myprisme.fr/auteurs/bachelard/)
+- [Bacon](https://philo.myprisme.fr/auteurs/bacon/)
+- [Baptiste Morizot](https://philo.myprisme.fr/auteurs/baptiste-morizot/)
+- [Barthes](https://philo.myprisme.fr/auteurs/barthes/)
+- [Baudrillard](https://philo.myprisme.fr/auteurs/baudrillard/)
+- [Beauvoir](https://philo.myprisme.fr/auteurs/beauvoir/)
+- [Bentham](https://philo.myprisme.fr/auteurs/bentham/)
+- [Benveniste](https://philo.myprisme.fr/auteurs/benveniste/)
+- [Bergson](https://philo.myprisme.fr/auteurs/bergson/)
+- [Berkeley](https://philo.myprisme.fr/auteurs/berkeley/)
+- [Boroditsky](https://philo.myprisme.fr/auteurs/boroditsky/)
+- [Bourdieu](https://philo.myprisme.fr/auteurs/bourdieu/)
+- [Camus](https://philo.myprisme.fr/auteurs/camus/)
+- [Cassin](https://philo.myprisme.fr/auteurs/cassin/)
+- [Christopher Stone](https://philo.myprisme.fr/auteurs/christopher-stone/)
+- [Cicéron](https://philo.myprisme.fr/auteurs/ciceron/)
+- [Comte](https://philo.myprisme.fr/auteurs/comte/)
+- [Condillac](https://philo.myprisme.fr/auteurs/condillac/)
+- [Cournot](https://philo.myprisme.fr/auteurs/cournot/)
+- [D'Holbach](https://philo.myprisme.fr/auteurs/d-holbach/)
+- [Darwin](https://philo.myprisme.fr/auteurs/darwin/)
+- [Descartes](https://philo.myprisme.fr/auteurs/descartes/)
+- [Diderot](https://philo.myprisme.fr/auteurs/diderot/)
+- [Durkheim](https://philo.myprisme.fr/auteurs/durkheim/)
+- [Einstein](https://philo.myprisme.fr/auteurs/einstein/)
+- [Ellul](https://philo.myprisme.fr/auteurs/ellul/)
+- [Engels](https://philo.myprisme.fr/auteurs/engels/)
+- [Épictète](https://philo.myprisme.fr/auteurs/epictete/)
+- [Épicure](https://philo.myprisme.fr/auteurs/epicure/)
+- [Feuerbach](https://philo.myprisme.fr/auteurs/feuerbach/)
+- [Foucault](https://philo.myprisme.fr/auteurs/foucault/)
+- [François Ost](https://philo.myprisme.fr/auteurs/francois-ost/)
+- [Frans de Waal](https://philo.myprisme.fr/auteurs/frans-de-waal/)
+- [Freud](https://philo.myprisme.fr/auteurs/freud/)
+- [Georges Perec](https://philo.myprisme.fr/auteurs/georges-perec/)
+- [Guillaume d'Ockham](https://philo.myprisme.fr/auteurs/guillaume-d-ockham/)
+- [Gunther Anders](https://philo.myprisme.fr/auteurs/gunther-anders/)
+- [Hannah Arendt](https://philo.myprisme.fr/auteurs/hannah-arendt/)
+- [Hans Jonas](https://philo.myprisme.fr/auteurs/hans-jonas/)
+- [Hartmut Rosa](https://philo.myprisme.fr/auteurs/hartmut-rosa/)
+- [Hegel](https://philo.myprisme.fr/auteurs/hegel/)
+- [Heidegger](https://philo.myprisme.fr/auteurs/heidegger/)
+- [Héraclite](https://philo.myprisme.fr/auteurs/heraclite/)
+- [Hobbes](https://philo.myprisme.fr/auteurs/hobbes/)
+- [Hume](https://philo.myprisme.fr/auteurs/hume/)
+- [Husserl](https://philo.myprisme.fr/auteurs/husserl/)
+- [Iris Murdoch](https://philo.myprisme.fr/auteurs/iris-murdoch/)
+- [Jakobson](https://philo.myprisme.fr/auteurs/jakobson/)
+- [Jankélévitch](https://philo.myprisme.fr/auteurs/jankelevitch/)
+- [Jaspers](https://philo.myprisme.fr/auteurs/jaspers/)
+- [Jeanne Hersch](https://philo.myprisme.fr/auteurs/jeanne-hersch/)
+- [Kant](https://philo.myprisme.fr/auteurs/kant/)
+- [Kierkegaard](https://philo.myprisme.fr/auteurs/kierkegaard/)
+- [Kuhn](https://philo.myprisme.fr/auteurs/kuhn/)
+- [La Boétie](https://philo.myprisme.fr/auteurs/la-boetie/)
+- [Lafargue](https://philo.myprisme.fr/auteurs/lafargue/)
+- [Leguil](https://philo.myprisme.fr/auteurs/leguil/)
+- [Leibniz](https://philo.myprisme.fr/auteurs/leibniz/)
+- [Lévi-Strauss](https://philo.myprisme.fr/auteurs/levi-strauss/)
+- [Levinas](https://philo.myprisme.fr/auteurs/levinas/)
+- [Lipovetsky](https://philo.myprisme.fr/auteurs/lipovetsky/)
+- [Locke](https://philo.myprisme.fr/auteurs/locke/)
+- [Lucrèce](https://philo.myprisme.fr/auteurs/lucrece/)
+- [Machiavel](https://philo.myprisme.fr/auteurs/machiavel/)
+- [Maïmonide](https://philo.myprisme.fr/auteurs/maimonide/)
+- [Malebranche](https://philo.myprisme.fr/auteurs/malebranche/)
+- [Marc Aurèle](https://philo.myprisme.fr/auteurs/marc-aurele/)
+- [Marx](https://philo.myprisme.fr/auteurs/marx/)
+- [Mauss](https://philo.myprisme.fr/auteurs/mauss/)
+- [Merleau-Ponty](https://philo.myprisme.fr/auteurs/merleau-ponty/)
+- [Michel Serres](https://philo.myprisme.fr/auteurs/michel-serres/)
+- [Mill](https://philo.myprisme.fr/auteurs/mill/)
+- [Montaigne](https://philo.myprisme.fr/auteurs/montaigne/)
+- [Montesquieu](https://philo.myprisme.fr/auteurs/montesquieu/)
+- [Nāgārjuna](https://philo.myprisme.fr/auteurs/nagarjuna/)
+- [Nietzsche](https://philo.myprisme.fr/auteurs/nietzsche/)
+- [Orwell](https://philo.myprisme.fr/auteurs/orwell/)
+- [Parménide](https://philo.myprisme.fr/auteurs/parmenide/)
+- [Pascal](https://philo.myprisme.fr/auteurs/pascal/)
+- [Platon](https://philo.myprisme.fr/auteurs/platon/)
+- [Plotin](https://philo.myprisme.fr/auteurs/plotin/)
+- [Popper](https://philo.myprisme.fr/auteurs/popper/)
+- [Putnam](https://philo.myprisme.fr/auteurs/putnam/)
+- [Rawls](https://philo.myprisme.fr/auteurs/rawls/)
+- [Raymond Aron](https://philo.myprisme.fr/auteurs/raymond-aron/)
+- [Ricœur](https://philo.myprisme.fr/auteurs/ricoeur/)
+- [Robert Nozick](https://philo.myprisme.fr/auteurs/robert-nozick/)
+- [Rousseau](https://philo.myprisme.fr/auteurs/rousseau/)
+- [Russell](https://philo.myprisme.fr/auteurs/russell/)
+- [Sartre](https://philo.myprisme.fr/auteurs/sartre/)
+- [Saussure](https://philo.myprisme.fr/auteurs/saussure/)
+- [Schopenhauer](https://philo.myprisme.fr/auteurs/schopenhauer/)
+- [Sénèque](https://philo.myprisme.fr/auteurs/seneque/)
+- [Sextus Empiricus](https://philo.myprisme.fr/auteurs/sextus-empiricus/)
+- [Simondon](https://philo.myprisme.fr/auteurs/simondon/)
+- [Simone Weil](https://philo.myprisme.fr/auteurs/simone-weil/)
+- [Spinoza](https://philo.myprisme.fr/auteurs/spinoza/)
+- [Srdja Popovic](https://philo.myprisme.fr/auteurs/srdja-popovic/)
+- [Stephen Jay Gould](https://philo.myprisme.fr/auteurs/stephen-jay-gould/)
+- [Thomas d'Aquin](https://philo.myprisme.fr/auteurs/thomas-d-aquin/)
+- [Thoreau](https://philo.myprisme.fr/auteurs/thoreau/)
+- [Tisseron](https://philo.myprisme.fr/auteurs/tisseron/)
+- [Tocqueville](https://philo.myprisme.fr/auteurs/tocqueville/)
+- [Tristan Tzara](https://philo.myprisme.fr/auteurs/tristan-tzara/)
+- [Val Plumwood](https://philo.myprisme.fr/auteurs/val-plumwood/)
+- [Vico](https://philo.myprisme.fr/auteurs/vico/)
+- [Walter Benjamin](https://philo.myprisme.fr/auteurs/walter-benjamin/)
+- [Watzlawick](https://philo.myprisme.fr/auteurs/watzlawick/)
+- [Weber](https://philo.myprisme.fr/auteurs/weber/)
+- [William James](https://philo.myprisme.fr/auteurs/william-james/)
+- [Wittgenstein](https://philo.myprisme.fr/auteurs/wittgenstein/)
+- [Zhuangzi](https://philo.myprisme.fr/auteurs/zhuangzi/)
 
 ## Outil interactif
 
-- [Graphe, quiz et méthodologie](https://philosophie-fiches-web-chris.vercel.app/): application web (JavaScript), installable et utilisable hors ligne.
+- [Graphe, quiz et méthodologie](https://philo.myprisme.fr/): application web (JavaScript), installable et utilisable hors ligne.
