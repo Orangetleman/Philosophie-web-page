@@ -1,0 +1,38 @@
+/* fiche.css — style des PAGES STATIQUES (notions/, auteurs/, fiches/),
+   générées par outils/lib/pages.mjs pour le référencement. Volontairement
+   court et autonome : aucune police externe, aucun JS, la page s'affiche
+   d'un coup (bon LCP). Suit le thème sombre du site, et le thème clair du
+   système si c'est celui du lecteur. */
+:root{--bg:#121212;--panel:#1b1b1b;--txt:#e6e6e6;--mut:#a0a0a0;--acc:#8fb4ff;--bord:#2c2c2c;--kw:#f0c674}
+@media (prefers-color-scheme:light){:root{--bg:#fafaf7;--panel:#fff;--txt:#1d1d1d;--mut:#5c5c5c;--acc:#2456c9;--bord:#ddd;--kw:#8a5a00}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--txt);font:17px/1.65 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--acc)}
+.fh{display:flex;flex-wrap:wrap;gap:8px 20px;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:1px solid var(--bord)}
+.fh-site{font-weight:600;text-decoration:none;color:var(--txt)}
+.fh-site span{color:var(--mut);font-weight:400}
+.fm{max-width:780px;margin:0 auto;padding:16px}
+.fa{font-size:.85em;color:var(--mut);margin-bottom:12px}
+.sur{color:var(--mut);font-size:.85em;margin:0}
+.hp{color:var(--kw)}
+h1{font-size:2em;line-height:1.2;margin:.2em 0}
+.ques{font-size:1.15em;color:var(--mut);margin-top:0}
+h2{margin-top:2em;padding-top:.5em;border-top:1px solid var(--bord)}
+h3{margin-bottom:.3em}
+.btn{display:inline-block;margin:4px 6px 4px 0;padding:8px 14px;border-radius:8px;background:var(--acc);color:var(--bg);text-decoration:none;font-weight:600}
+.btn.sec{background:transparent;color:var(--acc);border:1px solid var(--acc)}
+.som{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.9em}
+.kw{color:var(--kw);font-weight:600}
+details{background:var(--panel);border:1px solid var(--bord);border-radius:8px;padding:8px 12px;margin:12px 0}
+summary{cursor:pointer;font-weight:600}
+.def-sec-title{font-weight:600;margin-top:10px}
+.oeuvre{color:var(--mut);margin:.6em 0 0}
+blockquote{margin:.5em 0;padding:.3em 1em;border-left:3px solid var(--acc);background:var(--panel)}
+.aut,.plan{margin-bottom:1.2em}
+dt{font-weight:600;margin-top:.8em}
+dd{margin:0 0 0 1em}
+.tags{list-style:none;padding:0;display:flex;flex-wrap:wrap;gap:8px}
+.tags li a{display:inline-block;padding:3px 10px;border:1px solid var(--bord);border-radius:999px;text-decoration:none}
+.liste small,.lien,small{color:var(--mut)}
+.ff{max-width:780px;margin:32px auto 0;padding:16px;font-size:.85em;color:var(--mut);border-top:1px solid var(--bord)}
+.reform{color:var(--mut);font-style:italic}

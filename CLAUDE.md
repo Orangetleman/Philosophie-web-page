@@ -19,6 +19,7 @@ liste officielle, 5 hors programme, 6 enrichir ; décisions de l'auteur au
 | `js/`, `css/` | **le code** du site, en morceaux numérotés (`js/01-…` à `16-…`, puis `99-demarrage.js` en dernier ; `css/01-…` à `10-…`) | **oui** |
 | `index.html` | le squelette HTML ; charge `app.css`, `data.js`, puis `app.js` | oui (HTML seulement) |
 | `data.js`, `app.js`, `app.css` | **générés** par le build à partir de `contenu/`, `js/`, `css/` | **jamais** |
+| `notions/`, `auteurs/`, `fiches/`, `sitemap.xml`, `robots.txt`, `llms.txt` | **générés** par le build (`outils/lib/pages.mjs`) : une page HTML statique par fiche, pour le référencement (Google, assistants IA) ; style dans `fiche.css` (à la main) | **jamais** |
 | `sw.js` | service worker ; ses lignes `CACHE` et `PRECACHE` sont écrites par le build | le reste, oui |
 | `outils/` | `construire.mjs` (build), `verifier_contenu.mjs` (contrôle), `lib/` (formats, écriture), `banc/` (règles d'accès Supabase) | oui |
 | `docs/` | diagnostic, protocole du contenu, architecture détaillée, carte du projet | oui |

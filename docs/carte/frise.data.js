@@ -1,8 +1,26 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
-  "genere_le": "2026-10-06T19:33:50.298Z",
+  "genere_le": "2026-11-12T00:31:15.034Z",
   "commits": [
+    {
+      "hash": "7a9cad5d342b3fe08bd1a4b537e9ab85c9cb6e0e",
+      "short": "7a9cad5",
+      "auteur": "Orangentleman",
+      "date": "2026-10-07T00:50:03+02:00",
+      "sujet": "Merge pull request #15 from Orangetleman/claude/etape-6-enrichir",
+      "corps": "Mise à jour, étape 6 : thème clair, Explorer (frise, graphe, sujets du bac), fiche imprimable",
+      "tag": ""
+    },
+    {
+      "hash": "c1a127edb805cf112ffde7145de48c36e0cdceca",
+      "short": "c1a127e",
+      "auteur": "Orangentleman",
+      "date": "2026-10-06T21:33:49+02:00",
+      "sujet": "Documentation de l'étape 6 : morceaux js/css, globales, dates des auteurs, sujets du bac, compte rendu",
+      "corps": "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": "Documentation de l'étape 6"
+    },
     {
       "hash": "6914b7427e28d8fa14330f053a1e7f1ae649be95",
       "short": "6914b74",

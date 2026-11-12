@@ -19,6 +19,9 @@
         source et sa ligne) ;
      5. recalcule CACHE et PRECACHE de sw.js : la version est une empreinte
         du contenu des fichiers précachés (plus de philo-vN à incrémenter) ;
+     5 bis. écrit les pages statiques (référencement, nov. 2026 :
+        outils/lib/pages.mjs) : notions/, auteurs/, fiches/, sitemap.xml,
+        robots.txt, llms.txt ;
      6. lance outils/verifier_contenu.mjs : un contenu incohérent fait
         échouer le build (sortie 1).
 
@@ -40,6 +43,7 @@ import crypto from 'crypto';
 import { spawnSync } from 'child_process';
 import { fileURLToPath } from 'url';
 import { normaliserNotion, normaliserConcept } from './lib/formats.mjs';
+import { genererPages } from './lib/pages.mjs';
 
 const RACINE = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const CONTENU = path.join(RACINE, 'contenu');
@@ -47,7 +51,18 @@ const CONTROLE = process.argv.includes('--controle');
 
 // Fichiers mis en cache par le service worker pour le hors-ligne. Ajouter ici
 // toute ressource statique nouvelle : sw.js et sa version suivent tout seuls.
-export const PRECACHE = ['./', './index.html', './app.css', './app.js', './data.js', './manifest.json', './icon.svg'];
+export const PRECACHE = ['./', './index.html', './app.css', './app.js', './data.js', './manifest.json', './icon.svg', './fiche.css'];
+
+// Dossiers des pages statiques : ENTIÈREMENT générés (une page sans fiche y est retirée).
+const DOSSIERS_PAGES = ['notions', 'auteurs', 'fiches'];
+
+/* listerHtml(dossier) — les fichiers .html d'un dossier et de ses sous-dossiers
+   (tableau vide si le dossier n'existe pas encore). */
+function listerHtml(d) {
+  if (!fs.existsSync(d)) return [];
+  return fs.readdirSync(d, { withFileTypes: true }).flatMap(e =>
+    e.isDirectory() ? listerHtml(path.join(d, e.name)) : e.name.endsWith('.html') ? [path.join(d, e.name)] : []);
+}
 
 const echec = m => { console.error('ÉCHEC : ' + m); process.exit(1); };
 const lireTexte = f => fs.readFileSync(f, 'utf8').replace(/\r\n/g, '\n');
@@ -220,13 +235,21 @@ function main() {
   const faute = syntaxe(app);
   if (faute) echec('erreur de syntaxe dans ' + faute);
 
+  const donnees = assembler(chargerSources());
   const produits = {
-    'data.js': ecrireData(assembler(chargerSources())),
+    'data.js': ecrireData(donnees),
     'app.js': app.texte,
     'app.css': recoller('css', '.css', ENTETE_CSS).texte,
   };
   const fSw = path.join(RACINE, 'sw.js');
   produits['sw.js'] = ecrireSw(lireTexte(fSw).replace(/[ \t]*\/\/ version calculée[^\n]*/, ''), produits);
+  // 5 bis. Pages statiques (référencement) : une page HTML par fiche + sitemap,
+  //    robots.txt, llms.txt (outils/lib/pages.mjs). Hors du précache.
+  const pages = genererPages(donnees);
+  Object.assign(produits, pages);
+  // Pages d'un ancien build dont la fiche a disparu ou changé d'adresse.
+  const orphelines = DOSSIERS_PAGES.flatMap(d => listerHtml(path.join(RACINE, d)))
+    .map(f => path.relative(RACINE, f).split(path.sep).join('/')).filter(f => !pages[f]);
 
   // La carte du projet : ses refs « fichier:ligne » suivent le code (étape 3).
   const carte = args => spawnSync(process.execPath, [path.join(RACINE, 'docs', 'carte', 'verifie.mjs'), ...args], { encoding: 'utf8' });
@@ -234,13 +257,19 @@ function main() {
   if (CONTROLE) {
     const perimes = Object.keys(produits).filter(n => !fs.existsSync(path.join(RACINE, n)) || lireTexte(path.join(RACINE, n)) !== produits[n]);
     if (carte([]).status !== 0) perimes.push('docs/carte/carte.data.js (refs)');
-    if (perimes.length) { console.error(perimes.join(', ') + ' pas à jour : lancer « node outils/construire.mjs ».'); process.exit(1); }
-    console.log('data.js, app.js, app.css, sw.js et la carte sont à jour.');
+    perimes.push(...orphelines.map(f => f + ' (orpheline)'));
+    if (perimes.length) { console.error(perimes.slice(0, 12).join(', ') + (perimes.length > 12 ? ` (+${perimes.length - 12})` : '') + ' pas à jour : lancer « node outils/construire.mjs ».'); process.exit(1); }
+    console.log('data.js, app.js, app.css, sw.js, les pages statiques et la carte sont à jour.');
     return;
   }
-  Object.entries(produits).forEach(([n, t]) => fs.writeFileSync(path.join(RACINE, n), t));
+  orphelines.forEach(f => fs.rmSync(path.join(RACINE, f)));
+  Object.entries(produits).forEach(([n, t]) => {
+    fs.mkdirSync(path.dirname(path.join(RACINE, n)), { recursive: true });
+    fs.writeFileSync(path.join(RACINE, n), t);
+  });
   const ko = n => Math.round(produits[n].length / 1024) + ' Ko';
   console.log(`écrits : data.js (${ko('data.js')}), app.js (${ko('app.js')}), app.css (${ko('app.css')}), sw.js (${produits['sw.js'].match(/const CACHE = '([^']*)'/)[1]})`);
+  console.log(`pages statiques : ${Object.keys(pages).filter(p => p.endsWith('.html')).length} pages, sitemap.xml, robots.txt, llms.txt` + (orphelines.length ? ` ; ${orphelines.length} orpheline(s) retirée(s)` : ''));
 
   const c = carte(['--corriger']);
   console.log(c.stdout.trim().split('\n').filter(l => /symboles|PÉRIMÉ/.test(l)).join('\n'));

@@ -78,7 +78,22 @@
 -->
 <html lang="fr"><head><meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Graphe Philosophie — Terminale</title>
+<title>Fiches de révision bac philo : les 17 notions en graphe et quiz | Graphe Philosophie</title>
+<!-- Référencement (nov. 2026) : description, adresse canonique, Open Graph
+     (aperçu des liens partagés) et données structurées schema.org. Le texte
+     des fiches, rendu ici en JS, existe aussi en pages statiques
+     (notions/…, auteurs/…, fiches/ : outils/lib/pages.mjs) que lisent les
+     robots qui n'exécutent pas le JavaScript. -->
+<meta name="description" content="Révise la philosophie du bac avec des fiches interactives : les 17 notions de Terminale, 130 auteurs, citations, plans de dissertation, sujets tombés au bac et un quiz à répétition espacée. Gratuit, hors ligne.">
+<link rel="canonical" href="https://philosophie-fiches-web-chris.vercel.app/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Graphe Philosophie">
+<meta property="og:locale" content="fr_FR">
+<meta property="og:title" content="Fiches de révision bac philo : les 17 notions en graphe et quiz">
+<meta property="og:description" content="Fiches interactives des 17 notions de philosophie de Terminale : auteurs, citations, plans de dissertation, sujets du bac et quiz. Gratuit.">
+<meta property="og:url" content="https://philosophie-fiches-web-chris.vercel.app/">
+<meta name="twitter:card" content="summary">
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","name":"Graphe Philosophie","alternateName":"Graphe Philosophie — Terminale","url":"https://philosophie-fiches-web-chris.vercel.app/","inLanguage":"fr"},{"@type":["WebApplication","LearningResource"],"name":"Graphe Philosophie — Terminale","url":"https://philosophie-fiches-web-chris.vercel.app/","applicationCategory":"EducationalApplication","operatingSystem":"Tous (navigateur web)","offers":{"@type":"Offer","price":"0","priceCurrency":"EUR"},"isAccessibleForFree":true,"inLanguage":"fr","educationalLevel":"Terminale (lycée, baccalauréat)","learningResourceType":["Fiche de révision","Quiz"],"description":"Fiches de révision de philosophie pour le bac : les 17 notions du programme de Terminale en graphe interactif, auteurs, citations, plans de dissertation, sujets tombés au bac et quiz.","hasPart":{"@type":"CollectionPage","name":"Toutes les fiches","url":"https://philosophie-fiches-web-chris.vercel.app/fiches/"}}]}</script>
 <!-- Favicon SVG inline : un emoji 🏛️ (temple antique) rendu comme texte dans un
      SVG en data-URI. Astuce qui préserve le mono-fichier (aucune image externe à
      charger). L'emoji est rendu via la fonte système — pas de typo à embarquer. -->
@@ -87,6 +102,11 @@
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#121212">
 <link rel="apple-touch-icon" href="icon.svg">
+<!-- preconnect (nov. 2026) : ouvre tôt la connexion aux serveurs de la police
+     et du CDN, ce qui raccourcit l'attente avant le premier affichage. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <!-- Thème (étape 6) : posé AVANT le premier affichage, pour éviter un éclair
      sombre en thème clair. 'sombre' (défaut), 'clair' ou 'auto' ; le reste
@@ -97,6 +117,9 @@
 <body>
 
 <div class="sr-only">Graphe de révision philosophie — 17 notions du programme de Terminale avec auteurs, citations, concepts, plans de dissertation et exemples ; mode quiz et proposition de contenu</div>
+<!-- Sans JavaScript (certains robots, navigateurs bridés) : renvoi vers les
+     pages statiques, qui ont tout le texte des fiches. -->
+<noscript><p style="padding:16px">Cet outil interactif demande JavaScript. Toutes les fiches existent aussi en pages simples : <a href="fiches/">fiches de révision des 17 notions et des auteurs</a>.</p></noscript>
 <!-- Tiroir responsive : voile (visible uniquement ≤700px ; burger inline ci-dessous) -->
 <div class="sb-backdrop" id="sb-backdrop" aria-hidden="true"></div>
 <div class="wrap">
@@ -260,7 +283,11 @@
   <button class="help-item" role="menuitem" onclick="tourGoPart('proposer')">Proposer / éditer</button>
 </div>
 
-<script src="data.js"></script>
+<!-- defer (nov. 2026) : les trois scripts se téléchargent pendant la lecture
+     de la page et s'exécutent ensuite, DANS L'ORDRE (data.js, supabase,
+     app.js), juste avant DOMContentLoaded : même ordre qu'avant, mais le
+     navigateur n'interrompt plus l'analyse du HTML pour les attendre. -->
+<script src="data.js" defer></script>
 <!-- new (comptes) : bibliothèque cliente Supabase (authentification +
      base en ligne). Chargée AVANT le script principal pour exposer le
      global « supabase » (porteur de createClient), dont on se sert plus
@@ -271,8 +298,8 @@
      monter de version : changer le numéro ET recalculer l'empreinte
      (sha384 du fichier dist/umd/supabase.js, encodée en base64). Garder la
      même ligne dans triage/index.html. -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js" integrity="sha384-Rj26LVGvoeRVR6+mwQmFfcR3QOBEwT+ZmuCWpuiqeTzJpCs0ER4ITAWGb4Hiy3Ok" crossorigin="anonymous"></script>
-<script src="app.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js" integrity="sha384-Rj26LVGvoeRVR6+mwQmFfcR3QOBEwT+ZmuCWpuiqeTzJpCs0ER4ITAWGb4Hiy3Ok" crossorigin="anonymous" defer></script>
+<script src="app.js" defer></script>
 
 
 </body></html>

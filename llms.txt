@@ -1,0 +1,168 @@
+# Graphe Philosophie — Terminale
+
+> Site gratuit de révision de la philosophie au baccalauréat (programme français de Terminale, BO 2019) : une fiche par notion avec définitions, auteurs, citations, plans de dissertation, sujets tombés au bac et exemples ; une fiche par auteur ; un graphe interactif des notions, un quiz à répétition espacée et une méthodologie de la dissertation et de l'explication de texte.
+
+Contenu rédigé par des élèves, relu mais pouvant contenir des erreurs. Les citations sont entre guillemets « » uniquement quand elles ont été vérifiées.
+
+## Notions du programme
+
+- [La conscience](https://philosophie-fiches-web-chris.vercel.app/notions/la-conscience/): Qu'est-ce que la conscience ?
+- [L’inconscient](https://philosophie-fiches-web-chris.vercel.app/notions/l-inconscient/): L'inconscient remet-il en cause notre liberté ?
+- [Le devoir](https://philosophie-fiches-web-chris.vercel.app/notions/le-devoir/): Sommes-nous obligés d'agir moralement ?
+- [La liberté](https://philosophie-fiches-web-chris.vercel.app/notions/la-liberte/): Sommes-nous vraiment libres ?
+- [Le bonheur](https://philosophie-fiches-web-chris.vercel.app/notions/le-bonheur/): En quoi consiste le bonheur ?
+- [La religion](https://philosophie-fiches-web-chris.vercel.app/notions/la-religion/): La religion est-elle compatible avec la raison ?
+- [Le langage](https://philosophie-fiches-web-chris.vercel.app/notions/le-langage/): Le langage ne sert-il qu'à communiquer ?
+- [L’art](https://philosophie-fiches-web-chris.vercel.app/notions/l-art/): L'artiste travaille-t-il ?
+- [La technique](https://philosophie-fiches-web-chris.vercel.app/notions/la-technique/): La technique nous libère-t-elle ou nous aliène-t-elle ?
+- [Le travail](https://philosophie-fiches-web-chris.vercel.app/notions/le-travail/): Le travail libère-t-il ou aliène-t-il ?
+- [La justice](https://philosophie-fiches-web-chris.vercel.app/notions/la-justice/): Qu'est-ce qu'une société juste ?
+- [L’État](https://philosophie-fiches-web-chris.vercel.app/notions/l-etat/): L'État est-il nécessaire ?
+- [La nature](https://philosophie-fiches-web-chris.vercel.app/notions/la-nature/): Qu'est-ce qui est naturel ?
+- [La raison](https://philosophie-fiches-web-chris.vercel.app/notions/la-raison/): La raison peut-elle tout expliquer ?
+- [La science](https://philosophie-fiches-web-chris.vercel.app/notions/la-science/): La science peut-elle tout expliquer ?
+- [La vérité](https://philosophie-fiches-web-chris.vercel.app/notions/la-verite/): Peut-on douter de tout ?
+- [Le temps](https://philosophie-fiches-web-chris.vercel.app/notions/le-temps/): Pouvons-nous maîtriser le temps ?
+
+## Notions complémentaires
+
+- [Autrui](https://philosophie-fiches-web-chris.vercel.app/notions/autrui/): Ai-je besoin d’autrui pour être moi-même ?
+- [Le désir](https://philosophie-fiches-web-chris.vercel.app/notions/le-desir/): Le désir est-il la marque de notre imperfection ?
+- [L’histoire](https://philosophie-fiches-web-chris.vercel.app/notions/l-histoire/): L’histoire a-t-elle un sens ?
+- [La perception](https://philosophie-fiches-web-chris.vercel.app/notions/la-perception/): Percevoir, est-ce connaître ?
+- [L’existence](https://philosophie-fiches-web-chris.vercel.app/notions/l-existence/): Exister, est-ce seulement être là ?
+- [Le vivant](https://philosophie-fiches-web-chris.vercel.app/notions/le-vivant/): Le vivant n'est-il qu'une machine ?
+- [La matière et esprit](https://philosophie-fiches-web-chris.vercel.app/notions/la-matiere-et-l-esprit/): L'esprit est-il autre chose que la matière ?
+- [L’interprétation](https://philosophie-fiches-web-chris.vercel.app/notions/l-interpretation/): Tout est-il affaire d'interprétation ?
+- [La démonstration](https://philosophie-fiches-web-chris.vercel.app/notions/la-demonstration/): Peut-on tout démontrer ?
+- [La société](https://philosophie-fiches-web-chris.vercel.app/notions/la-societe/): La société est-elle naturelle ?
+
+## Auteurs
+
+- [Adam Smith](https://philosophie-fiches-web-chris.vercel.app/auteurs/adam-smith/)
+- [Alain](https://philosophie-fiches-web-chris.vercel.app/auteurs/alain/)
+- [Amartya Sen](https://philosophie-fiches-web-chris.vercel.app/auteurs/amartya-sen/)
+- [André Breton](https://philosophie-fiches-web-chris.vercel.app/auteurs/andre-breton/)
+- [Anscombe](https://philosophie-fiches-web-chris.vercel.app/auteurs/anscombe/)
+- [Anselme](https://philosophie-fiches-web-chris.vercel.app/auteurs/anselme/)
+- [Aristote](https://philosophie-fiches-web-chris.vercel.app/auteurs/aristote/)
+- [Augustin](https://philosophie-fiches-web-chris.vercel.app/auteurs/augustin/)
+- [Austin](https://philosophie-fiches-web-chris.vercel.app/auteurs/austin/)
+- [Averroès](https://philosophie-fiches-web-chris.vercel.app/auteurs/averroes/)
+- [Avicenne](https://philosophie-fiches-web-chris.vercel.app/auteurs/avicenne/)
+- [Bachelard](https://philosophie-fiches-web-chris.vercel.app/auteurs/bachelard/)
+- [Bacon](https://philosophie-fiches-web-chris.vercel.app/auteurs/bacon/)
+- [Baptiste Morizot](https://philosophie-fiches-web-chris.vercel.app/auteurs/baptiste-morizot/)
+- [Barthes](https://philosophie-fiches-web-chris.vercel.app/auteurs/barthes/)
+- [Baudrillard](https://philosophie-fiches-web-chris.vercel.app/auteurs/baudrillard/)
+- [Beauvoir](https://philosophie-fiches-web-chris.vercel.app/auteurs/beauvoir/)
+- [Bentham](https://philosophie-fiches-web-chris.vercel.app/auteurs/bentham/)
+- [Benveniste](https://philosophie-fiches-web-chris.vercel.app/auteurs/benveniste/)
+- [Bergson](https://philosophie-fiches-web-chris.vercel.app/auteurs/bergson/)
+- [Berkeley](https://philosophie-fiches-web-chris.vercel.app/auteurs/berkeley/)
+- [Boroditsky](https://philosophie-fiches-web-chris.vercel.app/auteurs/boroditsky/)
+- [Bourdieu](https://philosophie-fiches-web-chris.vercel.app/auteurs/bourdieu/)
+- [Camus](https://philosophie-fiches-web-chris.vercel.app/auteurs/camus/)
+- [Cassin](https://philosophie-fiches-web-chris.vercel.app/auteurs/cassin/)
+- [Christopher Stone](https://philosophie-fiches-web-chris.vercel.app/auteurs/christopher-stone/)
+- [Cicéron](https://philosophie-fiches-web-chris.vercel.app/auteurs/ciceron/)
+- [Comte](https://philosophie-fiches-web-chris.vercel.app/auteurs/comte/)
+- [Condillac](https://philosophie-fiches-web-chris.vercel.app/auteurs/condillac/)
+- [Cournot](https://philosophie-fiches-web-chris.vercel.app/auteurs/cournot/)
+- [D'Holbach](https://philosophie-fiches-web-chris.vercel.app/auteurs/d-holbach/)
+- [Darwin](https://philosophie-fiches-web-chris.vercel.app/auteurs/darwin/)
+- [Descartes](https://philosophie-fiches-web-chris.vercel.app/auteurs/descartes/)
+- [Diderot](https://philosophie-fiches-web-chris.vercel.app/auteurs/diderot/)
+- [Durkheim](https://philosophie-fiches-web-chris.vercel.app/auteurs/durkheim/)
+- [Einstein](https://philosophie-fiches-web-chris.vercel.app/auteurs/einstein/)
+- [Ellul](https://philosophie-fiches-web-chris.vercel.app/auteurs/ellul/)
+- [Engels](https://philosophie-fiches-web-chris.vercel.app/auteurs/engels/)
+- [Épictète](https://philosophie-fiches-web-chris.vercel.app/auteurs/epictete/)
+- [Épicure](https://philosophie-fiches-web-chris.vercel.app/auteurs/epicure/)
+- [Feuerbach](https://philosophie-fiches-web-chris.vercel.app/auteurs/feuerbach/)
+- [Foucault](https://philosophie-fiches-web-chris.vercel.app/auteurs/foucault/)
+- [François Ost](https://philosophie-fiches-web-chris.vercel.app/auteurs/francois-ost/)
+- [Frans de Waal](https://philosophie-fiches-web-chris.vercel.app/auteurs/frans-de-waal/)
+- [Freud](https://philosophie-fiches-web-chris.vercel.app/auteurs/freud/)
+- [Georges Perec](https://philosophie-fiches-web-chris.vercel.app/auteurs/georges-perec/)
+- [Guillaume d'Ockham](https://philosophie-fiches-web-chris.vercel.app/auteurs/guillaume-d-ockham/)
+- [Gunther Anders](https://philosophie-fiches-web-chris.vercel.app/auteurs/gunther-anders/)
+- [Hannah Arendt](https://philosophie-fiches-web-chris.vercel.app/auteurs/hannah-arendt/)
+- [Hans Jonas](https://philosophie-fiches-web-chris.vercel.app/auteurs/hans-jonas/)
+- [Hartmut Rosa](https://philosophie-fiches-web-chris.vercel.app/auteurs/hartmut-rosa/)
+- [Hegel](https://philosophie-fiches-web-chris.vercel.app/auteurs/hegel/)
+- [Heidegger](https://philosophie-fiches-web-chris.vercel.app/auteurs/heidegger/)
+- [Héraclite](https://philosophie-fiches-web-chris.vercel.app/auteurs/heraclite/)
+- [Hobbes](https://philosophie-fiches-web-chris.vercel.app/auteurs/hobbes/)
+- [Hume](https://philosophie-fiches-web-chris.vercel.app/auteurs/hume/)
+- [Husserl](https://philosophie-fiches-web-chris.vercel.app/auteurs/husserl/)
+- [Iris Murdoch](https://philosophie-fiches-web-chris.vercel.app/auteurs/iris-murdoch/)
+- [Jakobson](https://philosophie-fiches-web-chris.vercel.app/auteurs/jakobson/)
+- [Jankélévitch](https://philosophie-fiches-web-chris.vercel.app/auteurs/jankelevitch/)
+- [Jaspers](https://philosophie-fiches-web-chris.vercel.app/auteurs/jaspers/)
+- [Jeanne Hersch](https://philosophie-fiches-web-chris.vercel.app/auteurs/jeanne-hersch/)
+- [Kant](https://philosophie-fiches-web-chris.vercel.app/auteurs/kant/)
+- [Kierkegaard](https://philosophie-fiches-web-chris.vercel.app/auteurs/kierkegaard/)
+- [Kuhn](https://philosophie-fiches-web-chris.vercel.app/auteurs/kuhn/)
+- [La Boétie](https://philosophie-fiches-web-chris.vercel.app/auteurs/la-boetie/)
+- [Lafargue](https://philosophie-fiches-web-chris.vercel.app/auteurs/lafargue/)
+- [Leguil](https://philosophie-fiches-web-chris.vercel.app/auteurs/leguil/)
+- [Leibniz](https://philosophie-fiches-web-chris.vercel.app/auteurs/leibniz/)
+- [Lévi-Strauss](https://philosophie-fiches-web-chris.vercel.app/auteurs/levi-strauss/)
+- [Levinas](https://philosophie-fiches-web-chris.vercel.app/auteurs/levinas/)
+- [Lipovetsky](https://philosophie-fiches-web-chris.vercel.app/auteurs/lipovetsky/)
+- [Locke](https://philosophie-fiches-web-chris.vercel.app/auteurs/locke/)
+- [Lucrèce](https://philosophie-fiches-web-chris.vercel.app/auteurs/lucrece/)
+- [Machiavel](https://philosophie-fiches-web-chris.vercel.app/auteurs/machiavel/)
+- [Maïmonide](https://philosophie-fiches-web-chris.vercel.app/auteurs/maimonide/)
+- [Malebranche](https://philosophie-fiches-web-chris.vercel.app/auteurs/malebranche/)
+- [Marc Aurèle](https://philosophie-fiches-web-chris.vercel.app/auteurs/marc-aurele/)
+- [Marx](https://philosophie-fiches-web-chris.vercel.app/auteurs/marx/)
+- [Mauss](https://philosophie-fiches-web-chris.vercel.app/auteurs/mauss/)
+- [Merleau-Ponty](https://philosophie-fiches-web-chris.vercel.app/auteurs/merleau-ponty/)
+- [Michel Serres](https://philosophie-fiches-web-chris.vercel.app/auteurs/michel-serres/)
+- [Mill](https://philosophie-fiches-web-chris.vercel.app/auteurs/mill/)
+- [Montaigne](https://philosophie-fiches-web-chris.vercel.app/auteurs/montaigne/)
+- [Montesquieu](https://philosophie-fiches-web-chris.vercel.app/auteurs/montesquieu/)
+- [Nāgārjuna](https://philosophie-fiches-web-chris.vercel.app/auteurs/nagarjuna/)
+- [Nietzsche](https://philosophie-fiches-web-chris.vercel.app/auteurs/nietzsche/)
+- [Orwell](https://philosophie-fiches-web-chris.vercel.app/auteurs/orwell/)
+- [Parménide](https://philosophie-fiches-web-chris.vercel.app/auteurs/parmenide/)
+- [Pascal](https://philosophie-fiches-web-chris.vercel.app/auteurs/pascal/)
+- [Platon](https://philosophie-fiches-web-chris.vercel.app/auteurs/platon/)
+- [Plotin](https://philosophie-fiches-web-chris.vercel.app/auteurs/plotin/)
+- [Popper](https://philosophie-fiches-web-chris.vercel.app/auteurs/popper/)
+- [Putnam](https://philosophie-fiches-web-chris.vercel.app/auteurs/putnam/)
+- [Rawls](https://philosophie-fiches-web-chris.vercel.app/auteurs/rawls/)
+- [Raymond Aron](https://philosophie-fiches-web-chris.vercel.app/auteurs/raymond-aron/)
+- [Ricœur](https://philosophie-fiches-web-chris.vercel.app/auteurs/ricoeur/)
+- [Robert Nozick](https://philosophie-fiches-web-chris.vercel.app/auteurs/robert-nozick/)
+- [Rousseau](https://philosophie-fiches-web-chris.vercel.app/auteurs/rousseau/)
+- [Russell](https://philosophie-fiches-web-chris.vercel.app/auteurs/russell/)
+- [Sartre](https://philosophie-fiches-web-chris.vercel.app/auteurs/sartre/)
+- [Saussure](https://philosophie-fiches-web-chris.vercel.app/auteurs/saussure/)
+- [Schopenhauer](https://philosophie-fiches-web-chris.vercel.app/auteurs/schopenhauer/)
+- [Sénèque](https://philosophie-fiches-web-chris.vercel.app/auteurs/seneque/)
+- [Sextus Empiricus](https://philosophie-fiches-web-chris.vercel.app/auteurs/sextus-empiricus/)
+- [Simondon](https://philosophie-fiches-web-chris.vercel.app/auteurs/simondon/)
+- [Simone Weil](https://philosophie-fiches-web-chris.vercel.app/auteurs/simone-weil/)
+- [Spinoza](https://philosophie-fiches-web-chris.vercel.app/auteurs/spinoza/)
+- [Srdja Popovic](https://philosophie-fiches-web-chris.vercel.app/auteurs/srdja-popovic/)
+- [Stephen Jay Gould](https://philosophie-fiches-web-chris.vercel.app/auteurs/stephen-jay-gould/)
+- [Thomas d'Aquin](https://philosophie-fiches-web-chris.vercel.app/auteurs/thomas-d-aquin/)
+- [Thoreau](https://philosophie-fiches-web-chris.vercel.app/auteurs/thoreau/)
+- [Tisseron](https://philosophie-fiches-web-chris.vercel.app/auteurs/tisseron/)
+- [Tocqueville](https://philosophie-fiches-web-chris.vercel.app/auteurs/tocqueville/)
+- [Tristan Tzara](https://philosophie-fiches-web-chris.vercel.app/auteurs/tristan-tzara/)
+- [Val Plumwood](https://philosophie-fiches-web-chris.vercel.app/auteurs/val-plumwood/)
+- [Vico](https://philosophie-fiches-web-chris.vercel.app/auteurs/vico/)
+- [Walter Benjamin](https://philosophie-fiches-web-chris.vercel.app/auteurs/walter-benjamin/)
+- [Watzlawick](https://philosophie-fiches-web-chris.vercel.app/auteurs/watzlawick/)
+- [Weber](https://philosophie-fiches-web-chris.vercel.app/auteurs/weber/)
+- [William James](https://philosophie-fiches-web-chris.vercel.app/auteurs/william-james/)
+- [Wittgenstein](https://philosophie-fiches-web-chris.vercel.app/auteurs/wittgenstein/)
+- [Zhuangzi](https://philosophie-fiches-web-chris.vercel.app/auteurs/zhuangzi/)
+
+## Outil interactif
+
+- [Graphe, quiz et méthodologie](https://philosophie-fiches-web-chris.vercel.app/): application web (JavaScript), installable et utilisable hors ligne.
