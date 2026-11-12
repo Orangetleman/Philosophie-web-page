@@ -438,3 +438,13 @@ body:not(.mode-edition) .plan-migr{display:none}
    body.mode-edition), et les nouveautés sont datées dans Explorer ›
    Nouveautés. */
 body:not(.mode-edition) .new-badge,body:not(.mode-edition) .modified-badge{display:none}
+
+/* Référencement (nov. 2026) : les notions de la barre latérale sont de vrais
+   liens <a> (même aspect qu'avant), le titre de la notion est un <h1> (sans
+   les marges par défaut), et la fiche se termine par un pied avec des liens
+   vers les pages statiques (piedNotionHTML). */
+a.nb{text-decoration:none}
+h1.ntitle{margin:0;line-height:inherit}
+.pied-notion{margin-top:32px;padding-top:12px;border-top:0.5px solid var(--color-border-tertiary);font-size:12px;color:var(--color-text-secondary);line-height:1.5}
+.pied-notion p{margin:6px 0}
+.pied-notion a{color:var(--color-text-secondary)}

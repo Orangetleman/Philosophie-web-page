@@ -97,14 +97,15 @@ liste officielle, 5 hors programme, 6 enrichir ; décisions de l'auteur au
 
 ## Données (vue d'ensemble)
 
-`data.js` définit sept globales, déjà au format canonique (le build
+`data.js` définit huit globales, déjà au format canonique (le build
 convertit les anciens formats, cf. `outils/lib/formats.mjs`) :
 `D` (les notions), `KEYS` (leur ordre), `AM` (les fiches d'auteurs),
 `CONCEPTS` (concepts puis repères), `PROGRAMME` (la liste officielle,
 `{source, notions, auteurs:[{bo, periode, fiches}]}`), `SUJETS_BAC`
 (`{sources, sujets:[{annee, date, voie, type, q | auteur+oeuvre, notions}]}`)
 et `NOUVEAUTES` (`[{date, titre, texte, liens:[{l, h}]}]`, du plus récent au
-plus ancien). Formats détaillés, onglets, liens
+plus ancien), et `PAGES_STATIQUES` (`{notions:{clé→chemin}, auteurs:{nom→chemin}}` :
+les adresses des pages statiques, pour les liens `<a href>` de l'app). Formats détaillés, onglets, liens
 dynamiques, contribution, interface, quiz : **`docs/architecture.md`**.
 
 Rappels qui reviennent souvent :

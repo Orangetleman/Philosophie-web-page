@@ -129,12 +129,13 @@
      classe restent identiques : le CSS et le JS (getElementById('main'))
      ne changent pas. -->
 <main class="main" id="main">
-  <!-- Bandeau d'avertissement « contenu en construction ». Réapparaît à CHAQUE
+  <!-- Bandeau d'avertissement (formulation revue en nov. 2026 : « projet
+       collaboratif, relu et enrichi », plus juste qu'« en construction »). Réapparaît à CHAQUE
        chargement (aucune persistance) ; se ferme via la croix ou disparaît seul
        au bout d'une minute (initNotice / dismissNotice dans le <script>). Le mot
        souligné renvoie à la partie « Proposer / éditer » de la visite guidée. -->
   <div class="notice-banner" id="notice-banner" role="status">
-    <span class="notice-banner-text">⚠ Ce site est en construction par des élèves : son contenu peut être <strong>inexact ou incomplet</strong>. N'hésitez pas à <span class="notice-banner-link" role="link" tabindex="0" onclick="noticeOpenContribTour()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();noticeOpenContribTour()}">participer à son amélioration</span>.</span>
+    <span class="notice-banner-text">Projet collaboratif de révision, relu et enrichi régulièrement. Une erreur, une idée ? <span class="notice-banner-link" role="link" tabindex="0" onclick="noticeOpenContribTour()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();noticeOpenContribTour()}">Participez à son amélioration</span>.</span>
     <button class="notice-banner-close" id="notice-banner-close" aria-label="Fermer l'avertissement" onclick="dismissNotice()">×</button>
   </div>
   <!-- Bande d'en-tête : burger (mobile uniquement) + fil d'Ariane, alignés. -->

@@ -102,7 +102,7 @@ function page({ chemin, titre, description, corps, jsonld, profondeur, type = 'a
 <header class="fh"><a class="fh-site" href="${r}">🏛️ ${NOM_SITE} <span>Terminale</span></a>
 <nav aria-label="Rubriques"><a href="${r}fiches/">Toutes les fiches</a></nav></header>
 ${corps}
-<footer class="ff"><p>${NOM_SITE} : fiches de révision de philosophie pour le bac (programme de Terminale, BO n° 8 du 25 juillet 2019). Site construit par des élèves : le contenu peut être inexact ou incomplet. <a href="${r}">Ouvrir l’outil interactif</a> (graphe, quiz, méthodologie).</p></footer>
+<footer class="ff"><p>${NOM_SITE} : fiches de révision de philosophie pour le bac (programme de Terminale, BO n° 8 du 25 juillet 2019). Projet collaboratif, relu et enrichi régulièrement : une erreur ou une idée se signalent depuis l’outil. <a href="${r}">Ouvrir l’outil interactif</a> (graphe, quiz, méthodologie).</p></footer>
 </body></html>
 `;
 }
@@ -269,6 +269,18 @@ function llms(d, ctx) {
     `\n\n## Notions complémentaires\n\n` + d.KEYS.filter(k => !d.PROGRAMME.notions.includes(k)).map(k => `- [${nomAvecArticle(k, d.D[k].l)}](${SITE}/notions/${slugNotion(k)}/): ${d.D[k].s}`).join('\n') +
     `\n\n## Auteurs\n\n` + auteurs.map(nm => `- [${nm}](${SITE}/auteurs/${slug(nm)}/)`).join('\n') +
     `\n\n## Outil interactif\n\n- [Graphe, quiz et méthodologie](${SITE}/): application web (JavaScript), installable et utilisable hors ligne.\n`;
+}
+
+/* cheminsPages(d) — {notions:{clé→chemin}, auteurs:{nom→chemin}} : l'adresse
+   de la page statique de chaque fiche (auteurs cités dans une notion
+   seulement, comme genererPages). Écrit dans data.js (PAGES_STATIQUES) pour
+   que l'app pose de VRAIS liens <a href> vers ces pages (maillage interne). */
+export function cheminsPages(d) {
+  const ai = indexAuteurs(d.D, d.KEYS);
+  const notions = {}, auteurs = {};
+  d.KEYS.forEach(k => { notions[k] = `notions/${slugNotion(k)}/`; });
+  Object.keys(d.AM).filter(nm => ai[nm]).forEach(nm => { auteurs[nm] = `auteurs/${slug(nm)}/`; });
+  return { notions, auteurs };
 }
 
 /* genererPages(d, date) — toutes les pages : {chemin relatif: texte}.
