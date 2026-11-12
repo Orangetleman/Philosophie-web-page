@@ -36,7 +36,7 @@ window.CARTE = {
       "manifest.json": "Métadonnées d'installation PWA.",
       "philo-aggregator/": "Pipeline Python local : ingest des propositions, relecture Gemini, dashboard, export.",
       "contenu/":          "SOURCES du contenu : un fichier par notion (notions/), par auteur (auteurs/), concepts.js, reperes.js, ordre.js. On édite ici.",
-      "outils/":           "Outillage Node : construire.mjs (build → data.js, sw.js), verifier_contenu.mjs (contrôle, avec témoins), lib/ (formats, écriture), banc/ (règles d'accès Supabase sur PGlite)."
+      "outils/":           "Outillage Node : construire.mjs (build → data.js, sw.js, pages statiques via lib/pages.mjs), verifier_contenu.mjs (contrôle, avec témoins), lib/ (formats, écriture), banc/ (règles d'accès Supabase sur PGlite)."
     }
   },
 
@@ -122,7 +122,7 @@ window.CARTE = {
     { id:"ux.bac", label:"Sujets du bac, nouveautés, fiche imprimable", niveau:1, parent:"ux", domaine:"ux",
       novice:"Les sujets réellement tombés au bac depuis 2021 (Explorer, onglet Dissertations de chaque notion, fiche des auteurs dont un texte est tombé, recherche) ; un journal daté des nouveautés, qui remplace pour les visiteurs les badges « Nouveau » ; et une fiche de révision à imprimer pour chaque notion.",
       ingenieur:"Étape 6. contenu/sujets-bac.js → SUJETS_BAC (sujetsCanoniques dans le build : {sources, sujets:[{annee, date, voie, type, q | auteur+oeuvre, notions}]}) ; contenu/nouveautes.js → NOUVEAUTES ; question 14 du vérificateur. Affichage : sujetsHTML et nouveautesHTML (Explorer), sujetBacHTML, sujetsDeNotion, sujetsDAuteur, ouvrirAdresse. Badges « Nouveau / Modifié » et leurs teintes réservés à body.mode-edition (css/01-base.css). Fiche imprimable : ficheImpressionHTML et imprimerFiche (js/16-impression.js), feuille @media print css/10-impression.css.",
-      symbols:[{kind:"var",name:"SUJETS_BAC",ref:"data.js:397"},{kind:"var",name:"NOUVEAUTES",ref:"data.js:398"},{kind:"fn",name:"sujetsCanoniques",ref:"outils/construire.mjs:109"},{kind:"fn",name:"sujetsHTML",ref:"js/15-explorer.js:307"},{kind:"fn",name:"sujetBacHTML",ref:"js/15-explorer.js:293"},{kind:"fn",name:"sujetsDeNotion",ref:"js/15-explorer.js:303"},{kind:"fn",name:"nouveautesHTML",ref:"js/15-explorer.js:333"},{kind:"fn",name:"ouvrirAdresse",ref:"js/15-explorer.js:328"},{kind:"fn",name:"ficheImpressionHTML",ref:"js/16-impression.js:16"},{kind:"fn",name:"imprimerFiche",ref:"js/16-impression.js:50"}],
+      symbols:[{kind:"var",name:"SUJETS_BAC",ref:"data.js:397"},{kind:"var",name:"NOUVEAUTES",ref:"data.js:398"},{kind:"fn",name:"sujetsCanoniques",ref:"outils/construire.mjs:124"},{kind:"fn",name:"sujetsHTML",ref:"js/15-explorer.js:307"},{kind:"fn",name:"sujetBacHTML",ref:"js/15-explorer.js:293"},{kind:"fn",name:"sujetsDeNotion",ref:"js/15-explorer.js:303"},{kind:"fn",name:"nouveautesHTML",ref:"js/15-explorer.js:333"},{kind:"fn",name:"ouvrirAdresse",ref:"js/15-explorer.js:328"},{kind:"fn",name:"ficheImpressionHTML",ref:"js/16-impression.js:16"},{kind:"fn",name:"imprimerFiche",ref:"js/16-impression.js:50"}],
       liens:[{to:"ux.explorer",type:"appelle",note:"Deux onglets de plus dans Explorer."}] },
 
     { id:"ux.mobile", label:"Tiroir & gestes mobile", niveau:1, parent:"ux", domaine:"ux",
@@ -225,12 +225,17 @@ window.CARTE = {
       { id:"donnees.globales.PROGRAMME", label:"PROGRAMME (liste officielle)", niveau:2, parent:"donnees.globales", domaine:"donnees",
         novice:"Le programme officiel de terminale : ses 17 notions et les 84 auteurs qui peuvent tomber à l'explication de texte.",
         ingenieur:"Étape 4 (oct. 2026). Source : contenu/programme.js (PROGRAMME({source, notions, auteurs:{période:[nom | {bo, fiches}]}})). Le build (programmeCanonique) l'écrit dans data.js sous la forme {source, notions[], auteurs:[{bo, periode, fiches[]}]}. Les repères n'y sont pas (déjà marqués cat:'Repère').",
-        symbols:[{kind:"var",name:"PROGRAMME",ref:"data.js:395"},{kind:"fn",name:"programmeCanonique",ref:"outils/construire.mjs:123"}] },
+        symbols:[{kind:"var",name:"PROGRAMME",ref:"data.js:395"},{kind:"fn",name:"programmeCanonique",ref:"outils/construire.mjs:138"}] },
 
     { id:"donnees.normalize", label:"Build : sources → data.js", niveau:1, parent:"donnees", domaine:"donnees",
       novice:"Le contenu s'écrit dans des fichiers rangés (un par notion, un par auteur) ; un petit programme les assemble dans le fichier que le site charge, en remettant au passage l'ancien contenu au format actuel.",
       ingenieur:"Étape 3 (oct. 2026) : outils/construire.mjs charge contenu/ (NOTION, AUTEUR, CONCEPT, REPERE, ORDRE dans un bac à sable vm), convertit les anciens formats (outils/lib/formats.mjs : auteur à plat → ideas, axes → plans, tensions → relations), écrit data.js (généré, versionné), recalcule CACHE et PRECACHE de sw.js (empreinte du contenu), puis lance verifier_contenu.mjs. --controle : vérifie sans écrire (hook de commit). Le site ne convertit plus rien au chargement.",
-      symbols:[{kind:"fn",name:"chargerSources",ref:"outils/construire.mjs:58"},{kind:"fn",name:"assembler",ref:"outils/construire.mjs:95"},{kind:"fn",name:"ecrireData",ref:"outils/construire.mjs:133"},{kind:"var",name:"PRECACHE",ref:"outils/construire.mjs:50"},{kind:"fn",name:"normaliserNotion",ref:"outils/lib/formats.mjs:59"},{kind:"fn",name:"normaliserAuteur",ref:"outils/lib/formats.mjs:30"},{kind:"fn",name:"normaliserConcept",ref:"outils/lib/formats.mjs:70"}] },
+      symbols:[{kind:"fn",name:"chargerSources",ref:"outils/construire.mjs:73"},{kind:"fn",name:"assembler",ref:"outils/construire.mjs:110"},{kind:"fn",name:"ecrireData",ref:"outils/construire.mjs:148"},{kind:"var",name:"PRECACHE",ref:"outils/construire.mjs:54"},{kind:"fn",name:"normaliserNotion",ref:"outils/lib/formats.mjs:59"},{kind:"fn",name:"normaliserAuteur",ref:"outils/lib/formats.mjs:30"},{kind:"fn",name:"normaliserConcept",ref:"outils/lib/formats.mjs:70"}] },
+
+    { id:"donnees.pagesStatiques", label:"Pages statiques (référencement)", niveau:1, parent:"donnees", domaine:"donnees",
+      novice:"Pour que Google et les assistants IA lisent les fiches, le build écrit aussi une vraie page web par notion et par auteur (texte déjà présent, sans JavaScript), avec leur titre, leur résumé et un plan du site.",
+      ingenieur:"Nov. 2026 : outils/lib/pages.mjs (genererPages, pure) produit notions/<slug>/index.html (slug avec article : la-liberte), auteurs/<slug>/index.html, fiches/index.html (sommaire), sitemap.xml, robots.txt et llms.txt. Chaque page : title, meta description, canonical, Open Graph, JSON-LD (LearningResource + Article / ProfilePage + Person, BreadcrumbList), lien vers #/notion/… du graphe. Style : fiche.css (sans police externe). construire.mjs écrit les pages et retire les orphelines ; --controle les compare. Côté app : TITRE_ACCUEIL garde le titre d'index.html tant qu'on n'a pas navigué. vercel.json : trailingSlash.",
+      symbols:[{kind:"fn",name:"genererPages",ref:"outils/lib/pages.mjs:278"},{kind:"fn",name:"pageNotion",ref:"outils/lib/pages.mjs:128"},{kind:"fn",name:"pageAuteur",ref:"outils/lib/pages.mjs:188"},{kind:"var",name:"SLUG_NOTION",ref:"outils/lib/pages.mjs:26"},{kind:"var",name:"DOSSIERS_PAGES",ref:"outils/construire.mjs:57"},{kind:"var",name:"TITRE_ACCUEIL",ref:"js/02-navigation.js:253"}] },
 
     { id:"donnees.programme", label:"Étiquette « Au programme »", niveau:1, parent:"donnees", domaine:"donnees",
       novice:"Un petit badge vert sur la fiche et la carte des auteurs de la liste officielle : ce sont eux qui peuvent tomber à l'explication de texte.",
@@ -283,7 +288,7 @@ window.CARTE = {
     { id:"nav.adresses", label:"Adresses de page (#/…)", niveau:1, parent:"nav", domaine:"nav",
       novice:"Chaque page a son adresse : on peut l'envoyer à quelqu'un, la mettre en favori, et le bouton « précédent » du navigateur ramène à la page d'avant.",
       ingenieur:"Étape 3 (oct. 2026). adresseDe(état) ↔ etatDe(#/…) : #/notion/<clé>[/<onglet>], #/auteur/<nom>[/<onglet>], #/concept/<id>, #/repere/<id>, #/methodo/<parcours>. majAdresse() (appelée par persistNav à chaque rendu) : pushState après une navigation (navAdresseEnAttente, posé par pushHistory), sinon replaceState ; ne touche pas une URL portant un jeton Supabase (adresseProtegee). popstate rejoue l'adresse ; restoreNavFromAddress() au démarrage fait gagner un lien partagé sur la position mémorisée. shareUrl() partage l'adresse de la page.",
-      symbols:[{kind:"fn",name:"adresseDe",ref:"js/02-navigation.js:203"},{kind:"fn",name:"etatDe",ref:"js/02-navigation.js:217"},{kind:"fn",name:"majAdresse",ref:"js/02-navigation.js:250"},{kind:"fn",name:"restoreNavFromAddress",ref:"js/02-navigation.js:277"},{kind:"fn",name:"titrePage",ref:"js/02-navigation.js:234"},{kind:"var",name:"navAdresseEnAttente",ref:"js/02-navigation.js:200"}],
+      symbols:[{kind:"fn",name:"adresseDe",ref:"js/02-navigation.js:203"},{kind:"fn",name:"etatDe",ref:"js/02-navigation.js:217"},{kind:"fn",name:"majAdresse",ref:"js/02-navigation.js:257"},{kind:"fn",name:"restoreNavFromAddress",ref:"js/02-navigation.js:285"},{kind:"fn",name:"titrePage",ref:"js/02-navigation.js:234"},{kind:"var",name:"navAdresseEnAttente",ref:"js/02-navigation.js:200"}],
       liens:[{to:"nav.persist",type:"appelle",note:"persistNav appelle majAdresse."}] },
 
     { id:"nav.persist", label:"Persistance locale", niveau:1, parent:"nav", domaine:"nav",
@@ -499,11 +504,11 @@ window.CARTE = {
     { id:"seo.sitemap", label:"sitemap.xml", niveau:1, parent:"seo", domaine:"seo",
       novice:"Le plan du site : la liste des pages, donnée à Google.",
       ingenieur:"sitemap.xml — un <urlset> listant les URL (loc, lastmod, changefreq, priority).",
-      symbols:[{kind:"route",name:"urlset",ref:"sitemap.xml:2"}] },
+      symbols:[{kind:"route",name:"urlset",ref:"sitemap.xml:3"}] },
     { id:"seo.robots", label:"robots.txt", niveau:1, parent:"seo", domaine:"seo",
       novice:"Les consignes pour les robots des moteurs : ce qu'ils peuvent explorer.",
       ingenieur:"robots.txt (nom exact attendu par les moteurs ; s'appelait robot.txt, donc jamais lu, jusqu'en oct. 2026) : User-agent / Allow + un pointeur Sitemap vers sitemap.xml.",
-      symbols:[{kind:"route",name:"User-agent",ref:"robots.txt:1"}] },
+      symbols:[{kind:"route",name:"User-agent",ref:"robots.txt:4"}] },
 
   /* ═══════════════ BACKEND AGRÉGATEUR ═══════════════ */
   { id:"backend", label:"Backend agrégateur", niveau:0, parent:null, domaine:"backend",

@@ -557,9 +557,17 @@ function titrePage(){
    puis nettoie l'URL lui-même : il ne faut surtout pas l'écraser avant. */
 function adresseProtegee(){ return /access_token|refresh_token|type=recovery|error_description/.test(location.hash); }
 
+/* Référencement (nov. 2026) : arrivé sur l'accueil SANS adresse #/…, on
+   garde le titre d'index.html (fait pour les moteurs) jusqu'à la première
+   vraie navigation ; sinon Google, qui exécute le JS, indexerait l'accueil
+   sous le titre de la notion affichée par défaut. */
+const TITRE_ACCUEIL=document.title;
+let titreAccueilGarde=!location.hash;
+
 /* majAdresse() — aligne l'adresse et le titre sur la page affichée. */
 function majAdresse(){
-  document.title=titrePage();
+  if(navAdresseEnAttente) titreAccueilGarde=false;    // l'élève a navigué
+  document.title=titreAccueilGarde?TITRE_ACCUEIL:titrePage();
   if(adresseProtegee()) return;
   const h=adresseDe(navStateNow());
   if(location.hash!==h){

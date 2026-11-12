@@ -1,4 +1,140 @@
+# GÉNÉRÉ par outils/construire.mjs. NE PAS ÉDITER.
+# Tout le site est ouvert aux moteurs et aux assistants IA ; seuls les outils internes sont exclus.
+
 User-agent: *
 Allow: /
+Disallow: /triage/
+Disallow: /outils/
+Disallow: /philo-aggregator/
+Disallow: /philo-mailbox/
+Disallow: /cours_manuscrits/
+
+User-agent: Googlebot
+Allow: /
+Disallow: /triage/
+Disallow: /outils/
+Disallow: /philo-aggregator/
+Disallow: /philo-mailbox/
+Disallow: /cours_manuscrits/
+
+User-agent: Bingbot
+Allow: /
+Disallow: /triage/
+Disallow: /outils/
+Disallow: /philo-aggregator/
+Disallow: /philo-mailbox/
+Disallow: /cours_manuscrits/
+
+User-agent: GPTBot
+Allow: /
+Disallow: /triage/
+Disallow: /outils/
+Disallow: /philo-aggregator/
+Disallow: /philo-mailbox/
+Disallow: /cours_manuscrits/
+
+User-agent: OAI-SearchBot
+Allow: /
+Disallow: /triage/
+Disallow: /outils/
+Disallow: /philo-aggregator/
+Disallow: /philo-mailbox/
+Disallow: /cours_manuscrits/
+
+User-agent: ChatGPT-User
+Allow: /
+Disallow: /triage/
+Disallow: /outils/
+Disallow: /philo-aggregator/
+Disallow: /philo-mailbox/
+Disallow: /cours_manuscrits/
+
+User-agent: ClaudeBot
+Allow: /
+Disallow: /triage/
+Disallow: /outils/
+Disallow: /philo-aggregator/
+Disallow: /philo-mailbox/
+Disallow: /cours_manuscrits/
+
+User-agent: Claude-SearchBot
+Allow: /
+Disallow: /triage/
+Disallow: /outils/
+Disallow: /philo-aggregator/
+Disallow: /philo-mailbox/
+Disallow: /cours_manuscrits/
+
+User-agent: Claude-User
+Allow: /
+Disallow: /triage/
+Disallow: /outils/
+Disallow: /philo-aggregator/
+Disallow: /philo-mailbox/
+Disallow: /cours_manuscrits/
+
+User-agent: PerplexityBot
+Allow: /
+Disallow: /triage/
+Disallow: /outils/
+Disallow: /philo-aggregator/
+Disallow: /philo-mailbox/
+Disallow: /cours_manuscrits/
+
+User-agent: Perplexity-User
+Allow: /
+Disallow: /triage/
+Disallow: /outils/
+Disallow: /philo-aggregator/
+Disallow: /philo-mailbox/
+Disallow: /cours_manuscrits/
+
+User-agent: Google-Extended
+Allow: /
+Disallow: /triage/
+Disallow: /outils/
+Disallow: /philo-aggregator/
+Disallow: /philo-mailbox/
+Disallow: /cours_manuscrits/
+
+User-agent: Applebot
+Allow: /
+Disallow: /triage/
+Disallow: /outils/
+Disallow: /philo-aggregator/
+Disallow: /philo-mailbox/
+Disallow: /cours_manuscrits/
+
+User-agent: Applebot-Extended
+Allow: /
+Disallow: /triage/
+Disallow: /outils/
+Disallow: /philo-aggregator/
+Disallow: /philo-mailbox/
+Disallow: /cours_manuscrits/
+
+User-agent: DuckAssistBot
+Allow: /
+Disallow: /triage/
+Disallow: /outils/
+Disallow: /philo-aggregator/
+Disallow: /philo-mailbox/
+Disallow: /cours_manuscrits/
+
+User-agent: MistralAI-User
+Allow: /
+Disallow: /triage/
+Disallow: /outils/
+Disallow: /philo-aggregator/
+Disallow: /philo-mailbox/
+Disallow: /cours_manuscrits/
+
+User-agent: CCBot
+Allow: /
+Disallow: /triage/
+Disallow: /outils/
+Disallow: /philo-aggregator/
+Disallow: /philo-mailbox/
+Disallow: /cours_manuscrits/
 
 Sitemap: https://philosophie-fiches-web-chris.vercel.app/sitemap.xml
