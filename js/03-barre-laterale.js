@@ -164,10 +164,19 @@ function renderSB(){
 
   if(sbMode==='notions'){
     const ajouterNotion=k=>{
-      const el=document.createElement('div');
+      // Référencement (nov. 2026) : un VRAI lien <a href> vers la page
+      // statique de la notion (les robots suivent les href, pas les onclick).
+      // Un clic normal reste dans l'app ; Ctrl/⌘/clic molette ouvrent la
+      // page statique dans un nouvel onglet, comme tout lien.
+      const el=document.createElement('a');
+      el.href=(PAGES_STATIQUES.notions[k]||'#/notion/'+k);
       el.className='nb'+(k===cur?' active':'')+(estHP(k)?' nb-hp':'');
       el.innerHTML=`<span class="dot" style="background:${D[k].c}"></span>${D[k].l}`;
-      el.onclick=()=>{pushHistory();cur=k;curTab='auteurs';sbMode='notions';renderSB();renderContent()};
+      el.onclick=ev=>{
+        if(ev.ctrlKey||ev.metaKey||ev.shiftKey||ev.button!==0) return;   // laisse le navigateur ouvrir le lien
+        ev.preventDefault();
+        pushHistory();cur=k;curTab='auteurs';sbMode='notions';renderSB();renderContent();
+      };
       list.appendChild(el);
     };
     KEYS.filter(k=>!estHP(k)).forEach(ajouterNotion);

@@ -1,8 +1,26 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
-  "genere_le": "2026-11-12T00:31:15.034Z",
+  "genere_le": "2026-11-12T00:59:35.963Z",
   "commits": [
+    {
+      "hash": "aa2cf7dcaf65d320e2dc5d96c214621956a3ff3b",
+      "short": "aa2cf7d",
+      "auteur": "Orangentleman",
+      "date": "2026-11-12T01:45:51+01:00",
+      "sujet": "Merge pull request #16 from Orangetleman/claude/seo-pages-statiques",
+      "corps": "Référencement : une page statique par fiche, sitemap, robots, données structurées",
+      "tag": ""
+    },
+    {
+      "hash": "9c4eed00615b56c2b09f718ff390934b33ef30d7",
+      "short": "9c4eed0",
+      "auteur": "Orangentleman",
+      "date": "2026-11-12T01:31:13+01:00",
+      "sujet": "Référencement : une page statique par fiche, sitemap, robots, données structurées",
+      "corps": "Le site rend tout son texte en JavaScript : les robots qui ne l'exécutent\npas (assistants IA, aperçus de liens) n'y voyaient rien. Le build écrit\ndésormais, depuis contenu/ (outils/lib/pages.mjs) :\n- notions/<slug>/ (27 pages, slug avec article : la-liberte, l-etat),\n  auteurs/<slug>/ (123 pages), fiches/ (sommaire) : HTML sémantique,\n  title, meta description, canonical, Open Graph, JSON-LD (LearningResource,\n  Article, ProfilePage, BreadcrumbList), lien vers le graphe interactif ;\n- sitemap.xml (152 adresses), robots.txt (robots IA nommés, outils\n  internes exclus), llms.txt.\n--controle compare aussi ces pages ; les orphelines sont retirées.\n\nAccueil : titre, description, Open Graph et JSON-LD ; preconnect ; scripts\nen defer (même ordre d'exécution) ; le titre d'accueil reste en place tant\nqu'on n'a pas navigué. vercel.json : barre oblique finale.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": "Référencement"
+    },
     {
       "hash": "7a9cad5d342b3fe08bd1a4b537e9ab85c9cb6e0e",
       "short": "7a9cad5",

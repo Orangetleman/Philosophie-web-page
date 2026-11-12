@@ -43,7 +43,7 @@ import crypto from 'crypto';
 import { spawnSync } from 'child_process';
 import { fileURLToPath } from 'url';
 import { normaliserNotion, normaliserConcept } from './lib/formats.mjs';
-import { genererPages } from './lib/pages.mjs';
+import { genererPages, cheminsPages } from './lib/pages.mjs';
 
 const RACINE = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const CONTENU = path.join(RACINE, 'contenu');
@@ -168,6 +168,8 @@ export function ecrireData({ D, KEYS, AM, CONCEPTS, PROGRAMME, SUJETS_BAC, NOUVE
     '// Sujets tombés au bac (contenu/sujets-bac.js) et journal des nouveautés (contenu/nouveautes.js).',
     'const SUJETS_BAC=' + j(SUJETS_BAC) + ';',
     'const NOUVEAUTES=' + j(NOUVEAUTES) + ';',
+    '// Adresses des pages statiques (outils/lib/pages.mjs) : liens <a href> de l\'app vers elles.',
+    'const PAGES_STATIQUES=' + j(cheminsPages({ D, KEYS, AM })) + ';',
     ''
   ].join('\n');
 }

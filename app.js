@@ -765,10 +765,19 @@ function renderSB(){
 
   if(sbMode==='notions'){
     const ajouterNotion=k=>{
-      const el=document.createElement('div');
+      // Référencement (nov. 2026) : un VRAI lien <a href> vers la page
+      // statique de la notion (les robots suivent les href, pas les onclick).
+      // Un clic normal reste dans l'app ; Ctrl/⌘/clic molette ouvrent la
+      // page statique dans un nouvel onglet, comme tout lien.
+      const el=document.createElement('a');
+      el.href=(PAGES_STATIQUES.notions[k]||'#/notion/'+k);
       el.className='nb'+(k===cur?' active':'')+(estHP(k)?' nb-hp':'');
       el.innerHTML=`<span class="dot" style="background:${D[k].c}"></span>${D[k].l}`;
-      el.onclick=()=>{pushHistory();cur=k;curTab='auteurs';sbMode='notions';renderSB();renderContent()};
+      el.onclick=ev=>{
+        if(ev.ctrlKey||ev.metaKey||ev.shiftKey||ev.button!==0) return;   // laisse le navigateur ouvrir le lien
+        ev.preventDefault();
+        pushHistory();cur=k;curTab='auteurs';sbMode='notions';renderSB();renderContent();
+      };
       list.appendChild(el);
     };
     KEYS.filter(k=>!estHP(k)).forEach(ajouterNotion);
@@ -1944,7 +1953,7 @@ function renderContent(){
   let html=`
 <div class="notion-head">
   <div class="nbadge" style="background:${c}"></div>
-  <div><div class="ntitle">${n.l}${estHP(cur)?' '+hpBadgeHTML():''}</div><div class="nsub">${n.s}</div></div>
+  <div><h1 class="ntitle">${n.l}${estHP(cur)?' '+hpBadgeHTML():''}</h1><div class="nsub">${n.s}</div></div>
   <button class="fiche-btn" onclick="imprimerFiche('${cur}')" title="Imprimer la fiche de révision de la notion, ou l'enregistrer en PDF">🖨 Fiche</button>
 </div>
 ${estHP(cur)?hpNoticeHTML():''}
@@ -2185,7 +2194,24 @@ ${estHP(cur)?hpNoticeHTML():''}
     html+=pPlusCat('dissertation',cur,'Proposer un sujet');
   }
 
+  html+=piedNotionHTML(cur);   // référencement : présentation + vrais liens
   mc.innerHTML=html;
+}
+
+/* piedNotionHTML(k) — pied de la fiche d'une notion (référencement, nov.
+   2026). Le site n'avait AUCUN lien <a href> ni texte de présentation dans
+   la page rendue : un robot ne pouvait ni comprendre ce qu'est le site ni
+   découvrir les autres pages. Ce pied donne une phrase de présentation et de
+   vrais liens vers les pages statiques : la version simple de cette fiche,
+   ses auteurs, et le sommaire de toutes les fiches. */
+function piedNotionHTML(k){
+  const P=PAGES_STATIQUES, n=D[k];
+  const auteurs=[...new Set(n.auteurs.map(a=>a.n))].filter(a=>P.auteurs[a]);
+  return `<footer class="pied-notion">
+  <p><strong>Graphe Philosophie</strong> : fiches de révision de philosophie pour le bac (Terminale). Les 17 notions du programme, leurs auteurs, citations, plans de dissertation, sujets tombés au bac, et un quiz pour réviser.</p>
+  <p>${P.notions[k]?`<a href="${P.notions[k]}">${n.l} : la fiche en version simple (à lire ou imprimer)</a> · `:''}<a href="fiches/">Toutes les fiches de révision</a></p>
+  ${auteurs.length?`<p class="pied-auteurs">Auteurs de la fiche : ${auteurs.map(a=>`<a href="${P.auteurs[a]}">${a}</a>`).join(', ')}</p>`:''}
+</footer>`;
 }
 
 /* renderSBList() — affiche la liste des items dans la sidebar scrollable.
