@@ -17,7 +17,7 @@
    écrit le résultat (ou le compare, en --controle). Aucune dépendance.
    ════════════════════════════════════════════════════════════════════ */
 
-export const SITE = 'https://philosophie-fiches-web-chris.vercel.app';
+export const SITE = 'https://philo.myprisme.fr';
 const NOM_SITE = 'Graphe Philosophie';
 
 /* Slug « avec article » des notions : /notions/la-liberte/ se lit comme la
