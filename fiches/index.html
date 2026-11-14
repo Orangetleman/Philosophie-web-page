@@ -1,9 +1,91 @@
 <!DOCTYPE html>
-<!-- GÉNÉRÉ par outils/construire.mjs (outils/lib/pages.mjs) à partir de contenu/. NE PAS ÉDITER. -->
-<html lang="fr"><head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- GÉNÉRÉ par outils/construire.mjs (outils/lib/pages.mjs) à partir d'index.html et de contenu/. NE PAS ÉDITER. -->
+<!--
+╔══════════════════════════════════════════════════════════════════════════╗
+║        GRAPHE PHILOSOPHIE — TERMINALE  ·  index.html                       ║
+║        Révision (HTML/CSS/JS, sans build) · PWA hors-ligne · compte cloud  ║
+╚══════════════════════════════════════════════════════════════════════════╝
+
+  Ce fichier est le SQUELETTE + la LOGIQUE ; les DONNÉES vivent dans data.js
+  (chargé juste AVANT le <script> principal). Pour la spécification détaillée
+  des structures et les règles d'édition, voir CLAUDE.md à la racine du projet.
+
+  STRUCTURE DU FICHIER
+  ────────────────────
+  1. <head>                  Métadonnées, favicon SVG inline, manifeste PWA,
+                             theme-color, police Google Fonts (Inter), petit
+                             script qui pose le thème (étape 6), app.css
+                             (GÉNÉRÉ depuis css/ par outils/construire.mjs)
+  2. <body> HTML             Squelette : sidebar (#sb) + zone principale (#main)
+                             + overlays (modale contribution, quiz, onboarding)
+  3. <script src="data.js">  Données GLOBALES : D, KEYS, AM, CONCEPTS, PROGRAMME
+  4. <script> Supabase CDN   Client @supabase/supabase-js (compte + sync)
+  5. <script src="app.js">   TOUTE la logique et le rendu (GÉNÉRÉ depuis js/)
+
+  DONNÉES (dans data.js — globales ; script classique, pas de module)
+  ────────────────────────────────────────────────────────────────────
+  · const D        — Les 17 notions du programme (conscience, nature, bonheur,
+                     justice, devoir, travail, technique, état, liberté, art,
+                     langage, inconscient, raison, religion, science, temps,
+                     vérité). Chaque notion : def, auteurs, textes, plans,
+                     exemples, liens, diss. Onglets d'une notion : auteurs /
+                     textes / concepts / dissertations / exemples (l'ancien
+                     onglet « axes » est migré en « plans » au chargement).
+  · const KEYS     — Object.keys(D) (ordre des notions)
+  · const AM       — Métadonnées des auteurs (une entrée par auteur de D, sous
+                     le MÊME nom) : bio, courant, période, thèmes, dialogues
+                     (oppose / prolonge / répond, + sujet)
+  · const CONCEPTS — Glossaire (~172 concepts + 31 repères cat:'Repère') : def,
+                     cat, auteur, notions, liens (par notion), relations
+                     unifiées (ex-« tensions »)
+  · const CC       — (resté dans index.html) couleurs par courant philosophique
+
+  SOURCES ET BUILD (oct. 2026) : data.js est GÉNÉRÉ par outils/construire.mjs
+  à partir de contenu/ (un fichier par notion, par auteur, concepts, repères,
+  ordre). Le build convertit une fois les anciens formats (outils/lib/
+  formats.mjs) : data.js arrive ici déjà canonique, rien n'est converti au
+  chargement.
+
+  GRANDES BRIQUES JS (sections repérées A., B., … ; détail dans CLAUDE.md)
+  ────────────────────────────────────────────────────────────────────────
+  · Index & liens   buildAI() (auteur → notions/idées) ; linkTerms() rend
+                    cliquables notions/concepts/auteurs cités dans tout texte
+                    (.nterm notion · .cterm concept · .aterm auteur)
+  · Rendu           renderSB (sidebar, 5 modes notions/auteurs/concepts/
+                    reperes/methodo), renderContent (notion, 5 onglets),
+                    renderAuthorContent, renderConceptContent,
+                    renderMethodoContent
+  · Navigation      fil d'Ariane cliquable (renderCrumbs / goMode), pile
+                    d'historique, openNotion / openAuthor / openConcept
+  · Affichage       mode révision / édition (localStorage philo-mode : épuré
+                    par défaut) ; sidebar en tiroir burger ≤ 700 px ;
+                    onboarding 1re visite (.onb-overlay, flag philo-onboarded)
+  · Contribution    modale « Proposer du contenu » : boîtes empilables
+    (section J.)    (catégorie × cible × type) ; génère un texte lisible + un
+                    bloc JSON v3 ; envoi EN LIGNE dans Supabase (connecté, ou
+                    anonyme avec user_id NULL) avec repli mailto automatique
+  · Quiz (sect. K.) révision active par cartes : Leitner (2 horizons), QCM,
+                    gamification XP/niveau, filtres, reprise de session ; tout
+                    est DÉRIVÉ de CONCEPTS / D / AI ; état localStorage philo-quiz
+                    (v4, oct. 2026 : ids stables, terme masqué, citations
+                    exactes seules, tirage au hasard, « Relire la fiche »)
+  · Compte & sync   Supabase : authentification (e-mail + mot de passe, ou
+                    Google) ; synchronisation cross-appareil du quiz (fusion
+                    carte par carte), des préférences et des brouillons de
+                    proposition ; suivi du statut des contributions dans
+                    « Mes propositions »
+  · PWA             manifest.json + sw.js (réseau d'abord pour HTML/JS, cache
+                    d'abord pour le reste ; hors-ligne) + icon.svg
+-->
+<html lang="fr"><head><meta charset="UTF-8">
+<base href="/">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Fiches de révision bac philo : les 17 notions et 123 auteurs | Graphe Philosophie</title>
+<!-- Référencement (nov. 2026) : description, adresse canonique, Open Graph
+     (aperçu des liens partagés) et données structurées schema.org. Le texte
+     des fiches, rendu ici en JS, existe aussi en pages statiques
+     (notions/…, auteurs/…, fiches/ : outils/lib/pages.mjs) que lisent les
+     robots qui n'exécutent pas le JavaScript. -->
 <meta name="description" content="Toutes les fiches de révision de philosophie de Terminale : les 17 notions du programme, des notions complémentaires et 123 fiches d’auteurs, avec citations, plans et exemples.">
 <link rel="canonical" href="https://philo.myprisme.fr/fiches/">
 <meta property="og:type" content="website">
@@ -13,20 +95,241 @@
 <meta property="og:description" content="Toutes les fiches de révision de philosophie de Terminale : les 17 notions du programme, des notions complémentaires et 123 fiches d’auteurs, avec citations, plans et exemples.">
 <meta property="og:url" content="https://philo.myprisme.fr/fiches/">
 <meta name="twitter:card" content="summary">
-<meta name="theme-color" content="#121212">
-<link rel="icon" href="../icon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="../fiche.css">
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"CollectionPage","url":"https://philo.myprisme.fr/fiches/","name":"Fiches de révision bac philo : les 17 notions et 123 auteurs | Graphe Philosophie","description":"Toutes les fiches de révision de philosophie de Terminale : les 17 notions du programme, des notions complémentaires et 123 fiches d’auteurs, avec citations, plans et exemples.","inLanguage":"fr","isPartOf":{"@type":"WebSite","name":"Graphe Philosophie","url":"https://philo.myprisme.fr/"},"mainEntity":{"@type":"ItemList","itemListElement":[{"@type":"ListItem","position":1,"name":"Conscience","url":"https://philo.myprisme.fr/notions/la-conscience/"},{"@type":"ListItem","position":2,"name":"Inconscient","url":"https://philo.myprisme.fr/notions/l-inconscient/"},{"@type":"ListItem","position":3,"name":"Devoir","url":"https://philo.myprisme.fr/notions/le-devoir/"},{"@type":"ListItem","position":4,"name":"Liberté","url":"https://philo.myprisme.fr/notions/la-liberte/"},{"@type":"ListItem","position":5,"name":"Bonheur","url":"https://philo.myprisme.fr/notions/le-bonheur/"},{"@type":"ListItem","position":6,"name":"Religion","url":"https://philo.myprisme.fr/notions/la-religion/"},{"@type":"ListItem","position":7,"name":"Langage","url":"https://philo.myprisme.fr/notions/le-langage/"},{"@type":"ListItem","position":8,"name":"Art","url":"https://philo.myprisme.fr/notions/l-art/"},{"@type":"ListItem","position":9,"name":"Technique","url":"https://philo.myprisme.fr/notions/la-technique/"},{"@type":"ListItem","position":10,"name":"Travail","url":"https://philo.myprisme.fr/notions/le-travail/"},{"@type":"ListItem","position":11,"name":"Justice","url":"https://philo.myprisme.fr/notions/la-justice/"},{"@type":"ListItem","position":12,"name":"État","url":"https://philo.myprisme.fr/notions/l-etat/"},{"@type":"ListItem","position":13,"name":"Nature","url":"https://philo.myprisme.fr/notions/la-nature/"},{"@type":"ListItem","position":14,"name":"Raison","url":"https://philo.myprisme.fr/notions/la-raison/"},{"@type":"ListItem","position":15,"name":"Science","url":"https://philo.myprisme.fr/notions/la-science/"},{"@type":"ListItem","position":16,"name":"Vérité","url":"https://philo.myprisme.fr/notions/la-verite/"},{"@type":"ListItem","position":17,"name":"Temps","url":"https://philo.myprisme.fr/notions/le-temps/"},{"@type":"ListItem","position":18,"name":"Autrui","url":"https://philo.myprisme.fr/notions/autrui/"},{"@type":"ListItem","position":19,"name":"Désir","url":"https://philo.myprisme.fr/notions/le-desir/"},{"@type":"ListItem","position":20,"name":"Histoire","url":"https://philo.myprisme.fr/notions/l-histoire/"},{"@type":"ListItem","position":21,"name":"Perception","url":"https://philo.myprisme.fr/notions/la-perception/"},{"@type":"ListItem","position":22,"name":"Existence","url":"https://philo.myprisme.fr/notions/l-existence/"},{"@type":"ListItem","position":23,"name":"Vivant","url":"https://philo.myprisme.fr/notions/le-vivant/"},{"@type":"ListItem","position":24,"name":"Matière et esprit","url":"https://philo.myprisme.fr/notions/la-matiere-et-l-esprit/"},{"@type":"ListItem","position":25,"name":"Interprétation","url":"https://philo.myprisme.fr/notions/l-interpretation/"},{"@type":"ListItem","position":26,"name":"Démonstration","url":"https://philo.myprisme.fr/notions/la-demonstration/"},{"@type":"ListItem","position":27,"name":"Société","url":"https://philo.myprisme.fr/notions/la-societe/"}]}},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Accueil","item":"https://philo.myprisme.fr/"},{"@type":"ListItem","position":2,"name":"Fiches","item":"https://philo.myprisme.fr/fiches/"}]}]}</script>
+<!-- Favicon SVG inline : un emoji 🏛️ (temple antique) rendu comme texte dans un
+     SVG en data-URI. Astuce qui préserve le mono-fichier (aucune image externe à
+     charger). L'emoji est rendu via la fonte système — pas de typo à embarquer. -->
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏛️</text></svg>">
+<!-- PWA : manifeste pour l'installation, theme-color pour la barre d'état mobile. -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#121212">
+<link rel="apple-touch-icon" href="icon.svg">
+<!-- preconnect (nov. 2026) : ouvre tôt la connexion aux serveurs de la police
+     et du CDN, ce qui raccourcit l'attente avant le premier affichage. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<!-- Thème (étape 6) : posé AVANT le premier affichage, pour éviter un éclair
+     sombre en thème clair. 'sombre' (défaut), 'clair' ou 'auto' ; le reste
+     (réglage, changement à chaud) est dans js/07-affichage-reglages.js. -->
+<script>try{document.documentElement.dataset.theme=localStorage.getItem('philo-theme')||'sombre';}catch(e){document.documentElement.dataset.theme='sombre';}</script>
+<link rel="stylesheet" href="app.css">
 </head>
-<body>
-<header class="fh"><a class="fh-site" href="../">🏛️ Graphe Philosophie <span>Terminale</span></a>
-<nav aria-label="Rubriques"><a href="../fiches/">Toutes les fiches</a></nav></header>
-<main class="fm"><nav class="fa" aria-label="Fil d’Ariane"><a href="../">Accueil</a> › <span aria-current="page">Fiches</span></nav>
-<article class="fiche"><header><h1>Fiches de révision de philosophie (Terminale)</h1>
-<p class="ques">Chaque fiche réunit la définition de la notion, les auteurs et leurs citations, des plans de dissertation, des sujets tombés au bac et des exemples. <a href="../">Ouvrir le graphe interactif et le quiz</a>.</p></header>
-<section><h2>Les 17 notions du programme</h2><ul class="liste"><li><a href="../notions/la-conscience/">La conscience</a> <small>Qu'est-ce que la conscience ?</small></li><li><a href="../notions/l-inconscient/">L’inconscient</a> <small>L'inconscient remet-il en cause notre liberté ?</small></li><li><a href="../notions/le-devoir/">Le devoir</a> <small>Sommes-nous obligés d'agir moralement ?</small></li><li><a href="../notions/la-liberte/">La liberté</a> <small>Sommes-nous vraiment libres ?</small></li><li><a href="../notions/le-bonheur/">Le bonheur</a> <small>En quoi consiste le bonheur ?</small></li><li><a href="../notions/la-religion/">La religion</a> <small>La religion est-elle compatible avec la raison ?</small></li><li><a href="../notions/le-langage/">Le langage</a> <small>Le langage ne sert-il qu'à communiquer ?</small></li><li><a href="../notions/l-art/">L’art</a> <small>L'artiste travaille-t-il ?</small></li><li><a href="../notions/la-technique/">La technique</a> <small>La technique nous libère-t-elle ou nous aliène-t-elle ?</small></li><li><a href="../notions/le-travail/">Le travail</a> <small>Le travail libère-t-il ou aliène-t-il ?</small></li><li><a href="../notions/la-justice/">La justice</a> <small>Qu'est-ce qu'une société juste ?</small></li><li><a href="../notions/l-etat/">L’État</a> <small>L'État est-il nécessaire ?</small></li><li><a href="../notions/la-nature/">La nature</a> <small>Qu'est-ce qui est naturel ?</small></li><li><a href="../notions/la-raison/">La raison</a> <small>La raison peut-elle tout expliquer ?</small></li><li><a href="../notions/la-science/">La science</a> <small>La science peut-elle tout expliquer ?</small></li><li><a href="../notions/la-verite/">La vérité</a> <small>Peut-on douter de tout ?</small></li><li><a href="../notions/le-temps/">Le temps</a> <small>Pouvons-nous maîtriser le temps ?</small></li></ul></section>
-<section><h2>Notions complémentaires (hors programme)</h2><ul class="liste"><li><a href="../notions/autrui/">Autrui</a> <small>Ai-je besoin d’autrui pour être moi-même ?</small></li><li><a href="../notions/le-desir/">Le désir</a> <small>Le désir est-il la marque de notre imperfection ?</small></li><li><a href="../notions/l-histoire/">L’histoire</a> <small>L’histoire a-t-elle un sens ?</small></li><li><a href="../notions/la-perception/">La perception</a> <small>Percevoir, est-ce connaître ?</small></li><li><a href="../notions/l-existence/">L’existence</a> <small>Exister, est-ce seulement être là ?</small></li><li><a href="../notions/le-vivant/">Le vivant</a> <small>Le vivant n'est-il qu'une machine ?</small></li><li><a href="../notions/la-matiere-et-l-esprit/">La matière et esprit</a> <small>L'esprit est-il autre chose que la matière ?</small></li><li><a href="../notions/l-interpretation/">L’interprétation</a> <small>Tout est-il affaire d'interprétation ?</small></li><li><a href="../notions/la-demonstration/">La démonstration</a> <small>Peut-on tout démontrer ?</small></li><li><a href="../notions/la-societe/">La société</a> <small>La société est-elle naturelle ?</small></li></ul></section>
-<section><h2>Les auteurs</h2><ul class="tags"><li><a href="../auteurs/adam-smith/">Adam Smith</a></li><li><a href="../auteurs/alain/">Alain</a></li><li><a href="../auteurs/amartya-sen/">Amartya Sen</a></li><li><a href="../auteurs/andre-breton/">André Breton</a></li><li><a href="../auteurs/anscombe/">Anscombe</a></li><li><a href="../auteurs/anselme/">Anselme</a></li><li><a href="../auteurs/aristote/">Aristote</a></li><li><a href="../auteurs/augustin/">Augustin</a></li><li><a href="../auteurs/austin/">Austin</a></li><li><a href="../auteurs/averroes/">Averroès</a></li><li><a href="../auteurs/avicenne/">Avicenne</a></li><li><a href="../auteurs/bachelard/">Bachelard</a></li><li><a href="../auteurs/bacon/">Bacon</a></li><li><a href="../auteurs/baptiste-morizot/">Baptiste Morizot</a></li><li><a href="../auteurs/barthes/">Barthes</a></li><li><a href="../auteurs/baudrillard/">Baudrillard</a></li><li><a href="../auteurs/beauvoir/">Beauvoir</a></li><li><a href="../auteurs/bentham/">Bentham</a></li><li><a href="../auteurs/benveniste/">Benveniste</a></li><li><a href="../auteurs/bergson/">Bergson</a></li><li><a href="../auteurs/berkeley/">Berkeley</a></li><li><a href="../auteurs/boroditsky/">Boroditsky</a></li><li><a href="../auteurs/bourdieu/">Bourdieu</a></li><li><a href="../auteurs/camus/">Camus</a></li><li><a href="../auteurs/cassin/">Cassin</a></li><li><a href="../auteurs/christopher-stone/">Christopher Stone</a></li><li><a href="../auteurs/ciceron/">Cicéron</a></li><li><a href="../auteurs/comte/">Comte</a></li><li><a href="../auteurs/condillac/">Condillac</a></li><li><a href="../auteurs/cournot/">Cournot</a></li><li><a href="../auteurs/d-holbach/">D'Holbach</a></li><li><a href="../auteurs/darwin/">Darwin</a></li><li><a href="../auteurs/descartes/">Descartes</a></li><li><a href="../auteurs/diderot/">Diderot</a></li><li><a href="../auteurs/durkheim/">Durkheim</a></li><li><a href="../auteurs/einstein/">Einstein</a></li><li><a href="../auteurs/ellul/">Ellul</a></li><li><a href="../auteurs/engels/">Engels</a></li><li><a href="../auteurs/epictete/">Épictète</a></li><li><a href="../auteurs/epicure/">Épicure</a></li><li><a href="../auteurs/feuerbach/">Feuerbach</a></li><li><a href="../auteurs/foucault/">Foucault</a></li><li><a href="../auteurs/francois-ost/">François Ost</a></li><li><a href="../auteurs/frans-de-waal/">Frans de Waal</a></li><li><a href="../auteurs/freud/">Freud</a></li><li><a href="../auteurs/georges-perec/">Georges Perec</a></li><li><a href="../auteurs/guillaume-d-ockham/">Guillaume d'Ockham</a></li><li><a href="../auteurs/gunther-anders/">Gunther Anders</a></li><li><a href="../auteurs/hannah-arendt/">Hannah Arendt</a></li><li><a href="../auteurs/hans-jonas/">Hans Jonas</a></li><li><a href="../auteurs/hartmut-rosa/">Hartmut Rosa</a></li><li><a href="../auteurs/hegel/">Hegel</a></li><li><a href="../auteurs/heidegger/">Heidegger</a></li><li><a href="../auteurs/heraclite/">Héraclite</a></li><li><a href="../auteurs/hobbes/">Hobbes</a></li><li><a href="../auteurs/hume/">Hume</a></li><li><a href="../auteurs/husserl/">Husserl</a></li><li><a href="../auteurs/iris-murdoch/">Iris Murdoch</a></li><li><a href="../auteurs/jakobson/">Jakobson</a></li><li><a href="../auteurs/jankelevitch/">Jankélévitch</a></li><li><a href="../auteurs/jaspers/">Jaspers</a></li><li><a href="../auteurs/jeanne-hersch/">Jeanne Hersch</a></li><li><a href="../auteurs/kant/">Kant</a></li><li><a href="../auteurs/kierkegaard/">Kierkegaard</a></li><li><a href="../auteurs/kuhn/">Kuhn</a></li><li><a href="../auteurs/la-boetie/">La Boétie</a></li><li><a href="../auteurs/lafargue/">Lafargue</a></li><li><a href="../auteurs/leguil/">Leguil</a></li><li><a href="../auteurs/leibniz/">Leibniz</a></li><li><a href="../auteurs/levi-strauss/">Lévi-Strauss</a></li><li><a href="../auteurs/levinas/">Levinas</a></li><li><a href="../auteurs/lipovetsky/">Lipovetsky</a></li><li><a href="../auteurs/locke/">Locke</a></li><li><a href="../auteurs/lucrece/">Lucrèce</a></li><li><a href="../auteurs/machiavel/">Machiavel</a></li><li><a href="../auteurs/maimonide/">Maïmonide</a></li><li><a href="../auteurs/malebranche/">Malebranche</a></li><li><a href="../auteurs/marc-aurele/">Marc Aurèle</a></li><li><a href="../auteurs/marx/">Marx</a></li><li><a href="../auteurs/mauss/">Mauss</a></li><li><a href="../auteurs/merleau-ponty/">Merleau-Ponty</a></li><li><a href="../auteurs/michel-serres/">Michel Serres</a></li><li><a href="../auteurs/mill/">Mill</a></li><li><a href="../auteurs/montaigne/">Montaigne</a></li><li><a href="../auteurs/montesquieu/">Montesquieu</a></li><li><a href="../auteurs/nagarjuna/">Nāgārjuna</a></li><li><a href="../auteurs/nietzsche/">Nietzsche</a></li><li><a href="../auteurs/orwell/">Orwell</a></li><li><a href="../auteurs/parmenide/">Parménide</a></li><li><a href="../auteurs/pascal/">Pascal</a></li><li><a href="../auteurs/platon/">Platon</a></li><li><a href="../auteurs/plotin/">Plotin</a></li><li><a href="../auteurs/popper/">Popper</a></li><li><a href="../auteurs/putnam/">Putnam</a></li><li><a href="../auteurs/rawls/">Rawls</a></li><li><a href="../auteurs/raymond-aron/">Raymond Aron</a></li><li><a href="../auteurs/ricoeur/">Ricœur</a></li><li><a href="../auteurs/robert-nozick/">Robert Nozick</a></li><li><a href="../auteurs/rousseau/">Rousseau</a></li><li><a href="../auteurs/russell/">Russell</a></li><li><a href="../auteurs/sartre/">Sartre</a></li><li><a href="../auteurs/saussure/">Saussure</a></li><li><a href="../auteurs/schopenhauer/">Schopenhauer</a></li><li><a href="../auteurs/seneque/">Sénèque</a></li><li><a href="../auteurs/sextus-empiricus/">Sextus Empiricus</a></li><li><a href="../auteurs/simondon/">Simondon</a></li><li><a href="../auteurs/simone-weil/">Simone Weil</a></li><li><a href="../auteurs/spinoza/">Spinoza</a></li><li><a href="../auteurs/srdja-popovic/">Srdja Popovic</a></li><li><a href="../auteurs/stephen-jay-gould/">Stephen Jay Gould</a></li><li><a href="../auteurs/thomas-d-aquin/">Thomas d'Aquin</a></li><li><a href="../auteurs/thoreau/">Thoreau</a></li><li><a href="../auteurs/tisseron/">Tisseron</a></li><li><a href="../auteurs/tocqueville/">Tocqueville</a></li><li><a href="../auteurs/tristan-tzara/">Tristan Tzara</a></li><li><a href="../auteurs/val-plumwood/">Val Plumwood</a></li><li><a href="../auteurs/vico/">Vico</a></li><li><a href="../auteurs/walter-benjamin/">Walter Benjamin</a></li><li><a href="../auteurs/watzlawick/">Watzlawick</a></li><li><a href="../auteurs/weber/">Weber</a></li><li><a href="../auteurs/william-james/">William James</a></li><li><a href="../auteurs/wittgenstein/">Wittgenstein</a></li><li><a href="../auteurs/zhuangzi/">Zhuangzi</a></li></ul></section>
-</article></main>
-<footer class="ff"><p>Graphe Philosophie : fiches de révision de philosophie pour le bac (programme de Terminale, BO n° 8 du 25 juillet 2019). Projet collaboratif, relu et enrichi régulièrement : une erreur ou une idée se signalent depuis l’outil. <a href="../">Ouvrir l’outil interactif</a> (graphe, quiz, méthodologie).</p></footer>
+<body data-entree="fiches">
+
+<div class="sr-only">Graphe de révision philosophie — 17 notions du programme de Terminale avec auteurs, citations, concepts, plans de dissertation et exemples ; mode quiz et proposition de contenu</div>
+<!-- Sans JavaScript (certains robots, navigateurs bridés) : renvoi vers les
+     pages statiques, qui ont tout le texte des fiches. -->
+<noscript><p style="padding:16px">Cet outil interactif demande JavaScript. Toutes les fiches existent aussi en pages simples : <a href="fiches/">fiches de révision des 17 notions et des auteurs</a>.</p></noscript>
+<!-- Tiroir responsive : voile (visible uniquement ≤700px ; burger inline ci-dessous) -->
+<div class="sb-backdrop" id="sb-backdrop" aria-hidden="true"></div>
+<div class="wrap">
+<!-- PRÉ-RENDU (nov. 2026) : entre les repères PRERENDU, le build
+     (outils/construire.mjs, prerenduAccueil) écrit des liens vers les notions
+     et un <h1>, lisibles SANS JavaScript. L'app les remplace au démarrage
+     (renderSB vide #sb, le rendu d'une fiche remplace .main-content).
+     Ne pas éditer entre les repères. -->
+<div class="sidebar" id="sb"><!--PRERENDU:sb--><nav class="prerendu-nav" aria-label="Les notions du programme">
+<a class="nb" href="notions/la-conscience/"><span class="dot" style="background:#534AB7"></span>Conscience</a>
+<a class="nb" href="notions/l-inconscient/"><span class="dot" style="background:#7B4F9E"></span>Inconscient</a>
+<a class="nb" href="notions/le-devoir/"><span class="dot" style="background:#993556"></span>Devoir</a>
+<a class="nb" href="notions/la-liberte/"><span class="dot" style="background:#D4537E"></span>Liberté</a>
+<a class="nb" href="notions/le-bonheur/"><span class="dot" style="background:#EF9F27"></span>Bonheur</a>
+<a class="nb" href="notions/la-religion/"><span class="dot" style="background:#C4682A"></span>Religion</a>
+<a class="nb" href="notions/le-langage/"><span class="dot" style="background:#6B4FA0"></span>Langage</a>
+<a class="nb" href="notions/l-art/"><span class="dot" style="background:#8B5E3C"></span>Art</a>
+<a class="nb" href="notions/la-technique/"><span class="dot" style="background:#185FA5"></span>Technique</a>
+<a class="nb" href="notions/le-travail/"><span class="dot" style="background:#3B6D11"></span>Travail</a>
+<a class="nb" href="notions/la-justice/"><span class="dot" style="background:#D85A30"></span>Justice</a>
+<a class="nb" href="notions/l-etat/"><span class="dot" style="background:#5F5E5A"></span>État</a>
+<a class="nb" href="notions/la-nature/"><span class="dot" style="background:#1D9E75"></span>Nature</a>
+<a class="nb" href="notions/la-raison/"><span class="dot" style="background:#2E86AB"></span>Raison</a>
+<a class="nb" href="notions/la-science/"><span class="dot" style="background:#1A7A4A"></span>Science</a>
+<a class="nb" href="notions/la-verite/"><span class="dot" style="background:#8A6B2E"></span>Vérité</a>
+<a class="nb" href="notions/le-temps/"><span class="dot" style="background:#4E6D8C"></span>Temps</a>
+<a class="nb" href="fiches/">Toutes les fiches et les auteurs</a>
+</nav><!--/PRERENDU:sb--></div>
+<!-- new: <main> (et non plus <div>) pour fournir le repère « main landmark »
+     attendu par les lecteurs d'écran et l'audit d'accessibilité. L'id et la
+     classe restent identiques : le CSS et le JS (getElementById('main'))
+     ne changent pas. -->
+<main class="main" id="main">
+  <!-- Bandeau d'avertissement (formulation revue en nov. 2026 : « projet
+       collaboratif, relu et enrichi », plus juste qu'« en construction »). Réapparaît à CHAQUE
+       chargement (aucune persistance) ; se ferme via la croix ou disparaît seul
+       au bout d'une minute (initNotice / dismissNotice dans le <script>). Le mot
+       souligné renvoie à la partie « Proposer / éditer » de la visite guidée. -->
+  <div class="notice-banner" id="notice-banner" role="status">
+    <span class="notice-banner-text">Projet collaboratif de révision, relu et enrichi régulièrement. Une erreur, une idée ? <span class="notice-banner-link" role="link" tabindex="0" onclick="noticeOpenContribTour()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();noticeOpenContribTour()}">Participez à son amélioration</span>.</span>
+    <button class="notice-banner-close" id="notice-banner-close" aria-label="Fermer l'avertissement" onclick="dismissNotice()">×</button>
+  </div>
+  <!-- Bande d'en-tête : burger (mobile uniquement) + fil d'Ariane, alignés. -->
+  <div class="topbar">
+    <button class="sb-burger" id="sb-burger" aria-label="Ouvrir le menu" aria-controls="sb">☰</button>
+    <div class="crumbs" id="crumbs"><nav class="fa" aria-label="Fil d’Ariane"><a href="/">Accueil</a> › <span aria-current="page">Fiches</span></nav></div>
+    <!-- Groupe d'actions aligné à droite. Tous les boutons y sont des éléments
+         flex (donc aucun chevauchement possible, y compris sur mobile) :
+         « Mes propositions » (visible connecté), la recherche globale, puis
+         le bouton d'aide « ? » qui n'est PLUS en position:fixed. -->
+    <div class="topbar-actions">
+      <!-- Accès direct au suivi des propositions (réservé aux comptes
+           connectés via CSS body.is-signed-in). -->
+      <button class="topbar-mine" id="topbar-mine" aria-label="Mes propositions" onclick="openMyProposals()">
+        <span class="cmdp-ico" aria-hidden="true">📋</span><span class="ts-label">Mes propositions</span>
+      </button>
+      <!-- Déclencheur de la palette de recherche globale (Ctrl/⌘+K). Le
+           libellé et le raccourci se masquent ≤700px (icône seule). -->
+      <button class="topbar-search" id="topbar-search" aria-label="Recherche globale (Ctrl+K)" onclick="openPalette()">
+        <span class="cmdp-ico" aria-hidden="true">🔍</span><span class="ts-label">Rechercher</span><kbd>Ctrl K</kbd>
+      </button>
+      <!-- Bouton de partage : ouvre la modale (QR + copier le lien) ; sur
+           mobile la modale propose en plus le partage natif de l'appareil.
+           Libellé masqué ≤700px (icône seule), comme la recherche. -->
+      <button class="topbar-share" id="topbar-share" aria-label="Partager le site" onclick="openShare()">
+        <span class="cmdp-ico" aria-hidden="true">🔗</span><span class="ts-label">Partager</span>
+      </button>
+      <button class="help-btn" id="help-btn" aria-label="Aide et visite guidée" onclick="toggleHelpMenu(event)">?</button>
+    </div>
+  </div>
+  <div class="tabs"></div>
+  <div class="main-content"><!--PRERENDU:main--><div class="notion-head"><div><h1 class="ntitle">Fiches de révision de philosophie (Terminale)</h1><div class="nsub">Chaque fiche réunit la définition de la notion, les auteurs et leurs citations, des plans de dissertation, des sujets tombés au bac et des exemples.</div></div></div>
+<h2 class="slabel">Les 17 notions du programme</h2><div class="sommaire-liste"><a class="ac" href="/notions/la-conscience/"><h3 class="an"><span class="dot" style="background:#534AB7"></span> La conscience</h3><div class="nsub">Qu'est-ce que la conscience ?</div></a><a class="ac" href="/notions/l-inconscient/"><h3 class="an"><span class="dot" style="background:#7B4F9E"></span> L’inconscient</h3><div class="nsub">L'inconscient remet-il en cause notre liberté ?</div></a><a class="ac" href="/notions/le-devoir/"><h3 class="an"><span class="dot" style="background:#993556"></span> Le devoir</h3><div class="nsub">Sommes-nous obligés d'agir moralement ?</div></a><a class="ac" href="/notions/la-liberte/"><h3 class="an"><span class="dot" style="background:#D4537E"></span> La liberté</h3><div class="nsub">Sommes-nous vraiment libres ?</div></a><a class="ac" href="/notions/le-bonheur/"><h3 class="an"><span class="dot" style="background:#EF9F27"></span> Le bonheur</h3><div class="nsub">En quoi consiste le bonheur ?</div></a><a class="ac" href="/notions/la-religion/"><h3 class="an"><span class="dot" style="background:#C4682A"></span> La religion</h3><div class="nsub">La religion est-elle compatible avec la raison ?</div></a><a class="ac" href="/notions/le-langage/"><h3 class="an"><span class="dot" style="background:#6B4FA0"></span> Le langage</h3><div class="nsub">Le langage ne sert-il qu'à communiquer ?</div></a><a class="ac" href="/notions/l-art/"><h3 class="an"><span class="dot" style="background:#8B5E3C"></span> L’art</h3><div class="nsub">L'artiste travaille-t-il ?</div></a><a class="ac" href="/notions/la-technique/"><h3 class="an"><span class="dot" style="background:#185FA5"></span> La technique</h3><div class="nsub">La technique nous libère-t-elle ou nous aliène-t-elle ?</div></a><a class="ac" href="/notions/le-travail/"><h3 class="an"><span class="dot" style="background:#3B6D11"></span> Le travail</h3><div class="nsub">Le travail libère-t-il ou aliène-t-il ?</div></a><a class="ac" href="/notions/la-justice/"><h3 class="an"><span class="dot" style="background:#D85A30"></span> La justice</h3><div class="nsub">Qu'est-ce qu'une société juste ?</div></a><a class="ac" href="/notions/l-etat/"><h3 class="an"><span class="dot" style="background:#5F5E5A"></span> L’État</h3><div class="nsub">L'État est-il nécessaire ?</div></a><a class="ac" href="/notions/la-nature/"><h3 class="an"><span class="dot" style="background:#1D9E75"></span> La nature</h3><div class="nsub">Qu'est-ce qui est naturel ?</div></a><a class="ac" href="/notions/la-raison/"><h3 class="an"><span class="dot" style="background:#2E86AB"></span> La raison</h3><div class="nsub">La raison peut-elle tout expliquer ?</div></a><a class="ac" href="/notions/la-science/"><h3 class="an"><span class="dot" style="background:#1A7A4A"></span> La science</h3><div class="nsub">La science peut-elle tout expliquer ?</div></a><a class="ac" href="/notions/la-verite/"><h3 class="an"><span class="dot" style="background:#8A6B2E"></span> La vérité</h3><div class="nsub">Peut-on douter de tout ?</div></a><a class="ac" href="/notions/le-temps/"><h3 class="an"><span class="dot" style="background:#4E6D8C"></span> Le temps</h3><div class="nsub">Pouvons-nous maîtriser le temps ?</div></a></div>
+<h2 class="slabel">Notions complémentaires (hors programme)</h2><div class="sommaire-liste"><a class="ac" href="/notions/autrui/"><h3 class="an"><span class="dot" style="background:#B85C8A"></span> Autrui</h3><div class="nsub">Ai-je besoin d’autrui pour être moi-même ?</div></a><a class="ac" href="/notions/le-desir/"><h3 class="an"><span class="dot" style="background:#B83A5E"></span> Le désir</h3><div class="nsub">Le désir est-il la marque de notre imperfection ?</div></a><a class="ac" href="/notions/l-histoire/"><h3 class="an"><span class="dot" style="background:#7D6F4A"></span> L’histoire</h3><div class="nsub">L’histoire a-t-elle un sens ?</div></a><a class="ac" href="/notions/la-perception/"><h3 class="an"><span class="dot" style="background:#3E8E9E"></span> La perception</h3><div class="nsub">Percevoir, est-ce connaître ?</div></a><a class="ac" href="/notions/l-existence/"><h3 class="an"><span class="dot" style="background:#6B4A7A"></span> L’existence</h3><div class="nsub">Exister, est-ce seulement être là ?</div></a><a class="ac" href="/notions/le-vivant/"><h3 class="an"><span class="dot" style="background:#4E8A3C"></span> Le vivant</h3><div class="nsub">Le vivant n'est-il qu'une machine ?</div></a><a class="ac" href="/notions/la-matiere-et-l-esprit/"><h3 class="an"><span class="dot" style="background:#5A6E99"></span> La matière et esprit</h3><div class="nsub">L'esprit est-il autre chose que la matière ?</div></a><a class="ac" href="/notions/l-interpretation/"><h3 class="an"><span class="dot" style="background:#9A6A3A"></span> L’interprétation</h3><div class="nsub">Tout est-il affaire d'interprétation ?</div></a><a class="ac" href="/notions/la-demonstration/"><h3 class="an"><span class="dot" style="background:#3A5F8A"></span> La démonstration</h3><div class="nsub">Peut-on tout démontrer ?</div></a><a class="ac" href="/notions/la-societe/"><h3 class="an"><span class="dot" style="background:#A0623E"></span> La société</h3><div class="nsub">La société est-elle naturelle ?</div></a></div>
+<h2 class="slabel">Les auteurs</h2><nav class="sommaire-auteurs" aria-label="Les auteurs"><a href="/auteurs/adam-smith/">Adam Smith</a><a href="/auteurs/alain/">Alain</a><a href="/auteurs/amartya-sen/">Amartya Sen</a><a href="/auteurs/andre-breton/">André Breton</a><a href="/auteurs/anscombe/">Anscombe</a><a href="/auteurs/anselme/">Anselme</a><a href="/auteurs/aristote/">Aristote</a><a href="/auteurs/augustin/">Augustin</a><a href="/auteurs/austin/">Austin</a><a href="/auteurs/averroes/">Averroès</a><a href="/auteurs/avicenne/">Avicenne</a><a href="/auteurs/bachelard/">Bachelard</a><a href="/auteurs/bacon/">Bacon</a><a href="/auteurs/baptiste-morizot/">Baptiste Morizot</a><a href="/auteurs/barthes/">Barthes</a><a href="/auteurs/baudrillard/">Baudrillard</a><a href="/auteurs/beauvoir/">Beauvoir</a><a href="/auteurs/bentham/">Bentham</a><a href="/auteurs/benveniste/">Benveniste</a><a href="/auteurs/bergson/">Bergson</a><a href="/auteurs/berkeley/">Berkeley</a><a href="/auteurs/boroditsky/">Boroditsky</a><a href="/auteurs/bourdieu/">Bourdieu</a><a href="/auteurs/camus/">Camus</a><a href="/auteurs/cassin/">Cassin</a><a href="/auteurs/christopher-stone/">Christopher Stone</a><a href="/auteurs/ciceron/">Cicéron</a><a href="/auteurs/comte/">Comte</a><a href="/auteurs/condillac/">Condillac</a><a href="/auteurs/cournot/">Cournot</a><a href="/auteurs/d-holbach/">D'Holbach</a><a href="/auteurs/darwin/">Darwin</a><a href="/auteurs/descartes/">Descartes</a><a href="/auteurs/diderot/">Diderot</a><a href="/auteurs/durkheim/">Durkheim</a><a href="/auteurs/einstein/">Einstein</a><a href="/auteurs/ellul/">Ellul</a><a href="/auteurs/engels/">Engels</a><a href="/auteurs/epictete/">Épictète</a><a href="/auteurs/epicure/">Épicure</a><a href="/auteurs/feuerbach/">Feuerbach</a><a href="/auteurs/foucault/">Foucault</a><a href="/auteurs/francois-ost/">François Ost</a><a href="/auteurs/frans-de-waal/">Frans de Waal</a><a href="/auteurs/freud/">Freud</a><a href="/auteurs/georges-perec/">Georges Perec</a><a href="/auteurs/guillaume-d-ockham/">Guillaume d'Ockham</a><a href="/auteurs/gunther-anders/">Gunther Anders</a><a href="/auteurs/hannah-arendt/">Hannah Arendt</a><a href="/auteurs/hans-jonas/">Hans Jonas</a><a href="/auteurs/hartmut-rosa/">Hartmut Rosa</a><a href="/auteurs/hegel/">Hegel</a><a href="/auteurs/heidegger/">Heidegger</a><a href="/auteurs/heraclite/">Héraclite</a><a href="/auteurs/hobbes/">Hobbes</a><a href="/auteurs/hume/">Hume</a><a href="/auteurs/husserl/">Husserl</a><a href="/auteurs/iris-murdoch/">Iris Murdoch</a><a href="/auteurs/jakobson/">Jakobson</a><a href="/auteurs/jankelevitch/">Jankélévitch</a><a href="/auteurs/jaspers/">Jaspers</a><a href="/auteurs/jeanne-hersch/">Jeanne Hersch</a><a href="/auteurs/kant/">Kant</a><a href="/auteurs/kierkegaard/">Kierkegaard</a><a href="/auteurs/kuhn/">Kuhn</a><a href="/auteurs/la-boetie/">La Boétie</a><a href="/auteurs/lafargue/">Lafargue</a><a href="/auteurs/leguil/">Leguil</a><a href="/auteurs/leibniz/">Leibniz</a><a href="/auteurs/levi-strauss/">Lévi-Strauss</a><a href="/auteurs/levinas/">Levinas</a><a href="/auteurs/lipovetsky/">Lipovetsky</a><a href="/auteurs/locke/">Locke</a><a href="/auteurs/lucrece/">Lucrèce</a><a href="/auteurs/machiavel/">Machiavel</a><a href="/auteurs/maimonide/">Maïmonide</a><a href="/auteurs/malebranche/">Malebranche</a><a href="/auteurs/marc-aurele/">Marc Aurèle</a><a href="/auteurs/marx/">Marx</a><a href="/auteurs/mauss/">Mauss</a><a href="/auteurs/merleau-ponty/">Merleau-Ponty</a><a href="/auteurs/michel-serres/">Michel Serres</a><a href="/auteurs/mill/">Mill</a><a href="/auteurs/montaigne/">Montaigne</a><a href="/auteurs/montesquieu/">Montesquieu</a><a href="/auteurs/nagarjuna/">Nāgārjuna</a><a href="/auteurs/nietzsche/">Nietzsche</a><a href="/auteurs/orwell/">Orwell</a><a href="/auteurs/parmenide/">Parménide</a><a href="/auteurs/pascal/">Pascal</a><a href="/auteurs/platon/">Platon</a><a href="/auteurs/plotin/">Plotin</a><a href="/auteurs/popper/">Popper</a><a href="/auteurs/putnam/">Putnam</a><a href="/auteurs/rawls/">Rawls</a><a href="/auteurs/raymond-aron/">Raymond Aron</a><a href="/auteurs/ricoeur/">Ricœur</a><a href="/auteurs/robert-nozick/">Robert Nozick</a><a href="/auteurs/rousseau/">Rousseau</a><a href="/auteurs/russell/">Russell</a><a href="/auteurs/sartre/">Sartre</a><a href="/auteurs/saussure/">Saussure</a><a href="/auteurs/schopenhauer/">Schopenhauer</a><a href="/auteurs/seneque/">Sénèque</a><a href="/auteurs/sextus-empiricus/">Sextus Empiricus</a><a href="/auteurs/simondon/">Simondon</a><a href="/auteurs/simone-weil/">Simone Weil</a><a href="/auteurs/spinoza/">Spinoza</a><a href="/auteurs/srdja-popovic/">Srdja Popovic</a><a href="/auteurs/stephen-jay-gould/">Stephen Jay Gould</a><a href="/auteurs/thomas-d-aquin/">Thomas d'Aquin</a><a href="/auteurs/thoreau/">Thoreau</a><a href="/auteurs/tisseron/">Tisseron</a><a href="/auteurs/tocqueville/">Tocqueville</a><a href="/auteurs/tristan-tzara/">Tristan Tzara</a><a href="/auteurs/val-plumwood/">Val Plumwood</a><a href="/auteurs/vico/">Vico</a><a href="/auteurs/walter-benjamin/">Walter Benjamin</a><a href="/auteurs/watzlawick/">Watzlawick</a><a href="/auteurs/weber/">Weber</a><a href="/auteurs/william-james/">William James</a><a href="/auteurs/wittgenstein/">Wittgenstein</a><a href="/auteurs/zhuangzi/">Zhuangzi</a></nav><!--/PRERENDU:main--></div>
+</main>
+</div>
+
+<!-- Interface de contribution : modale (le bouton d'ouverture .sb-propose est créé dans la sidebar par renderSB) -->
+<div class="modal-overlay" id="proposal-overlay">
+  <div class="modal-panel" role="dialog" aria-modal="true" aria-label="Proposer du contenu">
+    <div class="modal-head">
+      <div class="modal-title">💡 Proposer du contenu</div>
+      <button class="modal-close" id="proposal-close" aria-label="Fermer">×</button>
+    </div>
+    <div class="modal-body" id="proposal-body"></div>
+  </div>
+</div>
+
+<!-- new (comptes) : modale de connexion / création de compte. Même
+     ossature que #proposal-overlay (voile .modal-overlay + panneau). Le
+     bouton d'ouverture .sb-account est créé dans la sidebar par renderSB ;
+     le corps (#auth-body) est injecté en JS par renderAuth(). -->
+<div class="modal-overlay" id="auth-overlay">
+  <div class="modal-panel" role="dialog" aria-modal="true" aria-label="Compte" style="width:min(420px,94vw)">
+    <div class="modal-head">
+      <div class="modal-title" id="auth-title">👤 Mon compte</div>
+      <button class="modal-close" id="auth-close" aria-label="Fermer">×</button>
+    </div>
+    <div class="modal-body" id="auth-body"></div>
+  </div>
+</div>
+
+<!-- new (partage) : modale de partage. Même ossature que #auth-overlay.
+     Le bouton d'ouverture est .topbar-share (dans la topbar). Le corps
+     (#share-body) est injecté en JS par renderShare() : partage natif si
+     l'appareil le permet, QR code + lien copiable toujours. -->
+<div class="modal-overlay" id="share-overlay">
+  <div class="modal-panel" role="dialog" aria-modal="true" aria-label="Partager le site" style="width:min(420px,94vw)">
+    <div class="modal-head">
+      <div class="modal-title">🔗 Partager l'outil</div>
+      <button class="modal-close" id="share-close" aria-label="Fermer">×</button>
+    </div>
+    <div class="modal-body" id="share-body"></div>
+  </div>
+</div>
+
+<!-- Facette : petite liste des auteurs d'un même courant / des concepts d'une
+     même catégorie. Ouverte par openFacet() au clic sur un courant ou un tag ;
+     contenu injecté dans #facet-body. Réutilise le style .modal-overlay. -->
+<div class="modal-overlay" id="facet-overlay" onclick="if(event.target===this)closeFacet()">
+  <div class="modal-panel facet-panel" role="dialog" aria-modal="true" aria-label="Éléments partageant cette étiquette" style="width:min(420px,94vw)">
+    <div class="modal-head">
+      <div class="modal-title" id="facet-title"></div>
+      <button class="modal-close" onclick="closeFacet()" aria-label="Fermer">×</button>
+    </div>
+    <div class="facet-body" id="facet-body"></div>
+  </div>
+</div>
+
+<!-- Réglages : petit menu des fonctions non nécessaires à la révision
+     (bascule du mode d'affichage, etc.). Ouvert par .sb-settings (renderSB). -->
+<div class="modal-overlay" id="settings-overlay" onclick="if(event.target===this)closeSettings()">
+  <div class="modal-panel" role="dialog" aria-modal="true" aria-label="Réglages" style="width:min(440px,94vw)">
+    <div class="modal-head">
+      <div class="modal-title">⚙ Réglages</div>
+      <button class="modal-close" onclick="closeSettings()" aria-label="Fermer">×</button>
+    </div>
+    <div class="modal-body" id="settings-body"></div>
+  </div>
+</div>
+
+<!-- Mode quiz : overlay plein écran (le bouton d'ouverture .sb-quiz est
+     créé dans la sidebar par renderSB). Le contenu (dashboard / session /
+     fin) est injecté en JS dans #quiz-body par renderQuiz(). -->
+<div id="quiz-overlay" role="dialog" aria-modal="true" aria-label="Mode révision active">
+  <div class="quiz-shell" id="quiz-body"></div>
+</div>
+
+<!-- Palette de recherche globale (Ctrl/⌘+K) : recherche transversale
+     notions + auteurs + concepts, ouverte par le bouton .topbar-search ou
+     le raccourci clavier. La liste de résultats (#palette-results) est
+     rendue en JS par renderPalette() ; elle complète la recherche par mode
+     de la sidebar, qu'elle ne remplace pas. -->
+<div class="cmdp-overlay" id="palette-overlay">
+  <div class="cmdp-panel" role="dialog" aria-modal="true" aria-label="Recherche globale">
+    <div class="cmdp-search">
+      <span class="cmdp-ico" aria-hidden="true">🔍</span>
+      <input class="cmdp-input" id="palette-input" type="text" autocomplete="off"
+             placeholder="Rechercher une notion, un auteur, un concept…"
+             aria-label="Rechercher" aria-controls="palette-results" role="combobox" aria-expanded="true">
+      <button class="cmdp-clear" id="palette-clear" type="button" title="Effacer (clic droit aussi)" aria-label="Effacer la recherche" onclick="clearPaletteSearch()">✕</button>
+    </div>
+    <div class="cmdp-results" id="palette-results" role="listbox" aria-label="Résultats"></div>
+    <div class="cmdp-foot">
+      <span><kbd>↑</kbd> <kbd>↓</kbd> naviguer</span>
+      <span><kbd>↵</kbd> ouvrir</span>
+      <span><kbd>Échap</kbd> fermer</span>
+    </div>
+  </div>
+</div>
+
+<!-- Menu du bouton d'aide « ? » : rouvre la visite guidée, en entier ou
+     directement sur une partie. Le BOUTON déclencheur vit désormais dans la
+     barre d'en-tête (.topbar-actions) ; ce menu reste ici car il est en
+     position:fixed (sa place dans le DOM n'influe pas sur son affichage). La
+     visite elle-même (voile + projecteur + bulle) est créée à la volée en JS
+     — voir le module « Visite guidée » du <script> (buildTourDOM). -->
+<div class="help-menu" id="help-menu" role="menu" aria-label="Aide">
+  <div class="help-menu-title">Visite guidée</div>
+  <button class="help-item primary" role="menuitem" onclick="startTour(0, false, 'core')">↻ Recommencer la visite</button>
+  <div class="help-sep"></div>
+  <div class="help-menu-title">Aller à une partie</div>
+  <button class="help-item" role="menuitem" onclick="tourGoPart('fiches')">Les fiches</button>
+  <button class="help-item" role="menuitem" onclick="tourGoPart('liens')">Les liens dynamiques</button>
+  <button class="help-item" role="menuitem" onclick="tourGoPart('nav')">Naviguer / revenir</button>
+  <button class="help-item" role="menuitem" onclick="tourGoPart('reviser')">Réviser (le quiz)</button>
+  <button class="help-item" role="menuitem" onclick="tourGoPart('compte')">Mon compte (sync)</button>
+  <button class="help-item" role="menuitem" onclick="tourGoPart('proposer')">Proposer / éditer</button>
+</div>
+
+<!-- defer (nov. 2026) : les trois scripts se téléchargent pendant la lecture
+     de la page et s'exécutent ensuite, DANS L'ORDRE (data.js, supabase,
+     app.js), juste avant DOMContentLoaded : même ordre qu'avant, mais le
+     navigateur n'interrompt plus l'analyse du HTML pour les attendre. -->
+<script src="data.js" defer></script>
+<!-- new (comptes) : bibliothèque cliente Supabase (authentification +
+     base en ligne). Chargée AVANT le script principal pour exposer le
+     global « supabase » (porteur de createClient), dont on se sert plus
+     bas pour créer le client SB. Build UMD via le CDN jsDelivr.
+     Version FIGÉE (oct. 2026) + empreinte d'intégrité (attribut integrity,
+     « SRI ») : le navigateur refuse le fichier si son contenu change. Avant,
+     « @2 » suivait toute nouvelle version 2.x dès sa publication. Pour
+     monter de version : changer le numéro ET recalculer l'empreinte
+     (sha384 du fichier dist/umd/supabase.js, encodée en base64). Garder la
+     même ligne dans triage/index.html. -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js" integrity="sha384-Rj26LVGvoeRVR6+mwQmFfcR3QOBEwT+ZmuCWpuiqeTzJpCs0ER4ITAWGb4Hiy3Ok" crossorigin="anonymous" defer></script>
+<script src="app.js" defer></script>
+
+
 </body></html>

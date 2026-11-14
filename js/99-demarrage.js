@@ -8,17 +8,16 @@
    Appel initial au chargement de la page :
    renderSB()      → construit la sidebar avec la première notion active
    renderContent() → affiche le contenu de cette première notion        */
-ficheEntreeSaisir();          // page d'entrée : met de côté la fiche complète pré-rendue (js/02)
 restoreDraftsFromStorage();   // new (Phase 3) : recharge le brouillon de proposition local
 restoreNavFromStorage();      // position survit à l'actualisation (philo-nav)
 restoreNavFromAddress();      // … mais une adresse #/… (lien partagé, favori) l'emporte
 restoreNavHistory();          // pile « ← Retour » survit aussi (philo-navhist)
 appliquerAffichage();         // étape 6 : thème et taille du texte (avant le premier rendu)
-renderSB();renderCurrentView();
+// Sommaire /fiches/ (page d'entrée data-entree="fiches") : son contenu pré-rendu
+// reste affiché tel quel ; la barre latérale démarre, la 1re navigation le remplace.
+renderSB(); if(document.body.dataset.entree!=='fiches') renderCurrentView();
 initAuth();           // new (comptes) : récupère la session + s'abonne aux changements d'état
-// Visite guidée auto à la 1re venue, mais pas sur une page d'entrée (arrivée
-// depuis un moteur sur une fiche) : on laisse lire la fiche ; « ? » la propose.
-if(!PAGE_ENTREE) tourStartIfFirst();
+tourStartIfFirst();   // visite guidée auto à la 1re venue (cf. module « Visite guidée »)
 hpInviterSiBesoin();  // étape 5 : propose de masquer le hors programme (une fois, hors visite)
 initNotice();         // bandeau « contenu en construction » (auto-fermeture à 1 min)
 

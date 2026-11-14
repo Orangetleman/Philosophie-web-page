@@ -845,7 +845,6 @@ function renderAuthorContent(){
   }
 
   mc.innerHTML=html;
-  ficheEntreeAjouter(mc);   // page d'entrée d'un auteur : « En dialogue avec » reste visible
 }
 
 /* renderContent() — vue principale d'une notion (cur).
@@ -1140,7 +1139,6 @@ ${estHP(cur)?hpNoticeHTML():''}
 
   html+=piedNotionHTML(cur);   // référencement : présentation + vrais liens
   mc.innerHTML=html;
-  ficheEntreeAjouter(mc);   // page d'entrée : la fiche complète reste sous l'onglet Auteurs
 }
 
 /* piedNotionHTML(k) — pied de la fiche d'une notion (référencement, nov.

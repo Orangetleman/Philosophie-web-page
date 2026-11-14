@@ -326,41 +326,36 @@ function majAdresse(){
   navAdresseEnAttente=false;
 }
 
-/* Fiche complète d'une page d'entrée : le <details id="fiche-entree">
-   pré-rendu (textes, concepts, plans, sujets, exemples…) est mis de côté
-   au démarrage, puis rajouté sous l'onglet par défaut de CETTE fiche à
-   chaque rendu (ficheEntreeAjouter, appelée par renderContent et
-   renderAuthorContent). Ainsi le texte de la page reste visible dans
-   l'app, comme dans le HTML servi (pas de contenu réservé aux robots). */
-let ficheEntree=null, ficheEntreeEtat=null;
-function ficheEntreeSaisir(){
-  const el=document.getElementById('fiche-entree');
-  if(!el) return;
-  ficheEntree=el; ficheEntreeEtat=entreeDePage();
-  el.remove();
-}
-function ficheEntreeAjouter(mc){
-  if(!ficheEntree||!ficheEntreeEtat) return;
-  const s=navStateNow(), e=ficheEntreeEtat;
-  const ici=e.sbMode==='notions'?(s.sbMode==='notions'&&s.cur===e.cur&&s.curTab==='auteurs')
-    :(s.sbMode==='auteurs'&&s.curAuthor===e.curAuthor&&s.curAuthorTab==='idees');
-  if(!ici) return;
-  const pied=mc.querySelector('.pied-notion');   // avant le pied de fiche, s'il y en a un
-  mc.insertBefore(ficheEntree,pied);
-}
-
 /* Précédent / suivant du navigateur : on affiche la page de l'adresse
    atteinte (#/… ou chemin d'une page d'entrée), sans rien empiler. Si
    c'est aussi le sommet de la pile « ← Retour » du site, on l'en retire,
    pour que les deux restent d'accord. */
 window.addEventListener('popstate',()=>{
   const s=etatDe(location.hash)||etatDeChemin(location.pathname);
+  // Retour au sommaire /fiches/ (pré-rendu, sans état d'app) : on recharge la page.
+  if(!s&&!location.hash&&/^\/fiches\/$/.test(location.pathname)){ location.reload(); return; }
   if(!s||!applyNavState(s)) return;
   _navigating=true;
   renderSB(); renderCurrentView();
   _navigating=false;
   const top=navHistory[navHistory.length-1];
   if(top&&sameNav(top,navStateNow())){ navHistory.pop(); updateBackBtn(); }
+});
+
+/* Liens vers une fiche (nov. 2026) : un <a href> vers une page d'entrée
+   (/notions/…, /auteurs/… : cartes du sommaire fiches/, noms d'auteurs
+   pré-rendus, pied de fiche) s'ouvre DANS l'app, sans recharger. Ctrl/⌘,
+   Maj et clic molette gardent le comportement normal (nouvel onglet). */
+document.addEventListener('click',ev=>{
+  if(ev.defaultPrevented||ev.button!==0||ev.ctrlKey||ev.metaKey||ev.shiftKey||ev.altKey) return;
+  const a=ev.target.closest&&ev.target.closest('a[href]');
+  if(!a||a.target||a.origin!==location.origin) return;
+  const s=etatDeChemin(a.pathname);
+  if(!s) return;
+  ev.preventDefault();
+  pushHistory();
+  if(!applyNavState(s)) return;
+  renderSB(); renderCurrentView();
 });
 
 /* restoreNavFromAddress() — au démarrage : une adresse #/… valide (lien

@@ -51,7 +51,7 @@ const CONTROLE = process.argv.includes('--controle');
 
 // Fichiers mis en cache par le service worker pour le hors-ligne. Ajouter ici
 // toute ressource statique nouvelle : sw.js et sa version suivent tout seuls.
-export const PRECACHE = ['./', './index.html', './app.css', './app.js', './data.js', './manifest.json', './icon.svg', './fiche.css'];
+export const PRECACHE = ['./', './index.html', './app.css', './app.js', './data.js', './manifest.json', './icon.svg'];
 
 // Dossiers des pages statiques : ENTIÈREMENT générés (une page sans fiche y est retirée).
 const DOSSIERS_PAGES = ['notions', 'auteurs', 'fiches'];

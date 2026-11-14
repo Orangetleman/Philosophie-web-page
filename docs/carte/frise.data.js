@@ -1,8 +1,17 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
-  "genere_le": "2026-11-14T20:42:08.379Z",
+  "genere_le": "2026-11-14T21:17:19.929Z",
   "commits": [
+    {
+      "hash": "bf3971b25e271a66b2ca895be37a9311e8a84cdf",
+      "short": "bf3971b",
+      "auteur": "Orangentleman",
+      "date": "2026-11-14T21:42:06+01:00",
+      "sujet": "Pages d'entrée : /notions/… et /auteurs/… deviennent l'app ouverte sur la fiche",
+      "corps": "Chaque page notion ou auteur est générée à partir d'index.html (pageApp) :\nmêmes app.css, data.js, app.js, avec <base href=\"/\">, les métadonnées de la\nfiche (title, description, canonical, Open Graph, JSON-LD inchangés) et la\nfiche pré-rendue avec les classes de l'app ; le reste de la fiche (textes,\nconcepts, plans, sujets, exemples) dans un <details open> visible, que l'app\ngarde sous l'onglet par défaut. Au démarrage l'app lit data-entree et ouvre\ncette fiche ; ensuite elle navigue sur place, avec le vrai chemin de la\nfiche quand elle a une page (pushState), sinon /#/…, et précédent/suivant\nlisent aussi le chemin. Partage et impression donnent ces adresses. Hors\nligne, sw.js renvoie une page d'entrée non mise en cache vers /?depuis=.\nPas de visite guidée automatique sur une page d'entrée.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": "Pages d'entrée"
+    },
     {
       "hash": "c929ea32b96b155c2c396a8dece60f31ed54202b",
       "short": "c929ea3",

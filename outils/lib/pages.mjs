@@ -65,9 +65,6 @@ function court(s, max = 155) {
 /* html(s) — garde le HTML simple du contenu (strong, em, span.kw, details…)
    mais retire tout gestionnaire d'événement et tout <script>, par prudence. */
 const html = s => String(s || '').replace(/<script[\s\S]*?<\/script>/gi, '').replace(/\son[a-z]+\s*=\s*("[^"]*"|'[^']*')/gi, '');
-/* citer(c) — une citation exacte (entre « ») en <blockquote> ; une
-   reformulation (sans guillemets, cf. docs/protocole-contenu.md) dite comme telle. */
-const citer = c => /^«/.test(c) ? `<blockquote>${esc(c)}</blockquote>` : `<p class="reform">En substance : ${esc(c)}</p>`;
 const json = o => JSON.stringify(o).replace(/</g, '\\u003c');
 // citerApp(c) — une citation dans une carte d'auteur pré-rendue (classe .aq
 // de l'app) : exacte entre « », sinon reformulation annoncée comme telle.
@@ -114,43 +111,6 @@ function pageApp(gabarit, { chemin, titre, description, jsonld, type = 'article'
 }
 const ctxPages = { d: null };   // les données, pour sbPrerendu (posé par genererPages)
 
-/* ── Gabarit commun ──────────────────────────────────────────────── */
-/* page({chemin, titre, description, h1, corps, jsonld, profondeur, type})
-   — une page complète. `chemin` est l'adresse publique (« notions/la-liberte/ »),
-   `profondeur` le nombre de dossiers à remonter vers la racine (liens relatifs :
-   le site marche aussi ouvert en fichier local). */
-function page({ chemin, titre, description, corps, jsonld, profondeur, type = 'article' }) {
-  const r = '../'.repeat(profondeur);
-  const url = SITE + '/' + chemin;
-  return `<!DOCTYPE html>
-<!-- GÉNÉRÉ par outils/construire.mjs (outils/lib/pages.mjs) à partir de contenu/. NE PAS ÉDITER. -->
-<html lang="fr"><head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>${esc(titre)}</title>
-<meta name="description" content="${esc(description)}">
-<link rel="canonical" href="${url}">
-<meta property="og:type" content="${type}">
-<meta property="og:site_name" content="${NOM_SITE}">
-<meta property="og:locale" content="fr_FR">
-<meta property="og:title" content="${esc(titre)}">
-<meta property="og:description" content="${esc(description)}">
-<meta property="og:url" content="${url}">
-<meta name="twitter:card" content="summary">
-<meta name="theme-color" content="#121212">
-<link rel="icon" href="${r}icon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="${r}fiche.css">
-<script type="application/ld+json">${json(jsonld)}</script>
-</head>
-<body>
-<header class="fh"><a class="fh-site" href="${r}">🏛️ ${NOM_SITE} <span>Terminale</span></a>
-<nav aria-label="Rubriques"><a href="${r}fiches/">Toutes les fiches</a></nav></header>
-${corps}
-<footer class="ff"><p>${NOM_SITE} : fiches de révision de philosophie pour le bac (programme de Terminale, BO n° 8 du 25 juillet 2019). Projet collaboratif, relu et enrichi régulièrement : une erreur ou une idée se signalent depuis l’outil. <a href="${r}">Ouvrir l’outil interactif</a> (graphe, quiz, méthodologie).</p></footer>
-</body></html>
-`;
-}
-
 // Fil d'Ariane : visible ET en JSON-LD (BreadcrumbList).
 function ariane(items, r) {
   const vis = items.map((it, i) => i < items.length - 1 ? `<a href="${r}${it.chemin}">${esc(it.nom)}</a>` : `<span aria-current="page">${esc(it.nom)}</span>`).join(' › ');
@@ -181,31 +141,6 @@ function pageNotion(k, d, ctx) {
   const concepts = d.CONCEPTS.filter(c => c.cat !== 'Repère' && (c.notions || []).includes(k));
   const sujets = d.SUJETS_BAC.sujets.filter(s => s.notions.includes(k));
   const fa = ariane([{ nom: 'Accueil', chemin: '' }, { nom: 'Fiches', chemin: 'fiches/' }, { nom: n.l, chemin }], r);
-  const lienAuteur = nm => ctx.am[nm] ? `<a href="${r}auteurs/${slug(nm)}/">${esc(nm)}</a>` : esc(nm);
-
-  const sec = [];
-  sec.push(`<section id="definition"><h2>Définition et enjeux</h2><div class="def">${html(n.def)}</div></section>`);
-  sec.push(`<section id="auteurs"><h2>Les auteurs à connaître sur ${esc(minuscule(nom))}</h2>` + n.auteurs.map(a =>
-    `<article class="aut"><h3>${lienAuteur(a.n)}</h3>` + a.ideas.map(i =>
-      `<div class="idee">${i.w ? `<p class="oeuvre"><cite>${esc(i.w)}</cite></p>` : ''}<p>${html(i.i)}</p>` +
-      (i.citations || []).map(citer).join('') + '</div>').join('') +
-    '</article>').join('') + '</section>');
-  if (n.textes && n.textes.length) sec.push(`<section id="textes"><h2>Textes et arguments clés</h2>` + n.textes.map(t => `<article><h3>${esc(t.n)}</h3><p>${html(t.t)}</p></article>`).join('') + '</section>');
-  if (concepts.length) sec.push(`<section id="concepts"><h2>Concepts</h2><dl>` + concepts.map(c => `<dt>${esc(c.term)}${c.auteur ? ` <small>(${esc(c.auteur)})</small>` : ''}</dt><dd>${esc(court(c.def, 400))}</dd>`).join('') + '</dl></section>');
-  if (n.plans && n.plans.length) sec.push(`<section id="plans"><h2>Plans de dissertation</h2>` + n.plans.map(p =>
-    `<article class="plan"><h3>${esc(p.q)}</h3>${p.pb && p.pb !== p.q ? `<p><strong>Problématique :</strong> ${esc(p.pb)}</p>` : ''}<ol>` +
-    (p.axes || []).map(ax => `<li>${ax.t ? `<strong>${esc(ax.t)}</strong>` : ''}` + (ax.sps || []).map(sp =>
-      `<p>${sp.t ? `<strong>${esc(sp.t)}.</strong> ` : ''}${esc(sp.args)}${sp.ref ? ` <em>(${esc(sp.ref)})</em>` : ''}</p>`).join('') + '</li>').join('') +
-    '</ol></article>').join('') + '</section>');
-  const diss = (n.diss || []).map(x => typeof x === 'string' ? x : x.q);
-  if (diss.length || sujets.length) sec.push(`<section id="sujets"><h2>Sujets de dissertation</h2>` +
-    (sujets.length ? `<h3>Tombés au bac</h3><ul>` + sujets.map(s => `<li>${s.type === 'dissertation' ? esc(s.q) : `Explication de texte : ${esc(s.auteur)}, <cite>${esc(s.oeuvre)}</cite>`} <small>(${s.annee}, voie ${esc(s.voie)})</small></li>`).join('') + '</ul>' : '') +
-    (diss.length ? `<h3>Pour s’entraîner</h3><ul>` + diss.map(q => `<li>${esc(q)}</li>`).join('') + '</ul>' : '') + '</section>');
-  if (n.exemples && n.exemples.length) sec.push(`<section id="exemples"><h2>Exemples pour illustrer</h2>` + n.exemples.map(e => `<article><h3>${esc(e.tit)} <small>${esc(e.tag)}</small></h3><p>${esc(e.body)}</p>${e.lien ? `<p class="lien">${esc(e.lien)}</p>` : ''}</article>`).join('') + '</section>');
-  if (n.accroches && n.accroches.length) sec.push(`<section id="accroches"><h2>Accroches d’introduction</h2><ul>` + n.accroches.map(a => `<li>${esc(a.t)}${a.src ? ` <small>(${esc(a.src)})</small>` : ''}</li>`).join('') + '</ul></section>');
-  const voisines = (n.liens || []).map(l => d.KEYS.find(k2 => d.D[k2].l === l)).filter(Boolean);
-  if (voisines.length) sec.push(`<section id="liens"><h2>Notions liées</h2><ul class="tags">` + voisines.map(k2 => `<li><a href="${r}notions/${slugNotion(k2)}/">${esc(d.D[k2].l)}</a></li>`).join('') + '</ul></section>');
-
   const jsonld = { '@context': 'https://schema.org', '@graph': [
     { '@type': ['LearningResource', 'Article'], '@id': SITE + '/' + chemin + '#fiche', headline: `${nom} : fiche de révision de philosophie`,
       name: `${nom} (philosophie Terminale)`, description, inLanguage: 'fr', url: SITE + '/' + chemin,
@@ -217,10 +152,10 @@ function pageNotion(k, d, ctx) {
       teaches: n.s, isPartOf: { '@type': 'WebSite', name: NOM_SITE, url: SITE + '/' } },
     fa.ld] };
   // Page d'ENTRÉE (nov. 2026) : l'app elle-même, ouverte sur cette notion.
-  // Visible avant le JS : en-tête, définition et cartes d'auteurs (classes de
-  // l'app, donc même aspect qu'après), puis le reste de la fiche dans un
-  // <details open> que l'app garde sous l'onglet Auteurs (texte toujours
-  // présent et visible : rien n'est réservé aux robots).
+  // Le HTML montre exactement ce que l'app affiche à l'ouverture (onglet
+  // Auteurs : en-tête, définition, cartes d'auteurs, avec les classes de
+  // l'app) : un miroir, rien de plus ni de caché. Les autres onglets se
+  // lisent dans l'app, d'un clic, comme pour tout visiteur.
   const parAuteur = [];
   n.auteurs.forEach(a => { const x = parAuteur.find(y => y.n === a.n); if (x) x.ideas.push(...a.ideas); else parAuteur.push({ n: a.n, ideas: a.ideas.slice() }); });
   const main = `<div class="notion-head"><div class="nbadge" style="background:${n.c}"></div><div><h1 class="ntitle">${esc(n.l)}${hp ? ' <span class="hp-badge">hors programme</span>' : ''}</h1><div class="nsub">${esc(n.s)}</div></div></div>
@@ -228,10 +163,7 @@ function pageNotion(k, d, ctx) {
 <h2 class="slabel">Auteurs et idées clés (${parAuteur.length} auteurs)</h2><div class="ag">` + parAuteur.map(a =>
     `<div class="ac${a.ideas.length > 1 ? ' ac-multi' : ''}"><h3 class="an">${ctx.am[a.n] ? `<a class="an-link" href="/auteurs/${slug(a.n)}/">${esc(a.n)}</a>` : esc(a.n)}</h3><div class="a-ideas">` +
     a.ideas.map(i => `<div class="a-idea"><div class="aw">${esc(i.w || '')}</div>${i.i ? `<div class="ai">${html(i.i)}</div>` : ''}${(i.citations || []).map(citerApp).join('')}</div>`).join('') +
-    '</div></div>').join('') + `</div>
-<details class="fiche-entree" id="fiche-entree" open><summary>Toute la fiche sur une page : textes, concepts, plans, sujets, exemples</summary>
-${sec.slice(2).join('\n')}
-</details>`;
+    '</div></div>').join('') + `</div>`;
   const tabs = ['Auteurs', 'Textes', 'Concepts', 'Dissertations', 'Exemples'].map((t, i) => `<div class="tab${i ? '' : ' active'}">${t}</div>`).join('');
   return [chemin + 'index.html', pageApp(ctx.gabarit, { chemin, titre, description, jsonld, entree: 'notion:' + k, actif: k, ariane: fa.vis, tabs, main })];
 }
@@ -252,9 +184,7 @@ function pageAuteur(nm, d, ctx) {
   const main = `<div class="notion-head"><div><h1 class="author-title">${esc(nm)}${esc(dates)}</h1><div class="nsub">${esc(a.courant || '')}${a.periode ? ' · ' + esc(a.periode) : ''} · ${auProgramme ? 'au programme' : 'hors liste officielle'}</div></div></div>
 <div class="author-def-box">${html(a.bio)}${(a.themes || []).length ? `<p><strong>Thèmes :</strong> ${a.themes.map(esc).join(', ')}.</p>` : ''}</div>
 <h2 class="slabel">Idées de ${esc(nm)} par notion</h2>` + notions.map(x => `<div class="ac"><h3 class="an"><a class="an-link" href="/notions/${slugNotion(x.cle)}/">${esc(d.D[x.cle].l)}</a></h3><div class="a-ideas">` +
-    x.ideas.map(i => `<div class="a-idea"><div class="aw">${esc(i.w || '')}</div><div class="ai">${html(i.i)}</div>${(i.citations || []).map(citerApp).join('')}</div>`).join('') + '</div></div>').join('') +
-    ((a.dialogues || []).length ? `
-<details class="fiche-entree" id="fiche-entree" open><summary>En dialogue avec</summary><ul>` + a.dialogues.map(g => `<li><strong>${ctx.am[g.auteur] ? `<a href="/auteurs/${slug(g.auteur)}/">${esc(g.auteur)}</a>` : esc(g.auteur)}</strong> (${esc(g.sujet)}) : ${esc(g.desc)}</li>`).join('') + '</ul></details>' : '');
+    x.ideas.map(i => `<div class="a-idea"><div class="aw">${esc(i.w || '')}</div><div class="ai">${html(i.i)}</div>${(i.citations || []).map(citerApp).join('')}</div>`).join('') + '</div></div>').join('');
   const tabs = ['Idées', 'Citations', 'Œuvres', 'Dialogues'].map((t, i) => `<div class="tab${i ? '' : ' active'}">${t}</div>`).join('');
   const jsonld = { '@context': 'https://schema.org', '@graph': [
     { '@type': 'ProfilePage', '@id': SITE + '/' + chemin, url: SITE + '/' + chemin, name: titre, description, inLanguage: 'fr', dateModified: ctx.date,
@@ -274,25 +204,23 @@ const an = y => (y < 0 ? -y + ' av. J.-C.' : String(y));
 /* ── Sommaire de toutes les fiches ───────────────────────────────── */
 function pageSommaire(d, ctx) {
   const chemin = 'fiches/';
-  const r = '../';
+  const r = '/';
   const prog = d.KEYS.filter(k => d.PROGRAMME.notions.includes(k)), hp = d.KEYS.filter(k => !d.PROGRAMME.notions.includes(k));
-  const li = k => `<li><a href="${r}notions/${slugNotion(k)}/">${esc(nomAvecArticle(k, d.D[k].l))}</a> <small>${esc(d.D[k].s)}</small></li>`;
   const auteurs = Object.keys(d.AM).filter(nm => ctx.ai[nm]);
   const titre = `Fiches de révision bac philo : les 17 notions et ${auteurs.length} auteurs | ${NOM_SITE}`;
   const description = `Toutes les fiches de révision de philosophie de Terminale : les 17 notions du programme, des notions complémentaires et ${auteurs.length} fiches d’auteurs, avec citations, plans et exemples.`;
   const fa = ariane([{ nom: 'Accueil', chemin: '' }, { nom: 'Fiches', chemin }], r);
-  const corps = `<main class="fm">${fa.vis}
-<article class="fiche"><header><h1>Fiches de révision de philosophie (Terminale)</h1>
-<p class="ques">Chaque fiche réunit la définition de la notion, les auteurs et leurs citations, des plans de dissertation, des sujets tombés au bac et des exemples. <a href="${r}">Ouvrir le graphe interactif et le quiz</a>.</p></header>
-<section><h2>Les ${prog.length} notions du programme</h2><ul class="liste">${prog.map(li).join('')}</ul></section>
-${hp.length ? `<section><h2>Notions complémentaires (hors programme)</h2><ul class="liste">${hp.map(li).join('')}</ul></section>` : ''}
-<section><h2>Les auteurs</h2><ul class="tags">${auteurs.map(nm => `<li><a href="${r}auteurs/${slug(nm)}/">${esc(nm)}</a></li>`).join('')}</ul></section>
-</article></main>`;
+  // Page d'entrée de l'app (data-entree="fiches"), dans le style de l'app.
+  const carte = k => `<a class="ac" href="/notions/${slugNotion(k)}/"><h3 class="an"><span class="dot" style="background:${d.D[k].c}"></span> ${esc(nomAvecArticle(k, d.D[k].l))}</h3><div class="nsub">${esc(d.D[k].s)}</div></a>`;
+  const main = `<div class="notion-head"><div><h1 class="ntitle">Fiches de révision de philosophie (Terminale)</h1><div class="nsub">Chaque fiche réunit la définition de la notion, les auteurs et leurs citations, des plans de dissertation, des sujets tombés au bac et des exemples.</div></div></div>
+<h2 class="slabel">Les ${prog.length} notions du programme</h2><div class="sommaire-liste">${prog.map(carte).join('')}</div>
+${hp.length ? `<h2 class="slabel">Notions complémentaires (hors programme)</h2><div class="sommaire-liste">${hp.map(carte).join('')}</div>` : ''}
+<h2 class="slabel">Les auteurs</h2><nav class="sommaire-auteurs" aria-label="Les auteurs">${auteurs.map(nm => `<a href="/auteurs/${slug(nm)}/">${esc(nm)}</a>`).join('')}</nav>`;
   const jsonld = { '@context': 'https://schema.org', '@graph': [
     { '@type': 'CollectionPage', url: SITE + '/' + chemin, name: titre, description, inLanguage: 'fr', isPartOf: { '@type': 'WebSite', name: NOM_SITE, url: SITE + '/' },
       mainEntity: { '@type': 'ItemList', itemListElement: d.KEYS.map((k, i) => ({ '@type': 'ListItem', position: i + 1, name: d.D[k].l, url: `${SITE}/notions/${slugNotion(k)}/` })) } },
     fa.ld] };
-  return ['fiches/index.html', page({ chemin, titre, description, corps, jsonld, profondeur: 1, type: 'website' })];
+  return ['fiches/index.html', pageApp(ctx.gabarit, { chemin, titre, description, jsonld, type: 'website', entree: 'fiches', ariane: fa.vis, tabs: '', main })];
 }
 
 /* ── sitemap.xml, robots.txt, llms.txt ───────────────────────────── */
