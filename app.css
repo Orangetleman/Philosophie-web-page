@@ -952,6 +952,13 @@ body.is-signed-in .sb-account{color:var(--color-ok);border-color:rgba(123,216,14
   pointer-events:none;display:none;
   box-shadow:0 0 0 9999px rgba(0,0,0,.72),0 0 0 2px var(--color-border-info);
   transition:top .22s ease,left .22s ease,width .22s ease,height .22s ease}
+/* .tour-halo : mise en avant SECONDAIRE (champ `halo` d'une étape, ex. le
+   bouton ⚙ Réglages pendant qu'on montre le réglage). Anneau lumineux et
+   léger éclaircissement, sans l'ombre géante du projecteur ; même z-index que
+   .tour-spot mais posé après lui dans le DOM, donc au-dessus du voile. */
+.tour-halo{position:fixed;z-index:1301;border-radius:var(--border-radius-md);
+  pointer-events:none;display:none;background:rgba(255,255,255,.08);
+  box-shadow:0 0 0 2px var(--color-border-info),0 0 14px 4px var(--color-border-info)}
 .tour-bubble{position:fixed;z-index:1302;width:min(330px,90vw);display:none;
   background:var(--color-background-primary);border:0.5px solid var(--color-border-info);
   border-radius:var(--border-radius-lg);padding:16px 16px 12px;
