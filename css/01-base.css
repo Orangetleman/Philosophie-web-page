@@ -107,7 +107,7 @@
 body.texte-grand .main-content{zoom:1.12}
 body.texte-tres-grand .main-content{zoom:1.25}
 /* ── 2. Layout de base ───────────────────────────────────────────── */
-body{font-family:'Inter',system-ui,sans-serif;background:var(--color-page);height:100vh;height:100dvh;padding:16px;overflow:hidden;}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--color-page);height:100vh;height:100dvh;padding:0;overflow:hidden;}
 *{box-sizing:border-box;margin:0;padding:0}
 .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
 /* Accessibilité clavier : anneau de focus visible UNIQUEMENT lors de la
@@ -115,7 +115,9 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--color-page);heigh
    CSS suppriment l'anneau disgracieux au clic souris ; cette règle le
    rétablit pour qui tabule, sans rien changer à l'apparence à la souris. */
 :focus-visible{outline:2px solid var(--color-text-quiz);outline-offset:2px}
-.wrap{height:calc(100vh - 32px);height:calc(100dvh - 32px);display:flex;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);overflow:hidden;}
+/* Nov. 2026 : plus de cadre autour de l'app (marge de 16px et bordure arrondie
+   retirées à la demande de l'auteur) : l'app occupe toute la fenêtre, comme sur mobile. */
+.wrap{height:100vh;height:100dvh;display:flex;overflow:hidden;}
 .sidebar{width:155px;flex-shrink:0;background:var(--color-background-secondary);border-right:0.5px solid var(--color-border-tertiary);display:flex;flex-direction:column;overflow:hidden;}
 .sb-fixed{flex-shrink:0;padding:0 7px;}
 .sidebar-list{flex:1;overflow-y:auto;padding:0 7px 8px;padding-bottom:calc(8px + env(safe-area-inset-bottom,0px));height:0;min-height:0;}
@@ -453,3 +455,18 @@ h1.ntitle{margin:0;line-height:inherit}
 .prerendu-nav{display:flex;flex-direction:column;gap:2px;padding:8px}
 .prerendu-intro{padding:20px}
 .prerendu-intro p{margin:10px 0}
+/* Pages d'entrée (nov. 2026, outils/lib/pages.mjs pageApp) : la fiche
+   pré-rendue reprend les classes de l'app ; seuls les titres h1/h2/h3
+   (structure lue par les moteurs) perdent leurs marges par défaut. */
+h1.ntitle,h1.author-title,h2.slabel,h3.an{margin:0}
+h2.slabel{margin-bottom:8px}
+h3.an{margin-bottom:2px}
+.crumbs .fa a{color:var(--color-text-secondary)}
+/* Sommaire /fiches/ (pageSommaire, page d'entrée) : listes dans le style de l'app. */
+.sommaire-liste{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px;margin-bottom:18px}
+.sommaire-liste .ac{display:block;text-decoration:none}
+.sommaire-liste .ac:hover{border-color:var(--color-border-secondary)}
+.sommaire-liste .nsub{margin-top:2px}
+.sommaire-auteurs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:18px}
+.sommaire-auteurs a{font-size:12px;padding:3px 9px;border-radius:999px;border:0.5px solid var(--color-border-tertiary);color:var(--color-text-secondary);text-decoration:none;background:var(--color-background-primary)}
+.sommaire-auteurs a:hover{color:var(--color-text-primary);border-color:var(--color-border-secondary)}

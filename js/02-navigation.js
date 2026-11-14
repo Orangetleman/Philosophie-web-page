@@ -253,23 +253,87 @@ function adresseProtegee(){ return /access_token|refresh_token|type=recovery|err
 const TITRE_ACCUEIL=document.title;
 let titreAccueilGarde=!location.hash;
 
+/* ── Pages d'ENTRÉE (nov. 2026) ──────────────────────────────────────
+   /notions/<slug>/ et /auteurs/<slug>/ (générées par outils/lib/pages.mjs)
+   sont l'app elle-même, pré-rendue sur une fiche et marquée
+   <body data-entree="notion:<clé>|auteur:<nom>">. L'app ouvre cette fiche
+   au démarrage, puis navigue sur place. Quand une fiche a sa page, l'adresse
+   affichée est ce vrai chemin (partage, favoris, moteurs) ; sinon /#/… .
+   Sur file:// (index.html ouvert à la main), on garde le # seul. */
+const AVEC_CHEMINS=/^https?:$/.test(location.protocol);
+const PAGE_ENTREE=!!(document.body&&document.body.dataset.entree);
+
+/* entreeDePage() — l'état de navigation de la page d'entrée : d'après
+   data-entree, ou d'après ?depuis=<chemin> (repli hors ligne du service
+   worker, qui renvoie vers l'accueil une page d'entrée non mise en cache). */
+function entreeDePage(){
+  const e=document.body&&document.body.dataset.entree;
+  if(e){
+    const i=e.indexOf(':'), t=e.slice(0,i), v=e.slice(i+1);
+    if(t==='notion') return {sbMode:'notions',cur:v,curTab:'auteurs'};
+    if(t==='auteur') return {sbMode:'auteurs',curAuthor:v,curAuthorTab:'idees'};
+  }
+  const m=/[?&]depuis=([^&]+)/.exec(location.search);
+  if(m){ try{ return etatDeChemin(decodeURIComponent(m[1])); }catch(x){} }
+  return null;
+}
+
+/* etatDeChemin(p) — l'état d'un chemin de page (« /notions/la-liberte/ »), ou null. */
+function etatDeChemin(p){
+  const c=String(p||'').replace(/^\//,'');
+  if(!c) return null;
+  const P=PAGES_STATIQUES;
+  const k=Object.keys(P.notions).find(x=>P.notions[x]===c);
+  if(k) return {sbMode:'notions',cur:k,curTab:'auteurs'};
+  const a=Object.keys(P.auteurs).find(x=>P.auteurs[x]===c);
+  if(a) return {sbMode:'auteurs',curAuthor:a,curAuthorTab:'idees'};
+  return null;
+}
+
+/* cheminDe(s) — le chemin de la page d'entrée qui montre exactement l'état
+   s (onglet par défaut), ou null. */
+function cheminDe(s){
+  if(s.sbMode==='notions'&&(s.curTab||'auteurs')==='auteurs'&&PAGES_STATIQUES.notions[s.cur]) return '/'+PAGES_STATIQUES.notions[s.cur];
+  if(s.sbMode==='auteurs'&&(s.curAuthorTab||'idees')==='idees'&&PAGES_STATIQUES.auteurs[s.curAuthor]) return '/'+PAGES_STATIQUES.auteurs[s.curAuthor];
+  return null;
+}
+
+/* urlDe(s) — l'adresse relative (chemin + #) à afficher pour l'état s.
+   `nav` : vraie navigation. Sans navigation (premier rendu de l'accueil),
+   on garde le chemin courant pour ne pas déplacer la racine du site. */
+function urlDe(s,nav){
+  const ch=AVEC_CHEMINS?cheminDe(s):null;
+  if(ch&&(nav||PAGE_ENTREE||location.pathname===ch)) return ch;
+  const racine=AVEC_CHEMINS&&(PAGE_ENTREE||etatDeChemin(location.pathname))?'/':location.pathname;
+  return racine+adresseDe(s);
+}
+
+/* urlComplete(s) — l'adresse absolue de l'état s (partage, impression). */
+function urlComplete(s){
+  const ch=AVEC_CHEMINS?cheminDe(s):null;
+  return location.origin+(ch||urlDe(s,true));
+}
+
 /* majAdresse() — aligne l'adresse et le titre sur la page affichée. */
 function majAdresse(){
   if(navAdresseEnAttente) titreAccueilGarde=false;    // l'élève a navigué
   document.title=titreAccueilGarde?TITRE_ACCUEIL:titrePage();
   if(adresseProtegee()) return;
-  const h=adresseDe(navStateNow());
-  if(location.hash!==h){
-    try{ history[navAdresseEnAttente?'pushState':'replaceState'](null,'',h); }catch(e){}
+  const u=urlDe(navStateNow(),navAdresseEnAttente);
+  if(location.pathname+location.search+location.hash!==u){
+    try{ history[navAdresseEnAttente?'pushState':'replaceState'](null,'',u); }catch(e){}
   }
   navAdresseEnAttente=false;
 }
 
 /* Précédent / suivant du navigateur : on affiche la page de l'adresse
-   atteinte, sans rien empiler. Si c'est aussi le sommet de la pile
-   « ← Retour » du site, on l'en retire, pour que les deux restent d'accord. */
+   atteinte (#/… ou chemin d'une page d'entrée), sans rien empiler. Si
+   c'est aussi le sommet de la pile « ← Retour » du site, on l'en retire,
+   pour que les deux restent d'accord. */
 window.addEventListener('popstate',()=>{
-  const s=etatDe(location.hash);
+  const s=etatDe(location.hash)||etatDeChemin(location.pathname);
+  // Retour au sommaire /fiches/ (pré-rendu, sans état d'app) : on recharge la page.
+  if(!s&&!location.hash&&/^\/fiches\/$/.test(location.pathname)){ location.reload(); return; }
   if(!s||!applyNavState(s)) return;
   _navigating=true;
   renderSB(); renderCurrentView();
@@ -278,12 +342,30 @@ window.addEventListener('popstate',()=>{
   if(top&&sameNav(top,navStateNow())){ navHistory.pop(); updateBackBtn(); }
 });
 
+/* Liens vers une fiche (nov. 2026) : un <a href> vers une page d'entrée
+   (/notions/…, /auteurs/… : cartes du sommaire fiches/, noms d'auteurs
+   pré-rendus, pied de fiche) s'ouvre DANS l'app, sans recharger. Ctrl/⌘,
+   Maj et clic molette gardent le comportement normal (nouvel onglet). */
+document.addEventListener('click',ev=>{
+  if(ev.defaultPrevented||ev.button!==0||ev.ctrlKey||ev.metaKey||ev.shiftKey||ev.altKey) return;
+  const a=ev.target.closest&&ev.target.closest('a[href]');
+  if(!a||a.target||a.origin!==location.origin) return;
+  const s=etatDeChemin(a.pathname);
+  if(!s) return;
+  ev.preventDefault();
+  pushHistory();
+  if(!applyNavState(s)) return;
+  renderSB(); renderCurrentView();
+});
+
 /* restoreNavFromAddress() — au démarrage : une adresse #/… valide (lien
    partagé, favori) l'emporte sur la position mémorisée. Compte comme une
    navigation de l'utilisateur (navTouched) : la position d'un autre appareil
    ne viendra pas la remplacer. Renvoie true si elle a été appliquée. */
 function restoreNavFromAddress(){
-  const s=etatDe(location.hash);
+  // Une page d'entrée (/notions/…, /auteurs/…) vaut une adresse : sa fiche
+  // l'emporte sur la position mémorisée, sauf #/… explicite.
+  const s=etatDe(location.hash)||entreeDePage();
   if(!s||!applyNavState(s)) return false;
   navTouched=true;
   return true;

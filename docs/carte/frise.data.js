@@ -1,8 +1,17 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
-  "genere_le": "2026-11-14T21:13:42.869Z",
+  "genere_le": "2026-11-14T21:27:46.216Z",
   "commits": [
+    {
+      "hash": "dee22e9d66ebbdf5e48fc9b744898f05f61b3299",
+      "short": "dee22e9",
+      "auteur": "Orangentleman",
+      "date": "2026-11-14T22:13:41+01:00",
+      "sujet": "Visite guidée : l'étape « mode édition » montre le réglage dans les Réglages",
+      "corps": "La 1re étape de la partie Proposer ne zoome plus sur le bouton ⚙ Réglages\nde la barre latérale : elle ouvre les Réglages et met le projecteur sur le\nbouton « Passer en mode édition ». Le bouton ⚙ Réglages reçoit seulement\nun léger halo (nouveau champ facultatif `halo` des étapes, positionTourHalo,\n.tour-halo), masqué sur mobile où le tiroir reste fermé.\n\ntourCloseOverlays referme aussi les Réglages : rien ne reste ouvert quand on\navance, recule, saute une partie ou quitte la visite. Carte : nœud\nux.tour.fenetres.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": "Visite guidée"
+    },
     {
       "hash": "c929ea32b96b155c2c396a8dece60f31ed54202b",
       "short": "c929ea3",

@@ -13,7 +13,9 @@ restoreNavFromStorage();      // position survit à l'actualisation (philo-nav)
 restoreNavFromAddress();      // … mais une adresse #/… (lien partagé, favori) l'emporte
 restoreNavHistory();          // pile « ← Retour » survit aussi (philo-navhist)
 appliquerAffichage();         // étape 6 : thème et taille du texte (avant le premier rendu)
-renderSB();renderCurrentView();
+// Sommaire /fiches/ (page d'entrée data-entree="fiches") : son contenu pré-rendu
+// reste affiché tel quel ; la barre latérale démarre, la 1re navigation le remplace.
+renderSB(); if(document.body.dataset.entree!=='fiches') renderCurrentView();
 initAuth();           // new (comptes) : récupère la session + s'abonne aux changements d'état
 tourStartIfFirst();   // visite guidée auto à la 1re venue (cf. module « Visite guidée »)
 hpInviterSiBesoin();  // étape 5 : propose de masquer le hors programme (une fois, hors visite)

@@ -32,7 +32,7 @@ function ficheImpressionHTML(k){
   const bac=sujetsDeNotion(k).map(x=>`<li>${x.type==='explication'?'Explication : '+x.auteur+', <em>'+x.oeuvre+'</em>':x.q} <span class="imp-quand">(bac ${x.annee}, voie ${x.voie})</span></li>`).join('');
   const diss=(n.diss||[]).map(d=>`<li>${typeof d==='object'?d.q:d}</li>`).join('');
   const sources=(n.sources||[]).map(s=>`<li>${s}</li>`).join('');
-  const adresse=location.origin+location.pathname+'#/notion/'+k;
+  const adresse=urlComplete({sbMode:'notions',cur:k,curTab:'auteurs'});   // page d'entrée de la notion si elle existe
   return `<header class="imp-tete"><div class="imp-site">Graphe Philosophie · fiche de révision${estHP(k)?' · hors programme':''}</div>
       <h1>${n.l}</h1><div class="imp-question">${e(n.s)}</div></header>
     <section><h2>Définition</h2><div class="imp-def">${def}</div></section>
