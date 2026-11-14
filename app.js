@@ -4317,6 +4317,9 @@ document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeSettings(); }
      center    → true : carte centrée sans cible (bienvenue / récap / fin)
      setup     → met l'appli dans l'état voulu avant de pointer
      target    → fonction renvoyant l'élément à mettre en valeur (ou null)
+     halo      → (facultatif) fonction renvoyant un 2e élément, seulement
+                 souligné d'un léger halo, sans projecteur ni zoom (ex. le
+                 bouton ⚙ Réglages pendant qu'on montre le réglage lui-même)
      nextLabel → libellé personnalisé du bouton Suivant
    ══════════════════════════════════════════════════════════════════ */
 
@@ -4449,6 +4452,29 @@ function tourProposalSelect(n){
 function tourCloseOverlays(){
   const pov=document.getElementById('proposal-overlay'); if(pov) pov.classList.remove('open');
   const qov=document.getElementById('quiz-overlay');     if(qov) qov.classList.remove('open');
+  closeSettings();   // fenêtre Réglages ouverte par l'étape « mode édition » (tourOpenSettings)
+}
+
+/* tourOpenSettings() — ouvre la fenêtre « ⚙ Réglages » pour montrer un
+   réglage de l'intérieur (étape « mode édition » de la partie Proposer).
+   openSettings redessine son contenu à partir de l'état réel : rien n'est
+   modifié. La fenêtre est refermée par tourCloseOverlays au changement
+   d'étape et à la fin de la visite. */
+function tourOpenSettings(){
+  tourShowNotion();
+  openSettings();
+}
+
+/* tourSettingsRow(fn) — renvoie le bouton des Réglages qui appelle `fn`
+   (ex. 'togglePhiloMode' pour le mode édition). On cherche par l'action
+   plutôt que par la position, pour suivre l'ordre des lignes s'il change.
+   On vise le bouton et non toute la ligne (.set-row) : la ligne, avec sa
+   description, est trop haute pour laisser la place à la bulle, qui finissait
+   centrée par-dessus. Repli sur le contenu de la fenêtre. */
+function tourSettingsRow(fn){
+  const body=document.getElementById('settings-body'); if(!body) return null;
+  const btn=body.querySelector('button[onclick^="'+fn+'("]');
+  return btn || body;
 }
 
 const TOUR_STEPS=[
@@ -4618,14 +4644,19 @@ const TOUR_STEPS=[
   // ── Partie 6 : Proposer / éditer ──
   // Présentée AVANT « Mon compte » : la partie compte renvoie au suivi des
   // propositions (« Mes propositions »), qu'il faut donc avoir déjà vues.
-  // Les 2 premières étapes restent dans la barre latérale (mode édition +
-  // bouton) ; les suivantes OUVRENT la modale de contribution (tourOpenProposal)
+  // La 1re étape OUVRE les Réglages et montre la ligne « Mode d'affichage »
+  // (bouton de passage en mode édition), le bouton ⚙ Réglages de la barre
+  // n'étant que souligné d'un halo (retour de l'auteur : zoomer sur le seul
+  // bouton n'apprenait rien). side:'main' : sur mobile le tiroir reste fermé,
+  // la fenêtre occupe l'écran. La 2e reste dans la barre latérale (bouton
+  // 💡) ; les suivantes OUVRENT la modale de contribution (tourOpenProposal)
   // et détaillent les 3 menus en cascade, les champs, l'empilement et l'envoi.
-  { part:'proposer', side:'sidebar', title:'Réglages → mode édition',
-    text:"Dans <b>⚙ Réglages</b>, tu peux passer en <b>mode édition</b> : il fait apparaître partout "
-        +"de petits boutons <b>+</b> sur les cartes (cachés par défaut pour un rendu épuré), pour "
-        +"proposer des corrections ciblées.",
-    setup:tourShowNotion, target:()=>document.querySelector('.sb-settings') },
+  { part:'proposer', side:'main', title:'Réglages → mode édition',
+    text:"Dans <b>⚙ Réglages</b> (en bas de la barre latérale), ce bouton fait passer en "
+        +"<b>mode édition</b> : il fait apparaître partout de petits boutons <b>+</b> sur les cartes "
+        +"(cachés par défaut pour un rendu épuré), pour proposer des corrections ciblées.",
+    setup:tourOpenSettings, target:()=>tourSettingsRow('togglePhiloMode'),
+    halo:()=>document.querySelector('.sb-settings') },
   { part:'proposer', side:'sidebar', title:'Proposer du contenu',
     text:"En mode édition, <b>💡 Proposer du contenu</b> ouvre une fenêtre pour suggérer un "
         +"<b>ajout</b>, une <b>correction</b> ou une <b>remarque</b>. Ouvrons-la pour la découvrir.",
@@ -4739,12 +4770,16 @@ function buildTourDOM(){
   const blocker=document.createElement('div'); blocker.className='tour-blocker';
   const spot=document.createElement('div'); spot.className='tour-spot';
   const bubble=document.createElement('div'); bubble.className='tour-bubble';
+  // Halo secondaire (champ `halo` d'une étape) : anneau discret, sans ombre
+  // de projecteur, posé au-dessus du voile (cf. positionTourHalo).
+  const halo=document.createElement('div'); halo.className='tour-halo';
   // Clic dans le sombre → fermeture conditionnelle (cf. tourBlockerClick).
   blocker.addEventListener('click',tourBlockerClick);
   document.body.appendChild(blocker);
   document.body.appendChild(spot);
+  document.body.appendChild(halo);
   document.body.appendChild(bubble);
-  return tourState.dom={blocker,spot,bubble};
+  return tourState.dom={blocker,spot,bubble,halo};
 }
 
 /* startTour(i, jumped) — démarre la visite à l'index i (0 = depuis le début).
@@ -4813,6 +4848,7 @@ function endTour(){
   if(tourState.dom){
     tourState.dom.blocker.classList.remove('open','dim');
     tourState.dom.spot.style.display='none';
+    tourState.dom.halo.style.display='none';
     tourState.dom.bubble.style.display='none';
   }
   tourState.i=-1;
@@ -4862,6 +4898,7 @@ function tourShowDecision(){
   if(window.innerWidth<=700) document.body.classList.remove('sb-open');
   blocker.classList.add('open','dim');           // assombri uniforme, pas de spot
   spot.style.display='none';
+  tourState.dom.halo.style.display='none';       // ni de halo
   bubble.style.display='block';
   bubble.innerHTML=tourBubbleHTML(null);         // la branche décision ignore l'argument
   // Centrer après un frame (la bulle doit être remplie pour mesurer sa taille).
@@ -5047,6 +5084,7 @@ function positionTourStep(){
   const {blocker,spot,bubble}=tourState.dom;
   const el=(!step.center&&step.target)?step.target():null;
   if(el){ try{ el.scrollIntoView({block:'center',inline:'nearest'}); }catch(e){} }
+  positionTourHalo(step);                        // halo secondaire éventuel (sans scroll)
   const vw=window.innerWidth, vh=window.innerHeight;
   const bw=bubble.offsetWidth, bh=bubble.offsetHeight;
   if(!el){
@@ -5090,6 +5128,23 @@ function positionTourStep(){
   bubble.style.left=left+'px';
 }
 function tourClamp(v,min,max){ return Math.max(min,Math.min(max,v)); }
+
+/* positionTourHalo(step) — pose le halo secondaire sur l'élément que
+   renvoie step.halo(), ou le masque. Pas de scroll (ce n'est pas la cible
+   principale) ; masqué aussi si l'élément est hors écran ou invisible, par
+   exemple le bouton ⚙ d'une barre latérale repliée sur mobile. */
+function positionTourHalo(step){
+  const halo=tourState.dom.halo;
+  const el=(!step.center&&step.halo)?step.halo():null;
+  const r=el?el.getBoundingClientRect():null;
+  const visible=r && r.width>0 && r.height>0 && r.right>0 && r.bottom>0
+    && r.left<window.innerWidth && r.top<window.innerHeight;
+  if(!visible){ halo.style.display='none'; return; }
+  const pad=3;
+  halo.style.display='block';
+  halo.style.top=(r.top-pad)+'px'; halo.style.left=(r.left-pad)+'px';
+  halo.style.width=(r.width+pad*2)+'px'; halo.style.height=(r.height+pad*2)+'px';
+}
 
 /* tourStartIfFirst() — auto-affichage de la visite à la toute 1re venue
    (drapeau localStorage 'philo-tour-v1'). En navigation privée où l'accès
