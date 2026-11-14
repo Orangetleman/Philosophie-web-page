@@ -1,9 +1,91 @@
 <!DOCTYPE html>
-<!-- GÉNÉRÉ par outils/construire.mjs (outils/lib/pages.mjs) à partir de contenu/. NE PAS ÉDITER. -->
-<html lang="fr"><head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- GÉNÉRÉ par outils/construire.mjs (outils/lib/pages.mjs) à partir d'index.html et de contenu/. NE PAS ÉDITER. -->
+<!--
+╔══════════════════════════════════════════════════════════════════════════╗
+║        GRAPHE PHILOSOPHIE — TERMINALE  ·  index.html                       ║
+║        Révision (HTML/CSS/JS, sans build) · PWA hors-ligne · compte cloud  ║
+╚══════════════════════════════════════════════════════════════════════════╝
+
+  Ce fichier est le SQUELETTE + la LOGIQUE ; les DONNÉES vivent dans data.js
+  (chargé juste AVANT le <script> principal). Pour la spécification détaillée
+  des structures et les règles d'édition, voir CLAUDE.md à la racine du projet.
+
+  STRUCTURE DU FICHIER
+  ────────────────────
+  1. <head>                  Métadonnées, favicon SVG inline, manifeste PWA,
+                             theme-color, police Google Fonts (Inter), petit
+                             script qui pose le thème (étape 6), app.css
+                             (GÉNÉRÉ depuis css/ par outils/construire.mjs)
+  2. <body> HTML             Squelette : sidebar (#sb) + zone principale (#main)
+                             + overlays (modale contribution, quiz, onboarding)
+  3. <script src="data.js">  Données GLOBALES : D, KEYS, AM, CONCEPTS, PROGRAMME
+  4. <script> Supabase CDN   Client @supabase/supabase-js (compte + sync)
+  5. <script src="app.js">   TOUTE la logique et le rendu (GÉNÉRÉ depuis js/)
+
+  DONNÉES (dans data.js — globales ; script classique, pas de module)
+  ────────────────────────────────────────────────────────────────────
+  · const D        — Les 17 notions du programme (conscience, nature, bonheur,
+                     justice, devoir, travail, technique, état, liberté, art,
+                     langage, inconscient, raison, religion, science, temps,
+                     vérité). Chaque notion : def, auteurs, textes, plans,
+                     exemples, liens, diss. Onglets d'une notion : auteurs /
+                     textes / concepts / dissertations / exemples (l'ancien
+                     onglet « axes » est migré en « plans » au chargement).
+  · const KEYS     — Object.keys(D) (ordre des notions)
+  · const AM       — Métadonnées des auteurs (une entrée par auteur de D, sous
+                     le MÊME nom) : bio, courant, période, thèmes, dialogues
+                     (oppose / prolonge / répond, + sujet)
+  · const CONCEPTS — Glossaire (~172 concepts + 31 repères cat:'Repère') : def,
+                     cat, auteur, notions, liens (par notion), relations
+                     unifiées (ex-« tensions »)
+  · const CC       — (resté dans index.html) couleurs par courant philosophique
+
+  SOURCES ET BUILD (oct. 2026) : data.js est GÉNÉRÉ par outils/construire.mjs
+  à partir de contenu/ (un fichier par notion, par auteur, concepts, repères,
+  ordre). Le build convertit une fois les anciens formats (outils/lib/
+  formats.mjs) : data.js arrive ici déjà canonique, rien n'est converti au
+  chargement.
+
+  GRANDES BRIQUES JS (sections repérées A., B., … ; détail dans CLAUDE.md)
+  ────────────────────────────────────────────────────────────────────────
+  · Index & liens   buildAI() (auteur → notions/idées) ; linkTerms() rend
+                    cliquables notions/concepts/auteurs cités dans tout texte
+                    (.nterm notion · .cterm concept · .aterm auteur)
+  · Rendu           renderSB (sidebar, 5 modes notions/auteurs/concepts/
+                    reperes/methodo), renderContent (notion, 5 onglets),
+                    renderAuthorContent, renderConceptContent,
+                    renderMethodoContent
+  · Navigation      fil d'Ariane cliquable (renderCrumbs / goMode), pile
+                    d'historique, openNotion / openAuthor / openConcept
+  · Affichage       mode révision / édition (localStorage philo-mode : épuré
+                    par défaut) ; sidebar en tiroir burger ≤ 700 px ;
+                    onboarding 1re visite (.onb-overlay, flag philo-onboarded)
+  · Contribution    modale « Proposer du contenu » : boîtes empilables
+    (section J.)    (catégorie × cible × type) ; génère un texte lisible + un
+                    bloc JSON v3 ; envoi EN LIGNE dans Supabase (connecté, ou
+                    anonyme avec user_id NULL) avec repli mailto automatique
+  · Quiz (sect. K.) révision active par cartes : Leitner (2 horizons), QCM,
+                    gamification XP/niveau, filtres, reprise de session ; tout
+                    est DÉRIVÉ de CONCEPTS / D / AI ; état localStorage philo-quiz
+                    (v4, oct. 2026 : ids stables, terme masqué, citations
+                    exactes seules, tirage au hasard, « Relire la fiche »)
+  · Compte & sync   Supabase : authentification (e-mail + mot de passe, ou
+                    Google) ; synchronisation cross-appareil du quiz (fusion
+                    carte par carte), des préférences et des brouillons de
+                    proposition ; suivi du statut des contributions dans
+                    « Mes propositions »
+  · PWA             manifest.json + sw.js (réseau d'abord pour HTML/JS, cache
+                    d'abord pour le reste ; hors-ligne) + icon.svg
+-->
+<html lang="fr"><head><meta charset="UTF-8">
+<base href="/">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Descartes : idées, citations et notions | Bac philo – Graphe Philosophie</title>
+<!-- Référencement (nov. 2026) : description, adresse canonique, Open Graph
+     (aperçu des liens partagés) et données structurées schema.org. Le texte
+     des fiches, rendu ici en JS, existe aussi en pages statiques
+     (notions/…, auteurs/…, fiches/ : outils/lib/pages.mjs) que lisent les
+     robots qui n'exécutent pas le JavaScript. -->
 <meta name="description" content="Descartes (1596 – 1650), Rationalisme. Philosophe et mathématicien français (1596–1650). Fondateur du rationalisme moderne, il cherche à atteindre des…">
 <link rel="canonical" href="https://philo.myprisme.fr/auteurs/descartes/">
 <meta property="og:type" content="profile">
@@ -13,22 +95,240 @@
 <meta property="og:description" content="Descartes (1596 – 1650), Rationalisme. Philosophe et mathématicien français (1596–1650). Fondateur du rationalisme moderne, il cherche à atteindre des…">
 <meta property="og:url" content="https://philo.myprisme.fr/auteurs/descartes/">
 <meta name="twitter:card" content="summary">
-<meta name="theme-color" content="#121212">
-<link rel="icon" href="../../icon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="../../fiche.css">
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"ProfilePage","@id":"https://philo.myprisme.fr/auteurs/descartes/","url":"https://philo.myprisme.fr/auteurs/descartes/","name":"Descartes : idées, citations et notions | Bac philo – Graphe Philosophie","description":"Descartes (1596 – 1650), Rationalisme. Philosophe et mathématicien français (1596–1650). Fondateur du rationalisme moderne, il cherche à atteindre des…","inLanguage":"fr","dateModified":"2026-10-06","isPartOf":{"@type":"WebSite","name":"Graphe Philosophie","url":"https://philo.myprisme.fr/"},"mainEntity":{"@type":"Person","name":"Descartes","description":"Philosophe et mathématicien français (1596–1650). Fondateur du rationalisme moderne, il cherche à atteindre des vérités certaines par le doute méthodique.","birthDate":"1596","deathDate":"1650","knowsAbout":["Conscience","Religion","Technique","Nature","Raison","Vérité","Autrui","Perception","Vivant","Matière et esprit","Démonstration","cogito","dualisme corps/âme","méthode","maîtrise de la nature","certitude"]}},{"@type":"LearningResource","name":"Descartes : fiche de révision bac philo","learningResourceType":"Fiche de révision","educationalLevel":"Terminale (lycée, baccalauréat)","inLanguage":"fr","isAccessibleForFree":true,"audience":{"@type":"EducationalAudience","educationalRole":"student","audienceType":"Élèves de Terminale (baccalauréat)"},"publisher":{"@type":"Organization","name":"Graphe Philosophie","url":"https://philo.myprisme.fr/"},"citation":["« Je pense, donc je suis »","« Nous rendre comme maîtres et possesseurs de la nature »","« Nous rendre comme maîtres et possesseurs de la nature »","« Le bon sens est la chose du monde la mieux partagée. »","« Ce n'est pas assez d'avoir l'esprit bon, mais le principal est de l'appliquer bien. »","« Pour examiner la vérité, il est besoin, une fois en sa vie, de mettre toutes choses en doute autant qu'il se peut » (Principes de la philosophie, I, 1)","« que vois-je de cette fenêtre, sinon des chapeaux et des manteaux » (Méditation seconde)","« sa perception n'est point une vision, ni un attouchement, ni une imagination [...] mais seulement une inspection de l'esprit » (Méditation seconde)","« je ne suis pas seulement logé dans mon corps, ainsi qu'un pilote en son navire, mais, outre cela, [...] je lui suis conjoint très étroitement » (Méditation sixième)","« Ces longues chaînes de raisons, toutes simples et faciles, dont les géomètres ont coutume de se servir » (Discours de la méthode, II)"]},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Accueil","item":"https://philo.myprisme.fr/"},{"@type":"ListItem","position":2,"name":"Fiches","item":"https://philo.myprisme.fr/fiches/"},{"@type":"ListItem","position":3,"name":"Descartes","item":"https://philo.myprisme.fr/auteurs/descartes/"}]}]}</script>
+<!-- Favicon SVG inline : un emoji 🏛️ (temple antique) rendu comme texte dans un
+     SVG en data-URI. Astuce qui préserve le mono-fichier (aucune image externe à
+     charger). L'emoji est rendu via la fonte système — pas de typo à embarquer. -->
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏛️</text></svg>">
+<!-- PWA : manifeste pour l'installation, theme-color pour la barre d'état mobile. -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#121212">
+<link rel="apple-touch-icon" href="icon.svg">
+<!-- preconnect (nov. 2026) : ouvre tôt la connexion aux serveurs de la police
+     et du CDN, ce qui raccourcit l'attente avant le premier affichage. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<!-- Thème (étape 6) : posé AVANT le premier affichage, pour éviter un éclair
+     sombre en thème clair. 'sombre' (défaut), 'clair' ou 'auto' ; le reste
+     (réglage, changement à chaud) est dans js/07-affichage-reglages.js. -->
+<script>try{document.documentElement.dataset.theme=localStorage.getItem('philo-theme')||'sombre';}catch(e){document.documentElement.dataset.theme='sombre';}</script>
+<link rel="stylesheet" href="app.css">
 </head>
-<body>
-<header class="fh"><a class="fh-site" href="../../">🏛️ Graphe Philosophie <span>Terminale</span></a>
-<nav aria-label="Rubriques"><a href="../../fiches/">Toutes les fiches</a></nav></header>
-<main class="fm"><nav class="fa" aria-label="Fil d’Ariane"><a href="../../">Accueil</a> › <a href="../../fiches/">Fiches</a> › <span aria-current="page">Descartes</span></nav>
-<article class="fiche">
-<header><p class="sur">Fiche auteur · Philosophie Terminale · au programme</p>
-<h1>Descartes (1596 – 1650)</h1><p class="ques">Rationalisme · XVIIe siècle</p>
-<p><a class="btn" href="../../#/auteur/Descartes">Ouvrir dans le graphe interactif</a></p></header>
-<section><h2>Biographie</h2><p>Philosophe et mathématicien français (1596–1650). Fondateur du rationalisme moderne, il cherche à atteindre des vérités certaines par le doute méthodique.</p><p><strong>Thèmes :</strong> cogito, dualisme corps/âme, méthode, maîtrise de la nature, certitude.</p></section>
-<section><h2>Ses idées, notion par notion</h2><article><h3><a href="../../notions/la-conscience/">Conscience</a></h3><div class="idee"><p class="oeuvre"><cite>Discours de la méthode, 1637 / Méditations métaphysiques, 1641</cite></p><p>Cogito : « Je pense, donc je suis » (<em>Discours de la méthode</em>, IVe partie ; les <em>Méditations</em> disent « je suis, j'existe »). La conscience est le seul fondement indubitable. Dualisme : l'âme (pensée) et le corps (étendue) sont deux substances distinctes.</p><blockquote>« Je pense, donc je suis »</blockquote></div></article><article><h3><a href="../../notions/la-religion/">Religion</a></h3><div class="idee"><p class="oeuvre"><cite>Méditations / Lettre au Père Mesland, 1644</cite></p><p>Distinction nette entre l'ordre de la connaissance rationnelle et celui de la foi. <strong>La foi n'est pas un acte de l'intelligence mais un acte de la volonté</strong> : nous croyons parce que nous voulons croire, non parce que nous comprenons les vérités révélées. Le rationalisme cartésien ne récuse donc pas la foi mais affirme l'<em>autonomie de la raison</em> — la philosophie a son domaine propre (la connaissance certaine), distinct de celui de la théologie.</p><p class="reform">En substance : La foi relève de la volonté plus que de l'entendement (reformulé)</p></div></article><article><h3><a href="../../notions/la-technique/">Technique</a></h3><div class="idee"><p class="oeuvre"><cite>Discours de la méthode, 1637</cite></p><p>La technique permet de 'nous rendre comme maîtres et possesseurs de la nature'. La physique pratique : connaître feu, eau, air pour les utiliser. But : améliorer la santé, 'premier bien et fondement de tous les autres biens'.</p><blockquote>« Nous rendre comme maîtres et possesseurs de la nature »</blockquote></div></article><article><h3><a href="../../notions/la-nature/">Nature</a></h3><div class="idee"><p class="oeuvre"><cite>Discours de la méthode, 1637</cite></p><p>Nous rendre 'maîtres et possesseurs de la nature' grâce à la physique pratique. La nature est une machine que la science peut dominer pour améliorer nos conditions de vie.</p><blockquote>« Nous rendre comme maîtres et possesseurs de la nature »</blockquote></div></article><article><h3><a href="../../notions/la-raison/">Raison</a></h3><div class="idee"><p class="oeuvre"><cite>Discours de la méthode, 1637</cite></p><p>La raison — le « <strong>bon sens</strong> » ou « puissance de bien juger et distinguer le vrai du faux » — est « la chose du monde la mieux partagée » : elle est <strong>universelle</strong>, naturellement égale en tous les hommes. Ce qui fait la différence n'est donc pas la quantité de raison, mais la <strong>méthode</strong> qui la conduit : « ce n'est pas assez d'avoir l'esprit bon, mais le principal est de l'appliquer bien ».</p><blockquote>« Le bon sens est la chose du monde la mieux partagée. »</blockquote><blockquote>« Ce n'est pas assez d'avoir l'esprit bon, mais le principal est de l'appliquer bien. »</blockquote></div></article><article><h3><a href="../../notions/la-verite/">Vérité</a></h3><div class="idee"><p class="oeuvre"><cite>Méditations métaphysiques, 1641</cite></p><p>Le doute méthodique comme chemin vers la vérité : douter de tout ce qui peut être mis en doute. La seule certitude indubitable : le cogito. À partir de là, reconstruire un édifice de connaissances certaines.</p><blockquote>« Pour examiner la vérité, il est besoin, une fois en sa vie, de mettre toutes choses en doute autant qu'il se peut » (Principes de la philosophie, I, 1)</blockquote></div></article><article><h3><a href="../../notions/autrui/">Autrui</a></h3><div class="idee"><p class="oeuvre"><cite>Méditations métaphysiques, II (1641)</cite></p><p>Le cogito assure le sujet de sa propre existence, pas de celle des autres. De sa fenêtre, Descartes voit passer des chapeaux et des manteaux : rien, dans ce que voient ses yeux, ne prouve qu'ils ne couvrent pas des automates. Il juge que ce sont des hommes : autrui n'est pas vu, il est inféré par l'esprit. D'où le soupçon de <strong>solipsisme</strong>, que la philosophie d'après cherchera à lever.</p><blockquote>« que vois-je de cette fenêtre, sinon des chapeaux et des manteaux » (Méditation seconde)</blockquote></div></article><article><h3><a href="../../notions/la-perception/">Perception</a></h3><div class="idee"><p class="oeuvre"><cite>Méditations métaphysiques, II (1641)</cite></p><p>Un morceau de cire sorti de la ruche a sa couleur, son odeur, sa dureté, il rend un son quand on le frappe. Approché du feu, tout cela change ; pourtant c'est la même cire. Ce ne sont donc ni les sens ni l'imagination qui la connaissent, mais l'entendement : percevoir, au sens fort, c'est juger. La perception peut être confuse ou claire selon l'attention de l'esprit.</p><blockquote>« sa perception n'est point une vision, ni un attouchement, ni une imagination [...] mais seulement une inspection de l'esprit » (Méditation seconde)</blockquote></div></article><article><h3><a href="../../notions/le-vivant/">Vivant</a></h3><div class="idee"><p class="oeuvre"><cite>Discours de la méthode, V (1637)</cite></p><p>Le corps vivant est une machine, comme une horloge faite de roues et de ressorts : le mouvement du cœur, la circulation, les réflexes s'expliquent par la disposition des organes et la chaleur. Les animaux ne sont que des machines : sans langage véritable ni raison, ils agissent seulement par la disposition de leurs organes. Seule l'âme humaine, qui pense, échappe au mécanisme.</p><p class="reform">En substance : Les animaux agissent par la disposition de leurs organes, comme une horloge marque les heures (Discours, V, reformulé)</p></div></article><article><h3><a href="../../notions/la-matiere-et-l-esprit/">Matière et esprit</a></h3><div class="idee"><p class="oeuvre"><cite>Méditations métaphysiques, II et VI (1641) ; lettres à Élisabeth (1643)</cite></p><p>Je puis douter d'avoir un corps, non de penser : je suis donc une chose qui pense, réellement distincte du corps étendu. Mais la douleur, la faim, la soif m'apprennent que je ne suis pas logé dans mon corps comme un pilote dans son navire : je lui suis étroitement uni. Comment deux substances si différentes agissent-elles l'une sur l'autre ? Descartes avoue à Élisabeth que cette union se connaît par la vie et les sens plutôt que par l'entendement.</p><blockquote>« je ne suis pas seulement logé dans mon corps, ainsi qu'un pilote en son navire, mais, outre cela, [...] je lui suis conjoint très étroitement » (Méditation sixième)</blockquote></div></article><article><h3><a href="../../notions/la-demonstration/">Démonstration</a></h3><div class="idee"><p class="oeuvre"><cite>Discours de la méthode, II (1637)</cite></p><p>Les mathématiques sont les seules sciences où l'on trouve des démonstrations certaines. Descartes en tire une méthode pour toute connaissance : ne recevoir pour vrai que l'évident, diviser les difficultés, conduire par ordre ses pensées des plus simples aux plus composées, tout dénombrer. Rien n'est si éloigné qu'on ne puisse y parvenir si l'on garde l'ordre des déductions.</p><blockquote>« Ces longues chaînes de raisons, toutes simples et faciles, dont les géomètres ont coutume de se servir » (Discours de la méthode, II)</blockquote></div></article></section>
-<section><h2>En dialogue avec</h2><ul><li><strong><a href="../../auteurs/hume/">Hume</a></strong> (certitudes de la raison) : Hume montre qu'aucune relation causale n'est nécessaire : ce que Descartes tenait pour certain n'est qu'une habitude psychologique.</li><li><strong><a href="../../auteurs/freud/">Freud</a></strong> (transparence de la conscience) : Freud renverse le cogito : le moi n'est pas maître en sa propre maison — l'inconscient détermine nos actes à notre insu.</li><li><strong><a href="../../auteurs/spinoza/">Spinoza</a></strong> (rationalisme) : Spinoza radicalise Descartes en éliminant le dualisme corps/âme et en identifiant Dieu, la Nature et la Substance.</li></ul></section>
-</article></main>
-<footer class="ff"><p>Graphe Philosophie : fiches de révision de philosophie pour le bac (programme de Terminale, BO n° 8 du 25 juillet 2019). Projet collaboratif, relu et enrichi régulièrement : une erreur ou une idée se signalent depuis l’outil. <a href="../../">Ouvrir l’outil interactif</a> (graphe, quiz, méthodologie).</p></footer>
+<body data-entree="auteur:Descartes">
+
+<div class="sr-only">Graphe de révision philosophie — 17 notions du programme de Terminale avec auteurs, citations, concepts, plans de dissertation et exemples ; mode quiz et proposition de contenu</div>
+<!-- Sans JavaScript (certains robots, navigateurs bridés) : renvoi vers les
+     pages statiques, qui ont tout le texte des fiches. -->
+<noscript><p style="padding:16px">Cet outil interactif demande JavaScript. Toutes les fiches existent aussi en pages simples : <a href="fiches/">fiches de révision des 17 notions et des auteurs</a>.</p></noscript>
+<!-- Tiroir responsive : voile (visible uniquement ≤700px ; burger inline ci-dessous) -->
+<div class="sb-backdrop" id="sb-backdrop" aria-hidden="true"></div>
+<div class="wrap">
+<!-- PRÉ-RENDU (nov. 2026) : entre les repères PRERENDU, le build
+     (outils/construire.mjs, prerenduAccueil) écrit des liens vers les notions
+     et un <h1>, lisibles SANS JavaScript. L'app les remplace au démarrage
+     (renderSB vide #sb, le rendu d'une fiche remplace .main-content).
+     Ne pas éditer entre les repères. -->
+<div class="sidebar" id="sb"><!--PRERENDU:sb--><nav class="prerendu-nav" aria-label="Les notions du programme">
+<a class="nb" href="notions/la-conscience/"><span class="dot" style="background:#534AB7"></span>Conscience</a>
+<a class="nb" href="notions/l-inconscient/"><span class="dot" style="background:#7B4F9E"></span>Inconscient</a>
+<a class="nb" href="notions/le-devoir/"><span class="dot" style="background:#993556"></span>Devoir</a>
+<a class="nb" href="notions/la-liberte/"><span class="dot" style="background:#D4537E"></span>Liberté</a>
+<a class="nb" href="notions/le-bonheur/"><span class="dot" style="background:#EF9F27"></span>Bonheur</a>
+<a class="nb" href="notions/la-religion/"><span class="dot" style="background:#C4682A"></span>Religion</a>
+<a class="nb" href="notions/le-langage/"><span class="dot" style="background:#6B4FA0"></span>Langage</a>
+<a class="nb" href="notions/l-art/"><span class="dot" style="background:#8B5E3C"></span>Art</a>
+<a class="nb" href="notions/la-technique/"><span class="dot" style="background:#185FA5"></span>Technique</a>
+<a class="nb" href="notions/le-travail/"><span class="dot" style="background:#3B6D11"></span>Travail</a>
+<a class="nb" href="notions/la-justice/"><span class="dot" style="background:#D85A30"></span>Justice</a>
+<a class="nb" href="notions/l-etat/"><span class="dot" style="background:#5F5E5A"></span>État</a>
+<a class="nb" href="notions/la-nature/"><span class="dot" style="background:#1D9E75"></span>Nature</a>
+<a class="nb" href="notions/la-raison/"><span class="dot" style="background:#2E86AB"></span>Raison</a>
+<a class="nb" href="notions/la-science/"><span class="dot" style="background:#1A7A4A"></span>Science</a>
+<a class="nb" href="notions/la-verite/"><span class="dot" style="background:#8A6B2E"></span>Vérité</a>
+<a class="nb" href="notions/le-temps/"><span class="dot" style="background:#4E6D8C"></span>Temps</a>
+<a class="nb" href="fiches/">Toutes les fiches et les auteurs</a>
+</nav><!--/PRERENDU:sb--></div>
+<!-- new: <main> (et non plus <div>) pour fournir le repère « main landmark »
+     attendu par les lecteurs d'écran et l'audit d'accessibilité. L'id et la
+     classe restent identiques : le CSS et le JS (getElementById('main'))
+     ne changent pas. -->
+<main class="main" id="main">
+  <!-- Bandeau d'avertissement (formulation revue en nov. 2026 : « projet
+       collaboratif, relu et enrichi », plus juste qu'« en construction »). Réapparaît à CHAQUE
+       chargement (aucune persistance) ; se ferme via la croix ou disparaît seul
+       au bout d'une minute (initNotice / dismissNotice dans le <script>). Le mot
+       souligné renvoie à la partie « Proposer / éditer » de la visite guidée. -->
+  <div class="notice-banner" id="notice-banner" role="status">
+    <span class="notice-banner-text">Projet collaboratif de révision, relu et enrichi régulièrement. Une erreur, une idée ? <span class="notice-banner-link" role="link" tabindex="0" onclick="noticeOpenContribTour()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();noticeOpenContribTour()}">Participez à son amélioration</span>.</span>
+    <button class="notice-banner-close" id="notice-banner-close" aria-label="Fermer l'avertissement" onclick="dismissNotice()">×</button>
+  </div>
+  <!-- Bande d'en-tête : burger (mobile uniquement) + fil d'Ariane, alignés. -->
+  <div class="topbar">
+    <button class="sb-burger" id="sb-burger" aria-label="Ouvrir le menu" aria-controls="sb">☰</button>
+    <div class="crumbs" id="crumbs"><nav class="fa" aria-label="Fil d’Ariane"><a href="/">Accueil</a> › <a href="/fiches/">Fiches</a> › <span aria-current="page">Descartes</span></nav></div>
+    <!-- Groupe d'actions aligné à droite. Tous les boutons y sont des éléments
+         flex (donc aucun chevauchement possible, y compris sur mobile) :
+         « Mes propositions » (visible connecté), la recherche globale, puis
+         le bouton d'aide « ? » qui n'est PLUS en position:fixed. -->
+    <div class="topbar-actions">
+      <!-- Accès direct au suivi des propositions (réservé aux comptes
+           connectés via CSS body.is-signed-in). -->
+      <button class="topbar-mine" id="topbar-mine" aria-label="Mes propositions" onclick="openMyProposals()">
+        <span class="cmdp-ico" aria-hidden="true">📋</span><span class="ts-label">Mes propositions</span>
+      </button>
+      <!-- Déclencheur de la palette de recherche globale (Ctrl/⌘+K). Le
+           libellé et le raccourci se masquent ≤700px (icône seule). -->
+      <button class="topbar-search" id="topbar-search" aria-label="Recherche globale (Ctrl+K)" onclick="openPalette()">
+        <span class="cmdp-ico" aria-hidden="true">🔍</span><span class="ts-label">Rechercher</span><kbd>Ctrl K</kbd>
+      </button>
+      <!-- Bouton de partage : ouvre la modale (QR + copier le lien) ; sur
+           mobile la modale propose en plus le partage natif de l'appareil.
+           Libellé masqué ≤700px (icône seule), comme la recherche. -->
+      <button class="topbar-share" id="topbar-share" aria-label="Partager le site" onclick="openShare()">
+        <span class="cmdp-ico" aria-hidden="true">🔗</span><span class="ts-label">Partager</span>
+      </button>
+      <button class="help-btn" id="help-btn" aria-label="Aide et visite guidée" onclick="toggleHelpMenu(event)">?</button>
+    </div>
+  </div>
+  <div class="tabs"><div class="tab active">Idées</div><div class="tab">Citations</div><div class="tab">Œuvres</div><div class="tab">Dialogues</div></div>
+  <div class="main-content"><!--PRERENDU:main--><div class="notion-head"><div><h1 class="author-title">Descartes (1596 – 1650)</h1><div class="nsub">Rationalisme · XVIIe siècle · au programme</div></div></div>
+<div class="author-def-box">Philosophe et mathématicien français (1596–1650). Fondateur du rationalisme moderne, il cherche à atteindre des vérités certaines par le doute méthodique.<p><strong>Thèmes :</strong> cogito, dualisme corps/âme, méthode, maîtrise de la nature, certitude.</p></div>
+<h2 class="slabel">Idées de Descartes par notion</h2><div class="ac"><h3 class="an"><a class="an-link" href="/notions/la-conscience/">Conscience</a></h3><div class="a-ideas"><div class="a-idea"><div class="aw">Discours de la méthode, 1637 / Méditations métaphysiques, 1641</div><div class="ai">Cogito : « Je pense, donc je suis » (<em>Discours de la méthode</em>, IVe partie ; les <em>Méditations</em> disent « je suis, j'existe »). La conscience est le seul fondement indubitable. Dualisme : l'âme (pensée) et le corps (étendue) sont deux substances distinctes.</div><blockquote class="aq">« Je pense, donc je suis »</blockquote></div></div></div><div class="ac"><h3 class="an"><a class="an-link" href="/notions/la-religion/">Religion</a></h3><div class="a-ideas"><div class="a-idea"><div class="aw">Méditations / Lettre au Père Mesland, 1644</div><div class="ai">Distinction nette entre l'ordre de la connaissance rationnelle et celui de la foi. <strong>La foi n'est pas un acte de l'intelligence mais un acte de la volonté</strong> : nous croyons parce que nous voulons croire, non parce que nous comprenons les vérités révélées. Le rationalisme cartésien ne récuse donc pas la foi mais affirme l'<em>autonomie de la raison</em> — la philosophie a son domaine propre (la connaissance certaine), distinct de celui de la théologie.</div><div class="aq">En substance : La foi relève de la volonté plus que de l'entendement (reformulé)</div></div></div></div><div class="ac"><h3 class="an"><a class="an-link" href="/notions/la-technique/">Technique</a></h3><div class="a-ideas"><div class="a-idea"><div class="aw">Discours de la méthode, 1637</div><div class="ai">La technique permet de 'nous rendre comme maîtres et possesseurs de la nature'. La physique pratique : connaître feu, eau, air pour les utiliser. But : améliorer la santé, 'premier bien et fondement de tous les autres biens'.</div><blockquote class="aq">« Nous rendre comme maîtres et possesseurs de la nature »</blockquote></div></div></div><div class="ac"><h3 class="an"><a class="an-link" href="/notions/la-nature/">Nature</a></h3><div class="a-ideas"><div class="a-idea"><div class="aw">Discours de la méthode, 1637</div><div class="ai">Nous rendre 'maîtres et possesseurs de la nature' grâce à la physique pratique. La nature est une machine que la science peut dominer pour améliorer nos conditions de vie.</div><blockquote class="aq">« Nous rendre comme maîtres et possesseurs de la nature »</blockquote></div></div></div><div class="ac"><h3 class="an"><a class="an-link" href="/notions/la-raison/">Raison</a></h3><div class="a-ideas"><div class="a-idea"><div class="aw">Discours de la méthode, 1637</div><div class="ai">La raison — le « <strong>bon sens</strong> » ou « puissance de bien juger et distinguer le vrai du faux » — est « la chose du monde la mieux partagée » : elle est <strong>universelle</strong>, naturellement égale en tous les hommes. Ce qui fait la différence n'est donc pas la quantité de raison, mais la <strong>méthode</strong> qui la conduit : « ce n'est pas assez d'avoir l'esprit bon, mais le principal est de l'appliquer bien ».</div><blockquote class="aq">« Le bon sens est la chose du monde la mieux partagée. »</blockquote><blockquote class="aq">« Ce n'est pas assez d'avoir l'esprit bon, mais le principal est de l'appliquer bien. »</blockquote></div></div></div><div class="ac"><h3 class="an"><a class="an-link" href="/notions/la-verite/">Vérité</a></h3><div class="a-ideas"><div class="a-idea"><div class="aw">Méditations métaphysiques, 1641</div><div class="ai">Le doute méthodique comme chemin vers la vérité : douter de tout ce qui peut être mis en doute. La seule certitude indubitable : le cogito. À partir de là, reconstruire un édifice de connaissances certaines.</div><blockquote class="aq">« Pour examiner la vérité, il est besoin, une fois en sa vie, de mettre toutes choses en doute autant qu'il se peut » (Principes de la philosophie, I, 1)</blockquote></div></div></div><div class="ac"><h3 class="an"><a class="an-link" href="/notions/autrui/">Autrui</a></h3><div class="a-ideas"><div class="a-idea"><div class="aw">Méditations métaphysiques, II (1641)</div><div class="ai">Le cogito assure le sujet de sa propre existence, pas de celle des autres. De sa fenêtre, Descartes voit passer des chapeaux et des manteaux : rien, dans ce que voient ses yeux, ne prouve qu'ils ne couvrent pas des automates. Il juge que ce sont des hommes : autrui n'est pas vu, il est inféré par l'esprit. D'où le soupçon de <strong>solipsisme</strong>, que la philosophie d'après cherchera à lever.</div><blockquote class="aq">« que vois-je de cette fenêtre, sinon des chapeaux et des manteaux » (Méditation seconde)</blockquote></div></div></div><div class="ac"><h3 class="an"><a class="an-link" href="/notions/la-perception/">Perception</a></h3><div class="a-ideas"><div class="a-idea"><div class="aw">Méditations métaphysiques, II (1641)</div><div class="ai">Un morceau de cire sorti de la ruche a sa couleur, son odeur, sa dureté, il rend un son quand on le frappe. Approché du feu, tout cela change ; pourtant c'est la même cire. Ce ne sont donc ni les sens ni l'imagination qui la connaissent, mais l'entendement : percevoir, au sens fort, c'est juger. La perception peut être confuse ou claire selon l'attention de l'esprit.</div><blockquote class="aq">« sa perception n'est point une vision, ni un attouchement, ni une imagination [...] mais seulement une inspection de l'esprit » (Méditation seconde)</blockquote></div></div></div><div class="ac"><h3 class="an"><a class="an-link" href="/notions/le-vivant/">Vivant</a></h3><div class="a-ideas"><div class="a-idea"><div class="aw">Discours de la méthode, V (1637)</div><div class="ai">Le corps vivant est une machine, comme une horloge faite de roues et de ressorts : le mouvement du cœur, la circulation, les réflexes s'expliquent par la disposition des organes et la chaleur. Les animaux ne sont que des machines : sans langage véritable ni raison, ils agissent seulement par la disposition de leurs organes. Seule l'âme humaine, qui pense, échappe au mécanisme.</div><div class="aq">En substance : Les animaux agissent par la disposition de leurs organes, comme une horloge marque les heures (Discours, V, reformulé)</div></div></div></div><div class="ac"><h3 class="an"><a class="an-link" href="/notions/la-matiere-et-l-esprit/">Matière et esprit</a></h3><div class="a-ideas"><div class="a-idea"><div class="aw">Méditations métaphysiques, II et VI (1641) ; lettres à Élisabeth (1643)</div><div class="ai">Je puis douter d'avoir un corps, non de penser : je suis donc une chose qui pense, réellement distincte du corps étendu. Mais la douleur, la faim, la soif m'apprennent que je ne suis pas logé dans mon corps comme un pilote dans son navire : je lui suis étroitement uni. Comment deux substances si différentes agissent-elles l'une sur l'autre ? Descartes avoue à Élisabeth que cette union se connaît par la vie et les sens plutôt que par l'entendement.</div><blockquote class="aq">« je ne suis pas seulement logé dans mon corps, ainsi qu'un pilote en son navire, mais, outre cela, [...] je lui suis conjoint très étroitement » (Méditation sixième)</blockquote></div></div></div><div class="ac"><h3 class="an"><a class="an-link" href="/notions/la-demonstration/">Démonstration</a></h3><div class="a-ideas"><div class="a-idea"><div class="aw">Discours de la méthode, II (1637)</div><div class="ai">Les mathématiques sont les seules sciences où l'on trouve des démonstrations certaines. Descartes en tire une méthode pour toute connaissance : ne recevoir pour vrai que l'évident, diviser les difficultés, conduire par ordre ses pensées des plus simples aux plus composées, tout dénombrer. Rien n'est si éloigné qu'on ne puisse y parvenir si l'on garde l'ordre des déductions.</div><blockquote class="aq">« Ces longues chaînes de raisons, toutes simples et faciles, dont les géomètres ont coutume de se servir » (Discours de la méthode, II)</blockquote></div></div></div><!--/PRERENDU:main--></div>
+</main>
+</div>
+
+<!-- Interface de contribution : modale (le bouton d'ouverture .sb-propose est créé dans la sidebar par renderSB) -->
+<div class="modal-overlay" id="proposal-overlay">
+  <div class="modal-panel" role="dialog" aria-modal="true" aria-label="Proposer du contenu">
+    <div class="modal-head">
+      <div class="modal-title">💡 Proposer du contenu</div>
+      <button class="modal-close" id="proposal-close" aria-label="Fermer">×</button>
+    </div>
+    <div class="modal-body" id="proposal-body"></div>
+  </div>
+</div>
+
+<!-- new (comptes) : modale de connexion / création de compte. Même
+     ossature que #proposal-overlay (voile .modal-overlay + panneau). Le
+     bouton d'ouverture .sb-account est créé dans la sidebar par renderSB ;
+     le corps (#auth-body) est injecté en JS par renderAuth(). -->
+<div class="modal-overlay" id="auth-overlay">
+  <div class="modal-panel" role="dialog" aria-modal="true" aria-label="Compte" style="width:min(420px,94vw)">
+    <div class="modal-head">
+      <div class="modal-title" id="auth-title">👤 Mon compte</div>
+      <button class="modal-close" id="auth-close" aria-label="Fermer">×</button>
+    </div>
+    <div class="modal-body" id="auth-body"></div>
+  </div>
+</div>
+
+<!-- new (partage) : modale de partage. Même ossature que #auth-overlay.
+     Le bouton d'ouverture est .topbar-share (dans la topbar). Le corps
+     (#share-body) est injecté en JS par renderShare() : partage natif si
+     l'appareil le permet, QR code + lien copiable toujours. -->
+<div class="modal-overlay" id="share-overlay">
+  <div class="modal-panel" role="dialog" aria-modal="true" aria-label="Partager le site" style="width:min(420px,94vw)">
+    <div class="modal-head">
+      <div class="modal-title">🔗 Partager l'outil</div>
+      <button class="modal-close" id="share-close" aria-label="Fermer">×</button>
+    </div>
+    <div class="modal-body" id="share-body"></div>
+  </div>
+</div>
+
+<!-- Facette : petite liste des auteurs d'un même courant / des concepts d'une
+     même catégorie. Ouverte par openFacet() au clic sur un courant ou un tag ;
+     contenu injecté dans #facet-body. Réutilise le style .modal-overlay. -->
+<div class="modal-overlay" id="facet-overlay" onclick="if(event.target===this)closeFacet()">
+  <div class="modal-panel facet-panel" role="dialog" aria-modal="true" aria-label="Éléments partageant cette étiquette" style="width:min(420px,94vw)">
+    <div class="modal-head">
+      <div class="modal-title" id="facet-title"></div>
+      <button class="modal-close" onclick="closeFacet()" aria-label="Fermer">×</button>
+    </div>
+    <div class="facet-body" id="facet-body"></div>
+  </div>
+</div>
+
+<!-- Réglages : petit menu des fonctions non nécessaires à la révision
+     (bascule du mode d'affichage, etc.). Ouvert par .sb-settings (renderSB). -->
+<div class="modal-overlay" id="settings-overlay" onclick="if(event.target===this)closeSettings()">
+  <div class="modal-panel" role="dialog" aria-modal="true" aria-label="Réglages" style="width:min(440px,94vw)">
+    <div class="modal-head">
+      <div class="modal-title">⚙ Réglages</div>
+      <button class="modal-close" onclick="closeSettings()" aria-label="Fermer">×</button>
+    </div>
+    <div class="modal-body" id="settings-body"></div>
+  </div>
+</div>
+
+<!-- Mode quiz : overlay plein écran (le bouton d'ouverture .sb-quiz est
+     créé dans la sidebar par renderSB). Le contenu (dashboard / session /
+     fin) est injecté en JS dans #quiz-body par renderQuiz(). -->
+<div id="quiz-overlay" role="dialog" aria-modal="true" aria-label="Mode révision active">
+  <div class="quiz-shell" id="quiz-body"></div>
+</div>
+
+<!-- Palette de recherche globale (Ctrl/⌘+K) : recherche transversale
+     notions + auteurs + concepts, ouverte par le bouton .topbar-search ou
+     le raccourci clavier. La liste de résultats (#palette-results) est
+     rendue en JS par renderPalette() ; elle complète la recherche par mode
+     de la sidebar, qu'elle ne remplace pas. -->
+<div class="cmdp-overlay" id="palette-overlay">
+  <div class="cmdp-panel" role="dialog" aria-modal="true" aria-label="Recherche globale">
+    <div class="cmdp-search">
+      <span class="cmdp-ico" aria-hidden="true">🔍</span>
+      <input class="cmdp-input" id="palette-input" type="text" autocomplete="off"
+             placeholder="Rechercher une notion, un auteur, un concept…"
+             aria-label="Rechercher" aria-controls="palette-results" role="combobox" aria-expanded="true">
+      <button class="cmdp-clear" id="palette-clear" type="button" title="Effacer (clic droit aussi)" aria-label="Effacer la recherche" onclick="clearPaletteSearch()">✕</button>
+    </div>
+    <div class="cmdp-results" id="palette-results" role="listbox" aria-label="Résultats"></div>
+    <div class="cmdp-foot">
+      <span><kbd>↑</kbd> <kbd>↓</kbd> naviguer</span>
+      <span><kbd>↵</kbd> ouvrir</span>
+      <span><kbd>Échap</kbd> fermer</span>
+    </div>
+  </div>
+</div>
+
+<!-- Menu du bouton d'aide « ? » : rouvre la visite guidée, en entier ou
+     directement sur une partie. Le BOUTON déclencheur vit désormais dans la
+     barre d'en-tête (.topbar-actions) ; ce menu reste ici car il est en
+     position:fixed (sa place dans le DOM n'influe pas sur son affichage). La
+     visite elle-même (voile + projecteur + bulle) est créée à la volée en JS
+     — voir le module « Visite guidée » du <script> (buildTourDOM). -->
+<div class="help-menu" id="help-menu" role="menu" aria-label="Aide">
+  <div class="help-menu-title">Visite guidée</div>
+  <button class="help-item primary" role="menuitem" onclick="startTour(0, false, 'core')">↻ Recommencer la visite</button>
+  <div class="help-sep"></div>
+  <div class="help-menu-title">Aller à une partie</div>
+  <button class="help-item" role="menuitem" onclick="tourGoPart('fiches')">Les fiches</button>
+  <button class="help-item" role="menuitem" onclick="tourGoPart('liens')">Les liens dynamiques</button>
+  <button class="help-item" role="menuitem" onclick="tourGoPart('nav')">Naviguer / revenir</button>
+  <button class="help-item" role="menuitem" onclick="tourGoPart('reviser')">Réviser (le quiz)</button>
+  <button class="help-item" role="menuitem" onclick="tourGoPart('compte')">Mon compte (sync)</button>
+  <button class="help-item" role="menuitem" onclick="tourGoPart('proposer')">Proposer / éditer</button>
+</div>
+
+<!-- defer (nov. 2026) : les trois scripts se téléchargent pendant la lecture
+     de la page et s'exécutent ensuite, DANS L'ORDRE (data.js, supabase,
+     app.js), juste avant DOMContentLoaded : même ordre qu'avant, mais le
+     navigateur n'interrompt plus l'analyse du HTML pour les attendre. -->
+<script src="data.js" defer></script>
+<!-- new (comptes) : bibliothèque cliente Supabase (authentification +
+     base en ligne). Chargée AVANT le script principal pour exposer le
+     global « supabase » (porteur de createClient), dont on se sert plus
+     bas pour créer le client SB. Build UMD via le CDN jsDelivr.
+     Version FIGÉE (oct. 2026) + empreinte d'intégrité (attribut integrity,
+     « SRI ») : le navigateur refuse le fichier si son contenu change. Avant,
+     « @2 » suivait toute nouvelle version 2.x dès sa publication. Pour
+     monter de version : changer le numéro ET recalculer l'empreinte
+     (sha384 du fichier dist/umd/supabase.js, encodée en base64). Garder la
+     même ligne dans triage/index.html. -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js" integrity="sha384-Rj26LVGvoeRVR6+mwQmFfcR3QOBEwT+ZmuCWpuiqeTzJpCs0ER4ITAWGb4Hiy3Ok" crossorigin="anonymous" defer></script>
+<script src="app.js" defer></script>
+
+
 </body></html>

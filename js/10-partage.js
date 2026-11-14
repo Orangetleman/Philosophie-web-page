@@ -18,7 +18,8 @@
 // URL à partager : celle de la PAGE ouverte (origine + chemin + adresse
 // #/notion/…, cf. adresseDe), sans paramètres. Depuis oct. 2026 chaque page a
 // son adresse : partager depuis « Liberté » envoie sur « Liberté ».
-function shareUrl(){ return location.origin + location.pathname + adresseDe(navStateNow()); }
+// Vrai chemin de la fiche quand elle a une page d'entrée, sinon /#/… (urlComplete).
+function shareUrl(){ return urlComplete(navStateNow()); }
 
 // Ouverture / fermeture de la modale (même mécanique que les autres modales).
 function openShare(){ renderShare(); document.getElementById('share-overlay').classList.add('open'); }

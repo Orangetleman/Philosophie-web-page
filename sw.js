@@ -10,8 +10,8 @@
 // La version du cache (CACHE) est une empreinte du contenu des fichiers
 // précachés, recalculée par outils/construire.mjs : ne pas l'éditer à la main.
 
-const CACHE = 'philo-e8121648b5';   // version calculée par outils/construire.mjs : ne pas éditer
-const PRECACHE = ['./', './index.html', './app.css', './app.js', './data.js', './manifest.json', './icon.svg', './fiche.css'];
+const CACHE = 'philo-ca13dddbb0';   // version calculée par outils/construire.mjs : ne pas éditer
+const PRECACHE = ['./', './index.html', './app.css', './app.js', './data.js', './manifest.json', './icon.svg'];
 
 // Installation : on précache les ressources critiques.
 self.addEventListener('install', e => {
@@ -30,6 +30,17 @@ self.addEventListener('activate', e => {
       .then(() => self.clients.claim())  // contrôle immédiat des pages ouvertes
   );
 });
+
+// repliNavigation(url) — hors ligne, page jamais visitée : une page d'entrée
+// (/notions/…, /auteurs/…, nov. 2026) n'est PAS au précache (une par fiche :
+// trop lourd). On renvoie vers l'accueil avec ?depuis=<chemin> : l'app (en
+// cache) ouvre la même fiche (entreeDePage, js/02-navigation.js). Les pages
+// déjà visitées, elles, sont en cache (réseau d'abord, copie à chaque visite).
+function repliNavigation(url) {
+  if (/^\/(notions|auteurs)\/[^/]+\/$/.test(url.pathname))
+    return Response.redirect(new URL('./?depuis=' + encodeURIComponent(url.pathname), self.registration.scope).href, 302);
+  return caches.match('./index.html');
+}
 
 // Fetch : on intercepte les GET de même origine (et Google Fonts).
 self.addEventListener('fetch', e => {
@@ -66,7 +77,7 @@ self.addEventListener('fetch', e => {
         return resp;
       }).catch(() =>
         caches.match(e.request).then(hit =>
-          hit || (e.request.mode === 'navigate' ? caches.match('./index.html') : undefined)
+          hit || (e.request.mode === 'navigate' ? repliNavigation(url) : undefined)
         )
       )
     );

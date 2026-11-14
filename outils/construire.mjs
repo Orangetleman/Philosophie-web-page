@@ -51,7 +51,7 @@ const CONTROLE = process.argv.includes('--controle');
 
 // Fichiers mis en cache par le service worker pour le hors-ligne. Ajouter ici
 // toute ressource statique nouvelle : sw.js et sa version suivent tout seuls.
-export const PRECACHE = ['./', './index.html', './app.css', './app.js', './data.js', './manifest.json', './icon.svg', './fiche.css'];
+export const PRECACHE = ['./', './index.html', './app.css', './app.js', './data.js', './manifest.json', './icon.svg'];
 
 // Dossiers des pages statiques : ENTIÈREMENT générés (une page sans fiche y est retirée).
 const DOSSIERS_PAGES = ['notions', 'auteurs', 'fiches'];
@@ -264,7 +264,9 @@ function main() {
   produits['sw.js'] = ecrireSw(lireTexte(fSw).replace(/[ \t]*\/\/ version calculée[^\n]*/, ''), produits);
   // 5 bis. Pages statiques (référencement) : une page HTML par fiche + sitemap,
   //    robots.txt, llms.txt (outils/lib/pages.mjs). Hors du précache.
-  const pages = genererPages(donnees);
+  //    Les pages des fiches sont des pages d'ENTRÉE de l'app : elles partent
+  //    d'index.html (déjà pré-rendu ci-dessus), cf. pageApp.
+  const pages = genererPages(donnees, produits['index.html']);
   Object.assign(produits, pages);
   // Pages d'un ancien build dont la fiche a disparu ou changé d'adresse.
   const orphelines = DOSSIERS_PAGES.flatMap(d => listerHtml(path.join(RACINE, d)))
