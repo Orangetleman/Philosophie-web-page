@@ -455,6 +455,23 @@ h1.ntitle{margin:0;line-height:inherit}
 .prerendu-nav{display:flex;flex-direction:column;gap:2px;padding:8px}
 .prerendu-intro{padding:20px}
 .prerendu-intro p{margin:10px 0}
+/* Pages d'entrée (nov. 2026, outils/lib/pages.mjs pageApp) : la fiche
+   pré-rendue reprend les classes de l'app ; seuls les titres h1/h2/h3
+   (structure lue par les moteurs) perdent leurs marges par défaut, et la
+   « fiche complète » (#fiche-entree, gardée par l'app sous l'onglet par
+   défaut) reçoit une mise en page sobre. */
+h1.ntitle,h1.author-title,h2.slabel,h3.an{margin:0}
+h2.slabel{margin-bottom:8px}
+h3.an{margin-bottom:2px}
+.crumbs .fa a{color:var(--color-text-secondary)}
+.fiche-entree{margin-top:24px;font-size:13px;color:var(--color-text-secondary);line-height:1.6}
+.fiche-entree>summary{cursor:pointer;font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.06em;color:var(--color-text-tertiary);margin-bottom:8px}
+.fiche-entree h2{font-size:14px;font-weight:500;color:var(--color-text-primary);margin:20px 0 8px}
+.fiche-entree h3{font-size:13px;font-weight:500;color:var(--color-text-primary);margin:12px 0 4px}
+.fiche-entree p,.fiche-entree ul,.fiche-entree ol,.fiche-entree dl{margin:6px 0}
+.fiche-entree dt{font-weight:500;color:var(--color-text-primary);margin-top:8px}
+.fiche-entree dd{margin:2px 0 0 0}
+.fiche-entree blockquote,.fiche-entree .reform{margin:6px 0;padding-left:8px;border-left:2px solid var(--color-border-tertiary);font-style:italic}
 /* css/02-barre-laterale.css — morceau de la feuille de style du site. Le build
    (outils/construire.mjs) recolle css/*.css dans l'ORDRE des noms pour
    produire app.css : l'ordre compte (cascade CSS). */

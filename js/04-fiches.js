@@ -845,6 +845,7 @@ function renderAuthorContent(){
   }
 
   mc.innerHTML=html;
+  ficheEntreeAjouter(mc);   // page d'entrée d'un auteur : « En dialogue avec » reste visible
 }
 
 /* renderContent() — vue principale d'une notion (cur).
@@ -1139,6 +1140,7 @@ ${estHP(cur)?hpNoticeHTML():''}
 
   html+=piedNotionHTML(cur);   // référencement : présentation + vrais liens
   mc.innerHTML=html;
+  ficheEntreeAjouter(mc);   // page d'entrée : la fiche complète reste sous l'onglet Auteurs
 }
 
 /* piedNotionHTML(k) — pied de la fiche d'une notion (référencement, nov.
@@ -1152,7 +1154,7 @@ function piedNotionHTML(k){
   const auteurs=[...new Set(n.auteurs.map(a=>a.n))].filter(a=>P.auteurs[a]);
   return `<footer class="pied-notion">
   <p><strong>Graphe Philosophie</strong> : fiches de révision de philosophie pour le bac (Terminale). Les 17 notions du programme, leurs auteurs, citations, plans de dissertation, sujets tombés au bac, et un quiz pour réviser.</p>
-  <p>${P.notions[k]?`<a href="${P.notions[k]}">${n.l} : la fiche en version simple (à lire ou imprimer)</a> · `:''}<a href="fiches/">Toutes les fiches de révision</a></p>
+  <p>${P.notions[k]?`<a href="${P.notions[k]}">${n.l} : adresse directe de cette fiche</a> · `:''}<a href="fiches/">Toutes les fiches de révision</a></p>
   ${auteurs.length?`<p class="pied-auteurs">Auteurs de la fiche : ${auteurs.map(a=>`<a href="${P.auteurs[a]}">${a}</a>`).join(', ')}</p>`:''}
 </footer>`;
 }
