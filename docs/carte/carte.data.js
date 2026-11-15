@@ -572,6 +572,12 @@ window.CARTE = {
       ingenieur:"dashboard.py : petit serveur Flask local (port DASHBOARD_PORT, défaut 5002). _run_review_thread() lance la relecture IA en fond ; _card() rend chaque boîte avec ses actions.",
       symbols:[{kind:"fn",name:"run",ref:"philo-aggregator/dashboard.py:969"},{kind:"fn",name:"_run_review_thread",ref:"philo-aggregator/dashboard.py:118"},{kind:"fn",name:"_card",ref:"philo-aggregator/dashboard.py:391"}] },
 
+    { id:"backend.admin", label:"Page /admin/", niveau:1, parent:"backend", domaine:"backend",
+      novice:"La page où l'éditeur trie les propositions, la même sur ordinateur et téléphone, en ligne et en local. Elle remplacera le tableau de bord et la page de triage.",
+      ingenieur:"admin/ (nov. 2026, lot A2) : index.html charge data.js (titres des notions), lib/supabase.js, modele.js (AdminModele : filtrer, champsLisibles, vuContributeur, depuis, erreur ; éprouvé par outils/essais_admin.mjs), essai.js (AdminEssai : fausses données, /admin/?essai) et admin.js (état, rendre(), gestes, clavier V/R/A/J/K, #n°). Tout passe par les fonctions admin_* (2026_administration.sql). Hors du service worker du site et de robots.txt.",
+      symbols:[{kind:"fn",name:"rendre",ref:"admin/admin.js:121"},{kind:"fn",name:"changer",ref:"admin/admin.js:296"},{kind:"fn",name:"suivreAdresse",ref:"admin/admin.js:383"},{kind:"fn",name:"filtrer",ref:"admin/modele.js:90"},{kind:"fn",name:"champsLisibles",ref:"admin/modele.js:133"},{kind:"fn",name:"vuContributeur",ref:"admin/modele.js:199"}],
+      liens:[{to:"sync.tables.admin",type:"lit",note:"Lit et écrit les boîtes et les sujets par les fonctions admin_*."}] },
+
     { id:"backend.export", label:"Export relecture", niveau:1, parent:"backend", domaine:"backend",
       novice:"L'export d'un fichier texte regroupant les propositions à intégrer à la main dans le contenu.",
       ingenieur:"export.py : génère review_*.txt (boîtes en attente, groupées par section), chaque boîte préfixée [BOX <id>]. FIELD_LABELS mappe les noms de champ.",

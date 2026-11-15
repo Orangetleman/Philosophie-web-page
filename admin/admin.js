@@ -1,0 +1,472 @@
+/* ════════════════════════════════════════════════════════════════════════
+   admin/admin.js — la page /admin/ : connexion, boîte de réception, détail
+   d'une boîte, tri, réponse (lot A2, docs/chantier-administration.md § 5).
+   ────────────────────────────────────────────────────────────────────────
+   Tout ce qui se calcule sans page est dans admin/modele.js (AdminModele) ;
+   ici, l'état, le rendu et les gestes. Les données passent par l'objet API :
+   les fonctions admin_* de Supabase, ou AdminEssai (fausses données) quand
+   l'adresse contient ?essai.
+   Rendu : la page entière est réécrite par rendre() depuis l'état ; les
+   textes tapés et pas encore enregistrés vivent dans « brouillons ».
+   ════════════════════════════════════════════════════════════════════════ */
+'use strict';
+
+// Les MÊMES valeurs publiques que le site (js/06-contribution.js).
+const SUPABASE_URL = 'https://fipdatwirklhgdbujobz.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_7A5cSXlmufU1mDfjs1hIIA_PSHpXOdB';
+
+const M = window.AdminModele;
+const ESSAI = new URLSearchParams(location.search).has('essai');
+const SB = !ESSAI && window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+const LOCAL = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
+
+// Titres des notions, depuis data.js (D) : « travail » → « Le travail ».
+const NOTIONS = {};
+try { Object.keys(D).forEach(k => { NOTIONS[k] = D[k].l || k; }); } catch (e) { /* data.js absent : on garde les clés */ }
+
+/* rpc(nom, args) — appelle une fonction de la base et rend ses données, ou
+   lève l'erreur de Supabase (traduite plus haut par M.erreur). */
+async function rpc(nom, args) {
+  const { data, error } = await SB.rpc(nom, args);
+  if (error) throw error;
+  return data;
+}
+// L'API de la page : mêmes noms en vrai et en essai.
+const API = ESSAI ? window.AdminEssai : {
+  boites: () => rpc('admin_boites'),
+  sujets: () => rpc('admin_sujets'),
+  majBoite: (id, champs) => rpc('admin_maj_boite', { p_id: id, p_champs: champs }),
+  supprimerBoite: id => rpc('admin_supprimer_boite', { p_id: id }),
+  creerSujet: titre => rpc('admin_enregistrer_sujet', { p_id: null, p_champs: { titre } }),
+};
+
+// ── L'état ────────────────────────────────────────────────────────────────
+const etat = {
+  phase: 'chargement',      // chargement | connexion | pas-admin | boite
+  email: '', uid: '',
+  erreurConnexion: '',
+  boites: [], sujets: [],
+  filtres: Object.assign({}, M.FILTRES_DEFAUT),
+  sel: null,                // n° de la boîte ouverte
+  nouveauSujet: false,      // le champ « nouveau sujet » est ouvert
+  occupe: false,
+};
+const brouillons = new Map();   // n° → {reponse, note} tapés, pas encore enregistrés
+const racine = document.getElementById('racine');
+
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const boite = id => etat.boites.find(b => b.id === id) || null;
+const visibles = () => M.filtrer(etat.boites, etat.filtres);
+const etroit = () => window.matchMedia('(max-width: 760px)').matches;
+
+/* dire(texte, mauvais) — le message en bas de l'écran, effacé après 4 s. */
+let minuteur = null;
+function dire(texte, mauvais) {
+  const el = document.getElementById('message');
+  el.textContent = texte;
+  el.className = 'message on' + (mauvais ? ' mauvais' : '');
+  clearTimeout(minuteur);
+  minuteur = setTimeout(() => { el.className = 'message'; }, mauvais ? 7000 : 3500);
+}
+const echec = e => { console.error(e); dire(M.erreur(e), true); };
+
+// ── Entrer ────────────────────────────────────────────────────────────────
+
+/* charger() — lit boîtes et sujets ; règle la phase selon la réponse de la
+   base (pas admin, migration absente, ou la boîte de réception). */
+async function charger() {
+  try {
+    const [boites, sujets] = await Promise.all([API.boites(), API.sujets()]);
+    etat.boites = boites || [];
+    etat.sujets = sujets || [];
+    etat.phase = 'boite';
+    suivreAdresse();
+  } catch (e) {
+    if ((e && e.code) === '42501') { etat.phase = 'pas-admin'; }
+    else { etat.phase = 'connexion'; etat.erreurConnexion = M.erreur(e); }
+  }
+  rendre();
+}
+
+/* entrer(session) — après une connexion (ou une session gardée). */
+async function entrer(session) {
+  if (!session) { etat.phase = 'connexion'; rendre(); return; }
+  etat.email = session.user.email || '';
+  etat.uid = session.user.id;
+  await charger();
+}
+
+async function connexionEmail(email, mdp) {
+  etat.erreurConnexion = '';
+  const { data, error } = await SB.auth.signInWithPassword({ email, password: mdp });
+  if (error) { etat.erreurConnexion = M.erreur(error); rendre(); return; }
+  await entrer(data.session);
+}
+async function connexionGoogle() {
+  // En local, l'adresse localhost doit figurer dans les « Redirect URLs » de
+  // Supabase (Authentication › URL Configuration), sinon Google renvoie sur le site.
+  const { error } = await SB.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: location.origin + '/admin/' } });
+  if (error) { etat.erreurConnexion = M.erreur(error); rendre(); }
+}
+async function sortir() {
+  if (SB) await SB.auth.signOut();
+  location.hash = '';
+  location.reload();
+}
+
+// ── Rendu ─────────────────────────────────────────────────────────────────
+
+/* rendre(focus) — réécrit la page depuis l'état, puis remet le focus sur
+   l'élément voulu (sélecteur) ou sur celui qui l'avait. */
+function rendre(focus) {
+  const actif = document.activeElement;
+  const garde = focus || (actif && actif.id ? '#' + actif.id : null);
+  racine.innerHTML =
+    etat.phase === 'chargement' ? `<p class="vide">Chargement…</p>` :
+    etat.phase === 'connexion' ? pageConnexion() :
+    etat.phase === 'pas-admin' ? pagePasAdmin() :
+    entete() + boiteDeReception();
+  if (garde) {
+    const el = racine.querySelector(garde);
+    if (el) {
+      el.focus({ preventScroll: !focus });
+      // Le champ de recherche est recréé à chaque lettre : curseur remis en fin.
+      if (el.id === 'f-q') el.setSelectionRange(el.value.length, el.value.length);
+    }
+  }
+}
+
+function pageConnexion() {
+  return `<main class="login">
+    <h1>🗂️ Administration</h1>
+    <p class="hint">Le tri des propositions de Graphe Philo. Connecte-toi avec ton compte administrateur.</p>
+    ${etat.erreurConnexion ? `<div class="err">${esc(etat.erreurConnexion)}</div>` : ''}
+    <button type="button" data-act="google">Continuer avec Google</button>
+    <div class="sep">ou</div>
+    <form id="form-connexion">
+      <input type="email" id="c-email" autocomplete="username" placeholder="adresse e-mail" required>
+      <input type="password" id="c-mdp" autocomplete="current-password" placeholder="mot de passe" required>
+      <button class="primary" type="submit">Se connecter</button>
+    </form>
+    <p class="hint"><a href="?essai">Essayer sur de fausses données</a>, sans compte.</p>
+  </main>`;
+}
+
+function pagePasAdmin() {
+  return `<main class="login">
+    <h1>🗂️ Administration</h1>
+    <div class="info">
+      <b>Ce compte n'est pas administrateur.</b>
+      <span>Connecté en tant que ${esc(etat.email)}. Pour l'autoriser, colle son identifiant dans l'éditeur SQL de Supabase :</span>
+      <code>insert into public.app_admins (user_id) values ('${esc(etat.uid)}');</code>
+      <div class="acts"><button type="button" data-act="copier-uid">Copier l'identifiant</button><button type="button" data-act="sortir">Se déconnecter</button></div>
+    </div>
+  </main>`;
+}
+
+function entete() {
+  const nouvelles = etat.boites.filter(b => !b.lue_le).length;
+  const mode = ESSAI ? `<span class="mode essai" title="Rien n'est enregistré : les données sont fausses et se perdent au rechargement.">essai · fausses données</span>`
+    : `<span class="mode">${LOCAL ? 'local · vraie base' : 'en ligne'}</span>`;
+  return `<header class="head">
+    <h1>🗂️ Boîte de réception${nouvelles ? `<span class="chip" title="jamais ouvertes">${nouvelles} nouvelle${nouvelles > 1 ? 's' : ''}</span>` : ''}</h1>
+    <span class="right">${mode}${etat.email ? `<span>${esc(etat.email)}</span>` : ''}
+      <button type="button" class="link" data-act="actualiser">Actualiser</button>
+      ${ESSAI ? '<a href="/admin/">Quitter l\'essai</a>' : '<button type="button" class="link" data-act="sortir">Se déconnecter</button>'}</span>
+  </header>`;
+}
+
+function filtresHtml() {
+  const f = etat.filtres;
+  const opt = (v, l, sel) => `<option value="${esc(v)}"${v === sel ? ' selected' : ''}>${esc(l)}</option>`;
+  return `<div class="filters">
+    <select id="f-cat" aria-label="Catégorie">${opt('', 'Toutes catégories', f.cat)}${Object.entries(M.CATEGORIES).map(([k, v]) => opt(k, v, f.cat)).join('')}</select>
+    <select id="f-etat" aria-label="État">${Object.entries(M.FILTRES_ETAT).map(([k, v]) => opt(k, v, f.etat)).join('')}</select>
+    <select id="f-ia" aria-label="Avis IA">${Object.entries(M.FILTRES_IA).map(([k, v]) => opt(k, v, f.ia)).join('')}</select>
+    <input type="search" id="f-q" aria-label="Chercher" placeholder="Chercher (touche /)" value="${esc(f.q)}">
+  </div>`;
+}
+
+function pilleIA(b) {
+  const v = M.VERDICTS[b.ia_verdict];
+  return v ? `<span class="pill ${v[0]}">${esc(v[1])}</span>` : '';
+}
+
+function ligne(b) {
+  const h = [
+    b.lue_le ? '' : '<span class="new">● nouvelle</span>',
+    'n° ' + b.id,
+    esc(M.etiquette(b)),
+    M.notionDe(b) ? esc(NOTIONS[M.notionDe(b)] || M.notionDe(b)) : '',
+    esc(b.pseudo || 'anonyme'),
+    esc(M.depuis(b.cree_le)),
+    b.statut !== 'en_attente' ? esc(M.STATUTS[b.statut]) : '',
+    b.reponse ? 'répondue' : '',
+    pilleIA(b),
+  ].filter(Boolean);
+  return `<li><button type="button" class="${b.id === etat.sel ? 'sel' : ''}" data-boite="${b.id}" aria-current="${b.id === etat.sel}">
+    <span class="h">${h.join(' · ')}</span><span class="t">${esc(M.resume(b, NOTIONS))}</span></button></li>`;
+}
+
+function boiteDeReception() {
+  const liste = visibles();
+  const b = boite(etat.sel);
+  return `<div class="tb${b ? ' a-choix' : ''}">
+    <nav class="tb-list" aria-label="Boîtes">${filtresHtml()}
+      <div class="compte">${liste.length} boîte${liste.length > 1 ? 's' : ''} sur ${etat.boites.length}</div>
+      ${liste.length ? `<ul class="it">${liste.map(ligne).join('')}</ul>` : `<p class="vide">Rien ici. ${etat.filtres.etat === 'a-traiter' ? 'Tout est trié 🎉' : ''}</p>`}
+    </nav>
+    ${b ? detail(b) : `<section class="det rien"><p>Choisis une boîte dans la liste.</p></section>`}
+  </div>`;
+}
+
+/* fiche(b) — le contenu de la boîte, champ par champ (M.champsLisibles). */
+function fiche(b) {
+  const champs = M.champsLisibles(b.contenu, NOTIONS);
+  if (!champs.length) return `<div class="fiche"><span class="hint">(boîte vide)</span></div>`;
+  const dl = l => `<dl>${l.map(c => `<dt>${esc(c.label)}</dt><dd>${esc(c.valeur)}</dd>`).join('')}</dl>`;
+  const simples = champs.filter(c => !c.idee), idees = champs.filter(c => c.idee);
+  return `<div class="fiche">${simples.length ? dl(simples) : ''}
+    ${idees.map(c => `<div class="idee"><b>${esc(c.label)}</b>${dl(c.idee)}</div>`).join('')}</div>`;
+}
+
+function detail(b) {
+  const br = brouillons.get(b.id) || {};
+  const soeurs = etat.boites.filter(x => x.contribution === b.contribution).sort((x, y) => x.rang - y.rang);
+  const seg = [['en_attente', 'En attente', 'A'], ['validee', 'Validée', 'V'], ['refusee', 'Refusée', 'R']]
+    .map(([k, l, t]) => `<button type="button" data-statut="${k}" aria-pressed="${b.statut === k}"${etat.occupe ? ' disabled' : ''}>${l}<span class="kbd">${t}</span></button>`).join('');
+  const notion = M.notionDe(b), lien = M.lienSite(b);
+  const qui = b.a_compte ? `☁ compte : <b>${esc(b.pseudo || 'sans pseudo')}</b>`
+    : b.a_suivi ? `sans compte${b.pseudo ? ' (' + esc(b.pseudo) + ')' : ''} · suivi par numéro` : `sans compte${b.pseudo ? ' (' + esc(b.pseudo) + ')' : ''} · pas de suivi`;
+  const lecteur = b.a_compte ? 'le contributeur la lit dans « Mes propositions »'
+    : b.a_suivi ? 'lue avec son numéro de suivi' : 'envoi sans compte ni numéro : personne ne la lira';
+  const ia = b.ia_verdict
+    ? `<details class="ia"${b.ia_verdict !== 'valide' ? ' open' : ''}><summary>${pilleIA(b)} Avis de l'IA${b.ia_le ? ` <span class="hint">${esc(M.depuis(b.ia_le))}</span>` : ''}</summary><div>${esc(b.ia_avis || '(pas de commentaire)')}</div></details>`
+    : `<span class="hint">${M.categorieDe(b) === 'site' ? 'Retour sur le site : pas de relecture par l’IA.' : 'Pas encore relue par l’IA.'}</span>`;
+  const integ = b.statut === 'integree'
+    ? `<div class="info"><span><span class="pill ok">Intégrée</span> ${b.integration ? `commit <code>${esc(b.integration.commit)}</code>${b.integration.detail ? ' · ' + esc(b.integration.detail) : ''}` : 'à la main'}</span>
+       <div class="acts"><button type="button" data-statut="validee">Remettre en « Validée »</button></div></div>` : '';
+  const sujets = etat.sujets.map(s => `<option value="${s.id}"${b.sujet === s.id ? ' selected' : ''}>${esc(s.titre)} (${s.demandes})</option>`).join('');
+  return `<section class="det" aria-labelledby="det-titre">
+    <button type="button" class="back" data-act="liste">← Liste</button>
+    <div class="acts"><h2 id="det-titre" tabindex="-1">n° ${b.id} · ${esc(M.etiquette(b))}</h2>
+      ${b.statut === 'integree' ? '' : `<span class="seg" role="group" aria-label="État de la boîte">${seg}</span>`}
+      ${b.statut === 'validee' ? `<button type="button" data-act="integree" title="En attendant l'onglet « À intégrer » (lot A5)">Marquer intégrée</button>` : ''}</div>
+    ${integ}
+    <div class="ctx"><span>${qui}</span><span>reçue ${esc(M.depuis(b.cree_le))}</span>
+      ${notion ? `<span>notion : ${esc(NOTIONS[notion] || notion)}</span>` : ''}
+      ${lien ? `<a href="${esc(lien)}" target="_blank" rel="noopener">voir sur le site ↗</a>` : ''}</div>
+    ${soeurs.length > 1 ? `<div class="contrib"><span>Envoyée avec :</span>${soeurs.map(s => `<button type="button" data-boite="${s.id}" aria-current="${s.id === b.id}" title="${esc(M.STATUTS[s.statut])}">n° ${s.id}</button>`).join('')}
+      <span class="hint">le contributeur voit « ${esc(M.vuContributeur(soeurs.map(s => s.statut)))} »</span></div>` : ''}
+    ${fiche(b)}
+    ${ia}
+    <label class="blk">Ranger dans un sujet
+      <select id="d-sujet"><option value="">— aucun —</option>${sujets}<option value="nouveau">+ Nouveau sujet…</option></select></label>
+    ${etat.nouveauSujet ? `<div class="acts"><input type="text" id="d-nouveau" maxlength="300" placeholder="Titre du sujet (public s'il est publié)" style="flex:1"><button type="button" class="primary" data-act="creer-sujet">Créer</button><button type="button" data-act="annuler-sujet">Annuler</button></div>` : ''}
+    <label class="blk">Répondre <span class="hint">${lecteur}</span>
+      <textarea id="d-reponse" maxlength="2000"${!b.a_compte && !b.a_suivi ? ' disabled' : ''}>${esc(br.reponse != null ? br.reponse : b.reponse || '')}</textarea></label>
+    <label class="blk">Note interne <span class="hint">jamais montrée au contributeur</span>
+      <textarea id="d-note" rows="2" style="min-height:44px">${esc(br.note != null ? br.note : b.note || '')}</textarea></label>
+    <div class="acts">
+      <button type="button" class="primary" data-act="enregistrer"${etat.occupe ? ' disabled' : ''}>Enregistrer</button>
+      <span class="hint">${brouillons.has(b.id) ? 'modifié, pas encore enregistré' : b.repondu_le ? 'réponse envoyée ' + esc(M.depuis(b.repondu_le)) : 'pas encore de réponse'}</span>
+      <button type="button" class="danger del" data-act="supprimer">Supprimer (abus)…</button>
+    </div>
+  </section>`;
+}
+
+// ── Gestes ────────────────────────────────────────────────────────────────
+
+/* ouvrir(id) — affiche la boîte et la marque lue (dans la base aussi). */
+function ouvrir(id, focus) {
+  const b = boite(id);
+  if (!b) return;
+  etat.sel = id;
+  etat.nouveauSujet = false;
+  history.replaceState(null, '', '#' + id);
+  if (!b.lue_le) {
+    b.lue_le = new Date().toISOString();
+    API.majBoite(id, { lue: true }).catch(echec);
+  }
+  rendre(focus || (etroit() ? '#det-titre' : `[data-boite="${id}"]`));
+}
+
+/* changer(id, champs, message) — écrit dans la base, puis met l'état local
+   à jour avec ce que la base a accepté (on relit la boîte). */
+async function changer(id, champs, message) {
+  etat.occupe = true; rendre();
+  try {
+    await API.majBoite(id, champs);
+    // On relit les boîtes, et les sujets si leur compte de demandes a bougé.
+    const [fraiches, sujets] = await Promise.all([API.boites(), 'sujet' in champs ? API.sujets() : null]);
+    etat.boites = fraiches || etat.boites;
+    if (sujets) etat.sujets = sujets;
+    if (message) dire(message);
+    return true;
+  } catch (e) { echec(e); return false; }
+  finally { etat.occupe = false; rendre(); }
+}
+
+async function enregistrer() {
+  const b = boite(etat.sel); if (!b) return;
+  const champs = {
+    reponse: document.getElementById('d-reponse').value.trim(),
+    note: document.getElementById('d-note').value.trim(),
+  };
+  if (await changer(b.id, champs, 'Enregistré.')) brouillons.delete(b.id);
+  rendre();
+}
+
+async function creerSujet() {
+  const titre = (document.getElementById('d-nouveau').value || '').trim();
+  if (!titre) { dire('Il faut un titre.', true); return; }
+  try {
+    const id = await API.creerSujet(titre);
+    etat.sujets = await API.sujets();
+    etat.nouveauSujet = false;
+    await changer(etat.sel, { sujet: id }, 'Sujet créé, boîte rangée.');
+  } catch (e) { echec(e); }
+}
+
+/* confirmer(titre, texte, bouton) — la boîte de dialogue ; vrai si « oui ». */
+function confirmer(titre, texte, bouton) {
+  const d = document.getElementById('confirmer');
+  document.getElementById('confirmer-titre').textContent = titre;
+  document.getElementById('confirmer-texte').textContent = texte;
+  document.getElementById('confirmer-oui').textContent = bouton;
+  // On écoute l'envoi du formulaire (bouton cliqué) et Échap (« cancel »)
+  // plutôt que l'événement « close », qui n'arrive pas toujours (vu dans le
+  // navigateur intégré de l'application quand la page n'est pas affichée).
+  return new Promise(ok => {
+    const form = d.querySelector('form');
+    const fin = oui => { form.removeEventListener('submit', envoi); d.removeEventListener('cancel', annule); ok(oui); };
+    const envoi = e => fin(!!e.submitter && e.submitter.value === 'oui');
+    const annule = () => fin(false);
+    form.addEventListener('submit', envoi);
+    d.addEventListener('cancel', annule);
+    d.showModal();
+  });
+}
+
+async function supprimer() {
+  const b = boite(etat.sel); if (!b) return;
+  const ok = await confirmer(`Supprimer la boîte n° ${b.id} ?`,
+    'Pour un abus seulement. C\'est définitif : la boîte disparaît de la base (et la proposition avec, si c\'était sa dernière boîte).',
+    'Supprimer définitivement');
+  if (!ok) return;
+  try {
+    await API.supprimerBoite(b.id);
+    etat.boites = await API.boites();
+    brouillons.delete(b.id);
+    etat.sel = null;
+    history.replaceState(null, '', location.pathname + location.search);
+    dire(`Boîte n° ${b.id} supprimée.`);
+  } catch (e) { echec(e); }
+  rendre();
+}
+
+/* voisine(pas) — ouvre la boîte suivante (+1) ou précédente (−1) de la liste.
+   Si la boîte ouverte vient d'en sortir (validée alors que le filtre est
+   « À traiter »), on repart de sa place dans l'ordre complet : J mène bien
+   à celle qui la suivait. */
+function voisine(pas) {
+  const l = visibles();
+  const rang = id => etat.boites.findIndex(b => b.id === id);
+  const ici = rang(etat.sel);
+  const n = pas > 0 ? l.find(b => rang(b.id) > ici) : l.slice().reverse().find(b => rang(b.id) < ici);
+  if (n) ouvrir(n.id);
+  else if (etat.sel === null && l[0]) ouvrir(l[0].id);
+}
+
+/* suivreAdresse() — /admin/#47 ouvre la boîte n° 47 (lien du message
+   Discord, lot A5), même si les filtres la cachaient. */
+function suivreAdresse() {
+  const n = Number(location.hash.slice(1));
+  if (!Number.isSafeInteger(n) || n <= 0 || !boite(n)) return;
+  if (!M.filtrer([boite(n)], etat.filtres).length) etat.filtres = Object.assign({}, M.FILTRES_DEFAUT, { etat: 'toutes' });
+  ouvrir(n, '#det-titre');
+}
+
+racine.addEventListener('click', async e => {
+  const t = e.target.closest('button');
+  if (!t || t.disabled) return;
+  if (t.dataset.boite) return ouvrir(Number(t.dataset.boite));
+  if (t.dataset.statut) return changer(etat.sel, { statut: t.dataset.statut }, `Boîte n° ${etat.sel} : ${M.STATUTS[t.dataset.statut]}.`);
+  switch (t.dataset.act) {
+    case 'google': return connexionGoogle();
+    case 'sortir': return sortir();
+    case 'copier-uid': navigator.clipboard && navigator.clipboard.writeText(etat.uid).then(() => dire('Identifiant copié.')); return;
+    case 'actualiser': etat.phase = 'chargement'; rendre(); return charger();
+    case 'liste': { const id = etat.sel; etat.sel = null; history.replaceState(null, '', location.pathname + location.search); return rendre(`[data-boite="${id}"]`); }
+    case 'enregistrer': return enregistrer();
+    case 'integree': return changer(etat.sel, { statut: 'integree' }, `Boîte n° ${etat.sel} : intégrée.`);
+    case 'supprimer': return supprimer();
+    case 'creer-sujet': return creerSujet();
+    case 'annuler-sujet': etat.nouveauSujet = false; return rendre('#d-sujet');
+  }
+});
+
+racine.addEventListener('submit', e => {
+  if (e.target.id !== 'form-connexion') return;
+  e.preventDefault();
+  connexionEmail(document.getElementById('c-email').value.trim(), document.getElementById('c-mdp').value);
+});
+
+racine.addEventListener('change', e => {
+  const id = e.target.id;
+  if (id === 'f-cat' || id === 'f-etat' || id === 'f-ia') {
+    etat.filtres[id.slice(2)] = e.target.value;
+    return rendre('#' + id);
+  }
+  if (id === 'd-sujet') {
+    if (e.target.value === 'nouveau') { etat.nouveauSujet = true; return rendre('#d-nouveau'); }
+    return changer(etat.sel, { sujet: e.target.value ? Number(e.target.value) : null }, e.target.value ? 'Boîte rangée.' : 'Boîte retirée du sujet.');
+  }
+});
+
+racine.addEventListener('input', e => {
+  if (e.target.id === 'f-q') { etat.filtres.q = e.target.value; return rendre('#f-q'); }
+  if (e.target.id === 'd-reponse' || e.target.id === 'd-note') {
+    const br = brouillons.get(etat.sel) || {};
+    br[e.target.id === 'd-reponse' ? 'reponse' : 'note'] = e.target.value;
+    brouillons.set(etat.sel, br);
+  }
+});
+
+/* Clavier : V valider, R refuser, A en attente, J / K suivante / précédente,
+   / chercher, Échap revenir à la liste. Pas pendant la saisie d'un texte. */
+document.addEventListener('keydown', e => {
+  if (etat.phase !== 'boite' || document.getElementById('confirmer').open) return;
+  const saisie = e.target.matches('input, textarea, select');
+  if (e.key === 'Escape') {
+    if (saisie) return e.target.blur();
+    if (etat.sel !== null) { const id = etat.sel; if (etroit()) { etat.sel = null; history.replaceState(null, '', location.pathname + location.search); } rendre(`[data-boite="${id}"]`); }
+    return;
+  }
+  if (saisie || e.ctrlKey || e.metaKey || e.altKey) return;
+  const k = e.key.toLowerCase();
+  const statut = { v: 'validee', r: 'refusee', a: 'en_attente' }[k];
+  if (statut && etat.sel !== null && boite(etat.sel).statut !== 'integree') {
+    e.preventDefault();
+    return changer(etat.sel, { statut }, `Boîte n° ${etat.sel} : ${M.STATUTS[statut]}.`);
+  }
+  if (k === 'j') { e.preventDefault(); return voisine(1); }
+  if (k === 'k') { e.preventDefault(); return voisine(-1); }
+  if (k === '/') { e.preventDefault(); const q = document.getElementById('f-q'); if (q) q.focus(); }
+});
+
+window.addEventListener('hashchange', () => { if (etat.phase === 'boite') suivreAdresse(); });
+
+// Quitter avec une réponse ou une note tapée et pas enregistrée : on prévient.
+window.addEventListener('beforeunload', e => { if (brouillons.size) { e.preventDefault(); e.returnValue = ''; } });
+
+// ── Démarrage ─────────────────────────────────────────────────────────────
+(async function demarrer() {
+  if (ESSAI) { etat.email = ''; return charger(); }
+  if (!SB) { etat.phase = 'connexion'; etat.erreurConnexion = 'La bibliothèque Supabase ne s’est pas chargée (pas de réseau ?).'; return rendre(); }
+  rendre();
+  const { data } = await SB.auth.getSession();
+  await entrer(data && data.session);
+  // Retour de Google (jeton dans l'adresse) : la session arrive par l'événement.
+  SB.auth.onAuthStateChange((evt, session) => { if (evt === 'SIGNED_IN' && etat.phase !== 'boite') entrer(session); });
+})();

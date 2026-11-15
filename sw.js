@@ -56,6 +56,11 @@ self.addEventListener('fetch', e => {
   // (mauvaise icône, pas d'install séparée). On laisse le SW de triage / le
   // réseau gérer entièrement /triage/.
   if (sameOrigin && url.pathname.includes('/triage/')) return;
+  // Même chose pour /admin/ (nov. 2026, chantier Administration) : la page
+  // ne marche qu'en ligne (Supabase) ; la mettre en cache ne servirait qu'à
+  // montrer une vieille version, et un repli hors-ligne vers l'index du site
+  // serait trompeur.
+  if (sameOrigin && url.pathname.startsWith('/admin')) return;
 
   // Le « code » du site = HTML et JS de même origine (et toute navigation).
   // C'est ce qui change à chaque déploiement → réseau d'abord.

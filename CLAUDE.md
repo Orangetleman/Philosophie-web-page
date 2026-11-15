@@ -25,7 +25,8 @@ liste officielle, 5 hors programme, 6 enrichir ; décisions de l'auteur au
 | `sw.js` | service worker ; ses lignes `CACHE` et `PRECACHE` sont écrites par le build | le reste, oui |
 | `outils/` | `construire.mjs` (build), `verifier_contenu.mjs` (contrôle), `lib/` (formats, écriture), `banc/` (règles d'accès Supabase) | oui |
 | `docs/` | diagnostic, protocole du contenu, architecture détaillée, carte du projet | oui |
-| `triage/` | mini-appli de tri des propositions sur téléphone | oui |
+| `admin/` | page `/admin/` : tri des propositions, en ligne et en local (`/admin/?essai` : fausses données) ; logique dans `modele.js` | oui |
+| `triage/` | mini-appli de tri des propositions sur téléphone (remplacée par `admin/`, retrait au lot A6) | oui |
 | `philo-aggregator/` | outil Python local : récupère, relit (Gemini) et exporte les propositions ; migrations SQL | oui |
 | `icon.ico`, `icon_gear.ico` | icônes du raccourci Windows du tableau de bord local de l'agrégateur | non |
 
@@ -93,6 +94,8 @@ liste officielle, 5 hors programme, 6 enrichir ; décisions de l'auteur au
   personnelles déclarées dans `contenu/legal.js`). `--temoins` glisse une faute par question et vérifie
   qu'elle est vue : une règle nouvelle = une question + son témoin.
   `--racine <dossier>` contrôle une autre copie du site.
+- **`node outils/essais_admin.mjs`** : la logique de `/admin/` (`admin/modele.js`),
+  chaque essai avec son témoin.
 - **`node outils/construire.mjs --temoins`** : prouve que le contrôle de
   syntaxe voit une faute glissée exprès.
 - **`node docs/carte/verifie.mjs`** : chaque symbole de la carte doit être

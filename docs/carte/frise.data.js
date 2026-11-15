@@ -1,8 +1,17 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
-  "genere_le": "2026-11-15T08:55:54.807Z",
+  "genere_le": "2026-11-15T09:37:26.972Z",
   "commits": [
+    {
+      "hash": "5a1bce8e04e09df0cd9dd568082f93c5238cb437",
+      "short": "5a1bce8",
+      "auteur": "Orangentleman",
+      "date": "2026-11-15T09:55:43+01:00",
+      "sujet": "Administration A1 : boîtes, sujets, votes et suivi anonyme dans la base",
+      "corps": "Migration 2026_administration.sql : l'état du tri passe boîte par boîte\n(table boites, reprise d'aggregator_state), le statut de la proposition se\ncalcule, sujets et votes pour la page Propositions, numéro de suivi anonyme\ngardé en empreinte, fonctions admin_* réservées à is_admin(), import du\ncompte rendu d'intégration idempotent. Banc : 10 essais avec témoin.\nNotice légale et export « Mes données » à jour. Pas encore passée en\nproduction : elle part avec /admin/ (A2).\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": "Administration A1"
+    },
     {
       "hash": "018b520f62646781272498b2e2e939dd5e3747a6",
       "short": "018b520",

@@ -226,3 +226,22 @@ l'import le dit (« pas encore en ligne : réimporte après la fusion »).
   2026-11-16, **à redater au jour de la mise en ligne**. Export « Mes données » :
   réponses par boîte et votes. **Pas encore passée sur la vraie base** : elle
   part avec A2 (les anciens outils n'écrivent pas dans `boites`).
+- **A2** (15 novembre 2026) : la page [`admin/`](../admin/index.html). Connexion
+  (Google ou e-mail), écran « compte non administrateur » avec l'UID à coller,
+  boîte de réception (filtres catégorie, état, avis IA, recherche ; « À
+  traiter » par défaut ; « nouvelle » tant que pas ouverte), détail mis en
+  forme champ par champ, boîtes envoyées ensemble et ce que voit le
+  contributeur, état (En attente, Validée, Refusée ; « Marquer intégrée » à la
+  main en attendant A5), ranger dans un sujet ou en créer un, réponse, note
+  interne, suppression confirmée, `/admin/#n°`, clavier (V, R, A, J, K, /,
+  Échap), erreurs en clair. `/admin/?essai` : la même page sur de fausses
+  données (`admin/essai.js`). Logique dans `admin/modele.js`, 12 essais avec
+  témoin (`node outils/essais_admin.mjs`). Hors du service worker et de
+  `robots.txt`. Vérifiée en mode essai (ordinateur et 375 px, console vide) ;
+  **pas encore essayée sur la vraie base** : il faut d'abord y passer
+  `2026_administration.sql`. En local, la connexion Google demande d'ajouter
+  `http://localhost:8123/admin/` aux « Redirect URLs » de Supabase ; l'e-mail
+  et le mot de passe marchent sans réglage.
+- **Reste à placer** : côté site, « Mes propositions » boîte par boîte et le
+  suivi par numéro (Q4) n'ont pas encore de lot. Proposé : avec A3 (ce que
+  voit le public).

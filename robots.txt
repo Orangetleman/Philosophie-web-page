@@ -3,6 +3,7 @@
 
 User-agent: *
 Allow: /
+Disallow: /admin/
 Disallow: /triage/
 Disallow: /outils/
 Disallow: /philo-aggregator/
@@ -11,6 +12,7 @@ Disallow: /cours_manuscrits/
 
 User-agent: Googlebot
 Allow: /
+Disallow: /admin/
 Disallow: /triage/
 Disallow: /outils/
 Disallow: /philo-aggregator/
@@ -19,6 +21,7 @@ Disallow: /cours_manuscrits/
 
 User-agent: Bingbot
 Allow: /
+Disallow: /admin/
 Disallow: /triage/
 Disallow: /outils/
 Disallow: /philo-aggregator/
@@ -27,6 +30,7 @@ Disallow: /cours_manuscrits/
 
 User-agent: GPTBot
 Allow: /
+Disallow: /admin/
 Disallow: /triage/
 Disallow: /outils/
 Disallow: /philo-aggregator/
@@ -35,6 +39,7 @@ Disallow: /cours_manuscrits/
 
 User-agent: OAI-SearchBot
 Allow: /
+Disallow: /admin/
 Disallow: /triage/
 Disallow: /outils/
 Disallow: /philo-aggregator/
@@ -43,6 +48,7 @@ Disallow: /cours_manuscrits/
 
 User-agent: ChatGPT-User
 Allow: /
+Disallow: /admin/
 Disallow: /triage/
 Disallow: /outils/
 Disallow: /philo-aggregator/
@@ -51,6 +57,7 @@ Disallow: /cours_manuscrits/
 
 User-agent: ClaudeBot
 Allow: /
+Disallow: /admin/
 Disallow: /triage/
 Disallow: /outils/
 Disallow: /philo-aggregator/
@@ -59,6 +66,7 @@ Disallow: /cours_manuscrits/
 
 User-agent: Claude-SearchBot
 Allow: /
+Disallow: /admin/
 Disallow: /triage/
 Disallow: /outils/
 Disallow: /philo-aggregator/
@@ -67,6 +75,7 @@ Disallow: /cours_manuscrits/
 
 User-agent: Claude-User
 Allow: /
+Disallow: /admin/
 Disallow: /triage/
 Disallow: /outils/
 Disallow: /philo-aggregator/
@@ -75,6 +84,7 @@ Disallow: /cours_manuscrits/
 
 User-agent: PerplexityBot
 Allow: /
+Disallow: /admin/
 Disallow: /triage/
 Disallow: /outils/
 Disallow: /philo-aggregator/
@@ -83,6 +93,7 @@ Disallow: /cours_manuscrits/
 
 User-agent: Perplexity-User
 Allow: /
+Disallow: /admin/
 Disallow: /triage/
 Disallow: /outils/
 Disallow: /philo-aggregator/
@@ -91,6 +102,7 @@ Disallow: /cours_manuscrits/
 
 User-agent: Google-Extended
 Allow: /
+Disallow: /admin/
 Disallow: /triage/
 Disallow: /outils/
 Disallow: /philo-aggregator/
@@ -99,6 +111,7 @@ Disallow: /cours_manuscrits/
 
 User-agent: Applebot
 Allow: /
+Disallow: /admin/
 Disallow: /triage/
 Disallow: /outils/
 Disallow: /philo-aggregator/
@@ -107,6 +120,7 @@ Disallow: /cours_manuscrits/
 
 User-agent: Applebot-Extended
 Allow: /
+Disallow: /admin/
 Disallow: /triage/
 Disallow: /outils/
 Disallow: /philo-aggregator/
@@ -115,6 +129,7 @@ Disallow: /cours_manuscrits/
 
 User-agent: DuckAssistBot
 Allow: /
+Disallow: /admin/
 Disallow: /triage/
 Disallow: /outils/
 Disallow: /philo-aggregator/
@@ -123,6 +138,7 @@ Disallow: /cours_manuscrits/
 
 User-agent: MistralAI-User
 Allow: /
+Disallow: /admin/
 Disallow: /triage/
 Disallow: /outils/
 Disallow: /philo-aggregator/
@@ -131,6 +147,7 @@ Disallow: /cours_manuscrits/
 
 User-agent: CCBot
 Allow: /
+Disallow: /admin/
 Disallow: /triage/
 Disallow: /outils/
 Disallow: /philo-aggregator/
