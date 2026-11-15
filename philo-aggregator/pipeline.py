@@ -259,6 +259,16 @@ def sync_cloud(limit=1000):
                     summary["details"].append((remote_id, "ingested"))
             continue
 
+        # ── RGPD (nov. 2026) : le compte a été supprimé en ligne ──
+        # Supabase a gardé la proposition, sans compte ni pseudo
+        # (2026_rgpd.sql) : on retire aussi le pseudo de la copie locale.
+        if (it.get("user_id") is None and isinstance(payload, dict)
+                and payload.get("contributor") == "anonyme"):
+            with db.connect() as conn:
+                if db.anonymiser_submission(conn, local_sid):
+                    summary["anonymised"] = summary.get("anonymised", 0) + 1
+                    summary["details"].append((remote_id, "anonymised"))
+
         # ── Cas 2 : déjà connue → arbitrage par horodatage ──
         with db.connect() as conn:
             local_ts = db.get_state_updated_at(conn, local_sid)

@@ -1,8 +1,26 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
-  "genere_le": "2026-11-15T00:33:53.737Z",
+  "genere_le": "2026-11-15T01:33:02.705Z",
   "commits": [
+    {
+      "hash": "6690811ba35df6daf1e1947c7da37ac730a5e9ed",
+      "short": "6690811",
+      "auteur": "Orangentleman",
+      "date": "2026-11-15T01:35:51+01:00",
+      "sujet": "Merge pull request #23 from Orangetleman/claude/indexnow-auto",
+      "corps": "IndexNow automatique après chaque déploiement de production",
+      "tag": ""
+    },
+    {
+      "hash": "5b968f89794dc6a7b763b88f7c643ebf3428a3f9",
+      "short": "5b968f8",
+      "auteur": "Orangentleman",
+      "date": "2026-11-15T01:33:51+01:00",
+      "sujet": "IndexNow automatique après chaque déploiement de production",
+      "corps": "Action GitHub sur deployment_status (Vercel, Production, succès) ;\nle script n'envoie que les pages changées depuis le commit précédent.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": ""
+    },
     {
       "hash": "8ec99b77aef0f36e70a3db342440ca6d6d091939",
       "short": "8ec99b7",

@@ -10,8 +10,8 @@
 // La version du cache (CACHE) est une empreinte du contenu des fichiers
 // précachés, recalculée par outils/construire.mjs : ne pas l'éditer à la main.
 
-const CACHE = 'philo-46599f5ee5';   // version calculée par outils/construire.mjs : ne pas éditer
-const PRECACHE = ['./', './index.html', './app.css', './app.js', './data.js', './manifest.json', './icon.svg'];
+const CACHE = 'philo-11ebe83d7b';   // version calculée par outils/construire.mjs : ne pas éditer
+const PRECACHE = ['./', './index.html', './app.css', './app.js', './data.js', './manifest.json', './icon.svg', './lib/supabase.js', './lib/qrcode.js', './polices/inter-latin-400-normal.woff2', './polices/inter-latin-500-normal.woff2', './polices/inter-latin-600-normal.woff2', './polices/inter-latin-ext-400-normal.woff2', './polices/inter-latin-ext-500-normal.woff2', './polices/inter-latin-ext-600-normal.woff2'];
 
 // Installation : on précache les ressources critiques.
 self.addEventListener('install', e => {
@@ -42,13 +42,13 @@ function repliNavigation(url) {
   return caches.match('./index.html');
 }
 
-// Fetch : on intercepte les GET de même origine (et Google Fonts).
+// Fetch : on intercepte les GET de même origine. Depuis le 15 nov. 2026, la
+// police est servie par le site (polices/) : plus de Google Fonts à mettre en cache.
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
   const url = new URL(e.request.url);
   const sameOrigin = url.origin === location.origin;
-  const isFonts = url.hostname.includes('fonts.g');     // fonts.googleapis / gstatic
-  if (!sameOrigin && !isFonts) return;                  // les autres : laissés au navigateur
+  if (!sameOrigin) return;                              // les autres : laissés au navigateur
   // L'appli de TRIAGE (/triage/) est une PWA SÉPARÉE, avec son propre service
   // worker (scope /triage/). Bien que le scope de CE SW soit « / » (donc couvre
   // /triage/), on s'en désintéresse explicitement : sinon on intercepterait son

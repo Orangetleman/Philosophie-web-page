@@ -27,7 +27,8 @@ import { fileURLToPath } from 'url';
 const ICI = path.dirname(fileURLToPath(import.meta.url));
 const MIG = process.argv[2] || path.join(ICI, '..', '..', 'philo-aggregator', 'migrations');
 const ORDRE = ['2026_schema_base.sql', '2026_aggregator_state.sql', '2026_admin_mobile.sql',
-               '2026_anon_contributions.sql', '2026_contributions_colonnes.sql'];
+               '2026_anon_contributions.sql', '2026_contributions_colonnes.sql',
+               '2026_rgpd.sql'];   // nov. 2026 : suppression sans perte des propositions, purge
 const lire = f => fs.readFileSync(path.join(MIG, f), 'utf8').replace(/\r\n/g, '\n');   // fins de ligne Windows
 
 async function base(sauf) {
@@ -133,7 +134,7 @@ const ESSAIS = [
       return q.rows.length === 0 && p.rows.length === 0 && !ecrit;
     } },
   { nom: "delete_own_account efface SON compte et ses données, rien d'autre",
-    temoin: remplace('2026_schema_base.sql', 'delete from public.quiz_progress  where user_id = uid;', 'delete from public.quiz_progress;'),
+    temoin: remplace('2026_rgpd.sql', 'delete from public.quiz_progress where user_id = uid;', 'delete from public.quiz_progress;'),
     async f(db) {
       const a = await inscrire(db, 'a@x'), b = await inscrire(db, 'b@x');
       for (const u of [a, b]) await sous(db, u, tx => tx.query("insert into public.quiz_progress (user_id, data) values ($1, '{}')", [u]));
@@ -142,9 +143,41 @@ const ESSAIS = [
       const qp = (await db.query('select user_id from public.quiz_progress')).rows.map(r => r.user_id);
       return users.length === 1 && users[0] === b && qp.length === 1 && qp[0] === b;
     } },
+  /* RGPD (nov. 2026, 2026_rgpd.sql) : la suppression GARDE les propositions,
+     mais sans plus rien qui désigne la personne (user_id NULL, pseudo
+     « anonyme ») ; celles d'un autre compte ne bougent pas. */
+  { nom: "supprimer son compte garde ses propositions, anonymisées",
+    temoin: remplace('2026_rgpd.sql', `payload = jsonb_set(payload, '{contributor}', '"anonyme"'::jsonb, true),`, ''),
+    async f(db) {
+      const a = await inscrire(db, 'a@x'), b = await inscrire(db, 'b@x');
+      await sous(db, a, tx => tx.query(`insert into public.contributions (user_id, payload) values ($1, '{"contributor":"Alice"}')`, [a]));
+      await sous(db, b, tx => tx.query(`insert into public.contributions (user_id, payload) values ($1, '{"contributor":"Bob"}')`, [b]));
+      await sous(db, a, tx => tx.query('select public.delete_own_account()'));
+      const r = (await db.query("select user_id, payload->>'contributor' as c from public.contributions order by c")).rows;
+      return r.length === 2 && r[0].c === 'Bob' && r[0].user_id === b && r[1].c === 'anonyme' && r[1].user_id === null;
+    } },
+  { nom: "un compte ordinaire ne peut pas lancer la purge des comptes inactifs",
+    temoin: remplace('2026_rgpd.sql', "raise exception 'réservé à l''administrateur';", 'null;'),
+    async f(db) {
+      const a = await inscrire(db, 'a@x');
+      return !(await tente(sous(db, a, tx => tx.query('select public.purger_comptes_inactifs()'))));
+    } },
+  { nom: "la purge efface un compte inactif depuis 3 ans, pas un compte actif",
+    temoin: remplace('2026_rgpd.sql', "interval '3 years'", "interval '30 years'"),
+    async f(db) {
+      const vieux = await inscrire(db, 'vieux@x'), actif = await inscrire(db, 'actif@x');
+      await db.query("update auth.users set last_sign_in_at = now() - interval '4 years' where id = $1", [vieux]);
+      await db.query("update auth.users set last_sign_in_at = now() where id = $1", [actif]);
+      await db.query(`insert into public.contributions (user_id, payload) values ($1, '{"contributor":"Vieux"}')`, [vieux]);
+      const n = (await sous(db, 'service_role', tx => tx.query('select public.purger_comptes_inactifs() as n'))).rows[0].n;
+      const users = (await db.query('select id from auth.users')).rows.map(r => r.id);
+      const c = (await db.query("select payload->>'contributor' as c from public.contributions")).rows;
+      return n === 1 && users.length === 1 && users[0] === actif && c.length === 1 && c[0].c === 'anonyme';
+    } },
   { nom: 'un anonyme ne peut pas appeler delete_own_account',
-    temoin: (f, s) => remplace('2026_schema_base.sql', "raise exception 'non connecté';", 'null;')(f,
-      remplace('2026_schema_base.sql', 'revoke all on function public.delete_own_account() from public, anon;', 'grant execute on function public.delete_own_account() to anon;')(f, s)),
+    // Depuis nov. 2026, la fonction est redéfinie par 2026_rgpd.sql : c'est là qu'on glisse la faute.
+    temoin: (f, s) => remplace('2026_rgpd.sql', "raise exception 'non connecté';", 'null;')(f,
+      remplace('2026_rgpd.sql', 'revoke all on function public.delete_own_account() from public, anon;', 'grant execute on function public.delete_own_account() to anon;')(f, s)),
     async f(db) {
       return !(await tente(sous(db, 'anon', tx => tx.query('select public.delete_own_account()'))));
     } },

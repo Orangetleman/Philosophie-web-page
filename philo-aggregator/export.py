@@ -16,6 +16,7 @@ après revue, on retrouve les ids dans la base et on les passe à `mark`.
 
 import json
 import pathlib
+import re
 from datetime import date as _date
 
 import db
@@ -159,10 +160,26 @@ def _format_value(value):
     return str(value)
 
 
-def render_box(row, dup_first_id=None):
+# Coordonnées qu'une personne aurait pu glisser dans le texte d'une
+# proposition (RGPD, nov. 2026) : masquées avant tout envoi à un tiers.
+_RE_EMAIL = re.compile(r"[\w.+-]+@[\w-]+(?:\.[\w-]+)+")
+_RE_TEL = re.compile(r"(?<!\d)(?:\+\d{1,3}[ .-]?)?(?:\d[ .-]?){9,12}\d(?!\d)")
+
+
+def masquer_coordonnees(texte):
+    """Remplace adresses e-mail et numéros de téléphone par un repère neutre."""
+    texte = _RE_EMAIL.sub("[adresse masquée]", texte)
+    return _RE_TEL.sub("[numéro masqué]", texte)
+
+
+def render_box(row, dup_first_id=None, anonyme=False):
     """
     Rend une boîte (Row SQLite) en bloc texte prêt à imprimer.
     `dup_first_id` : si non-None, on rappelle « doublon de #X ».
+    `anonyme` (nov. 2026, docs/protocole-donnees.md § 1.2) : rendu destiné
+    à un TIERS (Gemini). Rien qui désigne la personne : ni pseudo, ni date
+    de réception, ni note du relecteur, ni avis IA précédent ; e-mails et
+    numéros glissés dans le texte sont masqués (masquer_coordonnees).
     """
     fields = json.loads(row["fields_json"]) if row["fields_json"] else {}
     extras = []
@@ -179,22 +196,24 @@ def render_box(row, dup_first_id=None):
         head += f"  ⚠ doublon (signature) de [BOX {dup_first_id}]"
     lines.append(head)
 
-    meta_bits = [
+    # Pseudo et date : jamais dans le rendu anonyme (envoi à Gemini).
+    meta_bits = [] if anonyme else [
         f"par {row['contributor']}",
         f"reçu le {short_date(row['received_at'])}",
     ]
     # Notion d'attache : pertinent pour tout sauf 'concept' (qui a cnotions[]).
     if row["cible"] != "concept" and row["notion"]:
         meta_bits.append(f"notion = {row['notion']}")
-    if row["note"]:
+    if row["note"] and not anonyme:
         meta_bits.append(f"note = {row['note']!r}")
-    lines.append("   " + " • ".join(meta_bits))
+    if meta_bits:
+        lines.append("   " + " • ".join(meta_bits))
 
     # Avis de l'IA (Gemini), s'il existe : repris ici comme AIDE À LA
     # DÉCISION seulement. Il ne remplace pas les vérifications (exactitude,
     # pertinence, niveau Terminale), qui restent à faire — la consigne
     # d'en-tête le rappelle. Présent uniquement si la boîte a été relue.
-    if row["ai_verdict"] or row["ai_review"]:
+    if (row["ai_verdict"] or row["ai_review"]) and not anonyme:
         verdict = row["ai_verdict"] or "?"
         review = row["ai_review"] or "(pas de commentaire)"
         lines.append(f"   🤖 Avis IA (indicatif, À VÉRIFIER) [{verdict}] : {review}")
@@ -253,7 +272,9 @@ def render_box(row, dup_first_id=None):
         else:
             lines.append(f"   {label} : {val}")
 
-    return "\n".join(lines)
+    texte = "\n".join(lines)
+    # Envoi à un tiers (Gemini) : coordonnées glissées dans le texte masquées.
+    return masquer_coordonnees(texte) if anonyme else texte
 
 
 # ────────── Génération du fichier ──────────

@@ -10,6 +10,8 @@ La base contient deux tables :
                   plusieurs boîtes ; chacune a son propre statut)
 """
 
+import json
+import re
 import sqlite3
 import pathlib
 from datetime import datetime, timezone
@@ -678,6 +680,40 @@ def get_submission_id_by_remote(conn, remote_id):
         (remote_id,),
     ).fetchone()
     return row["id"] if row else None
+
+
+def anonymiser_submission(conn, submission_id):
+    """
+    Retire le pseudo d'une soumission locale (RGPD, nov. 2026,
+    docs/protocole-donnees.md § 1.2) : quand une personne supprime son compte,
+    Supabase garde ses propositions mais remplace payload.contributor par
+    « anonyme » (migrations/2026_rgpd.sql). La copie locale doit suivre,
+    sinon le pseudo survivrait ici. Touche les trois endroits où il vit :
+    la colonne `contributor`, le JSON brut et la ligne « Contributeur : »
+    du texte brut. Renvoie True si quelque chose a changé.
+    """
+    row = conn.execute(
+        "SELECT contributor, raw_text, raw_json FROM submissions WHERE id = ?",
+        (submission_id,),
+    ).fetchone()
+    if row is None or row["contributor"] == "anonyme":
+        return False
+    try:
+        brut = json.loads(row["raw_json"] or "{}")
+        if isinstance(brut, dict):
+            brut["contributor"] = "anonyme"
+        raw_json = json.dumps(brut, ensure_ascii=False)
+    except (TypeError, ValueError):
+        raw_json = row["raw_json"]
+    # Le texte brut cite le pseudo sur la ligne « Contributeur : … ».
+    raw_text = re.sub(r"(?m)^(Contributeur\s*:\s*).*$", r"\g<1>anonyme",
+                      row["raw_text"] or "")
+    conn.execute(
+        "UPDATE submissions SET contributor = 'anonyme', raw_json = ?, "
+        "raw_text = ? WHERE id = ?",
+        (raw_json, raw_text, submission_id),
+    )
+    return True
 
 
 def get_state_updated_at(conn, submission_id):

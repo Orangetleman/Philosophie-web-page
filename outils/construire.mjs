@@ -44,6 +44,7 @@ import { spawnSync } from 'child_process';
 import { fileURLToPath } from 'url';
 import { normaliserNotion, normaliserConcept } from './lib/formats.mjs';
 import { genererPages, cheminsPages, prerenduAccueil } from './lib/pages.mjs';
+import { pageLegale } from './lib/legal.mjs';   // nov. 2026 : la notice légale (RGPD)
 
 const RACINE = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const CONTENU = path.join(RACINE, 'contenu');
@@ -51,7 +52,10 @@ const CONTROLE = process.argv.includes('--controle');
 
 // Fichiers mis en cache par le service worker pour le hors-ligne. Ajouter ici
 // toute ressource statique nouvelle : sw.js et sa version suivent tout seuls.
-export const PRECACHE = ['./', './index.html', './app.css', './app.js', './data.js', './manifest.json', './icon.svg'];
+export const PRECACHE = ['./', './index.html', './app.css', './app.js', './data.js', './manifest.json', './icon.svg',
+  // Nov. 2026 (RGPD, docs/protocole-donnees.md, A6) : ce que des tiers servaient avant.
+  './lib/supabase.js', './lib/qrcode.js',
+  ...['latin', 'latin-ext'].flatMap(j => [400, 500, 600].map(g => `./polices/inter-${j}-${g}-normal.woff2`))];
 
 // Dossiers des pages statiques : ENTIÈREMENT générés (une page sans fiche y est retirée).
 const DOSSIERS_PAGES = ['notions', 'auteurs', 'fiches'];
@@ -71,7 +75,7 @@ const lireTexte = f => fs.readFileSync(f, 'utf8').replace(/\r\n/g, '\n');
    et renvoie {ordre, notions:{cle→objet}, auteurs:{nom→objet}, concepts:[], reperes:[],
    programme}. */
 export function chargerSources() {
-  const s = { ordre: null, notions: {}, auteurs: {}, concepts: [], reperes: [], programme: null, sujetsBac: null, nouveautes: null };
+  const s = { ordre: null, notions: {}, auteurs: {}, concepts: [], reperes: [], programme: null, sujetsBac: null, nouveautes: null, legal: null };
   const bac = {
     ORDRE: cles => { if (s.ordre) echec('ORDRE déclaré deux fois'); s.ordre = cles; },
     NOTION: (cle, n) => { if (s.notions[cle]) echec(`notion « ${cle} » déclarée deux fois`); s.notions[cle] = n; },
@@ -81,6 +85,7 @@ export function chargerSources() {
     PROGRAMME: p => { if (s.programme) echec('PROGRAMME déclaré deux fois'); s.programme = p; },
     SUJETS_BAC: x => { if (s.sujetsBac) echec('SUJETS_BAC déclaré deux fois'); s.sujetsBac = x; },   // étape 6
     NOUVEAUTES: x => { if (s.nouveautes) echec('NOUVEAUTES déclaré deux fois'); s.nouveautes = x; },  // étape 6
+    LEGAL: x => { if (s.legal) echec('LEGAL déclaré deux fois'); s.legal = x; },   // nov. 2026 : notice légale (docs/protocole-donnees.md)
   };
   vm.createContext(bac);
   const jouer = f => {
@@ -97,8 +102,10 @@ export function chargerSources() {
   jouer(path.join(CONTENU, 'programme.js'));
   jouer(path.join(CONTENU, 'sujets-bac.js'));
   jouer(path.join(CONTENU, 'nouveautes.js'));
+  jouer(path.join(CONTENU, 'legal.js'));
   if (!s.sujetsBac) echec('contenu/sujets-bac.js ne déclare pas SUJETS_BAC({...})');
   if (!s.nouveautes) echec('contenu/nouveautes.js ne déclare pas NOUVEAUTES([...])');
+  if (!s.legal) echec('contenu/legal.js ne déclare pas LEGAL({...})');
   if (!s.programme) echec('contenu/programme.js ne déclare pas PROGRAMME({...})');
   if (!s.ordre) echec('contenu/ordre.js ne déclare pas ORDRE([...])');
   Object.keys(s.notions).filter(k => !s.ordre.includes(k)).forEach(k => echec(`notion « ${k} » absente de ORDRE (contenu/ordre.js)`));
@@ -114,7 +121,7 @@ export function assembler(s) {
   Object.keys(s.auteurs).sort((a, b) => a.localeCompare(b, 'fr')).forEach(n => { AM[n] = s.auteurs[n]; });
   const CONCEPTS = s.concepts.concat(s.reperes).map(normaliserConcept);
   return { D, KEYS: s.ordre.slice(), AM, CONCEPTS, PROGRAMME: programmeCanonique(s.programme),
-    SUJETS_BAC: sujetsCanoniques(s.sujetsBac), NOUVEAUTES: s.nouveautes.slice() };
+    SUJETS_BAC: sujetsCanoniques(s.sujetsBac), NOUVEAUTES: s.nouveautes.slice(), LEGAL: s.legal };
 }
 
 /* sujetsCanoniques(x) — les sessions de contenu/sujets-bac.js mises à plat :
@@ -145,13 +152,13 @@ export function programmeCanonique(p) {
 }
 
 /* ecrireData(d) — le texte de data.js : un élément par ligne (diffs lisibles). */
-export function ecrireData({ D, KEYS, AM, CONCEPTS, PROGRAMME, SUJETS_BAC, NOUVEAUTES }) {
+export function ecrireData({ D, KEYS, AM, CONCEPTS, PROGRAMME, SUJETS_BAC, NOUVEAUTES, LEGAL }) {
   const j = v => JSON.stringify(v);
   return [
     '/* data.js — GÉNÉRÉ par outils/construire.mjs à partir de contenu/. NE PAS ÉDITER :',
     '   modifier les fichiers de contenu/, puis lancer « node outils/construire.mjs ».',
     '   Chargé en <script src> AVANT app.js : D, KEYS, AM, CONCEPTS, PROGRAMME, SUJETS_BAC,',
-    '   NOUVEAUTES deviennent',
+    '   NOUVEAUTES, LEGAL deviennent',
     '   des globales, déjà au format canonique (cf. CLAUDE.md). */',
     'const D={',
     KEYS.map(k => j(k) + ':' + j(D[k])).join(',\n'),
@@ -168,6 +175,8 @@ export function ecrireData({ D, KEYS, AM, CONCEPTS, PROGRAMME, SUJETS_BAC, NOUVE
     '// Sujets tombés au bac (contenu/sujets-bac.js) et journal des nouveautés (contenu/nouveautes.js).',
     'const SUJETS_BAC=' + j(SUJETS_BAC) + ';',
     'const NOUVEAUTES=' + j(NOUVEAUTES) + ';',
+    '// La notice légale (contenu/legal.js) : Réglages › Mes données, export, acceptation des CGU.',
+    'const LEGAL=' + j(LEGAL) + ';',
     '// Adresses des pages statiques (outils/lib/pages.mjs) : liens <a href> de l\'app vers elles.',
     'const PAGES_STATIQUES=' + j(cheminsPages({ D, KEYS, AM })) + ';',
     ''
@@ -268,6 +277,8 @@ function main() {
   //    d'index.html (déjà pré-rendu ci-dessus), cf. pageApp.
   const pages = genererPages(donnees, produits['index.html']);
   Object.assign(produits, pages);
+  // 5 ter. La page légale (nov. 2026, RGPD) : générée depuis contenu/legal.js.
+  produits['informations-legales/index.html'] = pageLegale(donnees.LEGAL);
   // Pages d'un ancien build dont la fiche a disparu ou changé d'adresse.
   const orphelines = DOSSIERS_PAGES.flatMap(d => listerHtml(path.join(RACINE, d)))
     .map(f => path.relative(RACINE, f).split(path.sep).join('/')).filter(f => !pages[f]);

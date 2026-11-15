@@ -12,7 +12,9 @@
      messageries, AirDrop…). Affiché en tête seulement si supporté.
    • Partout → un QR code (à scanner en personne) + le lien copiable en
      un clic. Ces deux moyens marchent même hors-ligne (aucun compte
-     requis), le QR étant la seule ressource réseau (avec repli si KO).
+     requis). Depuis le 15 nov. 2026, le QR est CALCULÉ dans le navigateur
+     (lib/qrcode.js, chargé à la première ouverture) : avant, l'adresse de
+     la page partait chez api.qrserver.com (RGPD, protocole-donnees.md, A6).
    ══════════════════════════════════════════════════════════════════ */
 
 // URL à partager : celle de la PAGE ouverte (origine + chemin + adresse
@@ -34,9 +36,6 @@ function renderShare(){
   if(!body) return;
   const url=shareUrl();
   const urlAttr=url.replace(/"/g,'&quot;');                 // sûr en attribut HTML
-  // Le QR est rendu par un service externe (API publique) : pas de
-  // bibliothèque embarquée. onerror → on masque proprement le bloc.
-  const qr='https://api.qrserver.com/v1/create-qr-code/?size=200x200&margin=0&data='+encodeURIComponent(url);
   // Bouton de partage natif : seulement si l'appareil le propose (mobiles
   // surtout). Sinon on s'appuie sur le QR + la copie, toujours présents.
   const nativeBtn = (typeof navigator!=='undefined' && navigator.share)
@@ -45,9 +44,8 @@ function renderShare(){
   body.innerHTML=`
     <div class="share-intro">Partage cette page (${paletteEsc(titrePage().replace(/ · Graphe Philosophie$/,''))}) à tes camarades : scanne le QR code, copie le lien, ou utilise le partage de ton appareil. Le lien ouvre le site directement sur cette page.</div>
     ${nativeBtn}
-    <div class="share-qr-wrap">
-      <img class="share-qr" src="${qr}" alt="QR code vers le site" loading="lazy"
-        onerror="this.parentNode.style.display='none'">
+    <div class="share-qr-wrap" id="share-qr-wrap">
+      <div class="share-qr" id="share-qr" role="img" aria-label="QR code vers cette page"></div>
       <div class="share-qr-cap">Scanne pour ouvrir le site</div>
     </div>
     <div class="share-linkrow">
@@ -56,6 +54,36 @@ function renderShare(){
       <button class="share-btn share-btn-copy" id="share-copy" onclick="copyShareLink(this)">Copier</button>
     </div>
     <div class="share-status" id="share-status"></div>`;
+  dessinerQR(url);
+}
+
+/* chargerQRLib() — charge lib/qrcode.js (bibliothèque qrcode-generator de
+   Kazuhiko Arase, licence MIT) une seule fois, à la première ouverture du
+   partage : la plupart des visites n'en ont pas besoin. Renvoie une promesse
+   résolue quand le global « qrcode » existe. Le fichier est dans le précache :
+   ça marche hors-ligne. */
+let _qrLib=null;
+function chargerQRLib(){
+  if(typeof qrcode==='function') return Promise.resolve();
+  if(_qrLib) return _qrLib;
+  _qrLib=new Promise((ok,ko)=>{
+    const s=document.createElement('script');
+    s.src='lib/qrcode.js'; s.onload=ok; s.onerror=()=>{ _qrLib=null; ko(); };
+    document.head.appendChild(s);
+  });
+  return _qrLib;
+}
+
+/* dessinerQR(url) — calcule le QR code de `url` dans le navigateur (aucun
+   appel extérieur) et l'insère en SVG dans #share-qr. Correction d'erreur
+   « M », version choisie d'office (0) selon la longueur. Si la bibliothèque
+   ne se charge pas, le bloc est masqué : le lien copiable reste là. */
+function dessinerQR(url){
+  chargerQRLib().then(()=>{
+    const box=document.getElementById('share-qr'); if(!box) return;
+    const q=qrcode(0,'M'); q.addData(url); q.make();
+    box.innerHTML=q.createSvgTag({cellSize:4, margin:0, scalable:true});
+  }).catch(()=>{ const w=document.getElementById('share-qr-wrap'); if(w) w.style.display='none'; });
 }
 
 /* shareNative() — ouvre la feuille de partage native du système.

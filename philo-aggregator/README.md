@@ -98,7 +98,9 @@ suffisait pas à cacher ces notes internes aux contributeurs : lance aussi
 depuis le code en oct. 2026 : à comparer d'abord avec la base réelle grâce à
 `2026_schema_lecture.sql`, en lecture seule), `2026_aggregator_state.sql`,
 `2026_admin_mobile.sql`, `2026_anon_contributions.sql`,
-`2026_contributions_colonnes.sql`. Leurs règles d'accès sont éprouvées par
+`2026_contributions_colonnes.sql`, `2026_rgpd.sql` (nov. 2026 : supprimer un
+compte garde ses propositions, anonymisées ; purge des comptes inactifs depuis
+trois ans, cf. `docs/protocole-donnees.md`). Leurs règles d'accès sont éprouvées par
 le banc `outils/banc/` (`npm ci && node banc_schema.mjs`, à la racine du
 banc).
 
