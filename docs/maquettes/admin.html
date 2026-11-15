@@ -36,6 +36,7 @@ textarea{width:100%;min-height:70px;resize:vertical}
 .hint{color:var(--tx3);font-size:12.5px}
 h2{font-size:16px;margin:0}
 code,pre{font-family:var(--mono);font-size:12.5px}
+code{overflow-wrap:anywhere}
 
 /* ── bandeau de la maquette (ne fait pas partie du design) ── */
 .mq{background:#2b2140;border-bottom:1px solid #4a3a6a;padding:8px 14px;display:flex;gap:8px 16px;flex-wrap:wrap;align-items:center;font-size:13px}
@@ -220,7 +221,25 @@ body.tel .site{padding:12px}
     <div class="ig">
       <div class="acts">
         <span>3 boîtes validées attendent d'être recopiées dans <code>contenu/</code>, rangées par fichier.</span>
-        <button style="margin-left:auto">📤 Export pour une session Claude (3 boîtes)</button>
+        <span style="margin-left:auto" class="acts"><button class="primary">📤 Exporter les validées (3)</button><button data-act="import">📥 Importer un compte rendu</button></span>
+      </div>
+      <span class="hint">L'export part sans pseudo ni compte. Claude intègre, commite, et rend <code>philo-integration-2026-11-16.json</code>.</span>
+
+      <div class="fichier" id="apercu-import" hidden>
+        <header><b>Compte rendu du 16/11</b><code>philo-integration-2026-11-16.json</code><span class="hint">commit 3f2a9c1 · ✓ en ligne</span></header>
+        <div class="morceau">
+          <label class="acts"><input type="checkbox" checked><b>n° 41</b><span class="pill ok">Intégrée</span><span class="hint">notions/travail.js</span></label>
+          <label class="blk">Réponse à Léa <input type="text" value="Ajoutée au travail, merci !"></label>
+        </div>
+        <div class="morceau">
+          <label class="acts"><input type="checkbox" checked><b>n° 44</b><span class="pill ok">Retouchée</span><span class="hint">notions/travail.js · titre raccourci, « au juste » retiré</span></label>
+          <label class="blk">Réponse (anonyme, par numéro de suivi) <input type="text" value="Ajouté aux exemples du travail, avec un titre un peu raccourci. Merci !"></label>
+        </div>
+        <div class="morceau">
+          <label class="acts"><input type="checkbox" checked><b>n° 38</b><span class="pill warn">Non intégrée</span><span class="hint">le repère « travail-oeuvre » n'existe pas : à créer d'abord, ou relier à « travail » ?</span></label>
+          <span class="hint">Repasse en « En attente », la raison en note interne. Aucune réponse envoyée.</span>
+        </div>
+        <div class="morceau"><div class="acts"><span class="hint">Rien d'appliqué tant que tu n'as pas cliqué.</span><button class="primary" style="margin-left:auto">Appliquer (3 boîtes)</button><button data-act="import">Annuler</button></div></div>
       </div>
       <div class="fichier">
         <header><code>contenu/notions/travail.js</code><span class="hint">2 boîtes</span></header>
@@ -327,7 +346,7 @@ body.tel .site{padding:12px}
     <li>On trie <b>boîte par boîte</b>. La ligne « Contribution n° 12 » montre les autres boîtes envoyées ensemble, et ce que verra le contributeur (« 1 sur 3 validée »).</li>
     <li>Le contenu est mis en forme comme sur le site, pas montré en JSON brut.</li>
     <li>Raccourcis : <span class="kbd">V</span> valider, <span class="kbd">R</span> refuser, <span class="kbd">A</span> remettre en attente, <span class="kbd">J</span>/<span class="kbd">K</span> boîte suivante / précédente, <span class="kbd">Échap</span> retour à la liste.</li>
-    <li>« Intégrée » ne se choisit pas dans la boîte : c'est le bouton de l'onglet « À intégrer », une fois le code collé dans <code>contenu/</code>.</li>
+    <li>« Intégrée » ne se choisit pas dans la boîte : c'est le bouton de l'onglet « À intégrer » (une boîte à la main), ou l'import du compte rendu de Claude (tout un lot), après un aperçu.</li>
     <li>La page publique Propositions est un troisième onglet d'Explorer, à côté de Frise et Graphe. Seuls les sujets publiés y apparaissent.</li>
     <li>Le message Discord ne montre que le début du texte et un pseudo, jamais d'e-mail.</li>
   </ol>
@@ -404,6 +423,7 @@ document.addEventListener('click',e=>{
   const t=e.target.closest('button'); if(!t) return;
   if(t.dataset.b){ sel=+t.dataset.b; const b=BOITES.find(x=>x.id===sel); b.nouv=false; $('#tb').classList.add('a-choix'); rendre(); }
   else if(t.dataset.s){ selS=+t.dataset.s; $('#tb-s').classList.add('a-choix'); rendre(); }
+  else if(t.dataset.act==='import'){ const a=$('#apercu-import'); a.hidden=!a.hidden; }
   else if(t.dataset.act==='liste'){ document.querySelectorAll('.tb').forEach(x=>x.classList.remove('a-choix')); }
   else if(t.dataset.onglet){
     document.querySelectorAll('[data-onglet]').forEach(x=>x.setAttribute('aria-selected',x===t));

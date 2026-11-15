@@ -101,7 +101,7 @@ permet de tout essayer sans toucher aux vraies propositions.
 | A2 | `/admin/` : connexion, boîte de réception, détail, tri, réponse, `#id`, erreurs en clair, clavier | grosse | A1 |
 | A3 | Sujets + (si Q3) page publique Propositions dans Explorer, votes | moyenne à grosse | A2 |
 | A4 | Relecture IA à sa nouvelle place (Q2) et doublons dans le détail | moyenne | A2 |
-| A5 | Onglet Intégration (code à coller, export groupé) et prévenir de l'arrivée d'une proposition (Q5) | moyenne | A2 |
+| A5 | Onglet À intégrer : export `philo-export/v1`, protocole `docs/protocole-integration.md`, import du compte rendu `philo-integration/v1` avec ses contrôles (§ 9) ; prévenir de l'arrivée d'une proposition (Q5) | moyenne à grosse | A2 |
 | A6 | Ménage : `triage/` redirige vers `/admin/`, `dashboard.py`, `sync`, `push`, `ingest` et la base SQLite retirés ; README, `architecture.md`, carte du projet à jour | petite | A2 à A5, parcours réel validé |
 
 Chaque lot suit la règle du projet : build qui finit sur « cohérent », banc
@@ -154,7 +154,62 @@ branche `claude/administration`.
 | Q6 | Tri par boîte, statut de la contribution calculé |
 | Q7 | Branche `claude/administration`, partie de `main` |
 
-## 9. Avancement
+## 9. L'aller-retour d'intégration (demande du 15 novembre 2026)
+
+« Validée » veut dire « à intégrer » : l'onglet *À intégrer* montre toutes les
+boîtes validées, et seulement elles. Le contributeur y lit « Validée,
+intégration en cours » (`validee_en_cours`, valeur qui existe déjà).
+
+L'ancien export (`aggregate.py export`, un gros `.txt` à coller) est remplacé
+par un aller-retour en deux fichiers.
+
+**Aller : l'export** (`philo-export-AAAA-MM-JJ.json`, bouton « 📤 Exporter les
+validées »). Format `philo-export/v1` :
+
+```
+{ format, cree_le, boites: [ { id, contribution, categorie, cible, notion,
+  contenu, code, avis_ia, note_interne, doublons } ] }
+```
+
+`contenu` : les champs de la boîte ; `code` : ce que `generateAjout` propose ;
+`note_interne` : ce que l'administrateur veut dire à Claude (« garder sans
+guillemets »). **Aucune donnée personnelle** : ni pseudo, ni compte, ni e-mail.
+Claude n'en a pas besoin pour intégrer.
+
+**Le travail de Claude** suit un protocole écrit (`docs/protocole-integration.md`,
+lot A5) : lire l'export, intégrer chaque boîte selon `docs/protocole-contenu.md`
+(une citation non vérifiée n'entre pas comme citation), `new:true`, build qui
+finit sur « cohérent », un commit, et écrire le compte rendu.
+
+**Retour : le compte rendu** (`philo-integration-AAAA-MM-JJ.json`, rangé aussi
+dans le dépôt pour l'historique). Format `philo-integration/v1` :
+
+```
+{ format, export: "philo-export-…json", commit, fait_le,
+  boites: [ { id, resultat, fichiers, detail, reponse_proposee } ] }
+```
+
+`resultat` vaut `integree` (telle quelle), `retouchee` (intégrée avec des
+changements, dits dans `detail`) ou `non_integree` (raison dans `detail`).
+
+**L'import** (bouton « 📥 Importer un compte rendu ») n'applique rien d'un
+coup : il montre d'abord une ligne par boîte, avec le résultat, le détail et la
+réponse proposée, modifiable. On décoche ce qu'on refuse, puis « Appliquer » :
+
+- `integree` et `retouchee` → statut « Intégrée », réponse envoyée au
+  contributeur, commit noté dans la boîte ;
+- `non_integree` → retour en « En attente » avec la raison en note interne :
+  c'est à l'administrateur de refuser ou de corriger, jamais au fichier ;
+- une boîte inconnue, déjà intégrée ou plus validée est signalée et ignorée ;
+- importer deux fois le même compte rendu ne change rien la seconde fois.
+
+**« Intégrée » seulement une fois en ligne.** Le compte rendu est commité avec
+l'intégration, dans `integrations/` (servi par le site, hors précache). À
+l'import, la page demande `/integrations/<nom du fichier>` au site en ligne :
+s'il répond, l'intégration est publiée. Sinon les boîtes restent « Validée » et
+l'import le dit (« pas encore en ligne : réimporte après la fusion »).
+
+## 10. Avancement
 
 - **A0** (15 novembre 2026) : maquette [`docs/maquettes/admin.html`](maquettes/admin.html),
   à ouvrir par le serveur de prévisualisation (`/docs/maquettes/admin.html`).

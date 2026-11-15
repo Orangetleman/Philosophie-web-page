@@ -1,8 +1,17 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
-  "genere_le": "2026-11-15T08:09:36.742Z",
+  "genere_le": "2026-11-15T08:19:00.974Z",
   "commits": [
+    {
+      "hash": "cacad5f182f282b78e58c3cd96dcb5302e01f0e5",
+      "short": "cacad5f",
+      "auteur": "Orangentleman",
+      "date": "2026-11-15T09:09:35+01:00",
+      "sujet": "Administration : cadrage du chantier et maquette A0",
+      "corps": "Cadrage inspiré du tableau de bord des remarques d'Industrialist : une seule\npage /admin/ en local et en ligne, Supabase seule source, sujets, page\npublique Propositions, suivi anonyme par numéro, message Discord.\nDécisions de l'auteur au § 8, maquette à valider.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": "Administration"
+    },
     {
       "hash": "4636fdb8ed1fb006fb3e65877cf40f88aafa8d64",
       "short": "4636fdb",
