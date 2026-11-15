@@ -86,11 +86,8 @@ grant execute on function public.delete_own_account() to authenticated;
 -- l'API (PostgREST), un jeton est TOUJOURS posé (anon ou authenticated) :
 -- un compte ordinaire ne passe donc pas.
 --
--- À lancer une fois par an dans l'éditeur SQL :
---   select public.purger_comptes_inactifs();
--- ou à installer avec pg_cron (Database › Extensions › pg_cron) :
---   select cron.schedule('purge-comptes', '0 4 1 * *',
---                        'select public.purger_comptes_inactifs()');
+-- Lancée AUTOMATIQUEMENT chaque mois par pg_cron (section 5 ci-dessous).
+-- À la main, au besoin : select public.purger_comptes_inactifs();
 create or replace function public.purger_comptes_inactifs()
 returns integer
 language plpgsql
@@ -115,6 +112,28 @@ end;
 $$;
 revoke all on function public.purger_comptes_inactifs() from public, anon;
 grant execute on function public.purger_comptes_inactifs() to authenticated, service_role;
+
+
+-- ── 5. La purge automatique (pg_cron) ─────────────────────────────────────
+-- pg_cron est le planificateur de tâches de PostgreSQL, fourni par Supabase
+-- (Database › Extensions). On l'active et on planifie la purge le 1er de
+-- chaque mois à 4 h (UTC) : un compte dépasse donc les trois ans d'au plus
+-- un mois. La tâche tourne sous le rôle postgres, sans jeton : auth.role()
+-- est NULL, la garde de la fonction la laisse passer.
+-- cron.schedule avec un NOM remplace la tâche du même nom : rejouable.
+-- Gardé par un test : là où pg_cron n'existe pas (le banc PGlite), on saute.
+-- Voir les passages : select * from cron.job_run_details order by start_time desc;
+do $cron$
+begin
+  if exists (select 1 from pg_available_extensions where name = 'pg_cron') then
+    create extension if not exists pg_cron;
+    perform cron.schedule('purge-comptes-inactifs', '0 4 1 * *',
+                          'select public.purger_comptes_inactifs()');
+  else
+    raise notice 'pg_cron absent : purge à lancer à la main';
+  end if;
+end;
+$cron$;
 
 -- Témoins (joués par le banc, outils/banc/banc_schema.mjs) :
 --   • supprimer A garde ses propositions, sans user_id ni pseudo ; B intact ;

@@ -49,7 +49,7 @@ dans la notice.
 | A1 | Une **source unique** de la notice : `contenu/legal.js` (`LEGAL`), lue par l'app, par la page légale et par le vérificateur | `contenu/legal.js`, `outils/construire.mjs` | fait |
 | A2 | La **page légale** générée : mentions légales, confidentialité, CGU, sur une page à sommaire | `outils/lib/legal.mjs` → `informations-legales/index.html` | fait |
 | A3 | **Suppression du compte** : propositions conservées et anonymisées (`on delete set null`, pseudo remplacé par « anonyme ») | `philo-aggregator/migrations/2026_rgpd.sql`, `outils/banc/banc_schema.mjs` | fait (migration à passer, § 1.5) |
-| A4 | **Purge des comptes inactifs** depuis 3 ans (fonction SQL) | `2026_rgpd.sql` | fait (à lancer, § 1.5) |
+| A4 | **Purge des comptes inactifs** depuis 3 ans, automatique chaque mois (pg_cron) | `2026_rgpd.sql` | fait (avec la migration) |
 | A5 | **Gemini sans identité** : `render_box(..., anonyme=True)` sans pseudo ni date, e-mails et numéros masqués dans le texte | `philo-aggregator/export.py`, `review.py` | fait |
 | A6 | **Plus d'appel tiers inutile** : police Inter servie par le site, QR code calculé dans le navigateur | `polices/`, `lib/qrcode.js`, `css/01-base.css`, `js/10-partage.js`, `index.html` | fait |
 | A7 | **Les droits en un clic** : télécharger ses données (JSON), effacer celles de l'appareil, supprimer son compte | `js/07-affichage-reglages.js`, `js/09-compte.js` | fait |
@@ -85,9 +85,10 @@ Les leçons de `fiches-but/docs/interface.md` (U1 à U4), appliquées ici :
 3. **Vérifier la région** du projet Supabase (Settings › General) et, si elle
    n'est pas en Europe, le laisser tel quel : la notice parle déjà d'un
    transfert possible hors UE, encadré par les clauses types.
-4. **Une fois par an** : lancer `select public.purger_comptes_inactifs();`
-   dans l'éditeur SQL (ou l'installer dans `pg_cron`, voir le commentaire de
-   la migration).
+4. **Rien à faire pour la purge** : la migration planifie
+   `purger_comptes_inactifs()` avec pg_cron, le 1er de chaque mois. Vérifier
+   une fois qu'elle tourne : `select * from cron.job;` doit lister
+   `purge-comptes-inactifs`.
 5. **Répondre aux demandes** reçues à l'adresse de contact en **un mois** au
    plus. Pour une suppression, renvoyer d'abord vers le bouton ; s'il ne
    marche pas, supprimer à la main dans Supabase et confirmer.
