@@ -1,8 +1,44 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
-  "genere_le": "2026-11-14T21:27:46.216Z",
+  "genere_le": "2026-11-15T00:29:02.465Z",
   "commits": [
+    {
+      "hash": "8ed51df8a596162bdbd51278393d18b692d8eb99",
+      "short": "8ed51df",
+      "auteur": "Orangentleman",
+      "date": "2026-11-14T22:28:23+01:00",
+      "sujet": "Merge pull request #21 from Orangetleman/claude/musing-perlman-70a51c",
+      "corps": "Visite guidée : l'étape « mode édition » montre le réglage dans les Réglages",
+      "tag": ""
+    },
+    {
+      "hash": "d52db3fd766a058e7c2a13e1422c5e1555c43121",
+      "short": "d52db3f",
+      "auteur": "Orangentleman",
+      "date": "2026-11-14T22:27:44+01:00",
+      "sujet": "Merge remote-tracking branch 'origin/main' into claude/musing-perlman-70a51c",
+      "corps": "# Conflicts:\n#\tdocs/carte/frise.data.js\n#\tsw.js",
+      "tag": ""
+    },
+    {
+      "hash": "2190eb64ae67b9191a88846ca03f465dd3782f0d",
+      "short": "2190eb6",
+      "auteur": "Orangentleman",
+      "date": "2026-11-14T22:26:02+01:00",
+      "sujet": "Merge pull request #20 from Orangetleman/claude/pages-entree-graphe-7be5ed",
+      "corps": "Pages d'entrée : /notions/… et /auteurs/… deviennent l'app ouverte sur la fiche",
+      "tag": ""
+    },
+    {
+      "hash": "f4c761d8e0a540a08e9aa05920714c6291b26167",
+      "short": "f4c761d",
+      "auteur": "Orangentleman",
+      "date": "2026-11-14T22:17:18+01:00",
+      "sujet": "Pages d'entrée en miroir exact, sommaire fiches/ dans le style de l'app, plus de cadre",
+      "corps": "- Pages notions/ et auteurs/ : seul l'onglet par défaut est pré-rendu (plus\n  de bloc « fiche complète » ni de dialogues en plus) ; le code qui le\n  gardait dans l'app (ficheEntreeSaisir / ficheEntreeAjouter) est retiré.\n- fiches/ devient une page d'entrée de l'app (data-entree=\"fiches\") : cartes\n  de notions et pastilles d'auteurs avec les styles de l'app ; fiche.css et\n  l'ancien gabarit page() disparaissent.\n- Un lien vers une page de fiche (sommaire, noms d'auteurs, pied de fiche)\n  s'ouvre dans l'app sans recharger ; retour sur /fiches/ : rechargement.\n- La visite guidée démarre aussi sur une page d'entrée (demande de l'auteur).\n- Plus de cadre autour de l'app sur ordinateur (marge et bordure retirées),\n  comme sur mobile.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": ""
+    },
     {
       "hash": "dee22e9d66ebbdf5e48fc9b744898f05f61b3299",
       "short": "dee22e9",
@@ -11,6 +47,15 @@ window.FRISE = {
       "sujet": "Visite guidée : l'étape « mode édition » montre le réglage dans les Réglages",
       "corps": "La 1re étape de la partie Proposer ne zoome plus sur le bouton ⚙ Réglages\nde la barre latérale : elle ouvre les Réglages et met le projecteur sur le\nbouton « Passer en mode édition ». Le bouton ⚙ Réglages reçoit seulement\nun léger halo (nouveau champ facultatif `halo` des étapes, positionTourHalo,\n.tour-halo), masqué sur mobile où le tiroir reste fermé.\n\ntourCloseOverlays referme aussi les Réglages : rien ne reste ouvert quand on\navance, recule, saute une partie ou quitte la visite. Carte : nœud\nux.tour.fenetres.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
       "tag": "Visite guidée"
+    },
+    {
+      "hash": "bf3971b25e271a66b2ca895be37a9311e8a84cdf",
+      "short": "bf3971b",
+      "auteur": "Orangentleman",
+      "date": "2026-11-14T21:42:06+01:00",
+      "sujet": "Pages d'entrée : /notions/… et /auteurs/… deviennent l'app ouverte sur la fiche",
+      "corps": "Chaque page notion ou auteur est générée à partir d'index.html (pageApp) :\nmêmes app.css, data.js, app.js, avec <base href=\"/\">, les métadonnées de la\nfiche (title, description, canonical, Open Graph, JSON-LD inchangés) et la\nfiche pré-rendue avec les classes de l'app ; le reste de la fiche (textes,\nconcepts, plans, sujets, exemples) dans un <details open> visible, que l'app\ngarde sous l'onglet par défaut. Au démarrage l'app lit data-entree et ouvre\ncette fiche ; ensuite elle navigue sur place, avec le vrai chemin de la\nfiche quand elle a une page (pushState), sinon /#/…, et précédent/suivant\nlisent aussi le chemin. Partage et impression donnent ces adresses. Hors\nligne, sw.js renvoie une page d'entrée non mise en cache vers /?depuis=.\nPas de visite guidée automatique sur une page d'entrée.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": "Pages d'entrée"
     },
     {
       "hash": "c929ea32b96b155c2c396a8dece60f31ed54202b",
