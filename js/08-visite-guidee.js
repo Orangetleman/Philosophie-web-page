@@ -77,6 +77,12 @@ function tourShowTab(tab){
   renderSB(); renderContent();
 }
 
+/* tourSbTabActif() — renvoie l'onglet actif de la barre latérale (Notions,
+   Auteurs…). Sert de halo aux étapes qui présentent la LISTE d'un mode :
+   le projecteur reste sur la liste, le halo rappelle sur quel onglet
+   cliquer pour y revenir. */
+function tourSbTabActif(){ return document.querySelector('#sb .sb-tab.active'); }
+
 /* tourTabEl(label) — renvoie le bouton d'onglet de la fiche dont le libellé
    correspond. Robuste à l'ordre et au bouton « ← Retour » qui précède les
    onglets. Repli sur la barre d'onglets entière si introuvable. */
@@ -218,27 +224,34 @@ const TOUR_STEPS=[
   // son mode (tourShowSidebarMode) puis en mettant en valeur sa LISTE, pas le
   // simple bouton d'onglet (retour utilisateur BOX 17 : « tu dis Notions, tu
   // présentes les notions ; tu dis Auteurs, tu présentes les auteurs… »).
+  // L'onglet lui-même reçoit un léger halo (tourSbTabActif), comme les
+  // onglets de la fiche plus bas (tourTabEl) : on voit la liste ET où cliquer.
   { part:'fiches', side:'sidebar', title:'Les Notions',
     text:"Voici la liste des <b>notions</b> du programme (la conscience, la nature, l’art…). "
         +"C’est le point de départ le plus naturel.",
-    setup:()=>tourShowSidebarMode('notions'), target:()=>document.querySelector('#sb .sidebar-list') },
+    setup:()=>tourShowSidebarMode('notions'), target:()=>document.querySelector('#sb .sidebar-list'),
+    halo:tourSbTabActif },
   { part:'fiches', side:'sidebar', title:'Les Auteurs',
     text:"Tu préfères entrer par un <b>philosophe</b> ? Cet onglet liste les auteurs et, pour "
         +"chacun, ses idées clés et les notions qu’il a traitées.",
-    setup:()=>tourShowSidebarMode('auteurs'), target:()=>document.querySelector('#sb .sidebar-list') },
+    setup:()=>tourShowSidebarMode('auteurs'), target:()=>document.querySelector('#sb .sidebar-list'),
+    halo:tourSbTabActif },
   { part:'fiches', side:'sidebar', title:'Les Concepts',
     text:"Le <b>glossaire</b> des termes techniques (le déterminisme, l’aliénation…), avec leur "
         +"définition et leurs liens vers les notions et les autres concepts.",
-    setup:()=>tourShowSidebarMode('concepts'), target:()=>document.querySelector('#sb .sidebar-list') },
+    setup:()=>tourShowSidebarMode('concepts'), target:()=>document.querySelector('#sb .sidebar-list'),
+    halo:tourSbTabActif },
   { part:'fiches', side:'sidebar', title:'Les Repères',
     text:"Les <b>repères du programme</b> : les distinctions à maîtriser pour analyser un sujet "
         +"(absolu/relatif, légal/légitime, en fait/en droit…), chacune avec sa définition et un exemple.",
-    setup:()=>tourShowSidebarMode('reperes'), target:()=>document.querySelector('#sb .sidebar-list') },
+    setup:()=>tourShowSidebarMode('reperes'), target:()=>document.querySelector('#sb .sidebar-list'),
+    halo:tourSbTabActif },
   { part:'fiches', side:'sidebar', title:'La Méthodo',
     text:"Le <b>guide de méthode</b> : comment analyser un sujet, problématiser, bâtir un plan et "
         +"rédiger une <b>dissertation</b> ou une <b>explication de texte</b> — avec un squelette "
         +"visuel de la copie et des phrases toutes prêtes, étape par étape.",
-    setup:()=>tourShowSidebarMode('methodo'), target:()=>document.querySelector('#sb .sidebar-list') },
+    setup:()=>tourShowSidebarMode('methodo'), target:()=>document.querySelector('#sb .sidebar-list'),
+    halo:tourSbTabActif },
   // — Au cœur du projet : le DÉTAIL d'une fiche de notion. On montre la
   //   définition, le volet « Approfondir », puis CHAQUE onglet (en basculant
   //   réellement dessus via tourShowTab) avec ce qu'on y trouve. Pensé mobile :
@@ -260,27 +273,27 @@ const TOUR_STEPS=[
   { part:'fiches', side:'main', title:'Onglet Auteurs',
     text:"Les <b>philosophes majeurs</b> sur cette notion : pour chacun, ses <b>idées clés</b> "
         +"(classées par œuvre) et ses <b>citations</b>. Ta matière première pour argumenter.",
-    setup:()=>tourShowTab('auteurs'), target:()=>tourBoxEl('.ac','Auteurs') },
+    setup:()=>tourShowTab('auteurs'), target:()=>tourBoxEl('.ac','Auteurs'), halo:()=>tourTabEl('Auteurs') },
   { part:'fiches', side:'main', title:'Onglet Textes',
     text:"Les <b>extraits clés</b> du programme, avec leur référence. À relire pour citer un "
         +"texte précis et montrer que tu connais les œuvres au programme.",
-    setup:()=>tourShowTab('textes'), target:()=>tourBoxEl('.ti2','Textes') },
+    setup:()=>tourShowTab('textes'), target:()=>tourBoxEl('.ti2','Textes'), halo:()=>tourTabEl('Textes') },
   { part:'fiches', side:'main', title:'Onglet Concepts',
     text:"Les <b>concepts clés</b> liés à la notion, en <b>deux sous-onglets</b> : ceux qui "
         +"<b>éclairent la notion</b>, puis les <b>liens entre concepts</b> (oppositions, "
         +"distinctions…). Le vocabulaire technique attendu de toi.",
-    setup:()=>tourShowTab('concepts'), target:()=>tourBoxEl('.concept-card','Concepts') },
+    setup:()=>tourShowTab('concepts'), target:()=>tourBoxEl('.concept-card','Concepts'), halo:()=>tourTabEl('Concepts') },
   { part:'fiches', side:'main', title:'Onglet Dissertations',
     text:"De quoi <b>composer</b> : les <b>notions voisines</b> à mobiliser, des <b>plans "
         +"détaillés</b> (problématique + 3 axes déroulables, avec sous-parties, auteurs et "
         +"références) et des <b>sujets</b> pour t’entraîner.",
-    setup:()=>tourShowTab('diss'), target:()=>tourBoxEl('.plan-card, .dq','Dissertations') },
+    setup:()=>tourShowTab('diss'), target:()=>tourBoxEl('.plan-card, .dq','Dissertations'), halo:()=>tourTabEl('Dissertations') },
   { part:'fiches', side:'main', title:'Onglet Exemples',
     text:"Deux sous-onglets. <b>Exemples</b> : des cas concrets (œuvres, sciences, "
         +"actualité…) à <b>réinvestir</b> pour illustrer un argument. <b>Accroches</b> : des "
         +"<b>phrases d’ouverture rédigées</b>, prêtes à recopier pour <b>amorcer</b> une "
         +"dissertation (cherchables aussi via Ctrl + K).",
-    setup:()=>tourShowTab('exemples'), target:()=>tourBoxEl('.ex-card','Exemples') },
+    setup:()=>tourShowTab('exemples'), target:()=>tourBoxEl('.ex-card','Exemples'), halo:()=>tourTabEl('Exemples') },
 
   // ── Partie 2 : Les liens dynamiques ──
   { part:'liens', side:'main', title:'Tout est relié',
@@ -373,6 +386,7 @@ const TOUR_STEPS=[
   // la fenêtre occupe l'écran. La 2e reste dans la barre latérale (bouton
   // 💡) ; les suivantes OUVRENT la modale de contribution (tourOpenProposal)
   // et détaillent les 3 menus en cascade, les champs, l'empilement et l'envoi.
+  // La 1re étape dans la modale souligne d'un halo le bouton 💡 qui l'ouvre.
   { part:'proposer', side:'main', title:'Réglages → mode édition',
     text:"Dans <b>⚙ Réglages</b> (en bas de la barre latérale), ce bouton fait passer en "
         +"<b>mode édition</b> : il fait apparaître partout de petits boutons <b>+</b> sur les cartes "
@@ -389,7 +403,8 @@ const TOUR_STEPS=[
   { part:'proposer', side:'main', title:'Une « boîte » = une idée',
     text:"Chaque proposition tient dans une <b>boîte</b>. Tu peux en <b>empiler plusieurs</b> dans "
         +"un même envoi (par exemple un auteur et un exemple).",
-    setup:tourOpenProposal, target:()=>document.querySelector('#proposal-overlay .pbox') },
+    setup:tourOpenProposal, target:()=>document.querySelector('#proposal-overlay .pbox'),
+    halo:()=>document.querySelector('.sb-propose') },
   { part:'proposer', side:'main', title:'À quoi ça touche ?',
     text:"Premier menu, la <b>catégorie</b> : une <b>notion</b>, un <b>auteur</b>, un <b>concept</b>, "
         +"ou un retour sur <b>le site</b> lui-même (un bug, une idée de fonctionnalité).",
@@ -806,7 +821,7 @@ function positionTourStep(){
   const {blocker,spot,bubble}=tourState.dom;
   const el=(!step.center&&step.target)?step.target():null;
   if(el){ try{ el.scrollIntoView({block:'center',inline:'nearest'}); }catch(e){} }
-  positionTourHalo(step);                        // halo secondaire éventuel (sans scroll)
+  positionTourHalo(step, el);                    // halo secondaire éventuel (sans scroll)
   const vw=window.innerWidth, vh=window.innerHeight;
   const bw=bubble.offsetWidth, bh=bubble.offsetHeight;
   if(!el){
@@ -854,11 +869,16 @@ function tourClamp(v,min,max){ return Math.max(min,Math.min(max,v)); }
 /* positionTourHalo(step) — pose le halo secondaire sur l'élément que
    renvoie step.halo(), ou le masque. Pas de scroll (ce n'est pas la cible
    principale) ; masqué aussi si l'élément est hors écran ou invisible, par
-   exemple le bouton ⚙ d'une barre latérale repliée sur mobile. */
-function positionTourHalo(step){
+   exemple le bouton ⚙ d'une barre latérale repliée sur mobile. Masqué enfin
+   quand il tomberait sur la cible du projecteur (`target`), dedans ou
+   autour : c'est le cas des étapes d'onglet de la fiche quand tourBoxEl,
+   faute de boîte, se replie sur le bouton d'onglet. */
+function positionTourHalo(step, target){
   const halo=tourState.dom.halo;
   const el=(!step.center&&step.halo)?step.halo():null;
-  const r=el?el.getBoundingClientRect():null;
+  // Halo confondu avec la cible : inutile, le projecteur suffit.
+  const memeCible=el && target && (el===target || el.contains(target) || target.contains(el));
+  const r=(el && !memeCible)?el.getBoundingClientRect():null;
   const visible=r && r.width>0 && r.height>0 && r.right>0 && r.bottom>0
     && r.left<window.innerWidth && r.top<window.innerHeight;
   if(!visible){ halo.style.display='none'; return; }

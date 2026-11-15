@@ -1,8 +1,26 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
-  "genere_le": "2026-11-15T01:39:02.323Z",
+  "genere_le": "2026-11-15T01:57:53.560Z",
   "commits": [
+    {
+      "hash": "84f0a18c0e6edd99ffcad6dd530190a687f19711",
+      "short": "84f0a18",
+      "auteur": "Orangentleman",
+      "date": "2026-11-15T02:45:04+01:00",
+      "sujet": "Merge pull request #24 from Orangetleman/claude/rgpd",
+      "corps": "RGPD : notice légale, droits en un clic, Réglages refondus",
+      "tag": ""
+    },
+    {
+      "hash": "9a5f471c916e686c3205909e6e2cbac5a4da5f9f",
+      "short": "9a5f471",
+      "auteur": "Orangentleman",
+      "date": "2026-11-15T02:39:01+01:00",
+      "sujet": "Purge des comptes inactifs planifiée par pg_cron",
+      "corps": "La migration 2026_rgpd.sql active pg_cron et lance\npurger_comptes_inactifs() le 1er de chaque mois à 4 h (UTC) : plus\nd'opération annuelle à faire à la main. Planification gardée par un\ntest d'existence de l'extension (le banc PGlite n'en a pas), et\nrejouable (tâche nommée). Protocole mis à jour (A4 et § 1.5).\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": ""
+    },
     {
       "hash": "936ca046a687fd96c3bc60bada33887deaba255e",
       "short": "936ca04",
