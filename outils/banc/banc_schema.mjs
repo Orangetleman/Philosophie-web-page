@@ -30,7 +30,8 @@ const MIG = process.argv[2] || path.join(ICI, '..', '..', 'philo-aggregator', 'm
 const ORDRE = ['2026_schema_base.sql', '2026_aggregator_state.sql', '2026_admin_mobile.sql',
                '2026_anon_contributions.sql', '2026_contributions_colonnes.sql',
                '2026_rgpd.sql',    // nov. 2026 : suppression sans perte des propositions, purge
-               '2026_administration.sql'];   // nov. 2026 : boîtes, sujets, votes, suivi anonyme (/admin/)
+               '2026_administration.sql',    // nov. 2026 : boîtes, sujets, votes, suivi anonyme (/admin/)
+               '2026_relecture.sql'];        // nov. 2026 : avis de l'IA écrit sans clé de service
 const lire = f => fs.readFileSync(path.join(MIG, f), 'utf8').replace(/\r\n/g, '\n');   // fins de ligne Windows
 
 async function base(sauf) {
@@ -293,6 +294,19 @@ const ESSAIS = [
       const bon = (await sous(db, 'anon', tx => tx.query("select payload, boites from public.suivre('k7q-4md-2xa-b3c')"))).rows;
       const faux = (await sous(db, 'anon', tx => tx.query("select 1 from public.suivre('AAAA-BBBB-CCCC')"))).rows;
       return bon.length === 1 && bon[0].payload.n === 1 && bon[0].boites[0].reponse === 'Ajouté, merci' && faux.length === 0;
+    } },
+  { nom: "l'avis de l'IA : réservé à l'admin, « Partie n » pour le contributeur",
+    temoin: remplace('2026_relecture.sql', "  if not public.is_admin() then\n    raise exception 'Accès refusé : compte non administrateur.' using errcode = '42501';\n  end if;\n  if p_verdict", '  if p_verdict'),
+    async f(db) {
+      const a = await inscrire(db, 'a@x'), adm = await inscrire(db, 'adm@x');
+      await db.query('insert into public.app_admins (user_id) values ($1)', [adm]);
+      await db.query(`insert into public.contributions (user_id, payload) values (null, '{"boxes":[{},{}]}')`);
+      const [b1, b2] = (await db.query('select id from public.boites order by rang')).rows.map(x => x.id);
+      const refuse = !(await tente(sous(db, a, tx => tx.query("select public.admin_ecrire_avis($1, 'valide', 'ok', 'Merci')", [b1]))));
+      await sous(db, adm, tx => tx.query("select public.admin_ecrire_avis($1, 'valide', 'ok', 'A')", [b1]));
+      await sous(db, adm, tx => tx.query("select public.admin_ecrire_avis($1, 'douteux', 'source ?', 'B')", [b2]));
+      const avis = (await db.query('select avis_ia from public.contributions')).rows[0].avis_ia;
+      return refuse && avis === 'Partie 1 : A\nPartie 2 : B';
     } },
 ];
 

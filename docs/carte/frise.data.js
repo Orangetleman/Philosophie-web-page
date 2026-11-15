@@ -1,8 +1,17 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
-  "genere_le": "2026-11-15T10:34:37.750Z",
+  "genere_le": "2026-11-15T11:21:53.523Z",
   "commits": [
+    {
+      "hash": "7ecb3a98147dc80422241f834e2ec2d77d58d200",
+      "short": "7ecb3a9",
+      "auteur": "Orangentleman",
+      "date": "2026-11-15T11:34:35+01:00",
+      "sujet": "Administration A4 : relecture IA dans Supabase et doublons",
+      "corps": "Fonction Supabase « relire » (Deno) : vérifie l'administrateur, relit\n8 boîtes au plus avec la consigne de review.py, n'envoie à Gemini que le\ntexte (coordonnées masquées), écrit l'avis boîte par boîte (colonne\nia_message ajoutée à la migration) et l'avis au contributeur. Partie pure\néprouvée par outils/essais_relecture.mjs ; fonction pas encore déployée.\n/admin/ : bouton « Relire avec l'IA », doublons (signature, même nom,\nratio de difflib) dans la liste et le détail.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": "Administration A4"
+    },
     {
       "hash": "2476fe4ef448f7c6eaab078588801c496291781c",
       "short": "2476fe4",

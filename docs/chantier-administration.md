@@ -279,6 +279,7 @@ l'import le dit (« pas encore en ligne : réimporte après la fusion »).
   4 essais de plus dans `essais_admin.mjs` (16 en tout).
 
   **Pour la mettre en service** (à faire par l'auteur, avec son compte) :
+  0. passer aussi `2026_relecture.sql` (après `2026_administration.sql`) : la fonction écrit par `admin_ecrire_avis`, avec le jeton de l'administrateur ; plus de clé de service (elle ne voyait pas `app_admins`, essai du 15 nov.) ;
   1. `npm i -g supabase` puis `supabase login` et `supabase link --project-ref fipdatwirklhgdbujobz` ;
   2. `supabase secrets set GEMINI_API_KEY=…` (la clé du `.env` de l'agrégateur) ;
   3. `supabase functions deploy relire` ;
