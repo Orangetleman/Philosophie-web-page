@@ -55,7 +55,7 @@ export function pageLegale(L) {
         </dl>
       </div>`).join('')}
       <h3>Les services qui reçoivent ces données</h3>
-      <p>Tous sont établis aux États-Unis : les transferts hors de l'Union européenne sont encadrés comme indiqué.</p>
+      <p>Ces services sont établis hors de l'Union européenne : pour chacun, voici comment le transfert de tes données est encadré.</p>
       <ul class="lg-tiers">${L.tiers.map(t => `<li><strong>${esc(t.nom)}</strong> : ${esc(t.role)} <span class="lg-note">${esc(t.pays)}. ${esc(t.garanties)}</span></li>`).join('')}</ul>`],
     ['appareil', 'Ce qui reste sur ton appareil', `
       <p>Le site garde quelques informations dans ton navigateur (<em>localStorage</em>), pour se souvenir de tes réglages et de ta progression. Ce ne sont pas des traceurs : elles ne quittent ton appareil que si tu as un compte (synchronisation), et aucune bannière de consentement n'est donc nécessaire. Tu peux tout effacer dans ⚙ Réglages › Mes données.</p>

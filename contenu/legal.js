@@ -68,10 +68,10 @@ LEGAL({
   // déclaré, ou à `domainesNeutres` (question 15).
   tiers: [
     {id: "vercel", nom: "Vercel Inc.", role: "Héberge et sert le site.",
-      pays: "États-Unis", garanties: "Contrat de sous-traitance (DPA) de Vercel ; Vercel adhère au cadre de protection des données UE-États-Unis (Data Privacy Framework).",
+      pays: "États-Unis", garanties: "Conditions de service de Vercel. Son contrat de sous-traitance (DPA), qui comprend les clauses contractuelles types de la Commission européenne, vise ses formules payantes ; le site utilise la formule gratuite.",
       domaines: ["philo.myprisme.fr", "vercel.app"]},
-    {id: "supabase", nom: "Supabase Inc.", role: "Héberge la base de données : comptes, progression, propositions.",
-      pays: "États-Unis (société) ; les données sont stockées dans la région choisie pour le projet", garanties: "Contrat de sous-traitance (DPA) de Supabase, avec les clauses contractuelles types de la Commission européenne.",
+    {id: "supabase", nom: "Supabase Pte. Ltd", role: "Héberge la base de données : comptes, progression, propositions.",
+      pays: "Singapour (société) ; les données sont stockées dans la région choisie pour le projet", garanties: "Contrat de sous-traitance (DPA) de Supabase, intégré à ses conditions de service, avec les clauses contractuelles types de la Commission européenne (décision 2021/914).",
       domaines: ["supabase.co"]},
     {id: "google-connexion", nom: "Google (connexion)", role: "Seulement si tu choisis « Continuer avec Google » : Google confirme ton identité et nous transmet ton adresse et ton nom.",
       pays: "États-Unis", garanties: "Google adhère au Data Privacy Framework UE-États-Unis.",
@@ -136,6 +136,6 @@ LEGAL({
   // Une entrée par changement : date, résumé d'une phrase, empreinte donnée
   // par le vérificateur (question 15). Ne jamais modifier une entrée passée.
   historique: [
-    {version: "2026-11-15", resume: "Première version : mentions légales, données personnelles et conditions d'utilisation.", empreinte: "429fc389cc7a"},
+    {version: "2026-11-15", resume: "Première version : mentions légales, données personnelles et conditions d'utilisation.", empreinte: "b9711d3c4ddb"},
   ],
 });

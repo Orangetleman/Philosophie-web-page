@@ -10,7 +10,7 @@
 // La version du cache (CACHE) est une empreinte du contenu des fichiers
 // précachés, recalculée par outils/construire.mjs : ne pas l'éditer à la main.
 
-const CACHE = 'philo-11ebe83d7b';   // version calculée par outils/construire.mjs : ne pas éditer
+const CACHE = 'philo-0c93b89915';   // version calculée par outils/construire.mjs : ne pas éditer
 const PRECACHE = ['./', './index.html', './app.css', './app.js', './data.js', './manifest.json', './icon.svg', './lib/supabase.js', './lib/qrcode.js', './polices/inter-latin-400-normal.woff2', './polices/inter-latin-500-normal.woff2', './polices/inter-latin-600-normal.woff2', './polices/inter-latin-ext-400-normal.woff2', './polices/inter-latin-ext-500-normal.woff2', './polices/inter-latin-ext-600-normal.woff2'];
 
 // Installation : on précache les ressources critiques.

@@ -79,9 +79,12 @@ Les leçons de `fiches-but/docs/interface.md` (U1 à U4), appliquées ici :
 1. **Passer la migration** `philo-aggregator/migrations/2026_rgpd.sql` dans
    l'éditeur SQL de Supabase (une fois). Avant ça, la suppression d'un compte
    efface encore ses propositions.
-2. **Accepter les contrats de sous-traitance (DPA)** de Supabase (tableau de
-   bord › Organization › Legal documents) et de Vercel (ils sont inclus dans
-   leurs conditions, rien à signer pour un compte gratuit ; vérifier).
+2. **Contrats de sous-traitance (DPA) : rien à signer** (vérifié le
+   15 nov. 2026). Celui de Supabase (Supabase Pte. Ltd, Singapour) fait partie
+   de ses conditions de service et vaut signature des clauses contractuelles
+   types. Celui de Vercel fait partie de son contrat mais vise les formules
+   Pro et Enterprise ; rien n'est prévu pour la formule gratuite (Hobby).
+   La notice le dit tel quel.
 3. **Vérifier la région** du projet Supabase (Settings › General) et, si elle
    n'est pas en Europe, le laisser tel quel : la notice parle déjà d'un
    transfert possible hors UE, encadré par les clauses types.
