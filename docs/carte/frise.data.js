@@ -1,8 +1,17 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
-  "genere_le": "2026-11-15T08:19:00.974Z",
+  "genere_le": "2026-11-15T08:55:54.807Z",
   "commits": [
+    {
+      "hash": "018b520f62646781272498b2e2e939dd5e3747a6",
+      "short": "018b520",
+      "auteur": "Orangentleman",
+      "date": "2026-11-15T09:18:59+01:00",
+      "sujet": "Administration : aller-retour d'intégration (export, compte rendu, import)",
+      "corps": "Validée = à intégrer. L'export JSON sans donnée personnelle remplace le .txt ;\nClaude rend un compte rendu philo-integration/v1 que l'admin importe après\naperçu. Intégrée seulement une fois le compte rendu servi par le site en ligne.\nMaquette : boutons et aperçu de l'import dans l'onglet À intégrer.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": "Administration"
+    },
     {
       "hash": "cacad5f182f282b78e58c3cd96dcb5302e01f0e5",
       "short": "cacad5f",

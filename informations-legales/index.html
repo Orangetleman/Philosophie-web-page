@@ -43,7 +43,7 @@
 <main class="lg">
   <a class="lg-retour" href="/">← Retour au site</a>
   <h1>Informations légales</h1>
-  <p class="lg-version">Version du 15 novembre 2026. Site : philo.myprisme.fr.</p>
+  <p class="lg-version">Version du 16 novembre 2026. Site : philo.myprisme.fr.</p>
   <nav aria-label="Sommaire"><ul class="lg-sommaire"><li><a href="informations-legales/#mentions">Mentions légales</a></li><li><a href="informations-legales/#donnees">Tes données personnelles</a></li><li><a href="informations-legales/#appareil">Ce qui reste sur ton appareil</a></li><li><a href="informations-legales/#droits">Tes droits</a></li><li><a href="informations-legales/#cgu">Conditions générales d'utilisation</a></li><li><a href="informations-legales/#versions">Les versions de ce texte</a></li></ul></nav>
   <section><h2 id="mentions">Mentions légales</h2>
       <p>Site édité par un particulier, à titre non professionnel et sans but lucratif. Conformément à l'article 6 III 2 de la loi pour la confiance dans l'économie numérique, l'éditeur a choisi de ne pas publier son identité : ses coordonnées ont été communiquées à l'hébergeur.</p>
@@ -77,11 +77,21 @@
       <div class="lg-carte" id="propositions">
         <h3>Tes propositions de contenu</h3>
         <dl>
-          <dt>Quelles données</dt><dd><ul><li>le contenu que tu proposes</li><li>le pseudo que tu choisis d'indiquer (facultatif)</li><li>si tu es connecté : le lien avec ton compte, pour suivre la réponse</li></ul></dd>
-          <dt>Pour quoi</dt><dd>Relire ta proposition, l'intégrer au site si elle est retenue, et te répondre.</dd>
+          <dt>Quelles données</dt><dd><ul><li>le contenu que tu proposes</li><li>le pseudo que tu choisis d'indiquer (facultatif)</li><li>si tu es connecté : le lien avec ton compte, pour suivre la réponse</li><li>si tu envoies sans compte : une empreinte de ton numéro de suivi (le numéro lui-même n'est gardé que par toi)</li><li>l'état de chaque partie de ta proposition et la réponse de l'éditeur</li></ul></dd>
+          <dt>Pour quoi</dt><dd>Relire ta proposition, l'intégrer au site si elle est retenue, te répondre, et regrouper les demandes qui reviennent (la page Propositions n'en montre qu'un titre et un nombre, jamais ton texte ni ton pseudo).</dd>
           <dt>Sur quelle base</dt><dd>Les conditions d'utilisation que tu acceptes en envoyant (article 6.1.b du RGPD) ; la pré-relecture automatique repose sur l'intérêt légitime de l'éditeur à trier vite (article 6.1.f).</dd>
           <dt>Combien de temps</dt><dd>Le contenu reste : il fait partie du site. Si tu supprimes ton compte, ton pseudo et le lien avec ton compte sont effacés, la proposition devient anonyme.</dd>
           <dt>Qui les reçoit</dt><dd>Supabase Inc., Google (Gemini)</dd>
+        </dl>
+      </div>
+      <div class="lg-carte" id="votes">
+        <h3>Tes votes sur la page Propositions (avec un compte)</h3>
+        <dl>
+          <dt>Quelles données</dt><dd><ul><li>les sujets pour lesquels tu as voté, pour ou contre</li></ul></dd>
+          <dt>Pour quoi</dt><dd>Compter un seul vote par personne, et te montrer le tien.</dd>
+          <dt>Sur quelle base</dt><dd>L'exécution du service que tu demandes en votant (article 6.1.b du RGPD).</dd>
+          <dt>Combien de temps</dt><dd>Jusqu'à ce que tu retires ton vote ; effacés avec ton compte.</dd>
+          <dt>Qui les reçoit</dt><dd>Supabase Inc.</dd>
         </dl>
       </div>
       <div class="lg-carte" id="technique">
@@ -114,7 +124,7 @@
       </tbody></table></section>
   <section><h2 id="droits">Tes droits</h2>
       <p>Tu as le droit d'accéder à tes données, de les corriger, de les effacer, de les emporter, de t'opposer à leur traitement ou de le limiter. La plupart se font en un clic :</p>
-      <ul><li><strong>Voir et emporter tes données</strong> : ⚙ Réglages › Mes données › « Télécharger mes données » : un fichier avec tout ce que le site garde sur toi (compte, progression, réglages, propositions).</li><li><strong>Corriger</strong> : Ton pseudo se change dans 👤 Mon compte ; tes propositions en attente se corrigent depuis « Mes propositions ».</li><li><strong>Effacer</strong> : ⚙ Réglages › Mes données : « Effacer les données de cet appareil », et avec un compte « Supprimer mon compte ». La suppression est immédiate et définitive.</li><li><strong>T'opposer, limiter</strong> : Écris à l'adresse de contact. Réponse sous un mois au plus.</li><li><strong>Réclamer</strong> : Si tu estimes que tes droits ne sont pas respectés, tu peux saisir la CNIL (cnil.fr, rubrique « Adresser une plainte »).</li></ul>
+      <ul><li><strong>Voir et emporter tes données</strong> : ⚙ Réglages › Mes données › « Télécharger mes données » : un fichier avec tout ce que le site garde sur toi (compte, progression, réglages, propositions et leurs réponses, votes).</li><li><strong>Corriger</strong> : Ton pseudo se change dans 👤 Mon compte ; tes propositions en attente se corrigent depuis « Mes propositions ».</li><li><strong>Effacer</strong> : ⚙ Réglages › Mes données : « Effacer les données de cet appareil », et avec un compte « Supprimer mon compte ». La suppression est immédiate et définitive.</li><li><strong>T'opposer, limiter</strong> : Écris à l'adresse de contact. Réponse sous un mois au plus.</li><li><strong>Réclamer</strong> : Si tu estimes que tes droits ne sont pas respectés, tu peux saisir la CNIL (cnil.fr, rubrique « Adresser une plainte »).</li></ul>
       <p>Pour tout le reste : <a href="mailto:compte.secondaire.toi@gmail.com">compte.secondaire.toi@gmail.com</a>.</p>
       <p><strong>Si tu es mineur</strong> : Le site s'adresse aussi à des élèves mineurs. Il ne repose jamais sur ton consentement pour traiter tes données (seulement sur le service que tu demandes), et il n'y a ni publicité ni profilage : l'accord d'un parent n'est donc pas exigé, même avant 15 ans. Si tu as un doute, parles-en à un adulte avant de créer un compte.</p></section>
   <section><h2 id="cgu">Conditions générales d'utilisation</h2>
@@ -128,7 +138,7 @@
       <h3>8. Changements</h3><p>Ces conditions peuvent évoluer. Chaque version est datée ; quand elles changent, le site te le signale et, si tu as un compte, te redemande ton accord.</p>
       <h3>9. Droit applicable</h3><p>Le droit français s'applique. En cas de désaccord, écris d'abord à l'adresse de contact : on cherchera une solution à l'amiable.</p></section>
   <section><h2 id="versions">Les versions de ce texte</h2>
-      <ul><li><strong>15 novembre 2026</strong> : Première version : mentions légales, données personnelles et conditions d'utilisation.</li></ul></section>
+      <ul><li><strong>16 novembre 2026</strong> : Tu peux suivre une proposition envoyée sans compte grâce à un numéro de suivi, lire la réponse à chaque partie de ta proposition, et voter, avec un compte, sur la page Propositions.</li><li><strong>15 novembre 2026</strong> : Première version : mentions légales, données personnelles et conditions d'utilisation.</li></ul></section>
 </main>
 </body>
 </html>

@@ -151,10 +151,15 @@ async function exporterMesDonnees(btn){
   try{
     if(SB&&authUser){
       const uid=authUser.id;
-      const [pref,quiz,props]=await Promise.all([
+      // Nov. 2026 (chantier Administration, 2026_administration.sql) : l'état
+      // et la réponse de chaque boîte, et les votes de la page Propositions.
+      // Les règles d'accès ne rendent que ceux du compte connecté.
+      const [pref,quiz,props,boites,votes]=await Promise.all([
         SB.from('preferences').select('data,updated_at').eq('user_id',uid),
         SB.from('quiz_progress').select('data,updated_at').eq('user_id',uid),
-        SB.from('contributions').select('id,payload,statut,explication,avis_ia,created_at,updated_at').eq('user_id',uid).order('created_at')
+        SB.from('contributions').select('id,payload,statut,explication,avis_ia,created_at,updated_at').eq('user_id',uid).order('created_at'),
+        SB.from('boites').select('contribution,rang,statut,reponse,repondu_le').order('contribution').order('rang'),
+        SB.from('votes').select('sujet,valeur,le').order('le')
       ]);
       dossier.compte={
         identifiant:uid,
@@ -166,7 +171,9 @@ async function exporterMesDonnees(btn){
         reglages_en_ligne:(pref.data&&pref.data[0])||null,
         progression_quiz_en_ligne:(quiz.data&&quiz.data[0])||null,
         propositions:props.data||[],
-        erreurs:[pref.error,quiz.error,props.error].filter(Boolean).map(e=>e.message)
+        reponses_par_boite:boites.data||[],
+        votes:votes.data||[],
+        erreurs:[pref.error,quiz.error,props.error,boites.error,votes.error].filter(Boolean).map(e=>e.message)
       };
     }
     const blob=new Blob([JSON.stringify(dossier,null,2)],{type:'application/json'});

@@ -100,7 +100,9 @@ depuis le code en oct. 2026 : à comparer d'abord avec la base réelle grâce à
 `2026_admin_mobile.sql`, `2026_anon_contributions.sql`,
 `2026_contributions_colonnes.sql`, `2026_rgpd.sql` (nov. 2026 : supprimer un
 compte garde ses propositions, anonymisées ; purge des comptes inactifs depuis
-trois ans, cf. `docs/protocole-donnees.md`). Leurs règles d'accès sont éprouvées par
+trois ans, cf. `docs/protocole-donnees.md`). Puis `2026_administration.sql` (nov. 2026, chantier Administration : boîtes,
+sujets, votes, suivi anonyme ; à passer en même temps que la mise en ligne de
+`/admin/`, cf. son en-tête). Leurs règles d'accès sont éprouvées par
 le banc `outils/banc/` (`npm ci && node banc_schema.mjs`, à la racine du
 banc).
 

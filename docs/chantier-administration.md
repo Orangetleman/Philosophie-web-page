@@ -215,3 +215,14 @@ l'import le dit (« pas encore en ligne : réimporte après la fusion »).
   à ouvrir par le serveur de prévisualisation (`/docs/maquettes/admin.html`).
   Quatre écrans (`/admin/`, Propositions publique, suivi anonyme, message
   Discord), ordinateur et 375 px. **En attente de validation.**
+- **A1** (15 novembre 2026) : `philo-aggregator/migrations/2026_administration.sql`.
+  Tables `boites` (une ligne par boîte, n° montré dans /admin/ ; colonne `rang`,
+  car `position` est un mot réservé), `sujets`, `votes` ; colonne
+  `contributions.suivi_empreinte` ; statut de la proposition calculé par
+  déclencheur ; reprise du tri déjà fait depuis `aggregator_state` ; fonctions
+  `admin_*` (gardées par `is_admin()`), `propositions()`, `voter()`, `suivre()`.
+  Banc : 10 essais nouveaux, chacun avec son témoin vu (23 en tout, « cohérent »).
+  Notice : traitement « votes », tables déclarées, entrée d'historique datée du
+  2026-11-16, **à redater au jour de la mise en ligne**. Export « Mes données » :
+  réponses par boîte et votes. **Pas encore passée sur la vraie base** : elle
+  part avec A2 (les anciens outils n'écrivent pas dans `boites`).
