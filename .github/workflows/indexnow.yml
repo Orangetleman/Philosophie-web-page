@@ -1,0 +1,18 @@
+# Après chaque déploiement de PRODUCTION réussi sur Vercel, signale à IndexNow
+# (Bing, Yandex…) les pages statiques qui ont changé depuis le commit précédent.
+name: IndexNow
+on: deployment_status
+jobs:
+  envoyer:
+    if: github.event.deployment_status.state == 'success' && github.event.deployment.environment == 'Production'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.deployment.sha }}
+          fetch-depth: 2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      # HEAD^1 = l'état de main avant ce déploiement (premier parent d'une fusion).
+      - run: node outils/indexnow.mjs --depuis HEAD^1
