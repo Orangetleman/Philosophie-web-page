@@ -19,7 +19,9 @@
 
    Secrets (Supabase › Edge Functions › Secrets, ou `supabase secrets set`) :
      GEMINI_API_KEY (obligatoire), GEMINI_MODEL (facultatif,
-     « gemini-flash-latest » par défaut). SUPABASE_URL et SUPABASE_ANON_KEY
+     « gemini-2.5-flash-lite » par défaut : le modèle du .env de
+     l'agrégateur ; l'alias gemini-flash-latest ne répondait plus du tout
+     le 15 nov. 2026, plus de 2 minutes d'attente). SUPABASE_URL et SUPABASE_ANON_KEY
      sont fournis d'office par Supabase.
    Déploiement : `supabase functions deploy relire` (voir le cadrage, A4).
    ════════════════════════════════════════════════════════════════════════ */
@@ -29,7 +31,8 @@ import { CONSIGNE, texteBoite, lireVerdict, attenteQuota } from './relecture.js'
 const URL_SB = Deno.env.get('SUPABASE_URL')!;
 const CLE_ANON = Deno.env.get('SUPABASE_ANON_KEY')!;
 const CLE_GEMINI = Deno.env.get('GEMINI_API_KEY') ?? '';
-const MODELE = Deno.env.get('GEMINI_MODEL') || 'gemini-flash-latest';
+const MODELE = Deno.env.get('GEMINI_MODEL') || 'gemini-2.5-flash-lite';
+const DELAI_GEMINI_MS = 25000;    // au-delà, on abandonne la boîte (la fonction a 150 s en tout)
 const PAUSE_MS = 1000;            // entre deux appels : palier gratuit de Gemini
 const LIMITE_MAX = 10;            // une fonction Supabase vit 150 s au plus
 
@@ -54,6 +57,8 @@ async function demanderAGemini(texte: string): Promise<string> {
       contents: [{ role: 'user', parts: [{ text: texte }] }],
       generationConfig: { responseMimeType: 'application/json' },
     }),
+    // Sans délai, un modèle muet faisait attendre jusqu'à la mort de la fonction.
+    signal: AbortSignal.timeout(DELAI_GEMINI_MS),
   });
   const brut = await r.text();
   if (!r.ok) throw Object.assign(new Error(brut.slice(0, 500)), { statut: r.status });
@@ -99,7 +104,8 @@ Deno.serve(async (req) => {
           if (attente === null) { arret = 'Quota Gemini du jour épuisé : réessaie demain.'; break; }
           if (essai === 0) { await dormir(attente * 1000); continue; }
           arret = 'Gemini est saturé : réessaie dans quelques minutes.';
-        } else erreurs.push(`n° ${b.id} : Gemini a refusé (${e.statut ?? '?'})`);
+        } else if (e.name === 'TimeoutError') erreurs.push(`n° ${b.id} : Gemini n'a pas répondu en ${DELAI_GEMINI_MS / 1000} s (modèle ${MODELE})`);
+        else erreurs.push(`n° ${b.id} : Gemini a refusé (${e.statut ?? '?'} : ${String(e.message).slice(0, 120)})`);
         break;
       }
     }

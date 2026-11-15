@@ -1,8 +1,17 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
-  "genere_le": "2026-11-15T11:21:53.523Z",
+  "genere_le": "2026-11-15T11:48:05.789Z",
   "commits": [
+    {
+      "hash": "432ac7d81a4a33f26f537ab55e04d39c6f43c0ed",
+      "short": "432ac7d",
+      "auteur": "Orangentleman",
+      "date": "2026-11-15T12:21:48+01:00",
+      "sujet": "Relecture IA : la fonction agit avec le jeton de l'administrateur",
+      "corps": "La clé de service ne voyait pas app_admins sur ce projet (nouvelles clés) :\n« ne reconnaît pas ce compte comme administrateur ». Lecture par\nadmin_boites, écriture par admin_ecrire_avis (2026_relecture.sql, banc\navec témoin). Plus aucune clé secrète dans la fonction.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": "Relecture IA"
+    },
     {
       "hash": "7ecb3a98147dc80422241f834e2ec2d77d58d200",
       "short": "7ecb3a9",
