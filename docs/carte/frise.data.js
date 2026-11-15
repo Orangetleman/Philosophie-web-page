@@ -1,8 +1,26 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
-  "genere_le": "2026-11-15T07:44:21.029Z",
+  "genere_le": "2026-11-15T08:09:36.742Z",
   "commits": [
+    {
+      "hash": "4636fdb8ed1fb006fb3e65877cf40f88aafa8d64",
+      "short": "4636fdb",
+      "auteur": "Orangentleman",
+      "date": "2026-11-15T08:49:05+01:00",
+      "sujet": "Merge pull request #26 from Orangetleman/claude/nervous-robinson-24bc5d",
+      "corps": "Carte du projet : réparer carte.data.js (boîte 59)",
+      "tag": ""
+    },
+    {
+      "hash": "45d4f20c19bfce513e0307f4108fb6f75f814c12",
+      "short": "45d4f20",
+      "auteur": "Orangentleman",
+      "date": "2026-11-15T08:44:19+01:00",
+      "sujet": "Carte du projet : réparer carte.data.js (guillemets droits) et le vérifier",
+      "corps": "Deux textes de la carte contenaient des guillemets droits (data-entree=\"…\"),\nce qui coupait la chaîne : le navigateur rejetait tout le fichier et la page\naffichait « carte.data.js introuvable » (boîte 59). Remplacés par “ ”.\n\nverifie.mjs compile désormais carte.data.js et exige window.CARTE, donc le\nbuild échoue si l'erreur revient (témoin fait à la main).\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": "Carte du projet"
+    },
     {
       "hash": "6d58864bc2843ea0864f2027ff02427365dcfbbd",
       "short": "6d58864",

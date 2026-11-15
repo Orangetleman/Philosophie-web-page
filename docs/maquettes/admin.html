@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Maquette A0 — Administration</title>
+<!--
+  Maquette du lot A0 (docs/chantier-administration.md, § 5 et § 8).
+  Page de documentation : jamais dans le précache, jamais chargée par le site.
+  Tout est faux (données d'exemple écrites à la main), rien ne parle à Supabase.
+  Les couleurs reprennent les variables de css/01-base.css (thème sombre).
+-->
+<style>
+@font-face{font-family:'Inter';font-weight:400;src:url(../../polices/inter-latin-400-normal.woff2) format('woff2');}
+@font-face{font-family:'Inter';font-weight:500;src:url(../../polices/inter-latin-500-normal.woff2) format('woff2');}
+@font-face{font-family:'Inter';font-weight:600;src:url(../../polices/inter-latin-600-normal.woff2) format('woff2');}
+:root{
+  --page:#121212; --bg:#1e1e1e; --bg2:#2a2a2a; --bg3:#333;
+  --tx:#f5f5f5; --tx2:#d4d4d4; --tx3:#a0a0a0;
+  --bd:#3a3a3a; --bd2:#555;
+  --accent:#3b82d6; --accent-soft:#1c2533; --accent-tx:#6aa8e0;
+  --ok:#7bd88f; --ok-bg:#1e2d1e; --ok-bd:#2d5a2d;
+  --warn:#EF9F27; --warn-bg:#33270f;
+  --bad:#e08a8a; --bad-bg:#3a1e1e; --bad-bd:#5a2d2d;
+  --mono:ui-monospace,Consolas,monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--tx);font:14px/1.5 Inter,system-ui,sans-serif}
+button,select,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer;background:var(--bg2);border:1px solid var(--bd);border-radius:8px;padding:5px 11px;min-height:32px}
+button:hover{border-color:var(--bd2)}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+button.link{background:none;border:0;padding:0;min-height:0;color:var(--accent-tx);text-decoration:underline}
+select,input[type=text],textarea{background:var(--page);border:1px solid var(--bd);border-radius:8px;padding:6px 8px;min-height:32px}
+textarea{width:100%;min-height:70px;resize:vertical}
+.hint{color:var(--tx3);font-size:12.5px}
+h2{font-size:16px;margin:0}
+code,pre{font-family:var(--mono);font-size:12.5px}
+
+/* ── bandeau de la maquette (ne fait pas partie du design) ── */
+.mq{background:#2b2140;border-bottom:1px solid #4a3a6a;padding:8px 14px;display:flex;gap:8px 16px;flex-wrap:wrap;align-items:center;font-size:13px}
+.mq b{color:#c9b6f2}
+.mq .grp{display:flex;gap:4px;flex-wrap:wrap}
+.mq button{min-height:28px;padding:2px 9px;font-size:12.5px;background:#3a2d55;border-color:#5a4a7a}
+.mq button[aria-pressed=true]{background:#7a5cc4;border-color:#7a5cc4;color:#fff}
+.notes{max-width:1100px;margin:14px auto;padding:0 14px;color:var(--tx2);font-size:13px}
+.notes li{margin:3px 0}
+.notes .q{color:#c9b6f2;font-weight:600}
+
+/* ── cadre : ordinateur ou téléphone ── */
+.cadre{max-width:1280px;margin:14px auto;background:var(--bg);border:1px solid var(--bd);border-radius:12px;overflow:hidden}
+body.tel .cadre{max-width:375px}
+.ecran{display:none}.ecran.on{display:block}
+
+/* ── en-tête de /admin/ ── */
+.ad-head{display:flex;gap:8px 12px;align-items:center;flex-wrap:wrap;padding:10px 14px;border-bottom:1px solid var(--bd);background:var(--bg)}
+.ad-head h1{font-size:16px;margin:0}
+.tabs{display:flex;gap:4px;flex-wrap:wrap}
+.tabs button[aria-selected=true]{border-color:var(--accent);background:var(--accent-soft);font-weight:600}
+.chip{font:600 11px var(--mono);background:var(--accent);color:#fff;border-radius:999px;padding:1px 7px;margin-left:4px}
+.right{margin-left:auto;display:flex;gap:10px;align-items:center;font-size:12.5px;color:var(--tx3);flex-wrap:wrap}
+body.tel .right{margin-left:0;width:100%}
+
+/* ── boîte : liste + détail ── */
+.tb{display:grid;grid-template-columns:370px 1fr;min-height:640px}
+.tb-list{border-right:1px solid var(--bd);overflow:auto;max-height:760px}
+.filters{display:flex;gap:6px;flex-wrap:wrap;padding:8px 10px;border-bottom:1px solid var(--bd)}
+.filters select{font-size:12.5px;min-height:30px}
+ul.it{list-style:none;margin:0;padding:0}
+.it button{display:grid;gap:2px;width:100%;text-align:left;border:0;border-bottom:1px solid var(--bd);border-radius:0;background:none;padding:9px 12px;min-height:0}
+.it button:hover{background:var(--bg2)}
+.it button.sel{background:var(--accent-soft)}
+.it .h{display:flex;gap:2px 7px;flex-wrap:wrap;font-size:11.5px;color:var(--tx3)}
+.it .new{color:var(--accent-tx);font-weight:700}
+.it .t{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.det{padding:14px 18px;display:grid;gap:12px;align-content:start;min-width:0}
+.acts{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.seg{display:inline-flex;border:1px solid var(--bd);border-radius:8px;overflow:hidden}
+.seg button{border:0;border-radius:0;border-right:1px solid var(--bd);background:var(--bg2)}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed=true]{background:var(--accent-soft);font-weight:700;box-shadow:inset 0 -2px 0 var(--accent)}
+.kbd{font:11px var(--mono);border:1px solid var(--bd2);border-radius:4px;padding:0 4px;color:var(--tx3);margin-left:4px}
+.ctx{display:flex;gap:4px 14px;flex-wrap:wrap;font-size:12.5px;color:var(--tx3)}
+.contrib{border:1px solid var(--bd);border-radius:8px;padding:8px 10px;font-size:12.5px;display:flex;gap:6px 10px;flex-wrap:wrap;align-items:center}
+.contrib .bx{border:1px solid var(--bd);border-radius:6px;padding:1px 7px}
+.contrib .bx.cur{border-color:var(--accent);color:var(--accent-tx)}
+/* contenu mis en forme comme sur le site */
+.fiche{background:var(--page);border-radius:8px;padding:12px 14px;border-left:3px solid var(--accent)}
+.fiche .lab{font-size:11.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--tx3)}
+.fiche .aut{font-weight:600;font-size:15px}
+.fiche .w{color:var(--tx3);font-style:italic}
+.fiche .cit{margin:8px 0 0;padding-left:10px;border-left:2px solid var(--bd2);color:var(--tx2)}
+.ia{border:1px solid var(--bd);border-radius:8px}
+.ia summary{padding:8px 10px;cursor:pointer;display:flex;gap:8px;align-items:center}
+.ia div{padding:0 12px 10px;color:var(--tx2);font-size:13px}
+.pill{font-size:11px;font-weight:600;padding:1px 8px;border-radius:999px;border:1px solid var(--bd2);white-space:nowrap}
+.pill.ok{color:var(--ok);border-color:var(--ok-bd);background:var(--ok-bg)}
+.pill.warn{color:var(--warn);border-color:var(--warn);background:var(--warn-bg)}
+.pill.bad{color:var(--bad);border-color:var(--bad-bd);background:var(--bad-bg)}
+.pill.info{color:var(--accent-tx);border-color:var(--accent);background:var(--accent-soft)}
+.dup{background:var(--warn-bg);border:1px solid #5a4410;border-radius:8px;padding:8px 10px;font-size:13px}
+label.blk{display:grid;gap:4px;font-size:13px;font-weight:600}
+label.blk .hint{font-weight:400}
+.del{margin-left:auto;color:var(--bad)}
+.back{display:none;justify-self:start}
+/* téléphone : liste OU détail */
+body.tel .tb{grid-template-columns:minmax(0,1fr)}
+label.blk select,label.blk input{width:100%;min-width:0}
+body.tel .tb-list{border-right:0;max-height:none}
+body.tel .tb.a-choix .tb-list{display:none}
+body.tel .tb:not(.a-choix) .det{display:none}
+body.tel .back{display:inline-flex}
+body.tel .det{padding:12px}
+
+/* ── sujets ── */
+.sj{display:grid;grid-template-columns:auto 1fr;gap:4px 10px;align-items:center}
+.score{font:600 15px var(--mono);min-width:34px;text-align:center;color:var(--accent-tx)}
+.twocol{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+body.tel .twocol{grid-template-columns:1fr}
+.lies{margin:0;padding-left:18px;font-size:13px}
+
+/* ── intégration ── */
+.ig{padding:14px 18px;display:grid;gap:16px}
+.fichier{border:1px solid var(--bd);border-radius:10px;overflow:hidden}
+.fichier>header{background:var(--bg2);padding:8px 12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.fichier>header code{color:var(--accent-tx)}
+.morceau{padding:10px 12px;border-top:1px solid var(--bd);display:grid;gap:8px}
+pre{margin:0;background:var(--page);border-radius:8px;padding:10px;overflow:auto;white-space:pre-wrap;word-break:break-word}
+
+/* ── côté visiteur ── */
+.site{padding:16px 20px;display:grid;gap:12px;max-width:820px}
+body.tel .site{padding:12px}
+.site .intro{color:var(--tx2)}
+.prop{display:grid;grid-template-columns:auto 1fr;gap:12px;border:1px solid var(--bd);border-radius:10px;padding:10px 12px;background:var(--bg)}
+.vote{display:grid;justify-items:center;align-content:start;gap:0}
+.vote button{min-height:26px;padding:0 8px;background:none}
+.vote button[aria-pressed=true]{color:var(--accent-tx);border-color:var(--accent)}
+.vote .n{font:600 14px var(--mono)}
+.prop h3{margin:0 0 2px;font-size:14.5px}
+.prop .rep{margin-top:6px;padding:6px 10px;border-left:3px solid var(--ok-bd);background:var(--ok-bg);border-radius:0 6px 6px 0;font-size:13px}
+.card{border:1px solid var(--bd);border-radius:10px;padding:12px 14px;background:var(--bg);display:grid;gap:8px}
+.secret{font:600 18px var(--mono);letter-spacing:.08em;background:var(--page);border:1px dashed var(--bd2);border-radius:8px;padding:6px 12px;justify-self:start}
+
+/* ── Discord ── */
+.dc{background:#313338;padding:18px;font-family:system-ui,sans-serif}
+.dc-msg{display:grid;grid-template-columns:40px 1fr;gap:12px;max-width:560px}
+.dc-av{width:40px;height:40px;border-radius:50%;background:var(--accent);display:grid;place-items:center;font-weight:700}
+.dc-n{font-weight:600}.dc-n .bot{font-size:10px;background:#5865f2;border-radius:3px;padding:0 4px;margin-left:4px;vertical-align:2px}
+.dc-emb{margin-top:4px;border-left:4px solid var(--accent);background:#2b2d31;border-radius:4px;padding:8px 12px;display:grid;gap:4px;font-size:13.5px}
+.dc-emb a{color:#00a8fc}
+</style>
+</head>
+<body>
+
+<div class="mq" role="toolbar" aria-label="Commandes de la maquette">
+  <b>Maquette A0</b>
+  <span class="grp" id="mq-ecran">
+    <button data-ecran="admin" aria-pressed="true">/admin/</button>
+    <button data-ecran="public" aria-pressed="false">Propositions (public)</button>
+    <button data-ecran="suivi" aria-pressed="false">Suivi anonyme</button>
+    <button data-ecran="discord" aria-pressed="false">Message Discord</button>
+  </span>
+  <span class="grp" id="mq-taille">
+    <button data-taille="pc" aria-pressed="true">Ordinateur</button>
+    <button data-taille="tel" aria-pressed="false">Téléphone 375 px</button>
+  </span>
+</div>
+
+<div class="cadre">
+
+<!-- ═════════════════════════ /admin/ ═════════════════════════ -->
+<section class="ecran on" id="ecran-admin">
+  <header class="ad-head">
+    <h1>🗂️ Administration</h1>
+    <div class="tabs" role="tablist">
+      <button role="tab" data-onglet="boite" aria-selected="true">Boîte de réception<span class="chip">3</span></button>
+      <button role="tab" data-onglet="sujets" aria-selected="false">Sujets (4)</button>
+      <button role="tab" data-onglet="integ" aria-selected="false">À intégrer (3)</button>
+    </div>
+    <span class="right">
+      <button>🤖 Relire avec l'IA (2 boîtes)</button>
+      <span>local · vraie base</span>
+      <button class="link">Exporter tout (JSON)</button>
+      <button class="link">Se déconnecter</button>
+    </span>
+  </header>
+
+  <!-- Boîte de réception -->
+  <div class="onglet" id="og-boite">
+    <div class="tb" id="tb">
+      <div class="tb-list">
+        <div class="filters">
+          <select aria-label="Catégorie"><option>Toutes catégories</option><option>Notion</option><option>Auteur</option><option>Concept</option><option>Le site</option></select>
+          <select aria-label="État"><option>À traiter</option><option>Nouvelles</option><option>Validées</option><option>Non rangées</option><option>Toutes</option></select>
+          <select aria-label="Avis IA"><option>Tous avis IA</option><option>À vérifier</option><option>Plutôt bon</option><option>Pas relue</option></select>
+        </div>
+        <ul class="it" id="liste"></ul>
+      </div>
+      <div class="det" id="det"></div>
+    </div>
+  </div>
+
+  <!-- Sujets -->
+  <div class="onglet" id="og-sujets" hidden>
+    <div class="tb" id="tb-s">
+      <div class="tb-list">
+        <div class="filters">
+          <select aria-label="Tri"><option>Les plus demandés</option><option>Les plus récents</option></select>
+          <select aria-label="État"><option>Tous les états</option><option>Proposé</option><option>Prévu</option><option>Fait</option><option>Refusé</option></select>
+          <button>+ Nouveau sujet</button>
+        </div>
+        <ul class="it" id="liste-s"></ul>
+      </div>
+      <div class="det" id="det-s"></div>
+    </div>
+  </div>
+
+  <!-- À intégrer -->
+  <div class="onglet" id="og-integ" hidden>
+    <div class="ig">
+      <div class="acts">
+        <span>3 boîtes validées attendent d'être recopiées dans <code>contenu/</code>, rangées par fichier.</span>
+        <button style="margin-left:auto">📤 Export pour une session Claude (3 boîtes)</button>
+      </div>
+      <div class="fichier">
+        <header><code>contenu/notions/travail.js</code><span class="hint">2 boîtes</span></header>
+        <div class="morceau">
+          <div class="acts"><b>n° 41</b><span class="pill info">Auteur · Idée</span><span class="hint">de Léa · validée hier</span></div>
+          <pre>À insérer dans D.travail.auteurs[] :
+{n:"Arendt", ideas:[{w:"Condition de l'homme moderne, 1958", i:"Distinguer le travail, qui répond aux besoins du vivant et ne laisse rien de durable, de l'œuvre, qui fabrique un monde d'objets qui nous survit.", citations:[], new:true}], new:true}</pre>
+          <div class="acts"><button>📋 Copier</button><button class="primary">✓ Marquer intégrée</button><span class="hint">Léa verra « Intégrée au site » dans Mes propositions</span></div>
+        </div>
+        <div class="morceau">
+          <div class="acts"><b>n° 44</b><span class="pill info">Notion · Exemple</span><span class="hint">anonyme · validée il y a 2 h</span></div>
+          <pre>À insérer dans D.travail.exemples[] :
+{t:"Les livreurs à vélo et l'algorithme", d:"Un travail sans patron visible, où la cadence est fixée par une application : qui commande, au juste ?", new:true}</pre>
+          <div class="acts"><button>📋 Copier</button><button class="primary">✓ Marquer intégrée</button></div>
+        </div>
+      </div>
+      <div class="fichier">
+        <header><code>contenu/concepts.js</code><span class="hint">1 boîte</span></header>
+        <div class="morceau">
+          <div class="acts"><b>n° 38</b><span class="pill info">Concept · Relation</span><span class="hint">de Malo · validée le 12/11</span></div>
+          <pre>Dans CONCEPTS, concept "aliénation", relations[] :
+{to:"travail-oeuvre", type:"complete", desc:"Deux manières de penser ce que le travail fait à celui qui travaille.", new:true}</pre>
+          <div class="acts"><button>📋 Copier</button><button class="primary">✓ Marquer intégrée</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═════════════════════════ Propositions (public) ═════════════════════════ -->
+<section class="ecran" id="ecran-public">
+  <div class="site">
+    <div class="tabs"><button>Frise</button><button>Graphe</button><button aria-selected="true" style="border-color:var(--accent);background:var(--accent-soft);font-weight:600">Propositions</button></div>
+    <p class="intro">Ce que les visiteurs demandent, et ce qui est prévu. Vote pour ce qui t'aiderait le plus : les sujets les plus demandés passent en premier.</p>
+    <div class="acts"><select><option>Tous</option><option>Prévus</option><option>Faits</option></select><span class="hint">Connecte-toi pour voter. Une idée qui manque ? <button class="link">Fais une proposition</button></span></div>
+
+    <div class="prop">
+      <div class="vote"><button aria-pressed="true" aria-label="Pour">▲</button><span class="n">14</span><button aria-label="Contre">▼</button></div>
+      <div><h3>Ajouter Simone Weil au travail et à la justice <span class="pill info">Prévu</span></h3>
+        <span class="hint">9 personnes l'ont demandé</span>
+        <div class="rep">Fiche en cours d'écriture, pour décembre.</div></div>
+    </div>
+    <div class="prop">
+      <div class="vote"><button aria-label="Pour">▲</button><span class="n">8</span><button aria-label="Contre">▼</button></div>
+      <div><h3>Un mode sombre plus contrasté <span class="pill">Proposé</span></h3>
+        <span class="hint">5 personnes l'ont demandé</span></div>
+    </div>
+    <div class="prop">
+      <div class="vote"><button aria-label="Pour">▲</button><span class="n">6</span><button aria-label="Contre">▼</button></div>
+      <div><h3>Des exemples tirés de l'actualité pour la technique <span class="pill ok">Fait ✓</span></h3>
+        <span class="hint">4 personnes l'ont demandé</span>
+        <div class="rep">Quatre exemples ajoutés le 10 novembre, merci à celles et ceux qui les ont proposés.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═════════════════════════ Suivi anonyme ═════════════════════════ -->
+<section class="ecran" id="ecran-suivi">
+  <div class="site">
+    <div class="card">
+      <b>Merci, ta proposition est envoyée. 🎉</b>
+      <span>Son numéro de suivi :</span>
+      <span class="secret">K7Q-4MD-2XA</span>
+      <span class="hint">Ce navigateur le garde : tu retrouveras la réponse dans « Mes propositions », même sans compte. Sur un autre appareil, tape ce numéro. Rien d'autre n'est gardé sur toi.</span>
+    </div>
+    <h2>Mes propositions</h2>
+    <div class="card">
+      <div class="acts"><b>Un exemple pour le travail</b><span class="pill ok">Intégrée au site</span><span class="hint">envoyée le 13/11 · sans compte</span></div>
+      <div class="rep" style="padding:6px 10px;border-left:3px solid var(--ok-bd);background:var(--ok-bg);border-radius:0 6px 6px 0">Ajouté tel quel dans les exemples du travail, merci !</div>
+      <div class="acts"><button class="link">Oublier sur cet appareil</button></div>
+    </div>
+    <div class="card">
+      <div class="acts"><b>Suivre une proposition faite ailleurs</b></div>
+      <div class="acts"><input type="text" placeholder="ex. K7Q-4MD-2XA" aria-label="Numéro de suivi"><button>Retrouver</button></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═════════════════════════ Discord ═════════════════════════ -->
+<section class="ecran" id="ecran-discord">
+  <div class="dc">
+    <div class="dc-msg">
+      <div class="dc-av">φ</div>
+      <div>
+        <div class="dc-n">Graphe Philo<span class="bot">APP</span> <span class="hint">Aujourd'hui à 14:02</span></div>
+        <div class="dc-emb">
+          <b>Nouvelle proposition n° 47 · Auteur · Citation</b>
+          <span>Notion : la liberté · compte : Malo</span>
+          <span style="color:#b5bac1">« Proposer une citation de Sartre sur la mauvaise foi, pour illustrer… »</span>
+          <a href="#">Ouvrir dans l'administration</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</div>
+
+<div class="notes">
+  <p><b>Ce que la maquette propose</b> (à valider ou corriger point par point) :</p>
+  <ol>
+    <li>Une seule page <code>/admin/</code>, la même en local et en ligne. En local, l'en-tête le dit (« local · vraie base »).</li>
+    <li>Ouvrir une boîte nouvelle la marque lue ; le filtre « À traiter » est celui par défaut.</li>
+    <li>On trie <b>boîte par boîte</b>. La ligne « Contribution n° 12 » montre les autres boîtes envoyées ensemble, et ce que verra le contributeur (« 1 sur 3 validée »).</li>
+    <li>Le contenu est mis en forme comme sur le site, pas montré en JSON brut.</li>
+    <li>Raccourcis : <span class="kbd">V</span> valider, <span class="kbd">R</span> refuser, <span class="kbd">A</span> remettre en attente, <span class="kbd">J</span>/<span class="kbd">K</span> boîte suivante / précédente, <span class="kbd">Échap</span> retour à la liste.</li>
+    <li>« Intégrée » ne se choisit pas dans la boîte : c'est le bouton de l'onglet « À intégrer », une fois le code collé dans <code>contenu/</code>.</li>
+    <li>La page publique Propositions est un troisième onglet d'Explorer, à côté de Frise et Graphe. Seuls les sujets publiés y apparaissent.</li>
+    <li>Le message Discord ne montre que le début du texte et un pseudo, jamais d'e-mail.</li>
+  </ol>
+</div>
+
+<script>
+/* Maquette seulement : données d'exemple et bascules d'affichage. */
+const BOITES=[
+  {id:47,nouv:true,cat:'Auteur',cib:'Citation',qui:'Malo',compte:true,quand:'il y a 3 min',notion:'liberté',ia:['warn','À vérifier'],contrib:{n:19,boites:[47]},
+   fiche:`<div class="lab">Citation · la liberté</div><div class="aut">Sartre</div><div class="w">L'Être et le Néant, 1943</div><div class="cit">Texte proposé : une phrase sur la mauvaise foi, donnée sans page ni édition.</div>`,
+   iaTxt:`Citation introuvable telle quelle dans les éditions consultées. Le sens correspond à la partie sur la mauvaise foi : à garder comme reformulation, sans guillemets (protocole du contenu, § 3).`,
+   dup:null},
+  {id:46,nouv:true,cat:'Le site',cib:'Bug',qui:'anonyme',compte:false,quand:'il y a 1 h',notion:null,ia:['','Pas de relecture (retour sur le site)'],contrib:{n:18,boites:[46]},
+   fiche:`<div class="lab">Signaler une erreur</div><div>Sur téléphone, le quiz se ferme quand je tourne l'écran.</div>`,iaTxt:null,dup:null},
+  {id:45,nouv:true,cat:'Auteur',cib:'Idée',qui:'Léa',compte:true,quand:'il y a 2 h',notion:'travail',ia:['ok','Plutôt bon'],contrib:{n:17,boites:[45,41,42]},
+   fiche:`<div class="lab">Idée d'auteur · le travail</div><div class="aut">Simone Weil</div><div class="w">La Condition ouvrière, 1951</div><div class="cit">L'usine use l'attention de l'ouvrier jusqu'à lui ôter la possibilité de penser ce qu'il fait.</div>`,
+   iaTxt:`Reformulation fidèle du propos de l'ouvrage. Simone Weil n'a pas encore de fiche : la proposer aussi pour la justice ?`,
+   dup:{n:31,t:'n° 31 (il y a 3 semaines) propose aussi Simone Weil, pour la justice. Même sujet : « Ajouter Simone Weil… »'}},
+  {id:43,nouv:false,cat:'Notion',cib:'Accroche',qui:'anonyme',compte:false,quand:'hier',notion:'temps',ia:['bad','Hors sujet'],contrib:{n:16,boites:[43]},
+   fiche:`<div class="lab">Accroche · le temps</div><div>« Le temps c'est de l'argent » comme amorce.</div>`,
+   iaTxt:`Proverbe sans lien direct avec la notion telle que le programme la pose ; peut servir de contre-exemple, pas d'accroche.`,dup:null},
+];
+const SUJETS=[
+  {id:1,score:14,t:'Ajouter Simone Weil au travail et à la justice',etat:'Prévu',pub:true,dem:9,lies:['n° 45 · Léa','n° 31 · anonyme','n° 22 · Inès','+ 6 autres']},
+  {id:2,score:8,t:'Un mode sombre plus contrasté',etat:'Proposé',pub:true,dem:5,lies:['n° 40 · anonyme','n° 33 · Tom','+ 3 autres']},
+  {id:3,score:6,t:'Des exemples tirés de l’actualité pour la technique',etat:'Fait',pub:true,dem:4,lies:['n° 29','n° 27','n° 25','n° 24']},
+  {id:4,score:2,t:'Le quiz se ferme en tournant le téléphone',etat:'Proposé',pub:false,dem:2,lies:['n° 46 · anonyme','n° 39 · anonyme']},
+];
+let sel=47, selS=1;
+const $=s=>document.querySelector(s);
+
+function ligne(b){
+  const h=[b.nouv?'<span class="new">● nouvelle</span>':'', 'n° '+b.id, b.cat+' · '+b.cib, b.notion||'', b.qui, b.quand,
+    b.ia[0]?`<span class="pill ${b.ia[0]}">${b.ia[1]}</span>`:'', b.dup?'<span class="pill warn">doublon ?</span>':''].filter(Boolean);
+  const t=b.fiche.replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim();
+  return `<li><button class="${b.id===sel?'sel':''}" data-b="${b.id}"><span class="h">${h.join(' · ')}</span><span class="t">${t}</span></button></li>`;
+}
+function detail(b){
+  const autres=b.contrib.boites.map(n=>`<span class="bx${n===b.id?' cur':''}">n° ${n}</span>`).join('');
+  return `<button class="back" data-act="liste">← Liste</button>
+  <div class="acts"><h2>n° ${b.id} · ${b.cat} · ${b.cib}</h2>
+    <span class="seg" role="group" aria-label="État"><button aria-pressed="true">En attente<span class="kbd">A</span></button><button aria-pressed="false">Validée<span class="kbd">V</span></button><button aria-pressed="false">Refusée<span class="kbd">R</span></button></span></div>
+  <div class="ctx"><span>${b.compte?'☁ compte : <b>'+b.qui+'</b>':'anonyme · suivi par numéro'}</span><span>reçue ${b.quand}</span>${b.notion?'<span>notion : <a class="link" href="#">'+b.notion+' ↗</a></span>':''}</div>
+  <div class="contrib">Contribution n° ${b.contrib.n} : ${autres}${b.contrib.boites.length>1?'<span class="hint">le contributeur verra « 1 sur 3 validée »</span>':''}</div>
+  <div class="fiche">${b.fiche}</div>
+  ${b.iaTxt?`<details class="ia" open><summary><span class="pill ${b.ia[0]}">${b.ia[1]}</span>Avis de l'IA (Gemini)</summary><div>${b.iaTxt}</div></details>`:`<span class="hint">${b.ia[1]}</span>`}
+  ${b.dup?`<div class="dup">⚠ Ressemble à une autre : ${b.dup.t} <button class="link">Ouvrir la n° ${b.dup.n}</button></div>`:''}
+  <label class="blk">Ranger dans un sujet <select><option>— aucun —</option>${SUJETS.map(s=>`<option${b.dup&&s.id===1?' selected':''}>${s.t} (${s.score})</option>`).join('')}<option>+ Nouveau sujet…</option></select></label>
+  <label class="blk">Répondre <span class="hint">${b.compte?'le contributeur le lit dans « Mes propositions »':'lu par son numéro de suivi, sur son appareil'}</span><textarea placeholder="Merci ! …"></textarea></label>
+  <label class="blk">Note interne <span class="hint">jamais montrée au contributeur</span><input type="text" placeholder="ex. vérifier la date de l'édition"></label>
+  <div class="acts"><button class="primary">Enregistrer</button><span class="hint">Pas encore de réponse</span><button class="del">Supprimer (abus)…</button></div>`;
+}
+function ligneS(s){
+  return `<li><button class="${s.id===selS?'sel':''}" data-s="${s.id}"><span class="sj"><span class="score">${s.score}</span><span><b>${s.t}</b><br><span class="hint">${s.etat} · ${s.dem} demandes · ${s.pub?'publié':'non publié'}</span></span></span></button></li>`;
+}
+function detailS(s){
+  const etats=['Proposé','Prévu','Fait','Refusé'].map(e=>`<button aria-pressed="${e===s.etat}">${e}</button>`).join('');
+  return `<button class="back" data-act="liste">← Liste</button>
+  <div class="acts"><h2>Sujet · score ${s.score}</h2><span class="seg">${etats}</span></div>
+  <span class="hint">score = ${s.dem} demandes + votes ▲ − votes ▼</span>
+  <div class="twocol"><label class="blk">Titre public<input type="text" value="${s.t}"></label>
+    <label class="blk">Description <span class="hint">facultative</span><input type="text"></label></div>
+  <label class="blk">Réponse publique <span class="hint">sur Propositions, et envoyée aux ${s.dem} personnes qui l'ont demandé</span><textarea>${s.id===1?'Fiche en cours d’écriture, pour décembre.':''}</textarea></label>
+  <div class="acts"><label><input type="checkbox"${s.pub?' checked':''}> Publier sur la page Propositions</label><button class="primary" style="margin-left:auto">Enregistrer</button></div>
+  <div><b>Demandes rangées ici</b><ul class="lies">${s.lies.map(x=>`<li>${x}</li>`).join('')}</ul></div>`;
+}
+function rendre(){
+  $('#liste').innerHTML=BOITES.map(ligne).join('');
+  $('#det').innerHTML=detail(BOITES.find(b=>b.id===sel));
+  $('#liste-s').innerHTML=SUJETS.map(ligneS).join('');
+  $('#det-s').innerHTML=detailS(SUJETS.find(s=>s.id===selS));
+}
+document.addEventListener('click',e=>{
+  const t=e.target.closest('button'); if(!t) return;
+  if(t.dataset.b){ sel=+t.dataset.b; const b=BOITES.find(x=>x.id===sel); b.nouv=false; $('#tb').classList.add('a-choix'); rendre(); }
+  else if(t.dataset.s){ selS=+t.dataset.s; $('#tb-s').classList.add('a-choix'); rendre(); }
+  else if(t.dataset.act==='liste'){ document.querySelectorAll('.tb').forEach(x=>x.classList.remove('a-choix')); }
+  else if(t.dataset.onglet){
+    document.querySelectorAll('[data-onglet]').forEach(x=>x.setAttribute('aria-selected',x===t));
+    document.querySelectorAll('.onglet').forEach(x=>x.hidden=x.id!=='og-'+t.dataset.onglet);
+  }
+  else if(t.dataset.ecran){
+    document.querySelectorAll('[data-ecran]').forEach(x=>x.setAttribute('aria-pressed',x===t));
+    document.querySelectorAll('.ecran').forEach(x=>x.classList.toggle('on',x.id==='ecran-'+t.dataset.ecran));
+  }
+  else if(t.dataset.taille){
+    document.querySelectorAll('[data-taille]').forEach(x=>x.setAttribute('aria-pressed',x===t));
+    document.body.classList.toggle('tel',t.dataset.taille==='tel');
+    document.querySelectorAll('.tb').forEach(x=>x.classList.remove('a-choix'));
+  }
+});
+document.addEventListener('keydown',e=>{
+  if(e.target.matches('input,textarea,select')) return;
+  const i=BOITES.findIndex(b=>b.id===sel);
+  if(e.key==='j'&&i<BOITES.length-1){sel=BOITES[i+1].id;rendre();}
+  if(e.key==='k'&&i>0){sel=BOITES[i-1].id;rendre();}
+  if(e.key==='Escape') document.querySelectorAll('.tb').forEach(x=>x.classList.remove('a-choix'));
+});
+rendre();
+</script>
+</body>
+</html>
