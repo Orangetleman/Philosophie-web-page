@@ -86,6 +86,25 @@ const ESSAIS = [
       if (manquent.length) console.log('   champs sans libellé : ' + manquent.join(', '));
       return cles.size > 30 && !manquent.length;
     } },
+  /* Lot A4 : doublons. Les ratios de référence viennent de Python
+     (difflib.SequenceMatcher(None, a, b, autojunk=False).ratio()). */
+  { nom: 'ressemblance : mêmes chiffres que difflib',
+    temoin: remplace('return (2 * communs(0, a.length, 0, b.length)) / (a.length + b.length);', 'return communs(0, a.length, 0, b.length) / (a.length + b.length);'),
+    f: M => [['sartre | la mauvaise foi', 'sartre | mauvaise foi chez sartre', 0.7368], ['abcd', 'bcda', 0.75], ['le travail libere', 'le travail aliene', 0.8824]]
+      .every(([a, b, r]) => Math.abs(M.ressemblance(a, b) - r) < 0.0005) },
+  { nom: 'doublons : identique, même nom, texte proche ; jamais une autre catégorie',
+    temoin: remplace("if (cle.length >= 4 && k.length >= 4 && k !== cle && (k.includes(cle) || cle.includes(k)))", 'if (false)'),
+    f: M => {
+      const A = (id, cible, fields, cat) => B(id, 'en_attente', { contenu: { categorie: cat || 'auteur', cible, type: 'ajout', fields } });
+      const b = A(1, 'auteur-citation', { nom: 'Sartre', notion: 'liberte', citation: 'La mauvaise foi' });
+      const liste = [b,
+        A(2, 'auteur-citation', { nom: 'SARTRE', notion: 'liberte', citation: 'Autre chose' }),
+        A(3, 'auteur-citation', { nom: 'Jean-Paul Sartre', notion: 'liberte', citation: 'x' }),
+        A(4, 'exemple', { nom: 'Sartre', notion: 'liberte' }, 'notion'),
+        A(5, 'auteur-citation', { nom: 'Kant', notion: 'devoir', citation: 'y' })];
+      const d = M.doublons(b, liste);
+      return d.map(x => x.id + ':' + x.raison).join() === '2:identique,3:même nom';
+    } },
   /* Lot A3 : le site (« Mes propositions », js/06-contribution.js) et /admin/
      (« le contributeur voit … ») doivent dire la même chose. On extrait du
      site etatBoitesLabel et le format du numéro de suivi. */

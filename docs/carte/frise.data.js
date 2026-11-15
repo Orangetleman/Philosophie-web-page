@@ -1,8 +1,17 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
-  "genere_le": "2026-11-15T09:54:56.353Z",
+  "genere_le": "2026-11-15T10:34:37.750Z",
   "commits": [
+    {
+      "hash": "2476fe4ef448f7c6eaab078588801c496291781c",
+      "short": "2476fe4",
+      "auteur": "Orangentleman",
+      "date": "2026-11-15T10:54:53+01:00",
+      "sujet": "Administration A3 : sujets, page Propositions, suivi anonyme",
+      "corps": "/admin/ : onglet Sujets (état, publication, réponse publique copiée aux\nboîtes rangées, suppression). Site : onglet Propositions d'Explorer avec\nvotes des comptes ; numéro de suivi à l'envoi sans compte (seule l'empreinte\npart en base, le numéro reste dans philo-suivis) ; « Mes propositions »\nboîte par boîte, avec ou sans compte. Essai : le site et /admin/ annoncent\nle même état au contributeur. Notice : clé philo-suivis.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": "Administration A3"
+    },
     {
       "hash": "d74272d72a36684a01d5d32db57ab4d7fa5dabef",
       "short": "d74272d",

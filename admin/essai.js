@@ -35,6 +35,9 @@
       { contenu: C('notion', 'plan', 'ajout', { notion: 'travail', plan_q: 'Le travail libère-t-il ?', plan_a1t: 'Le travail transforme la nature et l’homme', plan_a1c: 'Arguments…', plan_a2t: 'Mais il peut aliéner', plan_a2c: 'Arguments…' }), lue: true } ] },
     { c: 'c14', pseudo: 'Tom', a_compte: true, h: 200, boites: [
       { contenu: C('site', 'site-fonction', 'remarque', { fonctitre: 'Un mode sombre plus contrasté', foncdesc: 'Le gris sur gris est difficile à lire le soir.' }), lue: true, sujet: 2, statut: 'validee' } ] },
+    // Lot A4 : un doublon probable de la n° 43 (« Weil » ⊂ « Simone Weil »).
+    { c: 'c13', pseudo: null, a_compte: false, a_suivi: true, h: 500, boites: [
+      { contenu: C('auteur', 'auteur-bio', 'ajout', { nom: 'Weil', a_courant: 'Philosophie politique et morale', a_periode: 'XXe siècle' }), lue: true } ] },
   ];
 
   let n = 40;
@@ -98,6 +101,18 @@
       const i = sujets.findIndex(x => x.id === id);
       if (i >= 0) sujets.splice(i, 1);
       boites.forEach(b => { if (b.sujet === id) b.sujet = null; });
+    },
+    // Lot A4 : une fausse relecture (aucun appel à Gemini).
+    async relire(corps) {
+      await attendre();
+      const choisies = corps.ids ? boites.filter(b => corps.ids.includes(b.id))
+        : boites.filter(b => b.statut === 'en_attente' && !b.ia_verdict && b.contenu.categorie !== 'site').slice(0, corps.limite || 8);
+      choisies.forEach((b, i) => {
+        b.ia_verdict = i % 2 ? 'douteux' : 'valide';
+        b.ia_avis = 'Avis d’essai : aucune IA n’a été appelée.';
+        b.ia_le = new Date().toISOString();
+      });
+      return { relues: choisies.map(b => ({ id: b.id, verdict: b.ia_verdict })), erreurs: [], arret: null };
     },
     async creerSujet(titre) {
       await attendre();

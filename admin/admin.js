@@ -41,6 +41,16 @@ const API = ESSAI ? window.AdminEssai : {
   // Lot A3 : l'onglet Sujets.
   enregistrerSujet: (id, champs) => rpc('admin_enregistrer_sujet', { p_id: id, p_champs: champs }),
   supprimerSujet: id => rpc('admin_supprimer_sujet', { p_id: id }),
+  // Lot A4 : la relecture par l'IA, fonction Supabase « relire »
+  // (supabase/functions/relire). Une erreur renvoyée par la fonction
+  // ({erreur: 'pas-admin'}…) devient le code « relire-pas-admin ».
+  relire: async corps => {
+    const { data, error } = await SB.functions.invoke('relire', { body: corps });
+    if (!error) return data;
+    let code = '';
+    try { code = (await error.context.json()).erreur || ''; } catch (e) { /* pas de corps JSON */ }
+    throw Object.assign(new Error(error.message), { code: code ? 'relire-' + code : (error.name === 'FunctionsHttpError' ? 'relire-http' : 'relire-absente'), status: error.context && error.context.status });
+  },
 };
 
 // ── L'état ────────────────────────────────────────────────────────────────
@@ -174,6 +184,9 @@ function entete() {
   const nouvelles = etat.boites.filter(b => !b.lue_le).length;
   const mode = ESSAI ? `<span class="mode essai" title="Rien n'est enregistré : les données sont fausses et se perdent au rechargement.">essai · fausses données</span>`
     : `<span class="mode">${LOCAL ? 'local · vraie base' : 'en ligne'}</span>`;
+  // Lot A4 : combien de boîtes l'IA peut relire (en attente, jamais relues,
+  // hors retours sur le site) ; la fonction en prend 8 par appel.
+  const aRelire = etat.boites.filter(b => b.statut === 'en_attente' && !b.ia_verdict && M.categorieDe(b) !== 'site').length;
   const onglet = (k, label) => `<button type="button" role="tab" id="onglet-${k}" data-onglet="${k}" aria-selected="${etat.onglet === k}" tabindex="${etat.onglet === k ? 0 : -1}">${label}</button>`;
   return `<header class="head">
     <h1>🗂️</h1>
@@ -181,7 +194,7 @@ function entete() {
       ${onglet('boite', `Boîte de réception${nouvelles ? `<span class="chip" title="jamais ouvertes">${nouvelles}</span>` : ''}`)}
       ${onglet('sujets', `Sujets (${etat.sujets.length})`)}
     </div>
-    <span class="right">${mode}${etat.email ? `<span>${esc(etat.email)}</span>` : ''}
+    <span class="right"><button type="button" data-act="relire"${aRelire && !etat.occupe ? '' : ' disabled'} title="Gemini donne un avis sur les boîtes en attente jamais relues (8 au plus par clic). Il ne reçoit que leur texte.">🤖 Relire avec l'IA${aRelire ? ` (${aRelire})` : ''}</button>${mode}${etat.email ? `<span>${esc(etat.email)}</span>` : ''}
       <button type="button" class="link" data-act="actualiser">Actualiser</button>
       ${ESSAI ? '<a href="/admin/">Quitter l\'essai</a>' : '<button type="button" class="link" data-act="sortir">Se déconnecter</button>'}</span>
   </header>`;
@@ -196,6 +209,18 @@ function filtresHtml() {
     <select id="f-ia" aria-label="Avis IA">${Object.entries(M.FILTRES_IA).map(([k, v]) => opt(k, v, f.ia)).join('')}</select>
     <input type="search" id="f-q" aria-label="Chercher" placeholder="Chercher (touche /)" value="${esc(f.q)}">
   </div>`;
+}
+
+/* aDoublon(id) — la boîte a-t-elle un doublon sûr (même signature ou même
+   nom) ? Calculé une fois par liste de boîtes (M.doublons, mode rapide) :
+   sert à la pastille « doublon ? » de la liste. */
+const memoDoublons = { ref: null, ids: new Set() };
+function aDoublon(id) {
+  if (memoDoublons.ref !== etat.boites) {
+    memoDoublons.ref = etat.boites;
+    memoDoublons.ids = new Set(etat.boites.filter(b => b.statut !== 'refusee' && M.doublons(b, etat.boites, null, true).length).map(b => b.id));
+  }
+  return memoDoublons.ids.has(id);
 }
 
 function pilleIA(b) {
@@ -214,6 +239,7 @@ function ligne(b) {
     b.statut !== 'en_attente' ? esc(M.STATUTS[b.statut]) : '',
     b.reponse ? 'répondue' : '',
     pilleIA(b),
+    aDoublon(b.id) ? '<span class="pill warn">doublon ?</span>' : '',
   ].filter(Boolean);
   return `<li><button type="button" class="${b.id === etat.sel ? 'sel' : ''}" data-boite="${b.id}" aria-current="${b.id === etat.sel}">
     <span class="h">${h.join(' · ')}</span><span class="t">${esc(M.resume(b, NOTIONS))}</span></button></li>`;
@@ -254,6 +280,10 @@ function detail(b) {
   const ia = b.ia_verdict
     ? `<details class="ia"${b.ia_verdict !== 'valide' ? ' open' : ''}><summary>${pilleIA(b)} Avis de l'IA${b.ia_le ? ` <span class="hint">${esc(M.depuis(b.ia_le))}</span>` : ''}</summary><div>${esc(b.ia_avis || '(pas de commentaire)')}</div></details>`
     : `<span class="hint">${M.categorieDe(b) === 'site' ? 'Retour sur le site : pas de relecture par l’IA.' : 'Pas encore relue par l’IA.'}</span>`;
+  const relireUne = M.categorieDe(b) === 'site' ? '' : `<button type="button" class="link" data-act="relire-une"${etat.occupe ? ' disabled' : ''}>🤖 ${b.ia_verdict ? 'Relire à nouveau' : 'Relire cette boîte'}</button>`;
+  // Lot A4 : les boîtes qui lui ressemblent (M.doublons), cliquables.
+  const dbl = M.doublons(b, etat.boites).slice(0, 5);
+  const doublonsHtml = dbl.length ? `<div class="dup"><b>⚠ Ressemble à :</b> ${dbl.map(d => `<button type="button" class="link" data-boite="${d.id}">n° ${d.id}</button> <span class="hint">(${esc(d.raison)}, ${esc(M.STATUTS[d.statut] || d.statut)})</span>`).join(' · ')}</div>` : '';
   const integ = b.statut === 'integree'
     ? `<div class="info"><span><span class="pill ok">Intégrée</span> ${b.integration ? `commit <code>${esc(b.integration.commit)}</code>${b.integration.detail ? ' · ' + esc(b.integration.detail) : ''}` : 'à la main'}</span>
        <div class="acts"><button type="button" data-statut="validee">Remettre en « Validée »</button></div></div>` : '';
@@ -270,7 +300,8 @@ function detail(b) {
     ${soeurs.length > 1 ? `<div class="contrib"><span>Envoyée avec :</span>${soeurs.map(s => `<button type="button" data-boite="${s.id}" aria-current="${s.id === b.id}" title="${esc(M.STATUTS[s.statut])}">n° ${s.id}</button>`).join('')}
       <span class="hint">le contributeur voit « ${esc(M.vuContributeur(soeurs.map(s => s.statut)))} »</span></div>` : ''}
     ${fiche(b)}
-    ${ia}
+    <div class="acts">${ia}${relireUne}</div>
+    ${doublonsHtml}
     <label class="blk">Ranger dans un sujet
       <select id="d-sujet"><option value="">— aucun —</option>${sujets}<option value="nouveau">+ Nouveau sujet…</option></select></label>
     ${etat.nouveauSujet ? `<div class="acts"><input type="text" id="d-nouveau" maxlength="300" placeholder="Titre du sujet (public s'il est publié)" style="flex:1"><button type="button" class="primary" data-act="creer-sujet">Créer</button><button type="button" data-act="annuler-sujet">Annuler</button></div>` : ''}
@@ -386,6 +417,27 @@ async function supprimerSujet() {
   try { await API.supprimerSujet(s.id); etat.sujet = null; await rechargerSujets(); dire('Sujet supprimé.'); }
   catch (e) { echec(e); }
   rendre();
+}
+
+// ── Relecture par l'IA (lot A4) ───────────────────────────────────────────
+
+/* relire(corps) — appelle la fonction Supabase « relire » ({limite} ou
+   {ids}), puis relit les boîtes et dit ce qui s'est passé. Compter ~5 s
+   par boîte (Gemini, plus une pause pour son quota gratuit). */
+async function relire(corps) {
+  etat.occupe = true; rendre();
+  const n = corps.ids ? corps.ids.length : Math.min(8, etat.boites.filter(b => b.statut === 'en_attente' && !b.ia_verdict && M.categorieDe(b) !== 'site').length);
+  dire(`Relecture de ${n} boîte${n > 1 ? 's' : ''} par l'IA… (quelques secondes par boîte)`);
+  try {
+    const r = await API.relire(corps);
+    etat.boites = (await API.boites()) || etat.boites;
+    const relues = (r && r.relues) || [];
+    const bilan = [`${relues.length} boîte${relues.length > 1 ? 's' : ''} relue${relues.length > 1 ? 's' : ''}.`];
+    if (r && r.arret) bilan.push(r.arret);
+    if (r && r.erreurs && r.erreurs.length) bilan.push(r.erreurs.length + ' refus : ' + r.erreurs.slice(0, 2).join(' ; '));
+    dire(bilan.join(' '), !!(r && (r.arret || (r.erreurs && r.erreurs.length))));
+  } catch (e) { echec(e); }
+  etat.occupe = false; rendre();
 }
 
 // ── Gestes ────────────────────────────────────────────────────────────────
@@ -518,6 +570,8 @@ racine.addEventListener('click', async e => {
       if (etat.onglet === 'sujets') { const id = etat.sujet; etat.sujet = null; return rendre(`[data-sujet="${id}"]`); }
       { const id = etat.sel; etat.sel = null; history.replaceState(null, '', location.pathname + location.search); return rendre(`[data-boite="${id}"]`); }
     case 'sujet-nouveau': return nouveauSujet();
+    case 'relire': return relire({ limite: 8 });
+    case 'relire-une': return relire({ ids: [etat.sel] });
     case 'sujet-enregistrer': return enregistrerSujet();
     case 'sujet-supprimer': return supprimerSujet();
     case 'enregistrer': return enregistrer();

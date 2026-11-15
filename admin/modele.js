@@ -234,6 +234,13 @@
     const msg = String((e && e.message) || e || '');
     if (code === '42501' || /non administrateur/i.test(msg))
       return "Ce compte n'est pas administrateur. Ajoute son identifiant (UID) dans la table app_admins.";
+    // Lot A4 : la fonction Supabase « relire » (supabase/functions/relire).
+    if (code === 'relire-gemini-absent') return "La clé Gemini n'est pas réglée : ajoute le secret GEMINI_API_KEY à la fonction « relire » dans Supabase.";
+    if (code === 'relire-pas-admin') return "La fonction « relire » ne reconnaît pas ce compte comme administrateur (table app_admins).";
+    if (code === 'relire-non-connecte') return 'La session a expiré : reconnecte-toi.';
+    if (code === 'relire-absente' || (code === 'relire-http' && e.status === 404))
+      return "La fonction « relire » n'est pas encore déployée sur Supabase (supabase functions deploy relire).";
+    if (code === 'relire-base' || code === 'relire-http') return 'La relecture a échoué côté Supabase. Réessaie ; si ça dure, regarde les journaux de la fonction « relire ».';
     if (code === 'PGRST202' || /could not find the function/i.test(msg))
       return "La base n'a pas encore la migration 2026_administration.sql : passe-la dans l'éditeur SQL de Supabase.";
     if (/jwt|expired|session/i.test(msg) || code === 401)
@@ -245,9 +252,98 @@
     return 'Refusé par la base : ' + msg.slice(0, 160);
   }
 
+  // ── Doublons (lot A4) ─────────────────────────────────────────────────
+  // Repris de l'agrégateur (ingest.compute_key_term, view.cmd_dupes) :
+  //  1. même SIGNATURE : même type, même cible, même notion, même
+  //     discriminant (nom, titre, terme…), sans accents ni casse ;
+  //  2. même NOM à une inclusion près (« sartre » ⊂ « jean-paul sartre »,
+  //     4 lettres au moins) ;
+  //  3. textes PROCHES : ratio de Ratcliff et Obershelp (celui de
+  //     difflib.SequenceMatcher) sur « discriminant | texte » ≥ 0,8.
+  // On ne compare que des boîtes de la même catégorie.
+
+  /* cleDe(b) — le discriminant lisible d'une boîte (compute_key_term). */
+  function cleDe(b) {
+    const c = (b && b.contenu) || {}, f = c.fields || {};
+    const coupe = s => { s = String(s || '').trim(); return s.length > 60 ? s.slice(0, 60) + '…' : s; };
+    if (c.cible === 'site-bug') return coupe(f.bugou || f.bugdesc);
+    if (c.cible === 'site-fonction') return String(f.fonctitre || '').trim();
+    if (c.type === 'correction') return String(f.cibleref || '').trim();
+    if (c.type === 'remarque') return String(f.remelement || '').trim();
+    switch (c.cible) {
+      case 'notion': return String(f.notion || '').trim();
+      case 'auteur': case 'auteur-citation': case 'auteur-dialogue': case 'auteur-bio': return String(f.nom || '').trim();
+      case 'texte': return String(f.titre || '').trim();
+      case 'plan': return String(f.plan_q || '').trim();
+      case 'exemple': return String(f.extitre || f.excat || '').trim();
+      case 'accroche': return coupe(f.acctexte || f.acctype);
+      case 'dissertation': return coupe(f.question);
+      case 'concept': case 'concept-relation': return String(f.cterme || '').trim();
+    }
+    return '';
+  }
+
+  const norme = s => sansAccents(s).replace(/\s+/g, ' ').trim();
+
+  /* signature(b) — l'identité d'une boîte pour le rapprochement exact. */
+  function signature(b) {
+    const c = (b && b.contenu) || {};
+    return [c.type || '', c.cible || '', notionDe(b) || '', norme(cleDe(b))].join('|');
+  }
+
+  /* ressemblance(a, b) — ratio de Ratcliff et Obershelp entre deux
+     chaînes, de 0 à 1 : 2 × (caractères en commun par plus longs blocs
+     communs) / (longueur totale). Même définition que difflib. */
+  function ressemblance(a, b) {
+    if (!a.length && !b.length) return 1;
+    const communs = (a0, a1, b0, b1) => {
+      if (a0 >= a1 || b0 >= b1) return 0;
+      // le plus long bloc commun dans a[a0:a1], b[b0:b1]
+      let meilleur = 0, ia = a0, ib = b0, prec = new Array(b1 - b0 + 1).fill(0);
+      for (let i = a0; i < a1; i++) {
+        const cour = new Array(b1 - b0 + 1).fill(0);
+        for (let j = b0; j < b1; j++) {
+          if (a[i] === b[j]) {
+            const l = prec[j - b0] + 1;
+            cour[j - b0 + 1] = l;
+            if (l > meilleur) { meilleur = l; ia = i - l + 1; ib = j - l + 1; }
+          }
+        }
+        prec = cour;
+      }
+      if (!meilleur) return 0;
+      return meilleur + communs(a0, ia, b0, ib) + communs(ia + meilleur, a1, ib + meilleur, b1);
+    };
+    return (2 * communs(0, a.length, 0, b.length)) / (a.length + b.length);
+  }
+
+  /* doublons(b, liste, seuil) — les boîtes de la liste qui ressemblent à
+     b, du plus sûr au moins sûr : [{id, statut, raison, score}]. raison :
+     « identique », « même nom » ou « texte proche à 87 % ». rapide=vrai
+     saute la comparaison des textes (assez pour la pastille de la liste). */
+  function doublons(b, liste, seuil, rapide) {
+    seuil = seuil == null ? 0.8 : seuil;
+    const cat = categorieDe(b), sig = signature(b), cle = norme(cleDe(b));
+    const texte = x => norme(cleDe(x) + ' | ' + resume(x)).slice(0, 300);
+    const tb = rapide ? '' : texte(b);
+    const out = [];
+    liste.forEach(x => {
+      if (x.id === b.id || categorieDe(x) !== cat) return;
+      if (signature(x) === sig && cle) return out.push({ id: x.id, statut: x.statut, raison: 'identique', score: 2 });
+      const k = norme(cleDe(x));
+      if (cle.length >= 4 && k.length >= 4 && k !== cle && (k.includes(cle) || cle.includes(k)))
+        return out.push({ id: x.id, statut: x.statut, raison: 'même nom', score: 1.5 });
+      if (rapide) return;
+      const r = ressemblance(tb, texte(x));
+      if (r >= seuil) out.push({ id: x.id, statut: x.statut, raison: `texte proche à ${Math.round(r * 100)} %`, score: r });
+    });
+    return out.sort((p, q) => q.score - p.score);
+  }
+
   const M = {
     STATUTS, ETATS_SUJET, CATEGORIES, CIBLES, TYPES, CHAMPS, VERDICTS, FILTRES_ETAT, FILTRES_IA, FILTRES_DEFAUT,
     categorieDe, filtrer, champsLisibles, resume, etiquette, notionDe, lienSite, vuContributeur, depuis, erreur,
+    cleDe, signature, ressemblance, doublons,
   };
   racine.AdminModele = M;
   if (typeof module !== 'undefined' && module.exports) module.exports = M;

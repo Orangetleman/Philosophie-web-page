@@ -60,6 +60,7 @@ create table if not exists public.boites (
   sujet        bigint references public.sujets(id) on delete set null,
   ia_verdict   text,                       -- avis de l'IA, interne (lot A4)
   ia_avis      text,
+  ia_message   text,                       -- le même avis, rédigé pour le contributeur (lot A4)
   ia_le        timestamptz,
   integration  jsonb,                      -- {commit, fait_le, resultat, detail} (§ 9)
   cree_le      timestamptz not null default now(),
@@ -228,7 +229,7 @@ revoke all on function public.contributions_apres_envoi() from public, anon, aut
 --   validee → validee ; integree, archivee → integree ; rejetee → refusee ;
 -- à défaut d'état, le statut de la proposition. Tout ce qui existe déjà est
 -- marqué lu (il a été vu dans les anciens outils). Rejouable : on conflict.
-insert into public.boites (contribution, rang, statut, lue_le, note, ia_verdict, ia_avis, ia_le)
+insert into public.boites (contribution, rang, statut, lue_le, note, ia_verdict, ia_avis, ia_message, ia_le)
 select c.id, p.pos,
        case coalesce(st.b->>'status',
                      case c.statut::text when 'validee_en_cours' then 'validee'
@@ -243,6 +244,7 @@ select c.id, p.pos,
        nullif(st.b->>'note', ''),
        nullif(st.b->>'ai_verdict', ''),
        nullif(st.b->>'ai_review', ''),
+       nullif(st.b->>'ai_user_message', ''),
        case when st.b->>'ai_verdict' is not null then c.aggregator_updated_at end
   from public.contributions c
   cross join lateral generate_series(0, greatest(1, coalesce(jsonb_array_length(

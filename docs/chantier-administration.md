@@ -260,3 +260,26 @@ l'import le dit (« pas encore en ligne : réimporte après la fusion »).
   **avant la migration, la base répond 404 à `propositions()` et `suivre()`**,
   et la page le dit (« Impossible de charger… »). Tout part donc ensemble :
   migration, puis mise en ligne.
+- **A4** (15 novembre 2026). **Relecture par l'IA dans Supabase** :
+  fonction `supabase/functions/relire` (Deno). Elle vérifie que l'appelant est
+  administrateur, relit 8 boîtes au plus par appel (en attente, jamais relues,
+  hors retours sur le site) ou celles demandées, avec la consigne de
+  `review.py`, n'envoie à Gemini que le texte de la boîte (e-mails et numéros
+  masqués), et écrit l'avis boîte par boîte (`ia_verdict`, `ia_avis`,
+  `ia_message`, colonne ajoutée à la migration, non encore passée) et l'avis
+  pour le contributeur (`contributions.avis_ia`, « Partie n » si plusieurs
+  boîtes). Partie sans réseau dans `relecture.js`, 6 essais avec témoin
+  (`node outils/essais_relecture.mjs`) ; `index.ts` vérifié pour la syntaxe
+  seulement (pas de Deno ici) : **jamais exécutée**. `/admin/` : bouton
+  « 🤖 Relire avec l'IA (n) » et « Relire cette boîte », erreurs en clair
+  (fonction pas déployée, clé absente, quota du jour). **Doublons** dans
+  `admin/modele.js` (signature, même nom à une inclusion près, textes proches
+  à 80 % par le ratio de difflib, chiffres vérifiés contre Python) : pastille
+  « doublon ? » dans la liste, « Ressemble à » cliquable dans le détail.
+  4 essais de plus dans `essais_admin.mjs` (16 en tout).
+
+  **Pour la mettre en service** (à faire par l'auteur, avec son compte) :
+  1. `npm i -g supabase` puis `supabase login` et `supabase link --project-ref fipdatwirklhgdbujobz` ;
+  2. `supabase secrets set GEMINI_API_KEY=…` (la clé du `.env` de l'agrégateur) ;
+  3. `supabase functions deploy relire` ;
+  4. premier essai : une seule boîte, par « Relire cette boîte ».

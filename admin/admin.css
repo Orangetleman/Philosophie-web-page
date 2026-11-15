@@ -93,6 +93,8 @@ ul.it{list-style:none;margin:0;padding:0}
 .pill.warn{color:var(--warn);border-color:var(--warn);background:var(--warn-bg)}
 .pill.bad{color:var(--bad);border-color:var(--bad-bd);background:var(--bad-bg)}
 .pill.info{color:var(--accent-tx);border-color:var(--accent);background:var(--accent-soft)}
+.acts > .ia{flex:1 1 280px}
+.dup{background:var(--warn-bg);border:1px solid #5a4410;border-radius:8px;padding:8px 10px;font-size:13px}
 label.blk{display:grid;gap:4px;font-size:13px;font-weight:600}
 label.blk .hint{font-weight:400}
 label.blk select,label.blk input{width:100%}

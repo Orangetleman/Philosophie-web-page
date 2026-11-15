@@ -26,6 +26,7 @@ liste officielle, 5 hors programme, 6 enrichir ; décisions de l'auteur au
 | `outils/` | `construire.mjs` (build), `verifier_contenu.mjs` (contrôle), `lib/` (formats, écriture), `banc/` (règles d'accès Supabase) | oui |
 | `docs/` | diagnostic, protocole du contenu, architecture détaillée, carte du projet | oui |
 | `admin/` | page `/admin/` : tri des propositions, en ligne et en local (`/admin/?essai` : fausses données) ; logique dans `modele.js` | oui |
+| `supabase/functions/` | fonctions Supabase (Deno) : `relire` (relecture des propositions par Gemini) ; déployées par `supabase functions deploy` | oui |
 | `triage/` | mini-appli de tri des propositions sur téléphone (remplacée par `admin/`, retrait au lot A6) | oui |
 | `philo-aggregator/` | outil Python local : récupère, relit (Gemini) et exporte les propositions ; migrations SQL | oui |
 | `icon.ico`, `icon_gear.ico` | icônes du raccourci Windows du tableau de bord local de l'agrégateur | non |
@@ -96,6 +97,8 @@ liste officielle, 5 hors programme, 6 enrichir ; décisions de l'auteur au
   `--racine <dossier>` contrôle une autre copie du site.
 - **`node outils/essais_admin.mjs`** : la logique de `/admin/` (`admin/modele.js`),
   chaque essai avec son témoin.
+- **`node outils/essais_relecture.mjs`** : la partie sans réseau de la fonction
+  `relire` (`supabase/functions/relire/relecture.js`), avec témoins.
 - **`node outils/construire.mjs --temoins`** : prouve que le contrôle de
   syntaxe voit une faute glissée exprès.
 - **`node docs/carte/verifie.mjs`** : chaque symbole de la carte doit être

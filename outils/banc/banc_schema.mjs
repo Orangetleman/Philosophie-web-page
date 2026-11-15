@@ -301,7 +301,7 @@ const ESSAIS = [
    L'essai remplace donc la fabrique de la base (anciens = SQL glissé avant). */
 const ANCIENS = `insert into public.contributions (user_id, payload, statut, aggregator_state)
   values (null, '{"boxes":[{},{}]}', 'validee_integree',
-          '{"v":1,"boxes":[{"position":0,"status":"archivee","note":"vu"},{"position":1,"status":"rejetee","ai_verdict":"douteux","ai_review":"source ?"}]}');\n`;
+          '{"v":1,"boxes":[{"position":0,"status":"archivee","note":"vu"},{"position":1,"status":"rejetee","ai_verdict":"douteux","ai_review":"source ?","ai_user_message":"Merci !"}]}');\n`;
 const reprise = ESSAIS.find(e => e.nom.startsWith('la reprise'));
 const avecAnciens = sauf => (f, s) => {
   const t = sauf ? sauf(f, s) : s;
@@ -309,10 +309,10 @@ const avecAnciens = sauf => (f, s) => {
 };
 reprise.base = sauf => base(avecAnciens(sauf));
 reprise.f = async db => {
-  const r = (await db.query('select statut, note, ia_verdict, lue_le from public.boites order by rang')).rows;
+  const r = (await db.query('select statut, note, ia_verdict, ia_message, lue_le from public.boites order by rang')).rows;
   const c = (await db.query('select statut::text as s from public.contributions')).rows[0].s;
   return r.length === 2 && r[0].statut === 'integree' && r[0].note === 'vu' && r[1].statut === 'refusee'
-    && r[1].ia_verdict === 'douteux' && r.every(x => x.lue_le) && c === 'validee_integree';
+    && r[1].ia_verdict === 'douteux' && r[1].ia_message === 'Merci !' && r.every(x => x.lue_le) && c === 'validee_integree';
 };
 
 let ko = 0;
