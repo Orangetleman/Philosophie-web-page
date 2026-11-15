@@ -1,8 +1,17 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
-  "genere_le": "2026-11-15T09:37:26.972Z",
+  "genere_le": "2026-11-15T09:54:56.353Z",
   "commits": [
+    {
+      "hash": "d74272d72a36684a01d5d32db57ab4d7fa5dabef",
+      "short": "d74272d",
+      "auteur": "Orangentleman",
+      "date": "2026-11-15T10:37:18+01:00",
+      "sujet": "Administration A2 : la page /admin/ (boîte de réception)",
+      "corps": "Une seule page de tri, en ligne et en local : connexion, boîte de réception\nfiltrée, détail mis en forme, état boîte par boîte, sujet, réponse, note\ninterne, suppression confirmée, /admin/#n°, raccourcis clavier, erreurs en\nclair. /admin/?essai la montre sur de fausses données. Logique pure dans\nadmin/modele.js, éprouvée par outils/essais_admin.mjs (12 essais avec témoin).\n/admin/ hors du service worker du site et interdit dans robots.txt.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": "Administration A2"
+    },
     {
       "hash": "5a1bce8e04e09df0cd9dd568082f93c5238cb437",
       "short": "5a1bce8",

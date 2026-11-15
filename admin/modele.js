@@ -14,6 +14,9 @@
   // ── Vocabulaire ───────────────────────────────────────────────────────
   // Les quatre états d'une boîte (table boites, 2026_administration.sql).
   const STATUTS = { en_attente: 'En attente', validee: 'Validée', integree: 'Intégrée', refusee: 'Refusée' };
+  // Les quatre états d'un sujet (table sujets ; lot A3). Mêmes mots sur la
+  // page publique Propositions.
+  const ETATS_SUJET = { propose: 'Proposé', prevu: 'Prévu', fait: 'Fait', refuse: 'Refusé' };
 
   // Catégories et sous-cibles : mêmes valeurs que PROPOSAL_CATS et
   // PROPOSAL_SOUSCIBLES (js/06-contribution.js), libellés courts pour la liste.
@@ -243,7 +246,7 @@
   }
 
   const M = {
-    STATUTS, CATEGORIES, CIBLES, TYPES, CHAMPS, VERDICTS, FILTRES_ETAT, FILTRES_IA, FILTRES_DEFAUT,
+    STATUTS, ETATS_SUJET, CATEGORIES, CIBLES, TYPES, CHAMPS, VERDICTS, FILTRES_ETAT, FILTRES_IA, FILTRES_DEFAUT,
     categorieDe, filtrer, champsLisibles, resume, etiquette, notionDe, lienSite, vuContributeur, depuis, erreur,
   };
   racine.AdminModele = M;

@@ -245,3 +245,18 @@ l'import le dit (« pas encore en ligne : réimporte après la fusion »).
 - **Reste à placer** : côté site, « Mes propositions » boîte par boîte et le
   suivi par numéro (Q4) n'ont pas encore de lot. Proposé : avec A3 (ce que
   voit le public).
+- **A3** (15 novembre 2026). `/admin/` : onglet **Sujets** (liste par score,
+  état, titre, description, réponse publique, publication, réponse copiée dans
+  les boîtes rangées sans réponse, suppression ; ← → entre les onglets). Site :
+  onglet **Propositions** d'Explorer (`#/explorer/propositions` : sujets
+  publiés, votes ▲ / ▼ pour un compte, second clic = retrait) ; **numéro de
+  suivi** à l'envoi sans compte (12 caractères, seule l'empreinte sha256 part
+  en base, le numéro est gardé dans `philo-suivis`) ; **« Mes propositions »**
+  boîte par boîte, avec ou sans compte, et « Retrouver » un numéro venu
+  d'ailleurs. Essais : 14 dans `essais_admin.mjs`, dont l'accord site ↔
+  /admin/ sur ce que voit le contributeur ; empreinte du navigateur identique
+  à celle du banc. Notice : clé `philo-suivis` (entrée 2026-11-16 mise à jour,
+  pas encore publiée). Vérifié en mode essai et, côté site, sans rien envoyer :
+  **avant la migration, la base répond 404 à `propositions()` et `suivre()`**,
+  et la page le dit (« Impossible de charger… »). Tout part donc ensemble :
+  migration, puis mise en ligne.

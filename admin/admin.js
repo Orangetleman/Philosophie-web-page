@@ -38,11 +38,17 @@ const API = ESSAI ? window.AdminEssai : {
   majBoite: (id, champs) => rpc('admin_maj_boite', { p_id: id, p_champs: champs }),
   supprimerBoite: id => rpc('admin_supprimer_boite', { p_id: id }),
   creerSujet: titre => rpc('admin_enregistrer_sujet', { p_id: null, p_champs: { titre } }),
+  // Lot A3 : l'onglet Sujets.
+  enregistrerSujet: (id, champs) => rpc('admin_enregistrer_sujet', { p_id: id, p_champs: champs }),
+  supprimerSujet: id => rpc('admin_supprimer_sujet', { p_id: id }),
 };
 
 // ── L'état ────────────────────────────────────────────────────────────────
 const etat = {
   phase: 'chargement',      // chargement | connexion | pas-admin | boite
+  onglet: 'boite',          // boite | sujets (lot A3)
+  sujet: null,              // n° du sujet ouvert dans l'onglet Sujets
+  filtreSujet: '',          // état des sujets montrés ('' = tous)
   email: '', uid: '',
   erreurConnexion: '',
   boites: [], sujets: [],
@@ -125,7 +131,7 @@ function rendre(focus) {
     etat.phase === 'chargement' ? `<p class="vide">Chargement…</p>` :
     etat.phase === 'connexion' ? pageConnexion() :
     etat.phase === 'pas-admin' ? pagePasAdmin() :
-    entete() + boiteDeReception();
+    entete() + (etat.onglet === 'sujets' ? ongletSujets() : boiteDeReception());
   if (garde) {
     const el = racine.querySelector(garde);
     if (el) {
@@ -168,8 +174,13 @@ function entete() {
   const nouvelles = etat.boites.filter(b => !b.lue_le).length;
   const mode = ESSAI ? `<span class="mode essai" title="Rien n'est enregistré : les données sont fausses et se perdent au rechargement.">essai · fausses données</span>`
     : `<span class="mode">${LOCAL ? 'local · vraie base' : 'en ligne'}</span>`;
+  const onglet = (k, label) => `<button type="button" role="tab" id="onglet-${k}" data-onglet="${k}" aria-selected="${etat.onglet === k}" tabindex="${etat.onglet === k ? 0 : -1}">${label}</button>`;
   return `<header class="head">
-    <h1>🗂️ Boîte de réception${nouvelles ? `<span class="chip" title="jamais ouvertes">${nouvelles} nouvelle${nouvelles > 1 ? 's' : ''}</span>` : ''}</h1>
+    <h1>🗂️</h1>
+    <div class="tabs" role="tablist" aria-label="Parties de l'administration">
+      ${onglet('boite', `Boîte de réception${nouvelles ? `<span class="chip" title="jamais ouvertes">${nouvelles}</span>` : ''}`)}
+      ${onglet('sujets', `Sujets (${etat.sujets.length})`)}
+    </div>
     <span class="right">${mode}${etat.email ? `<span>${esc(etat.email)}</span>` : ''}
       <button type="button" class="link" data-act="actualiser">Actualiser</button>
       ${ESSAI ? '<a href="/admin/">Quitter l\'essai</a>' : '<button type="button" class="link" data-act="sortir">Se déconnecter</button>'}</span>
@@ -275,6 +286,108 @@ function detail(b) {
   </section>`;
 }
 
+// ── Onglet Sujets (lot A3) ────────────────────────────────────────────────
+// Un sujet regroupe des boîtes qui demandent la même chose ; publié, il
+// paraît sur la page Propositions du site (Explorer), où les comptes votent.
+// score = demandes (boîtes rangées) + votes pour − votes contre.
+
+function ligneSujet(s) {
+  return `<li><button type="button" class="${s.id === etat.sujet ? 'sel' : ''}" data-sujet="${s.id}" aria-current="${s.id === etat.sujet}">
+    <span class="h"><b class="score">${s.score}</b> ${esc(M.ETATS_SUJET[s.etat] || s.etat)} · ${s.demandes} demande${s.demandes > 1 ? 's' : ''} · ▲ ${s.pour} ▼ ${s.contre} · ${s.publie ? 'publié' : '<i>non publié</i>'}</span>
+    <span class="t">${esc(s.titre)}</span></button></li>`;
+}
+
+function ongletSujets() {
+  const liste = etat.sujets.filter(s => !etat.filtreSujet || s.etat === etat.filtreSujet);
+  const s = etat.sujets.find(x => x.id === etat.sujet) || null;
+  const opt = (v, l) => `<option value="${v}"${v === etat.filtreSujet ? ' selected' : ''}>${esc(l)}</option>`;
+  return `<div class="tb${s ? ' a-choix' : ''}" role="tabpanel" aria-labelledby="onglet-sujets">
+    <nav class="tb-list" aria-label="Sujets">
+      <div class="filters"><select id="f-sujet" aria-label="État des sujets">${opt('', 'Tous les états')}${Object.entries(M.ETATS_SUJET).map(([k, v]) => opt(k, v)).join('')}</select>
+        <button type="button" data-act="sujet-nouveau">+ Nouveau sujet</button></div>
+      <div class="compte">les plus demandés d'abord · score = demandes + ▲ − ▼</div>
+      ${liste.length ? `<ul class="it">${liste.map(ligneSujet).join('')}</ul>` : `<p class="vide">Aucun sujet. On en crée un depuis une boîte (« Ranger dans un sujet ») ou par « + Nouveau sujet ».</p>`}
+    </nav>
+    ${s ? detailSujet(s) : `<section class="det rien"><p>Choisis un sujet dans la liste.</p></section>`}
+  </div>`;
+}
+
+function detailSujet(s) {
+  const rangees = etat.boites.filter(b => b.sujet === s.id);
+  const seg = Object.entries(M.ETATS_SUJET).map(([k, l]) => `<button type="button" data-etat-sujet="${k}" aria-pressed="${s.etat === k}"${etat.occupe ? ' disabled' : ''}>${esc(l)}</button>`).join('');
+  const sansReponse = rangees.filter(b => !b.reponse && (b.a_compte || b.a_suivi)).length;
+  return `<section class="det" aria-labelledby="sujet-titre">
+    <button type="button" class="back" data-act="liste">← Liste</button>
+    <div class="acts"><h2 id="sujet-titre" tabindex="-1">Sujet · score ${s.score}</h2><span class="seg" role="group" aria-label="État du sujet">${seg}</span></div>
+    <span class="hint">${s.demandes} demande${s.demandes > 1 ? 's' : ''} + ${s.pour} ▲ − ${s.contre} ▼${s.publie ? ' · visible sur la page Propositions' : ' · pas publié : personne ne le voit'}</span>
+    <label class="blk">Titre <span class="hint">public s'il est publié</span><input type="text" id="s-titre" maxlength="300" value="${esc(s.titre)}"></label>
+    <label class="blk">Description <span class="hint">facultative, publique</span><textarea id="s-description" maxlength="2000" rows="2" style="min-height:48px">${esc(s.description || '')}</textarea></label>
+    <label class="blk">Réponse publique <span class="hint">affichée sous le sujet, sur la page Propositions</span><textarea id="s-reponse" maxlength="2000">${esc(s.reponse || '')}</textarea></label>
+    ${sansReponse ? `<label class="acts"><input type="checkbox" id="s-copier"> Envoyer aussi cette réponse aux ${sansReponse} boîte${sansReponse > 1 ? 's' : ''} rangée${sansReponse > 1 ? 's' : ''} ici qui n'en ont pas</label>` : ''}
+    <div class="acts"><label><input type="checkbox" id="s-publie"${s.publie ? ' checked' : ''}> Publier sur la page Propositions</label>
+      <button type="button" class="primary" data-act="sujet-enregistrer" style="margin-left:auto"${etat.occupe ? ' disabled' : ''}>Enregistrer</button></div>
+    <div><b>Demandes rangées ici</b>
+      ${rangees.length ? `<ul class="it">${rangees.map(ligne).join('')}</ul>` : '<p class="hint">Aucune boîte : le score ne vient que des votes.</p>'}</div>
+    <div class="acts"><button type="button" class="danger del" data-act="sujet-supprimer">Supprimer le sujet…</button></div>
+  </section>`;
+}
+
+/* rechargerSujets() — relit sujets et boîtes après un changement. */
+async function rechargerSujets() {
+  const [sujets, boites] = await Promise.all([API.sujets(), API.boites()]);
+  etat.sujets = sujets || []; etat.boites = boites || etat.boites;
+}
+
+/* enregistrerSujet() — titre, description, réponse, publication ; et, si la
+   case est cochée, la réponse copiée dans les boîtes rangées sans réponse
+   (le contributeur la lit alors dans « Mes propositions »). */
+async function enregistrerSujet() {
+  const s = etat.sujets.find(x => x.id === etat.sujet); if (!s) return;
+  const v = id => document.getElementById(id).value.trim();
+  const champs = { titre: v('s-titre'), description: v('s-description'), reponse: v('s-reponse'), publie: document.getElementById('s-publie').checked };
+  if (!champs.titre) return dire('Il faut un titre.', true);
+  const copier = document.getElementById('s-copier');
+  etat.occupe = true; rendre();
+  try {
+    await API.enregistrerSujet(s.id, champs);
+    let n = 0;
+    if (copier && copier.checked && champs.reponse) {
+      for (const b of etat.boites.filter(b => b.sujet === s.id && !b.reponse && (b.a_compte || b.a_suivi))) {
+        await API.majBoite(b.id, { reponse: champs.reponse }); n++;
+      }
+    }
+    await rechargerSujets();
+    dire('Sujet enregistré' + (n ? `, réponse envoyée à ${n} boîte${n > 1 ? 's' : ''}.` : '.'));
+  } catch (e) { echec(e); }
+  etat.occupe = false; rendre();
+}
+
+async function changerEtatSujet(k) {
+  etat.occupe = true; rendre();
+  try { await API.enregistrerSujet(etat.sujet, { etat: k }); await rechargerSujets(); dire('Sujet : ' + M.ETATS_SUJET[k] + '.'); }
+  catch (e) { echec(e); }
+  etat.occupe = false; rendre();
+}
+
+async function nouveauSujet() {
+  try {
+    const id = await API.creerSujet('Nouveau sujet');
+    await rechargerSujets();
+    etat.sujet = id; rendre('#s-titre');
+    const t = document.getElementById('s-titre'); if (t) t.select();
+  } catch (e) { echec(e); }
+}
+
+async function supprimerSujet() {
+  const s = etat.sujets.find(x => x.id === etat.sujet); if (!s) return;
+  const ok = await confirmer(`Supprimer le sujet « ${s.titre} » ?`,
+    `Ses ${s.demandes} boîte${s.demandes > 1 ? 's' : ''} restent, simplement retirées du sujet. Ses votes sont effacés. C'est définitif.`, 'Supprimer le sujet');
+  if (!ok) return;
+  try { await API.supprimerSujet(s.id); etat.sujet = null; await rechargerSujets(); dire('Sujet supprimé.'); }
+  catch (e) { echec(e); }
+  rendre();
+}
+
 // ── Gestes ────────────────────────────────────────────────────────────────
 
 /* ouvrir(id) — affiche la boîte et la marque lue (dans la base aussi). */
@@ -282,6 +395,7 @@ function ouvrir(id, focus) {
   const b = boite(id);
   if (!b) return;
   etat.sel = id;
+  etat.onglet = 'boite';    // depuis un sujet, on passe à la boîte de réception
   etat.nouveauSujet = false;
   history.replaceState(null, '', '#' + id);
   if (!b.lue_le) {
@@ -391,13 +505,21 @@ racine.addEventListener('click', async e => {
   const t = e.target.closest('button');
   if (!t || t.disabled) return;
   if (t.dataset.boite) return ouvrir(Number(t.dataset.boite));
+  if (t.dataset.onglet) { etat.onglet = t.dataset.onglet; return rendre('#onglet-' + etat.onglet); }
+  if (t.dataset.sujet) { etat.sujet = Number(t.dataset.sujet); return rendre(etroit() ? '#sujet-titre' : `[data-sujet="${etat.sujet}"]`); }
+  if (t.dataset.etatSujet) return changerEtatSujet(t.dataset.etatSujet);
   if (t.dataset.statut) return changer(etat.sel, { statut: t.dataset.statut }, `Boîte n° ${etat.sel} : ${M.STATUTS[t.dataset.statut]}.`);
   switch (t.dataset.act) {
     case 'google': return connexionGoogle();
     case 'sortir': return sortir();
     case 'copier-uid': navigator.clipboard && navigator.clipboard.writeText(etat.uid).then(() => dire('Identifiant copié.')); return;
     case 'actualiser': etat.phase = 'chargement'; rendre(); return charger();
-    case 'liste': { const id = etat.sel; etat.sel = null; history.replaceState(null, '', location.pathname + location.search); return rendre(`[data-boite="${id}"]`); }
+    case 'liste':
+      if (etat.onglet === 'sujets') { const id = etat.sujet; etat.sujet = null; return rendre(`[data-sujet="${id}"]`); }
+      { const id = etat.sel; etat.sel = null; history.replaceState(null, '', location.pathname + location.search); return rendre(`[data-boite="${id}"]`); }
+    case 'sujet-nouveau': return nouveauSujet();
+    case 'sujet-enregistrer': return enregistrerSujet();
+    case 'sujet-supprimer': return supprimerSujet();
     case 'enregistrer': return enregistrer();
     case 'integree': return changer(etat.sel, { statut: 'integree' }, `Boîte n° ${etat.sel} : intégrée.`);
     case 'supprimer': return supprimer();
@@ -414,6 +536,7 @@ racine.addEventListener('submit', e => {
 
 racine.addEventListener('change', e => {
   const id = e.target.id;
+  if (id === 'f-sujet') { etat.filtreSujet = e.target.value; return rendre('#f-sujet'); }
   if (id === 'f-cat' || id === 'f-etat' || id === 'f-ia') {
     etat.filtres[id.slice(2)] = e.target.value;
     return rendre('#' + id);
@@ -440,10 +563,15 @@ document.addEventListener('keydown', e => {
   const saisie = e.target.matches('input, textarea, select');
   if (e.key === 'Escape') {
     if (saisie) return e.target.blur();
+    if (etat.onglet === 'sujets') { if (etat.sujet !== null && etroit()) { const id = etat.sujet; etat.sujet = null; rendre(`[data-sujet="${id}"]`); } return; }
     if (etat.sel !== null) { const id = etat.sel; if (etroit()) { etat.sel = null; history.replaceState(null, '', location.pathname + location.search); } rendre(`[data-boite="${id}"]`); }
     return;
   }
-  if (saisie || e.ctrlKey || e.metaKey || e.altKey) return;
+  // Onglets au clavier : ← → (modèle des onglets ARIA).
+  if (e.target.matches('[role=tab]') && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
+    e.preventDefault(); etat.onglet = etat.onglet === 'boite' ? 'sujets' : 'boite'; return rendre('#onglet-' + etat.onglet);
+  }
+  if (saisie || e.ctrlKey || e.metaKey || e.altKey || etat.onglet !== 'boite') return;
   const k = e.key.toLowerCase();
   const statut = { v: 'validee', r: 'refusee', a: 'en_attente' }[k];
   if (statut && etat.sel !== null && boite(etat.sel).statut !== 'integree') {

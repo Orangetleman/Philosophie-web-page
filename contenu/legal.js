@@ -109,6 +109,7 @@ LEGAL({
     {cle: "philo-nav", role: "la dernière page ouverte"},
     {cle: "philo-navhist", role: "l'historique de navigation dans le site (boutons précédent et suivant)"},
     {cle: "philo-drafts", role: "le brouillon de proposition en cours (il peut contenir ton pseudo)"},
+    {cle: "philo-suivis", role: "les numéros de suivi de tes propositions envoyées sans compte, pour lire leur réponse"},
     {cle: "philo-tour-v1", role: "tu as déjà vu la visite guidée"},
     {cle: "philo-sync", role: "avec un compte : l'identifiant du compte et l'heure de la dernière synchronisation"},
     {cle: "philo-legal", role: "la version des conditions déjà acceptée sur cet appareil"},
@@ -143,7 +144,8 @@ LEGAL({
   // par le vérificateur (question 15). Ne jamais modifier une entrée passée.
   historique: [
     {version: "2026-11-15", resume: "Première version : mentions légales, données personnelles et conditions d'utilisation.", empreinte: "429fc389cc7a"},
-    // Chantier Administration (lot A1) : à redater au jour de la mise en ligne de /admin/.
-    {version: "2026-11-16", resume: "Tu peux suivre une proposition envoyée sans compte grâce à un numéro de suivi, lire la réponse à chaque partie de ta proposition, et voter, avec un compte, sur la page Propositions.", empreinte: "73da7bc77d3c"},
+    // Chantier Administration (lots A1 et A3), pas encore publiée : on met à jour
+    // cette entrée plutôt que d'en ajouter une ; à redater au jour de la mise en ligne.
+    {version: "2026-11-16", resume: "Tu peux suivre une proposition envoyée sans compte grâce à un numéro de suivi, lire la réponse à chaque partie de ta proposition, et voter, avec un compte, sur la page Propositions.", empreinte: "8d5fe0dd4e50"},
   ],
 });

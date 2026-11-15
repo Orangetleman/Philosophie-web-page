@@ -86,12 +86,43 @@ const ESSAIS = [
       if (manquent.length) console.log('   champs sans libellé : ' + manquent.join(', '));
       return cles.size > 30 && !manquent.length;
     } },
+  /* Lot A3 : le site (« Mes propositions », js/06-contribution.js) et /admin/
+     (« le contributeur voit … ») doivent dire la même chose. On extrait du
+     site etatBoitesLabel et le format du numéro de suivi. */
+  { nom: 'le site et /admin/ annoncent le même état au contributeur',
+    temoin: remplace("if (c('refusee') === n) return 'Non retenue';", ''),
+    f: (M, S) => {
+      const etats = ['en_attente', 'validee', 'integree', 'refusee'];
+      const combis = [[]];
+      for (let n = 0; n < 3; n++) combis.push(...combis.filter(c => c.length === n).flatMap(c => etats.map(e => [...c, e])));
+      return combis.filter(c => c.length).every(c => S.etatBoitesLabel(c).txt === M.vuContributeur(c));
+    } },
+  { nom: 'numéro de suivi : saisi en minuscules ou avec tirets, c’est le même',
+    // Ce cas ne dépend que du site : le témoin y glisse la faute (temoinSite).
+    temoinSite: src => src.replace(".toUpperCase().replace(/[^0-9A-Z]/g,'')", '.toUpperCase()'),
+    f: (M, S) => S.normaliserSuivi('k7q-4md 2xa-b3c') === 'K7Q4MD2XAB3C' && S.formaterSuivi('k7q4md2xab3c') === 'K7Q-4MD-2XA-B3C' },
 ];
+
+/* site() — les fonctions du site utiles aux essais, extraites de
+   js/06-contribution.js et exécutées seules. */
+function site(src = SITE) {
+  const morceau = (de, a) => { const i = src.indexOf(de), j = src.indexOf(a, i); if (i < 0 || j < 0) throw new Error('site : « ' + de + ' » introuvable'); return src.slice(i, j); };
+  const bac = {};
+  vm.runInNewContext(morceau('const ETAT_BOITE=', 'function boitesSuiviHTML') + morceau('function normaliserSuivi', 'async function empreinteSuivi')
+    + ';this.etatBoitesLabel=etatBoitesLabel;this.normaliserSuivi=normaliserSuivi;this.formaterSuivi=formaterSuivi;', bac);
+  return bac;
+}
 
 let ko = 0;
 for (const e of ESSAIS) {
-  const ok = (() => { try { return e.f(charger(SOURCE)); } catch (err) { console.log('   erreur : ' + err.message); return false; } })();
-  const vu = (() => { try { return !e.f(charger(e.temoin(SOURCE))); } catch (err) { return !/témoin/.test(err.message); } })();
+  // Un essai a un témoin dans modele.js (temoin) ou dans le site (temoinSite).
+  const ok = (() => { try { return e.f(charger(SOURCE), site()); } catch (err) { console.log('   erreur : ' + err.message); return false; } })();
+  const vu = (() => {
+    try {
+      if (e.temoinSite) { const t = e.temoinSite(SITE); if (t === SITE) return false; return !e.f(charger(SOURCE), site(t)); }
+      return !e.f(charger(e.temoin(SOURCE)), site());
+    } catch (err) { return !/témoin/.test(err.message); }
+  })();
   console.log(`${ok ? 'ok ' : 'KO '} ${e.nom}  ·  témoin ${vu ? 'vu' : 'PAS VU'}`);
   if (!ok || !vu) ko++;
 }

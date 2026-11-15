@@ -3579,26 +3579,86 @@ function sendProposalToSupabase(){
    Insère la proposition avec user_id NULL (aucun compte) : une règle RLS dédiée
    (migration 2026_anon_contributions.sql) autorise le rôle « anon » à insérer
    une ligne non rattachée à un compte, au statut « en_attente ». Le pseudo
-   saisi voyage dans payload.contributor (pas de suivi de statut, faute de
-   compte). Repli mailto automatique en cas d'échec — la contribution n'est
-   jamais perdue. */
-function sendProposalAnonSupabase(){
+   saisi voyage dans payload.contributor. Repli mailto automatique en cas
+   d'échec — la contribution n'est jamais perdue.
+   Nov. 2026 (chantier Administration, lot A3) : un NUMÉRO DE SUIVI. Le site
+   le tire au hasard (nouveauNumeroSuivi), le montre à la personne et le garde
+   dans ce navigateur (philo-suivis) ; la base ne reçoit que son EMPREINTE
+   (sha256), avec laquelle la fonction suivre(numéro) retrouve la proposition
+   et ses réponses. Si la base n'a pas encore la colonne (migration
+   2026_administration.sql pas passée), on renvoie sans numéro plutôt que de
+   basculer sur l'e-mail. */
+async function sendProposalAnonSupabase(){
   const btn=document.getElementById('psend-btn');
   const status=document.getElementById('psend-status');
   const setStatus=function(msg,color){ if(status){ status.textContent=msg; status.style.color=color||''; } };
   if(btn){ btn.disabled=true; btn.textContent='Envoi…'; }
   setStatus('Envoi en cours…','');
-  SB.from('contributions').insert({
-    user_id: null,                   // envoi anonyme : ligne non liée à un compte
-    payload: generateProposalJSON()  // JSON v3 (le pseudo est dans payload.contributor)
-  }).then(function(res){
+  const payload=generateProposalJSON();   // JSON v3 (le pseudo est dans payload.contributor)
+  let numero=null, empreinte=null;
+  try{ numero=nouveauNumeroSuivi(); empreinte=await empreinteSuivi(numero); }catch(e){ numero=null; }
+  try{
+    let res=await SB.from('contributions').insert(empreinte
+      ?{user_id:null, payload:payload, suivi_empreinte:empreinte}
+      :{user_id:null, payload:payload});
+    if(res.error&&empreinte&&/suivi_empreinte/.test(res.error.message||'')){
+      numero=null;   // base pas encore à jour : envoi sans numéro
+      res=await SB.from('contributions').insert({user_id:null, payload:payload});
+    }
     if(res.error) throw res.error;
     if(btn){ btn.textContent='✓ Envoyé'; }   // reste désactivé : évite le double envoi
-    setStatus('Merci ! Ta proposition anonyme a bien été envoyée. 🎉','#2ecc71');
+    if(numero){
+      garderSuivi(numero);
+      if(status){
+        status.style.color='';
+        status.innerHTML='<b style="color:#2ecc71">Merci ! Ta proposition est envoyée. 🎉</b><br>'
+          +'Son numéro de suivi : <b class="psuivi-num">'+pEsc(formaterSuivi(numero))+'</b> '
+          +'<button class="pbtn pbtn-sm" onclick="navigator.clipboard&&navigator.clipboard.writeText(\''+formaterSuivi(numero)+'\')">Copier</button><br>'
+          +'Ce navigateur le garde : tu verras la réponse dans « Mes propositions ». Sur un autre appareil, tape ce numéro. Rien d\'autre n\'est gardé sur toi.';
+      }
+    } else setStatus('Merci ! Ta proposition anonyme a bien été envoyée. 🎉','#2ecc71');
     clearDrafts();
-  }).catch(function(err){
+  }catch(err){
     proposalMailtoFallback((err&&err.message)||err);
-  });
+  }
+}
+
+/* ── Numéro de suivi (nov. 2026, lot A3) ─────────────────────────────────
+   12 caractères tirés par crypto.getRandomValues dans un alphabet sans
+   caractères ambigus (ni 0/O, ni 1/I/L) : 31¹² ≈ 2⁵⁹ possibilités, assez
+   pour qu'on ne tombe pas sur celui d'un autre en essayant. Montré par
+   groupes de trois (K7Q-4MD-2XA-B3C) ; la base le compare sans tirets ni
+   espaces, en majuscules : normaliserSuivi fait de même. */
+const SUIVI_ALPHABET='ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+function nouveauNumeroSuivi(){
+  const t=new Uint32Array(12); crypto.getRandomValues(t);
+  return Array.from(t,x=>SUIVI_ALPHABET[x%SUIVI_ALPHABET.length]).join('');
+}
+function normaliserSuivi(code){ return String(code||'').toUpperCase().replace(/[^0-9A-Z]/g,''); }
+function formaterSuivi(code){ return normaliserSuivi(code).replace(/(.{3})(?=.)/g,'$1-'); }
+/* empreinteSuivi(code) — sha256 du numéro normalisé, en hexadécimal : la
+   seule chose que la base garde (contributions.suivi_empreinte). */
+async function empreinteSuivi(code){
+  const o=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(normaliserSuivi(code)));
+  return Array.from(new Uint8Array(o),b=>b.toString(16).padStart(2,'0')).join('');
+}
+/* Les numéros suivis sur CET appareil : localStorage « philo-suivis »,
+   [{code, le}] (déclaré dans contenu/legal.js ; effacé par « Effacer les
+   données de cet appareil », exporté par « Télécharger mes données »). */
+function suivisLocaux(){
+  try{ const v=JSON.parse(localStorage.getItem('philo-suivis')||'[]'); return Array.isArray(v)?v.filter(x=>x&&x.code):[]; }
+  catch(e){ return []; }
+}
+function garderSuivi(code){
+  const c=normaliserSuivi(code);
+  const l=suivisLocaux().filter(x=>normaliserSuivi(x.code)!==c);
+  l.unshift({code:c, le:new Date().toISOString()});
+  try{ localStorage.setItem('philo-suivis',JSON.stringify(l.slice(0,50))); }catch(e){}
+}
+function oublierSuivi(code){
+  const c=normaliserSuivi(code);
+  try{ localStorage.setItem('philo-suivis',JSON.stringify(suivisLocaux().filter(x=>normaliserSuivi(x.code)!==c))); }catch(e){}
+  renderSuivis();
 }
 
 /* new (Phase 3) : aiguillage du bouton « Envoyer en ligne ».
@@ -3837,6 +3897,86 @@ function contribDetailHTML(payload){
   return '<details class="pmine-det"><summary>Voir le détail proposé</summary>'+html+'</details>';
 }
 
+/* ── « Mes propositions » boîte par boîte (nov. 2026, lot A3) ────────────
+   Depuis 2026_administration.sql, chaque boîte d'une proposition a son état
+   et sa réponse (table boites). etatBoitesLabel donne la pastille de la
+   proposition entière (même règle que contribution_recalculer côté base,
+   et que vuContributeur dans admin/modele.js, avec le détail « 1 sur 3 ») ;
+   boitesSuiviHTML liste les boîtes avec leur état et la réponse. */
+const ETAT_BOITE={en_attente:['En attente','pst-wait'], validee:['Retenue, bientôt sur le site','pst-prog'],
+  integree:['Intégrée au site','pst-ok'], refusee:['Non retenue','pst-no']};
+function etatBoitesLabel(statuts){
+  const n=statuts.length, c=s=>statuts.filter(x=>x===s).length;
+  if(!n||c('en_attente')===n) return {txt:'En attente de relecture', cls:'pst-wait'};
+  if(c('refusee')===n) return {txt:'Non retenue', cls:'pst-no'};
+  const integ=c('integree'), ok=c('validee')+integ;
+  if(integ+c('refusee')===n) return {txt:n===1?'Intégrée au site':integ+' sur '+n+' intégrée'+(integ>1?'s':'')+' au site', cls:'pst-ok'};
+  return {txt:n===1?'Validée, intégration en cours':ok+' sur '+n+' validée'+(ok>1?'s':''), cls:'pst-prog'};
+}
+function boitesSuiviHTML(payload,boites){
+  if(!boites||!boites.length) return '';
+  const src=(payload&&payload.boxes)||[];
+  const avecReponse=boites.some(b=>b.reponse);
+  if(boites.length===1&&!avecReponse) return '';   // une seule boîte, pas de réponse : la pastille suffit
+  return '<div class="psuivi-boites">'+boites.map(b=>{
+    const e=ETAT_BOITE[b.statut]||ETAT_BOITE.en_attente;
+    const cible=(src[b.rang]&&src[b.rang].cible)||'';
+    return '<div class="psuivi-boite"><span>'+pEsc(proposalCibleLabel(cible)||('Partie '+(b.rang+1)))+'</span>'
+      +' <span class="pst '+e[1]+'">'+e[0]+'</span>'
+      +(b.reponse?'<div class="pmine-expl">'+pEsc(b.reponse)+'</div>':'')+'</div>';
+  }).join('')+'</div>';
+}
+
+/* renderSuivis() — les propositions envoyées sans compte et suivies sur cet
+   appareil : pour chaque numéro, la fonction publique suivre(numéro) rend la
+   proposition, son statut et ses boîtes (jamais la note interne). */
+async function renderSuivis(){
+  const wrap=document.getElementById('psuivi-list');
+  if(!wrap) return;
+  const l=suivisLocaux();
+  if(!l.length){ wrap.innerHTML='<div class="phint">Aucune. Quand tu envoies une proposition sans compte, son numéro de suivi est gardé ici.</div>'; return; }
+  if(!SB){ wrap.innerHTML='<div class="phint">Le suivi se lit en ligne.</div>'; return; }
+  const lignes=await Promise.all(l.map(async x=>{
+    try{
+      const {data,error}=await SB.rpc('suivre',{p_code:x.code});
+      if(error) throw error;
+      return {x, p:(data||[])[0]||null};
+    }catch(e){ return {x, err:true}; }
+  }));
+  wrap.innerHTML=lignes.map(({x,p,err})=>{
+    const num='<span class="pmine-date">n° '+pEsc(formaterSuivi(x.code))+'</span>';
+    const oublier='<div class="pmine-actions"><button class="pbtn pbtn-sm pbtn-ghost" onclick="oublierSuivi(\''+pEsc(normaliserSuivi(x.code))+'\')">Oublier sur cet appareil</button></div>';
+    if(err) return '<div class="pmine-item">'+num+'<div class="phint">Impossible de lire ce suivi pour l’instant (hors-ligne ?).</div></div>';
+    if(!p) return '<div class="pmine-item">'+num+'<div class="phint">Aucune proposition ne porte ce numéro (supprimée, ou numéro mal recopié ?).</div>'+oublier+'</div>';
+    const bx=(p.boites||[]).sort((a,b)=>a.rang-b.rang);
+    const st=bx.length?etatBoitesLabel(bx.map(b=>b.statut)):contribStatusLabel(p.statut);
+    const d=p.cree_le?new Date(p.cree_le).toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'}):'';
+    return '<div class="pmine-item">'
+      +'<div class="pmine-top"><span class="pmine-sum">'+pEsc(contribSummary(p.payload))+'</span><span class="pst '+st.cls+'">'+pEsc(st.txt)+'</span></div>'
+      +'<div class="pmine-date">'+(d?'Envoyée le '+pEsc(d)+' · ':'')+'n° '+pEsc(formaterSuivi(x.code))+'</div>'
+      +contribDetailHTML(p.payload)
+      +boitesSuiviHTML(p.payload,bx)
+      +oublier+'</div>';
+  }).join('');
+}
+/* ajouterSuivi() — « Retrouver » : un numéro tapé à la main (proposition
+   envoyée depuis un autre appareil) ; gardé ici s'il correspond à une
+   proposition. */
+async function ajouterSuivi(){
+  const champ=document.getElementById('psuivi-code');
+  const code=normaliserSuivi(champ&&champ.value);
+  if(code.length<12){ alert('Le numéro de suivi a 12 caractères (ex. K7Q-4MD-2XA-B3C).'); return; }
+  if(!SB){ alert('Le suivi se lit en ligne.'); return; }
+  try{
+    const {data,error}=await SB.rpc('suivre',{p_code:code});
+    if(error) throw error;
+    if(!data||!data.length){ alert('Aucune proposition ne porte ce numéro. Vérifie-le.'); return; }
+    garderSuivi(code);
+    if(champ) champ.value='';
+    renderSuivis();
+  }catch(e){ alert('Impossible de vérifier ce numéro pour l’instant (hors-ligne ?).'); }
+}
+
 /* new (Phase 3) : charge et affiche les propositions du compte connecté.
    La règle RLS contrib_select ne renvoie QUE les lignes de l'utilisateur ;
    on ajoute tout de même le filtre user_id par clarté. */
@@ -3852,8 +3992,16 @@ async function renderMyContributions(){
     if(error) throw error;
     if(!data || !data.length){ wrap.innerHTML='<div class="phint">Tu n\'as pas encore envoyé de proposition en ligne depuis ce compte.</div>'; return; }
     myContribCache=data;   // new : on retient les lignes pour retrouver un payload par id (édition)
+    // nov. 2026 (lot A3) : l'état et la réponse de chaque boîte (table boites,
+    // 2026_administration.sql). Si la table n'existe pas encore, on s'en passe.
+    let parBoite={};
+    try{
+      const rb=await SB.from('boites').select('contribution,rang,statut,reponse,repondu_le').in('contribution',data.map(c=>c.id));
+      if(!rb.error) (rb.data||[]).forEach(b=>{ (parBoite[b.contribution]||(parBoite[b.contribution]=[])).push(b); });
+    }catch(e){}
     wrap.innerHTML=data.map(c=>{
-      const st=contribStatusLabel(c.statut);
+      const bx=(parBoite[c.id]||[]).sort((a,b)=>a.rang-b.rang);
+      const st=bx.length?etatBoitesLabel(bx.map(b=>b.statut)):contribStatusLabel(c.statut);
       const d=c.created_at?new Date(c.created_at).toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'}):'';
       // new : une proposition ENCORE « en attente » peut être corrigée par son
       // auteur (bouton ✎) — l'envoi fera un UPDATE de la ligne (cf. RLS).
@@ -3876,6 +4024,7 @@ async function renderMyContributions(){
         +'<span class="pst '+st.cls+'">'+pEsc(st.txt)+'</span></div>'
         +(d?'<div class="pmine-date">Envoyée le '+pEsc(d)+'</div>':'')
         +detail
+        +boitesSuiviHTML(c.payload,bx)
         +avia
         +expl
         +editBtn
@@ -3895,10 +4044,18 @@ function renderProposal(){
   const logged=!!(SB && authUser);
   // ── Vue MES PROPOSITIONS (compte connecté) ──
   if(proposalView==='mine'){
-    body.innerHTML='<div class="ppreview-head">Mes propositions envoyées — leur statut et l\'explication.</div>'
-      +'<div id="pmine-list" class="pmine-list">Chargement…</div>'
+    // nov. 2026 (lot A3) : deux parties. Celles du compte (si connecté),
+    // puis celles envoyées sans compte et suivies par leur numéro.
+    body.innerHTML='<div class="ppreview-head">Mes propositions envoyées : où en est chaque partie, et la réponse.</div>'
+      +(logged?'<div id="pmine-list" class="pmine-list">Chargement…</div>':'')
+      +'<div class="ppreview-head" style="margin-top:14px">'+(logged?'Envoyées sans compte':'Suivies sur cet appareil')+'</div>'
+      +'<div id="psuivi-list" class="pmine-list">Chargement…</div>'
+      +'<div class="pfield" style="margin-top:10px"><label class="plabel" for="psuivi-code">Suivre une proposition envoyée ailleurs</label>'
+      +'<div class="pactions" style="margin-top:4px"><input id="psuivi-code" class="pinput" placeholder="ex. K7Q-4MD-2XA-B3C" autocomplete="off" style="flex:1;min-width:0">'
+      +'<button class="pbtn" onclick="ajouterSuivi()">Retrouver</button></div></div>'
       +'<div class="pactions"><button class="pbtn" onclick="startNewProposal()">← Nouvelle proposition</button></div>';
-    renderMyContributions();   // remplit #pmine-list de façon asynchrone
+    if(logged) renderMyContributions();   // remplit #pmine-list de façon asynchrone
+    renderSuivis();                       // remplit #psuivi-list
     return;
   }
   // ── Vue APERÇU ──
@@ -3914,7 +4071,8 @@ function renderProposal(){
         ? 'Connecté : « Envoyer en ligne » enregistre ta proposition sur ton compte — tu pourras suivre son statut dans « Mes propositions ».'
         : 'Astuce : connecte-toi avant d\'envoyer pour suivre le statut de ta proposition. Sinon, « Envoyer en ligne » la transmet de façon anonyme.');
     // Bouton « Mes propositions » réservé aux comptes connectés (masqué en édition).
-    const mineBtn = (logged && !editing) ? '<button class="pbtn" onclick="showProposalMine()">Mes propositions</button>' : '';
+    // nov. 2026 (lot A3) : aussi sans compte, dès que cet appareil suit un numéro.
+    const mineBtn = ((logged || suivisLocaux().length) && !editing) ? '<button class="pbtn" onclick="showProposalMine()">Mes propositions</button>' : '';
     // En édition : pas de repli mailto/copie (un email n'updaterait pas la ligne).
     const fallbackBtns = editing ? ''
       : '<button class="pbtn" id="pcopy-btn" onclick="copyProposal()">Copier le texte</button>'
@@ -3988,7 +4146,8 @@ function renderProposal(){
       <input class="pinput" type="text" value="${pEsc(proposalContributor)}" placeholder="ex : anonyme" oninput="setProposalContributor(this.value)">
     </div>`;
   // new (Phase 3) : accès « Mes propositions » depuis l'édition (connecté).
-  const mineBtnEdit = logged ? `<button class="pbtn" onclick="showProposalMine()">Mes propositions</button>` : '';
+  // nov. 2026 (lot A3) : aussi sans compte, pour suivre un numéro ou en saisir un.
+  const mineBtnEdit = `<button class="pbtn" onclick="showProposalMine()">Mes propositions</button>`;
   html+=`<div class="pactions">${mineBtnEdit}<button class="pbtn pbtn-primary" onclick="showProposalPreview()">Aperçu de la proposition</button></div>`;
   body.innerHTML=html;
   // new (Phase 3) : toute modification de structure passe par ce rendu — on en
@@ -5361,6 +5520,8 @@ async function initAuth(){
     renderAccountBtn();
     if(authUser) maybeStartSync(); else syncResetState();   // new (Phase 2) : (dé)clenche la synchro selon l'état
     if(event==='SIGNED_IN'||event==='SIGNED_OUT') verifierAccordLegal();   // nov. 2026 : accord à jour ? (un compte Google n'a jamais coché la case)
+    // nov. 2026 (lot A3) : la page Propositions montre « ton vote » : on la relit.
+    if((event==='SIGNED_IN'||event==='SIGNED_OUT')&&typeof chargerPropositions==='function'&&propositionsEtat.charge) chargerPropositions(true);
     const ov=document.getElementById('auth-overlay');
     // new : retour d'un lien « mot de passe oublié ». L'évènement arrive en
     // général alors que la modale est fermée (la page vient de s'ouvrir depuis
@@ -7916,6 +8077,7 @@ const EXPLORER_TOPICS=[
   {id:'graphe', label:'Graphe des idées'},
   {id:'sujets', label:'Sujets du bac'},
   {id:'nouveautes', label:'Nouveautés'},
+  {id:'propositions', label:'Propositions'},   // nov. 2026, chantier Administration (lot A3)
 ];
 let sujetsNotion='', sujetsVoie='';                // filtres des sujets du bac
 let friseProgramme=false, friseNotion='';          // filtres de la frise
@@ -7934,8 +8096,10 @@ function renderExplorerContent(){
   mc.innerHTML=explorerTopic==='graphe'?grapheHTML()
     :explorerTopic==='sujets'?sujetsHTML()
     :explorerTopic==='nouveautes'?nouveautesHTML()
+    :explorerTopic==='propositions'?propositionsHTML()
     :friseHTML();
   if(explorerTopic==='graphe') grapheBrancher();
+  if(explorerTopic==='propositions') chargerPropositions();
 }
 
 /* optionsNotions(val) — les <option> d'un filtre par notion (notions visibles). */
@@ -8233,6 +8397,84 @@ function nouveautesHTML(){
       <p>${e.texte}</p>
       ${(e.liens||[]).length?`<div class="nouveaute-liens">${e.liens.map(l=>`<button class="pbtn pbtn-ghost" onclick="ouvrirAdresse('${l.h}')">${l.l} →</button>`).join('')}</div>`:''}
     </article>`).join('');
+}
+
+
+/* ── Propositions (nov. 2026, chantier Administration, lot A3) ──────────
+   Les demandes que l'éditeur a regroupées en SUJETS et publiées depuis
+   /admin/ : titre, état (proposé, prévu, fait, refusé), sa réponse, combien
+   de personnes l'ont demandé. Un compte vote pour (▲) ou contre (▼) ; un
+   second clic sur le même bouton retire le vote. Rien n'est montré du texte
+   des propositions ni de leurs auteurs. Données : la fonction publique
+   propositions() de 2026_administration.sql (score = demandes + ▲ − ▼) ;
+   vote : voter(sujet, valeur). Lues à l'ouverture de l'onglet. */
+const ETATS_PROPOSITION={propose:'Proposé', prevu:'Prévu', fait:'Fait ✓', refuse:'Refusé'};
+let propositionsEtat={charge:false, erreur:'', liste:[], filtre:'', occupe:false};
+
+/* chargerPropositions(force) — lit les sujets publiés (une fois, ou de
+   nouveau si force), puis redessine l'onglet s'il est toujours affiché. */
+async function chargerPropositions(force){
+  if(propositionsEtat.charge&&!force) return;
+  if(!SB){ propositionsEtat.charge=true; propositionsEtat.erreur='Les propositions ne se lisent qu’en ligne.'; return majPropositions(); }
+  try{
+    const {data,error}=await SB.rpc('propositions');
+    if(error) throw error;
+    propositionsEtat.liste=data||[]; propositionsEtat.erreur='';
+  }catch(e){ propositionsEtat.erreur='Impossible de charger les propositions (hors-ligne ?).'; }
+  propositionsEtat.charge=true;
+  majPropositions();
+}
+/* majPropositions() — redessine l'onglet, seulement s'il est affiché. */
+function majPropositions(){
+  if(sbMode!=='explorer'||explorerTopic!=='propositions') return;
+  const mc=document.querySelector('#main .main-content');
+  if(mc) mc.innerHTML=propositionsHTML();
+}
+
+/* propositionsHTML() — l'onglet : intro, filtre par état, une carte par
+   sujet (votes à gauche, titre, état, nombre de demandes, réponse). */
+function propositionsHTML(){
+  const P=propositionsEtat;
+  const html=`<div class="explorer-intro">Ce que les visiteurs demandent, et ce qui est prévu. Les demandes qui reviennent sont regroupées ; vote pour ce qui t'aiderait le plus : les plus demandées passent en premier.</div>
+  <div class="explorer-filtres">
+    <select aria-label="Filtrer par état" onchange="propositionsEtat.filtre=this.value;majPropositions()">
+      <option value="">Toutes</option>${Object.keys(ETATS_PROPOSITION).map(k=>`<option value="${k}"${k===P.filtre?' selected':''}>${ETATS_PROPOSITION[k]}</option>`).join('')}
+    </select>
+    <span class="explorer-compte">${authUser?'Un vote par sujet ; reclique pour le retirer.':'<button class="lien-bouton" onclick="openAuth()">Connecte-toi</button> pour voter.'}
+      Une idée qui manque ? <button class="lien-bouton" onclick="openProposalFromPlus('remarque','site-fonction')">Fais une proposition</button></span>
+  </div>`;
+  if(!P.charge) return html+'<div class="explorer-vide">Chargement…</div>';
+  if(P.erreur) return html+`<div class="explorer-vide">${pEsc(P.erreur)}</div>`;
+  const liste=P.liste.filter(s=>!P.filtre||s.etat===P.filtre);
+  if(!liste.length) return html+'<div class="explorer-vide">Aucun sujet publié pour l’instant.</div>';
+  return html+liste.map(s=>{
+    const vote=(v,sym,nom)=>`<button class="prop-vote" aria-pressed="${s.mon_vote===v}" aria-label="${nom}${s.mon_vote===v?' (ton vote, reclique pour le retirer)':''}"${P.occupe?' disabled':''} onclick="voterProposition(${Number(s.id)},${v})">${sym}</button>`;
+    const dem=s.demandes+s.pour;
+    return `<article class="prop">
+      <div class="prop-votes">${vote(1,'▲','Pour')}<span class="prop-score" title="score : demandes + pour − contre">${s.score}</span>${vote(-1,'▼','Contre')}</div>
+      <div class="prop-corps">
+        <h3 class="prop-titre">${pEsc(s.titre)} <span class="prop-etat prop-${pEsc(s.etat)}">${ETATS_PROPOSITION[s.etat]||pEsc(s.etat)}</span></h3>
+        ${s.description?`<p class="prop-desc">${pEsc(s.description)}</p>`:''}
+        <div class="prop-meta">${dem} personne${dem>1?'s l’ont':' l’a'} demandé</div>
+        ${s.reponse?`<div class="prop-reponse">${pEsc(s.reponse)}</div>`:''}
+      </div>
+    </article>`;
+  }).join('');
+}
+
+/* voterProposition(id, v) — vote pour (1) ou contre (-1) ; le même bouton
+   une seconde fois retire le vote (0). Sans compte : ouvre la connexion. */
+async function voterProposition(id,v){
+  if(!SB||!authUser){ openAuth(); return; }
+  const s=propositionsEtat.liste.find(x=>x.id===id); if(!s) return;
+  const valeur=s.mon_vote===v?0:v;
+  propositionsEtat.occupe=true; majPropositions();
+  try{
+    const {error}=await SB.rpc('voter',{p_sujet:id,p_valeur:valeur});
+    if(error) throw error;
+    await chargerPropositions(true);
+  }catch(e){ alert('Le vote n’a pas pu être enregistré (hors-ligne ?).'); }
+  propositionsEtat.occupe=false; majPropositions();
 }
 /* js/16-impression.js — morceau du script du site. Le build (outils/construire.mjs)
    recolle js/*.js dans l'ORDRE des noms en UN SEUL script, app.js : les

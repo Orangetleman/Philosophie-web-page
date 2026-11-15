@@ -85,6 +85,20 @@
       const i = boites.findIndex(x => x.id === id);
       if (i >= 0) boites.splice(i, 1);
     },
+    async enregistrerSujet(id, champs) {
+      await attendre();
+      const s = sujets.find(x => x.id === id);
+      if (!s) throw new Error('sujet inconnu : ' + id);
+      ['titre', 'description', 'etat', 'publie', 'reponse'].forEach(k => { if (k in champs) s[k] = champs[k]; });
+      if (!String(s.titre || '').trim()) throw new Error('titre vide');
+      return id;
+    },
+    async supprimerSujet(id) {
+      await attendre();
+      const i = sujets.findIndex(x => x.id === id);
+      if (i >= 0) sujets.splice(i, 1);
+      boites.forEach(b => { if (b.sujet === id) b.sujet = null; });
+    },
     async creerSujet(titre) {
       await attendre();
       const id = Math.max(0, ...sujets.map(s => s.id)) + 1;

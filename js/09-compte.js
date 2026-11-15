@@ -36,6 +36,8 @@ async function initAuth(){
     renderAccountBtn();
     if(authUser) maybeStartSync(); else syncResetState();   // new (Phase 2) : (dé)clenche la synchro selon l'état
     if(event==='SIGNED_IN'||event==='SIGNED_OUT') verifierAccordLegal();   // nov. 2026 : accord à jour ? (un compte Google n'a jamais coché la case)
+    // nov. 2026 (lot A3) : la page Propositions montre « ton vote » : on la relit.
+    if((event==='SIGNED_IN'||event==='SIGNED_OUT')&&typeof chargerPropositions==='function'&&propositionsEtat.charge) chargerPropositions(true);
     const ov=document.getElementById('auth-overlay');
     // new : retour d'un lien « mot de passe oublié ». L'évènement arrive en
     // général alors que la modale est fermée (la page vient de s'ouvrir depuis
