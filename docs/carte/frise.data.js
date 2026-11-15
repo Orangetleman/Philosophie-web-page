@@ -1,8 +1,26 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
-  "genere_le": "2026-11-15T01:57:53.560Z",
+  "genere_le": "2026-11-15T07:44:21.029Z",
   "commits": [
+    {
+      "hash": "6d58864bc2843ea0864f2027ff02427365dcfbbd",
+      "short": "6d58864",
+      "auteur": "Orangentleman",
+      "date": "2026-11-15T02:58:56+01:00",
+      "sujet": "Merge pull request #25 from Orangetleman/claude/tuto-halos",
+      "corps": "Visite guidée : le halo signale aussi les onglets et le bouton 💡",
+      "tag": ""
+    },
+    {
+      "hash": "89a191c80b553dfcb1b29d548ebe364b1b7c982b",
+      "short": "89a191c",
+      "auteur": "Orangentleman",
+      "date": "2026-11-15T02:57:51+01:00",
+      "sujet": "Visite guidée : le halo signale aussi les onglets et le bouton 💡",
+      "corps": "Le halo léger (champ `halo` des étapes) sert désormais là où le projecteur\nmontre un contenu et où il faut aussi savoir où cliquer :\n- les cinq étapes « Les Notions » à « La Méthodo » : projecteur sur la liste,\n  halo sur l'onglet actif de la barre latérale (tourSbTabActif) ;\n- les étapes « Onglet Auteurs » à « Onglet Exemples » : projecteur sur une\n  boîte, halo sur le bouton d'onglet (tourTabEl) ;\n- la 1re étape dans la fenêtre de proposition : halo sur 💡 Proposer.\n\npositionTourHalo reçoit la cible du projecteur et ne dessine pas de halo\nqui tomberait dessus (repli de tourBoxEl sur le bouton d'onglet).\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": "Visite guidée"
+    },
     {
       "hash": "84f0a18c0e6edd99ffcad6dd530190a687f19711",
       "short": "84f0a18",

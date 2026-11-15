@@ -99,6 +99,25 @@ function trouver(s, fichierCite) {
 
 /* ── Contrôle (et correction) ─────────────────────────────────────────── */
 let texte = fs.readFileSync(fCarte, 'utf8');
+
+/* Syntaxe de carte.data.js (nov. 2026, boîte 59). Un guillemet droit "
+   glissé dans un texte coupait la chaîne : le navigateur rejetait tout le
+   fichier, window.CARTE restait vide et la page affichait « carte.data.js
+   introuvable », sans que ce contrôle le voie. On compile donc le fichier
+   (new Function, car node --check ne vérifie rien ici) et on exige CARTE. */
+function syntaxeCarte(src) {
+  try {
+    const w = {};
+    new Function('window', src)(w);
+    return w.CARTE ? null : 'window.CARTE n\'est pas défini';
+  } catch (e) { return e.message; }
+}
+const fauteSyntaxe = syntaxeCarte(texte);
+if (fauteSyntaxe) {
+  console.error('carte.data.js ne se charge pas : ' + fauteSyntaxe +
+    ' (guillemet droit " dans un texte ? utiliser “ ” ou « »)');
+  process.exit(1);
+}
 const RE = /\{kind:"(\w+)",name:"([^"]*)",ref:"([^"]*)"/g;
 let ok = 0, deplaces = 0, perimes = 0;
 const lignesRapport = [];
