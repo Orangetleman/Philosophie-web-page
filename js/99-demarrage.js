@@ -19,6 +19,7 @@ renderSB(); if(document.body.dataset.entree!=='fiches') renderCurrentView();
 initAuth();           // new (comptes) : récupère la session + s'abonne aux changements d'état
 tourStartIfFirst();   // visite guidée auto à la 1re venue (cf. module « Visite guidée »)
 hpInviterSiBesoin();  // étape 5 : propose de masquer le hors programme (une fois, hors visite)
+if(!SB) verifierAccordLegal();   // nov. 2026 : notice changée (avec Supabase, initAuth s'en charge)
 initNotice();         // bandeau « contenu en construction » (auto-fermeture à 1 min)
 
 /* ── PWA — enregistrement du service worker + mise à jour automatique ──

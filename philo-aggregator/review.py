@@ -20,6 +20,8 @@ Choix techniques :
     continuent de marcher même si cette dépendance n'est pas installée.
   - On réutilise `export.render_box` pour décrire la boîte à Gemini : le
     contributeur et l'IA voient ainsi exactement le même rendu lisible.
+    Depuis nov. 2026, en mode `anonyme=True` : rien qui désigne la personne
+    n'est envoyé à Google (docs/protocole-donnees.md § 1.2).
 """
 
 import json
@@ -268,7 +270,8 @@ def review_box(model, row, on_wait=None):
     """
     prompt = (
         "Voici la proposition à évaluer :\n\n"
-        + render_box(row)
+        # Rendu ANONYME (nov. 2026) : ni pseudo, ni date, coordonnées masquées.
+        + render_box(row, anonyme=True)
         + "\n\nDonne ton verdict au format JSON demandé."
     )
     for attempt in range(RATE_LIMIT_RETRIES + 1):

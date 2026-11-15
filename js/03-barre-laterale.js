@@ -159,6 +159,13 @@ function renderSB(){
     sb.appendChild(acctWrap);
   }
   renderAccountBtn();   // remplit la zone selon l'état (connecté / déconnecté)
+  // nov. 2026 (RGPD) : la notice légale, atteignable de partout. Un droit
+  // qu'on ne sait pas où exercer n'est pas disponible.
+  if(!sb.querySelector('.sb-legal')){
+    const lg=document.createElement('a');
+    lg.className='sb-legal'; lg.href=LEGAL_URL; lg.textContent='Informations légales';
+    sb.appendChild(lg);
+  }
   applyPhiloMode();   // met à jour le libellé selon l'état actuel
   applyFicheMode();   // applique le « mode fiche » (lecture compressée) si actif
 

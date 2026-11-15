@@ -1104,9 +1104,14 @@ function proposalMissing(){
    manques (zone #psend-status) et renvoie false (l'appelant abandonne l'envoi). */
 function proposalGuardOk(){
   const miss=proposalMissing();
-  if(!miss.length) return true;
+  // nov. 2026 (RGPD) : un nouvel envoi exige la case d'accord de l'aperçu
+  // (absente en correction d'un envoi : l'accord a été donné au premier).
+  const sansAccord=!editingContribId && document.getElementById('pcgu') && !cguCoche('pcgu');
+  if(!miss.length && !sansAccord){ if(!editingContribId) legalRetenir(); return true; }
   const status=document.getElementById('psend-status');
-  const msg='⚠ Champs obligatoires manquants — '+miss.slice(0,8).join(' ; ')+(miss.length>8?' …':'');
+  const msg=miss.length
+    ? '⚠ Champs obligatoires manquants — '+miss.slice(0,8).join(' ; ')+(miss.length>8?' …':'')
+    : '⚠ Coche la case pour accepter les conditions d’utilisation avant d’envoyer.';
   if(status){ status.textContent=msg; status.style.color='#e74c3c'; try{ status.scrollIntoView({behavior:'smooth',block:'center'}); }catch(e){} }
   else alert(msg);
   return false;
@@ -1386,6 +1391,9 @@ function renderProposal(){
       +'<textarea class="ppreview" readonly>'+pEsc(generateProposalText())+'</textarea>'
       +'<div class="phint" style="margin-top:8px">'+onlineHint+fallbackNote+'</div>'
       // new: ligne de retour d'état de l'envoi en ligne (succès / erreur).
+      // nov. 2026 (RGPD) : accord sur les CGU (licence CC BY-SA de la
+      // proposition), jamais pré-coché ; vérifié par proposalGuardOk.
+      +(editing?'':cguCaseHTML('pcgu','envoyer cette proposition'))
       +'<div id="psend-status" class="phint" style="margin-top:8px;min-height:1.1em"></div>'
       +'<div class="pactions">'
       +'<button class="pbtn" onclick="showProposalEdit()">← Modifier</button>'

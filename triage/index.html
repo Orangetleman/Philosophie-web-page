@@ -142,9 +142,10 @@ code{background:var(--bg3);padding:2px 6px;border-radius:6px;font-size:12.5px;
 
 <div id="toast" class="toast"></div>
 
-<!-- supabase-js : version figée + empreinte d'intégrité, la même que dans
-     ../index.html (voir le commentaire là-bas pour monter de version). -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js" integrity="sha384-Rj26LVGvoeRVR6+mwQmFfcR3QOBEwT+ZmuCWpuiqeTzJpCs0ER4ITAWGb4Hiy3Ok" crossorigin="anonymous"></script>
+<!-- supabase-js : le même fichier que l'appli principale, servi par le site
+     (/lib/supabase.js, version 2.117.2 ; voir ../index.html). Plus de CDN
+     depuis le 15 nov. 2026 (RGPD, docs/protocole-donnees.md, A6). -->
+<script src="/lib/supabase.js"></script>
 <script>
 /* ════════════════════════════════════════════════════════════════════════
    Réglages — MÊMES valeurs publiques que l'appli principale (index.html).

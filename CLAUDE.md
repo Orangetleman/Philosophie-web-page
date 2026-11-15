@@ -15,11 +15,13 @@ liste officielle, 5 hors programme, 6 enrichir ; décisions de l'auteur au
 
 | Chemin | Rôle | On l'édite ? |
 |---|---|---|
-| `contenu/` | **le contenu** : `notions/<clé>.js` (un fichier par notion), `auteurs/<nom>.js` (fiche de chaque auteur), `concepts.js`, `reperes.js`, `ordre.js`, `programme.js` (la liste officielle : 17 notions, 84 auteurs), `sujets-bac.js` (sujets tombés au bac depuis 2021), `nouveautes.js` (journal daté, affiché dans Explorer) | **oui** |
+| `contenu/` | **le contenu** : `notions/<clé>.js` (un fichier par notion), `auteurs/<nom>.js` (fiche de chaque auteur), `concepts.js`, `reperes.js`, `ordre.js`, `programme.js` (la liste officielle : 17 notions, 84 auteurs), `sujets-bac.js` (sujets tombés au bac depuis 2021), `nouveautes.js` (journal daté, affiché dans Explorer), `legal.js` (la notice légale : mentions, données personnelles, stockage local, tiers, CGU, historique des versions) | **oui** |
 | `js/`, `css/` | **le code** du site, en morceaux numérotés (`js/01-…` à `16-…`, puis `99-demarrage.js` en dernier ; `css/01-…` à `10-…`) | **oui** |
 | `index.html` | le squelette HTML ; charge `app.css`, `data.js`, puis `app.js` | oui (HTML seulement) |
 | `data.js`, `app.js`, `app.css` | **générés** par le build à partir de `contenu/`, `js/`, `css/` | **jamais** |
 | `notions/`, `auteurs/`, `fiches/`, `sitemap.xml`, `robots.txt`, `llms.txt` | **générés** par le build (`outils/lib/pages.mjs`) : une page par fiche, pour le référencement : depuis nov. 2026, chaque page notion ou auteur est l'app elle-même (gabarit `index.html`) ouverte sur sa fiche pré-rendue (`pageApp`, `entreeDePage`), miroir exact de l'onglet par défaut ; `fiches/` suit le même gabarit | **jamais** |
+| `informations-legales/` | **générée** par le build (`outils/lib/legal.mjs`) depuis `contenu/legal.js` | **jamais** |
+| `polices/`, `lib/` | police Inter et bibliothèques (supabase-js, qrcode) servies par le site au lieu d'un tiers (RGPD, nov. 2026) | non (sauf montée de version) |
 | `sw.js` | service worker ; ses lignes `CACHE` et `PRECACHE` sont écrites par le build | le reste, oui |
 | `outils/` | `construire.mjs` (build), `verifier_contenu.mjs` (contrôle), `lib/` (formats, écriture), `banc/` (règles d'accès Supabase) | oui |
 | `docs/` | diagnostic, protocole du contenu, architecture détaillée, carte du projet | oui |
@@ -42,6 +44,13 @@ liste officielle, 5 hors programme, 6 enrichir ; décisions de l'auteur au
    pas cohérent.
 
 ## Règles de modification (IMPÉRATIVES)
+
+- **Données personnelles : suivre `docs/protocole-donnees.md` § 2.** Toute
+  donnée nouvelle, clé `localStorage`, table, service tiers ou durée de
+  conservation se déclare dans `contenu/legal.js`, avec une nouvelle entrée
+  datée dans `historique` (le site redemande alors l'accord aux comptes).
+  Un tiers évitable ne s'ajoute pas : servir le fichier depuis le site.
+  Une donnée qu'on ne sait ni exporter ni effacer n'entre pas.
 
 - **Contenu : suivre `docs/protocole-contenu.md`** (sources acceptées,
   citation exacte entre « » ou reformulation sans guillemets, trois statuts
@@ -76,11 +85,12 @@ liste officielle, 5 hors programme, 6 enrichir ; décisions de l'auteur au
 
 ## Contrôles
 
-- **`node outils/verifier_contenu.mjs`** : 14 questions sur `data.js` (KEYS,
+- **`node outils/verifier_contenu.mjs`** : 15 questions sur `data.js` (KEYS,
   notions, ids et termes uniques, relations, repères, fiche `AM` de chaque
   auteur, dialogues, guillemets des citations, traces de support de cours,
   format canonique, programme officiel couvert, minimum d'une notion hors
-  programme, dates des auteurs, sujets du bac et nouveautés). `--temoins` glisse une faute par question et vérifie
+  programme, dates des auteurs, sujets du bac et nouveautés, données
+  personnelles déclarées dans `contenu/legal.js`). `--temoins` glisse une faute par question et vérifie
   qu'elle est vue : une règle nouvelle = une question + son témoin.
   `--racine <dossier>` contrôle une autre copie du site.
 - **`node outils/construire.mjs --temoins`** : prouve que le contrôle de
@@ -97,14 +107,14 @@ liste officielle, 5 hors programme, 6 enrichir ; décisions de l'auteur au
 
 ## Données (vue d'ensemble)
 
-`data.js` définit huit globales, déjà au format canonique (le build
+`data.js` définit neuf globales, déjà au format canonique (le build
 convertit les anciens formats, cf. `outils/lib/formats.mjs`) :
 `D` (les notions), `KEYS` (leur ordre), `AM` (les fiches d'auteurs),
 `CONCEPTS` (concepts puis repères), `PROGRAMME` (la liste officielle,
 `{source, notions, auteurs:[{bo, periode, fiches}]}`), `SUJETS_BAC`
 (`{sources, sujets:[{annee, date, voie, type, q | auteur+oeuvre, notions}]}`)
 et `NOUVEAUTES` (`[{date, titre, texte, liens:[{l, h}]}]`, du plus récent au
-plus ancien), et `PAGES_STATIQUES` (`{notions:{clé→chemin}, auteurs:{nom→chemin}}` :
+plus ancien), `LEGAL` (la notice légale, `contenu/legal.js`) et `PAGES_STATIQUES` (`{notions:{clé→chemin}, auteurs:{nom→chemin}}` :
 les adresses des pages statiques, pour les liens `<a href>` de l'app). Formats détaillés, onglets, liens
 dynamiques, contribution, interface, quiz : **`docs/architecture.md`**.
 

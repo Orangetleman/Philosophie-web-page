@@ -1,8 +1,35 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
-  "genere_le": "2026-11-15T00:33:53.737Z",
+  "genere_le": "2026-11-15T01:39:02.323Z",
   "commits": [
+    {
+      "hash": "936ca046a687fd96c3bc60bada33887deaba255e",
+      "short": "936ca04",
+      "auteur": "Orangentleman",
+      "date": "2026-11-15T02:33:00+01:00",
+      "sujet": "RGPD : notice légale, droits en un clic, Réglages refondus",
+      "corps": "Protocole dans docs/protocole-donnees.md (plan du chantier, puis règle\npermanente pour toute mise à jour qui touche aux données).\n\n- contenu/legal.js : source unique de la notice (mentions légales,\n  traitements, tiers, stockage local, CGU, historique des versions).\n  Le build en tire la globale LEGAL et la page informations-legales/.\n- Question 15 du vérificateur (avec témoin) : toute clé philo-…, adresse\n  externe ou table Supabase doit être déclarée, et la notice ne change\n  pas sans nouvelle version datée.\n- Suppression de compte (migration 2026_rgpd.sql, à passer dans\n  Supabase) : les propositions restent, sans lien au compte ni pseudo ;\n  purge des comptes inactifs depuis 3 ans. Trois essais de plus au banc.\n- Agrégateur : rien qui désigne la personne n'est envoyé à Gemini\n  (ni pseudo, ni date, coordonnées masquées) ; la copie locale suit\n  l'anonymisation faite en ligne.\n- Plus aucun tiers au chargement : police Inter, supabase-js (même\n  empreinte sha384) et QR code servis par le site.\n- Case d'accord non cochée à la création de compte et à l'envoi d'une\n  proposition ; version acceptée gardée dans le compte, redemandée quand\n  la notice change.\n- Réglages : sommaire, cinq cartes avec leur état, interrupteurs, prose\n  repliée ; carte « Mes données » (télécharger, effacer l'appareil,\n  supprimer le compte).\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": "RGPD"
+    },
+    {
+      "hash": "6690811ba35df6daf1e1947c7da37ac730a5e9ed",
+      "short": "6690811",
+      "auteur": "Orangentleman",
+      "date": "2026-11-15T01:35:51+01:00",
+      "sujet": "Merge pull request #23 from Orangetleman/claude/indexnow-auto",
+      "corps": "IndexNow automatique après chaque déploiement de production",
+      "tag": ""
+    },
+    {
+      "hash": "5b968f89794dc6a7b763b88f7c643ebf3428a3f9",
+      "short": "5b968f8",
+      "auteur": "Orangentleman",
+      "date": "2026-11-15T01:33:51+01:00",
+      "sujet": "IndexNow automatique après chaque déploiement de production",
+      "corps": "Action GitHub sur deployment_status (Vercel, Production, succès) ;\nle script n'envoie que les pages changées depuis le commit précédent.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": ""
+    },
     {
       "hash": "8ec99b77aef0f36e70a3db342440ca6d6d091939",
       "short": "8ec99b7",

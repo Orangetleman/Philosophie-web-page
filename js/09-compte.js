@@ -30,10 +30,12 @@ async function initAuth(){
   }catch(e){ authUser=null; }
   renderAccountBtn();
   maybeStartSync();                     // new (Phase 2) : si déjà connecté au chargement, on synchronise
+  verifierAccordLegal();                // nov. 2026 (RGPD) : la notice a-t-elle changé depuis l'accord ?
   SB.auth.onAuthStateChange((event,session)=>{
     authUser=session?session.user:null;
     renderAccountBtn();
     if(authUser) maybeStartSync(); else syncResetState();   // new (Phase 2) : (dé)clenche la synchro selon l'état
+    if(event==='SIGNED_IN'||event==='SIGNED_OUT') verifierAccordLegal();   // nov. 2026 : accord à jour ? (un compte Google n'a jamais coché la case)
     const ov=document.getElementById('auth-overlay');
     // new : retour d'un lien « mot de passe oublié ». L'évènement arrive en
     // général alors que la modale est fermée (la page vient de s'ouvrir depuis
@@ -165,7 +167,8 @@ function renderAuth(){
       <div class="auth-form" style="margin-top:14px">
         <button class="auth-btn auth-btn-primary" onclick="authSignOut()">Se déconnecter</button>
       </div>
-      <button class="auth-link-btn auth-danger" onclick="authDeleteAccount()" title="Supprimer définitivement le compte et toutes ses données">Supprimer mon compte</button>
+      <button class="auth-link-btn" onclick="closeAuth();openSettings();setTimeout(()=>rgAller('rg-donnees'),50)">Mes données (télécharger, effacer)</button>
+      <button class="auth-link-btn auth-danger" onclick="authDeleteAccount()" title="Supprimer définitivement le compte ; les propositions restent, anonymisées">Supprimer mon compte</button>
       <div class="auth-status" id="auth-status"></div>`;
     return;
   }
@@ -199,10 +202,11 @@ function renderAuth(){
         <input class="auth-input" id="auth-pw" type="password" placeholder="Mot de passe (6 caractères min.)" autocomplete="${isSignup?'new-password':'current-password'}" minlength="6" required>
         <button type="button" class="auth-pw-eye" title="Afficher / masquer le mot de passe" aria-label="Afficher le mot de passe" onclick="togglePwEye(this)">👁</button>
       </div>
+      ${isSignup?cguCaseHTML('auth-cgu','créer mon compte'):''}
       <button class="auth-btn auth-btn-primary" type="submit">${isSignup?'Créer mon compte':'Se connecter'}</button>
     </form>
     ${isSignup?'':'<button class="auth-link-btn" onclick="authSetView(\'reset\')">Mot de passe oublié ?</button>'}
-    ${isSignup?'<div class="auth-note">En créant un compte, seuls ton <b>pseudo</b> et ton <b>adresse e-mail</b> sont enregistrés (chez Supabase, l’hébergeur), pour retrouver ta progression et tes propositions sur tous tes appareils. Rien d’autre n’est collecté.</div>':''}
+    ${isSignup?'<div class="auth-note">En créant un compte, seuls ton <b>pseudo</b> et ton <b>adresse e-mail</b> sont enregistrés (chez Supabase, l’hébergeur), pour retrouver ta progression et tes propositions sur tous tes appareils. Rien d’autre n’est collecté. Avec Google, la même question te sera posée à la première connexion.</div>':''}
     <div class="auth-status" id="auth-status"></div>`;
 }
 
@@ -243,9 +247,15 @@ async function authSubmit(ev){
       // Pseudo facultatif → rangé dans user_metadata.full_name (le « nom
       // affiché »), lu en priorité par authLabel().
       const name=((document.getElementById('auth-name')||{}).value||'').trim();
-      const opts=name?{data:{full_name:name}}:{};
+      // nov. 2026 (RGPD) : la case d'accord, non cochée d'office, est exigée ;
+      // la version acceptée et sa date sont gardées avec le compte (preuve).
+      if(!cguCoche('auth-cgu')){ authStatus('Coche la case pour accepter les conditions d’utilisation avant de créer ton compte.','err'); return; }
+      const data={cgu_version:LEGAL_VERSION, cgu_date:new Date().toISOString()};
+      if(name) data.full_name=name;
+      const opts={data};
       const {error}=await SB.auth.signUp({email,password:pw,options:opts});
       if(error) throw error;
+      legalRetenir();                  // l'appareil garde aussi la version acceptée
       // Si la confirmation par e-mail est activée côté Supabase, pas encore
       // de session : on invite à confirmer (et à regarder les spams, l'e-mail
       // pouvant tarder ou y atterrir). Sinon, onAuthStateChange ferme.
@@ -320,12 +330,14 @@ async function authSignOut(){
    une fonction PostgreSQL « delete_own_account » (SECURITY DEFINER) qui efface
    les données de l'utilisateur (contributions, progression, préférences) puis
    sa ligne auth.users — toujours bornée à auth.uid(), donc à SON seul compte.
+   Depuis le 15 nov. 2026 (2026_rgpd.sql) : les propositions ne sont plus
+   effacées mais ANONYMISÉES (plus de lien au compte, pseudo « anonyme »).
    Voir le SQL à exécuter une fois côté Supabase (communiqué séparément).
    Après suppression : on nettoie la session locale et on revient au formulaire. */
 async function authDeleteAccount(){
   if(!SB||!authUser) return;
   // Confirmation explicite : action irréversible (double sécurité native).
-  if(!confirm("Supprimer définitivement ton compte ?\n\nTa progression de révision, tes préférences et tes propositions seront effacées. Cette action est IRRÉVERSIBLE.")) return;
+  if(!confirm("Supprimer définitivement ton compte ?\n\nTon compte, ta progression de révision et tes préférences seront effacés. Tes propositions restent sur le site, mais sans ton nom ni lien avec toi. Cette action est IRRÉVERSIBLE.")) return;
   authStatus('Suppression du compte…','');
   try{
     const {error}=await SB.rpc('delete_own_account');

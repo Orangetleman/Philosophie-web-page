@@ -842,6 +842,13 @@ function renderSB(){
     sb.appendChild(acctWrap);
   }
   renderAccountBtn();   // remplit la zone selon l'état (connecté / déconnecté)
+  // nov. 2026 (RGPD) : la notice légale, atteignable de partout. Un droit
+  // qu'on ne sait pas où exercer n'est pas disponible.
+  if(!sb.querySelector('.sb-legal')){
+    const lg=document.createElement('a');
+    lg.className='sb-legal'; lg.href=LEGAL_URL; lg.textContent='Informations légales';
+    sb.appendChild(lg);
+  }
   applyPhiloMode();   // met à jour le libellé selon l'état actuel
   applyFicheMode();   // applique le « mode fiche » (lecture compressée) si actif
 
@@ -3633,9 +3640,14 @@ function proposalMissing(){
    manques (zone #psend-status) et renvoie false (l'appelant abandonne l'envoi). */
 function proposalGuardOk(){
   const miss=proposalMissing();
-  if(!miss.length) return true;
+  // nov. 2026 (RGPD) : un nouvel envoi exige la case d'accord de l'aperçu
+  // (absente en correction d'un envoi : l'accord a été donné au premier).
+  const sansAccord=!editingContribId && document.getElementById('pcgu') && !cguCoche('pcgu');
+  if(!miss.length && !sansAccord){ if(!editingContribId) legalRetenir(); return true; }
   const status=document.getElementById('psend-status');
-  const msg='⚠ Champs obligatoires manquants — '+miss.slice(0,8).join(' ; ')+(miss.length>8?' …':'');
+  const msg=miss.length
+    ? '⚠ Champs obligatoires manquants — '+miss.slice(0,8).join(' ; ')+(miss.length>8?' …':'')
+    : '⚠ Coche la case pour accepter les conditions d’utilisation avant d’envoyer.';
   if(status){ status.textContent=msg; status.style.color='#e74c3c'; try{ status.scrollIntoView({behavior:'smooth',block:'center'}); }catch(e){} }
   else alert(msg);
   return false;
@@ -3915,6 +3927,9 @@ function renderProposal(){
       +'<textarea class="ppreview" readonly>'+pEsc(generateProposalText())+'</textarea>'
       +'<div class="phint" style="margin-top:8px">'+onlineHint+fallbackNote+'</div>'
       // new: ligne de retour d'état de l'envoi en ligne (succès / erreur).
+      // nov. 2026 (RGPD) : accord sur les CGU (licence CC BY-SA de la
+      // proposition), jamais pré-coché ; vérifié par proposalGuardOk.
+      +(editing?'':cguCaseHTML('pcgu','envoyer cette proposition'))
       +'<div id="psend-status" class="phint" style="margin-top:8px;min-height:1.1em"></div>'
       +'<div class="pactions">'
       +'<button class="pbtn" onclick="showProposalEdit()">← Modifier</button>'
@@ -4225,52 +4240,108 @@ function hpInviterSiBesoin(){
 }
 function fermerHpInvite(){ const b=document.getElementById('hp-invite'); if(b) b.remove(); }
 
-/* ── Menu « ⚙ Réglages » ─────────────────────────────────────────────────
-   Regroupe les fonctions NON nécessaires à la révision. Le toggle de mode y
-   est rendu EXPLICITE : le bouton nomme le mode-CIBLE (l'action), avec le mode
-   ACTUEL rappelé en petit au-dessus (avant, le bouton affichait le mode courant
-   et l'on ne savait pas si c'était un bouton ou un état). */
+/* ── Menu « ⚙ Réglages » (refondu le 15 nov. 2026) ──────────────────────
+   Avant : une liste continue de lignes, chacune avec un long paragraphe et un
+   gros bouton. Refonte d'après les leçons de l'interface de Fiches BUT
+   (docs/protocole-donnees.md § 1.4) :
+   - le plus courant en haut : Affichage, Révision, puis Compte, Mes données
+     (les droits RGPD), À propos ;
+   - un sommaire de pastilles : chaque section est à un geste ;
+   - des cartes, avec l'ÉTAT en première ligne (« Sombre · texte normal ») ;
+   - une commande par réglage : choix segmenté, ou interrupteur (role=switch)
+     qui dit l'état sans qu'on ait à lire un libellé de bouton ;
+   - la prose RANGÉE dans un <details> « Ce que ça change », pas supprimée ;
+   - l'action risquée (supprimer le compte) en dernier, à part, en rouge.
+   La visite guidée cherche le bouton du mode édition par son action
+   (tourSettingsRow('togglePhiloMode')) : l'interrupteur la garde. */
+
+/* rgSegment(titre, options, actuel, fn) — un choix à options exclusives
+   (thème, taille), en boutons accolés. */
+function rgSegment(titre, options, actuel, fn){
+  return '<div class="rg-ligne"><span class="rg-lib">'+titre+'</span>'
+    +'<div class="rg-seg" role="group" aria-label="'+titre+'">'
+    +Object.keys(options).map(k=>'<button class="'+(k===actuel?'on':'')+'" aria-pressed="'+(k===actuel)+'" onclick="'+fn+'(\''+k+'\')">'+options[k]+'</button>').join('')
+    +'</div></div>';
+}
+/* rgInterrupteur(libelle, sous, actif, appel) — un réglage oui/non. */
+function rgInterrupteur(libelle, sous, actif, appel){
+  return '<div class="rg-ligne"><span class="rg-lib">'+libelle+(sous?'<span class="rg-sous">'+sous+'</span>':'')+'</span>'
+    +'<button class="rg-switch" role="switch" aria-checked="'+actif+'" aria-label="'+libelle.replace(/<[^>]+>/g,'')+'" onclick="'+appel+'"><span></span></button></div>';
+}
+/* rgCarte(id, titre, etat, contenu) — une section du menu. */
+function rgCarte(id, titre, etat, contenu, extra){
+  return '<section class="rg-carte'+(extra?' '+extra:'')+'" id="'+id+'"><div class="rg-tete"><h3>'+titre+'</h3>'
+    +(etat?'<span class="rg-etat">'+etat+'</span>':'')+'</div>'+contenu+'</section>';
+}
+/* rgAller(id) — le sommaire : fait défiler la fenêtre jusqu'à la carte. */
+function rgAller(id){ const el=document.getElementById(id); if(el) el.scrollIntoView({behavior:'smooth',block:'start'}); }
+
 function renderSettingsBody(){
   const body=document.getElementById('settings-body'); if(!body) return;
   const isEd=(localStorage.getItem('philo-mode')||'revision')==='edition';
   const isFiche=localStorage.getItem('philo-fiche')==='1';
-  // Étape 6 : thème et taille du texte, en boutons à choix unique.
-  const choix=(titre, desc, options, actuel, fn)=>'<div class="set-row">'
-    +'<div class="set-row-cur">'+titre+' : <strong>'+options[actuel]+'</strong></div>'
-    +'<div class="set-row-desc">'+desc+'</div>'
-    +'<div class="set-choix" role="group" aria-label="'+titre+'">'
-    +Object.keys(options).map(k=>'<button class="pbtn '+(k===actuel?'pbtn-primary':'pbtn-ghost')+'" aria-pressed="'+(k===actuel)+'" onclick="'+fn+'(\''+k+'\')">'+options[k]+'</button>').join('')
-    +'</div></div>';
-  body.innerHTML=
-    choix('Thème', 'Le thème clair, sur fond papier, repose les yeux pour lire longtemps ; « Automatique » suit le réglage de ton appareil.', THEMES, lireReglage('philo-theme','sombre'), 'setTheme')
-    +choix('Taille du texte', 'Agrandit la zone de lecture (notions, fiches), pas la barre latérale.', TAILLES, lireReglage('philo-texte','normal'), 'setTailleTexte')
-    +'<div class="set-row">'
-    +'<div class="set-row-cur">Mode d\'affichage actuel : <strong>'+(isEd?'Édition':'Révision')+'</strong></div>'
-    +'<div class="set-row-desc">Le mode <em>édition</em> révèle les badges « ✦ nouveau / ✎ modifié » et les boutons « + » pour proposer du contenu. Le mode <em>révision</em> épure l\'affichage pour se concentrer sur l\'apprentissage.</div>'
-    +'<button class="pbtn pbtn-primary set-mode-btn" onclick="togglePhiloMode()">'
-      +(isEd?'👁 Revenir au mode révision':'✎ Passer en mode édition')+'</button>'
+  const theme=lireReglage('philo-theme','sombre'), taille=lireReglage('philo-texte','normal');
+  const connecte=typeof authUser!=='undefined'&&!!authUser;
+  const hp=KEYS_HP.length>0;
+
+  // ── Sommaire ──
+  const sommaire=[['rg-affichage','Affichage'],['rg-revision','Révision'],['rg-compte','Compte'],['rg-donnees','Mes données'],['rg-apropos','À propos']];
+  let h='<nav class="rg-sommaire" aria-label="Sections des réglages">'
+    +sommaire.map(([id,t])=>'<button onclick="rgAller(\''+id+'\')">'+t+'</button>').join('')+'</nav>';
+
+  // ── Affichage : le réglage le plus courant, en premier ──
+  h+=rgCarte('rg-affichage','Affichage', THEMES[theme]+' · texte '+({normal:'normal',grand:'grand','tres-grand':'très grand'}[taille]||'normal'),
+    rgSegment('Thème', THEMES, theme, 'setTheme')
+    +rgSegment('Taille du texte', TAILLES, taille, 'setTailleTexte')
+    +'<details class="rg-plus"><summary>Ce que ça change</summary>'
+    +'<p>Le thème clair, sur fond papier, repose les yeux pour lire longtemps ; « Automatique » suit le réglage de ton appareil.</p>'
+    +'<p>La taille agrandit la zone de lecture (notions, fiches), pas la barre latérale.</p></details>');
+
+  // ── Révision : trois interrupteurs ──
+  const etatRev=[isEd?'Mode édition':'Mode révision'].concat(isFiche?['fiche']:[]).concat(hp?[voirHP()?'hors programme visible':'programme seul']:[]).join(' · ');
+  h+=rgCarte('rg-revision','Révision', etatRev,
+    rgInterrupteur('Mode fiche','idées en deux lignes, sans citations', isFiche, 'toggleFicheMode()')
+    +(hp?rgInterrupteur('Hors programme','les '+KEYS_HP.length+' notions au-delà du bac', voirHP(), 'setVoirHP('+(voirHP()?'false':'true')+')'):'')
+    +rgInterrupteur('Mode édition','pour proposer du contenu', isEd, 'togglePhiloMode()')
+    +'<details class="rg-plus"><summary>Ce que ça change</summary>'
+    +'<p><strong>Mode fiche</strong> : compresse chaque boîte d\'auteur dans les notions (idée bornée à 2 lignes, citations masquées) pour une <em>lecture rapide</em>, façon fiche de révision. Le contenu complet reste sur la fiche de l\'auteur.</p>'
+    +(hp?'<p><strong>Hors programme</strong> : les notions qui ne sont pas au programme de terminale ('+KEYS_HP.length+' pour l\'instant), et ce qui n\'apparaît que sous elles : auteurs, concepts, cartes du quiz. Masqué, le site s\'en tient au programme du bac.</p>':'')
+    +'<p><strong>Mode édition</strong> : révèle les badges « ✦ nouveau / ✎ modifié » et les boutons « + » pour proposer du contenu. Le mode <em>révision</em> épure l\'affichage pour se concentrer sur l\'apprentissage.</p></details>');
+
+  // ── Compte ──
+  h+=rgCarte('rg-compte','Compte', connecte?'Connecté':'Sans compte',
+    connecte
+      ?'<p class="rg-texte">Connecté en tant que <strong>'+pEsc(authLabel())+'</strong>'+(authUser.email?' ('+pEsc(authUser.email)+')':'')+'. Ta progression et tes réglages se synchronisent entre tes appareils.</p>'
+        +'<div class="rg-actions"><button class="pbtn" onclick="closeSettings();openAuth()">Gérer mon compte</button>'
+        +'<button class="pbtn" onclick="authSignOut().then(renderSettingsBody)">Se déconnecter</button></div>'
+      :'<p class="rg-texte">Sans compte, tout reste sur cet appareil. Un compte (facultatif) retrouve ta progression sur tous tes appareils et permet de suivre tes propositions.</p>'
+        +'<div class="rg-actions"><button class="pbtn pbtn-primary" onclick="closeSettings();openAuth(\'signup\')">Créer un compte</button>'
+        +'<button class="pbtn" onclick="closeSettings();openAuth(\'signin\')">Se connecter</button></div>');
+
+  // ── Mes données : les droits RGPD, en un clic ──
+  const surAppareil=Object.keys(donneesAppareil()).length;
+  h+=rgCarte('rg-donnees','Mes données', surAppareil+' élément'+(surAppareil>1?'s':'')+' sur cet appareil'+(connecte?' · compte':''),
+    '<p class="rg-texte">Pas de publicité, pas de statistiques, pas de traceur. Le site garde seulement ce qui sert à ta révision'+(connecte?', sur cet appareil et sur ton compte':', sur cet appareil')+'.</p>'
+    +'<div class="rg-actions"><button class="pbtn" onclick="exporterMesDonnees(this)">↓ Télécharger mes données</button>'
+    +'<button class="pbtn" onclick="effacerDonneesAppareil()">Effacer les données de cet appareil</button></div>'
+    +'<div class="rg-statut" id="rg-donnees-statut" role="status"></div>'
+    +'<details class="rg-plus"><summary>Ce que le site garde sur toi</summary><ul>'
+    +LEGAL.traitements.map(t=>'<li><strong>'+pEsc(t.titre)+'</strong> : '+pEsc(t.donnees.join(', '))+'. <span class="rg-sous">'+pEsc(t.duree)+'</span></li>').join('')
+    +'</ul><p>Le détail, les services qui reçoivent ces données et tes droits : <a href="'+LEGAL_URL+'" target="_blank" rel="noopener">informations légales</a>.</p></details>'
+    +(connecte?'<div class="rg-danger"><div><strong>Supprimer mon compte</strong><span class="rg-sous">Compte, réglages et progression effacés. Tes propositions restent sur le site, sans ton nom.</span></div>'
+      +'<button class="pbtn rg-btn-danger" onclick="supprimerMonCompte()">Supprimer</button></div>':''));
+
+  // ── À propos ──
+  h+=rgCarte('rg-apropos','À propos', 'Version du '+legalDateFr(LEGAL_VERSION),
+    '<div class="rg-liens">'
+    +'<a href="'+LEGAL_URL+'" target="_blank" rel="noopener">Informations légales et conditions ↗</a>'
+    +'<a href="mailto:'+pEsc(LEGAL.contact)+'">Écrire à l\'éditeur</a>'
+    +'<a href="docs/carte/carte.html" target="_blank" rel="noopener">🗺 Carte du projet ↗</a>'
+    +'<a href="docs/carte/frise.html" target="_blank" rel="noopener">🕓 Frise des commits ↗</a>'
     +'</div>'
-    // Mode fiche : compresse les cartes d'auteur des notions pour une lecture rapide.
-    +'<div class="set-row">'
-    +'<div class="set-row-cur">Mode fiche : <strong>'+(isFiche?'activé':'désactivé')+'</strong></div>'
-    +'<div class="set-row-desc">Compresse chaque boîte d\'auteur dans les notions (idée bornée à 2 lignes, citations masquées) pour une <em>lecture rapide</em>, façon fiche de révision. Le contenu complet reste sur la fiche de l\'auteur.</div>'
-    +'<button class="pbtn pbtn-primary set-mode-btn" onclick="toggleFicheMode()">'
-      +(isFiche?'📖 Affichage complet':'🗂 Activer le mode fiche')+'</button>'
-    +'</div>'
-    // Étape 5 : afficher ou masquer le hors programme (visible par défaut).
-    +(KEYS_HP.length?'<div class="set-row">'
-    +'<div class="set-row-cur">Hors programme : <strong>'+(voirHP()?'affiché':'masqué')+'</strong></div>'
-    +'<div class="set-row-desc">Les notions qui ne sont pas au programme de terminale ('+KEYS_HP.length+' pour l\'instant), et ce qui n\'apparaît que sous elles : auteurs, concepts, cartes du quiz. Masqué, le site s\'en tient au programme du bac.</div>'
-    +'<button class="pbtn pbtn-primary set-mode-btn" onclick="setVoirHP('+(voirHP()?'false':'true')+')">'
-      +(voirHP()?'🎯 M\'en tenir au programme':'🧭 Afficher le hors programme')+'</button>'
-    +'</div>':'')
-    // Carte technique du projet (doc) — discret, pour les curieux de l'envers du décor.
-    +'<div class="set-row">'
-    +'<div class="set-row-cur">🔎 Découvrir l\'envers du projet</div>'
-    +'<div class="set-row-desc">Pour les curieux de la technique : une <strong>carte interactive</strong> de l\'architecture (du parcours élève jusqu\'au nom des fonctions) et une <strong>frise</strong> de l\'évolution du projet commit par commit.</div>'
-    +'<a class="pbtn pbtn-ghost set-mode-btn" href="docs/carte/carte.html" target="_blank" rel="noopener" style="display:inline-block;text-decoration:none;margin-right:6px">🗺 Carte du projet ↗</a>'
-    +'<a class="pbtn pbtn-ghost set-mode-btn" href="docs/carte/frise.html" target="_blank" rel="noopener" style="display:inline-block;text-decoration:none">🕓 Frise des commits ↗</a>'
-    +'</div>';
+    +'<details class="rg-plus"><summary>La carte et la frise, c\'est quoi ?</summary><p>Pour les curieux de la technique : une <strong>carte interactive</strong> de l\'architecture (du parcours élève jusqu\'au nom des fonctions) et une <strong>frise</strong> de l\'évolution du projet commit par commit.</p></details>');
+
+  body.innerHTML=h;
 }
 /* openSettings / closeSettings — ouvre/ferme l'overlay de réglages. */
 function openSettings(){ const ov=document.getElementById('settings-overlay'); if(!ov) return; renderSettingsBody(); ov.classList.add('open'); }
@@ -5264,10 +5335,12 @@ async function initAuth(){
   }catch(e){ authUser=null; }
   renderAccountBtn();
   maybeStartSync();                     // new (Phase 2) : si déjà connecté au chargement, on synchronise
+  verifierAccordLegal();                // nov. 2026 (RGPD) : la notice a-t-elle changé depuis l'accord ?
   SB.auth.onAuthStateChange((event,session)=>{
     authUser=session?session.user:null;
     renderAccountBtn();
     if(authUser) maybeStartSync(); else syncResetState();   // new (Phase 2) : (dé)clenche la synchro selon l'état
+    if(event==='SIGNED_IN'||event==='SIGNED_OUT') verifierAccordLegal();   // nov. 2026 : accord à jour ? (un compte Google n'a jamais coché la case)
     const ov=document.getElementById('auth-overlay');
     // new : retour d'un lien « mot de passe oublié ». L'évènement arrive en
     // général alors que la modale est fermée (la page vient de s'ouvrir depuis
@@ -5399,7 +5472,8 @@ function renderAuth(){
       <div class="auth-form" style="margin-top:14px">
         <button class="auth-btn auth-btn-primary" onclick="authSignOut()">Se déconnecter</button>
       </div>
-      <button class="auth-link-btn auth-danger" onclick="authDeleteAccount()" title="Supprimer définitivement le compte et toutes ses données">Supprimer mon compte</button>
+      <button class="auth-link-btn" onclick="closeAuth();openSettings();setTimeout(()=>rgAller('rg-donnees'),50)">Mes données (télécharger, effacer)</button>
+      <button class="auth-link-btn auth-danger" onclick="authDeleteAccount()" title="Supprimer définitivement le compte ; les propositions restent, anonymisées">Supprimer mon compte</button>
       <div class="auth-status" id="auth-status"></div>`;
     return;
   }
@@ -5433,10 +5507,11 @@ function renderAuth(){
         <input class="auth-input" id="auth-pw" type="password" placeholder="Mot de passe (6 caractères min.)" autocomplete="${isSignup?'new-password':'current-password'}" minlength="6" required>
         <button type="button" class="auth-pw-eye" title="Afficher / masquer le mot de passe" aria-label="Afficher le mot de passe" onclick="togglePwEye(this)">👁</button>
       </div>
+      ${isSignup?cguCaseHTML('auth-cgu','créer mon compte'):''}
       <button class="auth-btn auth-btn-primary" type="submit">${isSignup?'Créer mon compte':'Se connecter'}</button>
     </form>
     ${isSignup?'':'<button class="auth-link-btn" onclick="authSetView(\'reset\')">Mot de passe oublié ?</button>'}
-    ${isSignup?'<div class="auth-note">En créant un compte, seuls ton <b>pseudo</b> et ton <b>adresse e-mail</b> sont enregistrés (chez Supabase, l’hébergeur), pour retrouver ta progression et tes propositions sur tous tes appareils. Rien d’autre n’est collecté.</div>':''}
+    ${isSignup?'<div class="auth-note">En créant un compte, seuls ton <b>pseudo</b> et ton <b>adresse e-mail</b> sont enregistrés (chez Supabase, l’hébergeur), pour retrouver ta progression et tes propositions sur tous tes appareils. Rien d’autre n’est collecté. Avec Google, la même question te sera posée à la première connexion.</div>':''}
     <div class="auth-status" id="auth-status"></div>`;
 }
 
@@ -5477,9 +5552,15 @@ async function authSubmit(ev){
       // Pseudo facultatif → rangé dans user_metadata.full_name (le « nom
       // affiché »), lu en priorité par authLabel().
       const name=((document.getElementById('auth-name')||{}).value||'').trim();
-      const opts=name?{data:{full_name:name}}:{};
+      // nov. 2026 (RGPD) : la case d'accord, non cochée d'office, est exigée ;
+      // la version acceptée et sa date sont gardées avec le compte (preuve).
+      if(!cguCoche('auth-cgu')){ authStatus('Coche la case pour accepter les conditions d’utilisation avant de créer ton compte.','err'); return; }
+      const data={cgu_version:LEGAL_VERSION, cgu_date:new Date().toISOString()};
+      if(name) data.full_name=name;
+      const opts={data};
       const {error}=await SB.auth.signUp({email,password:pw,options:opts});
       if(error) throw error;
+      legalRetenir();                  // l'appareil garde aussi la version acceptée
       // Si la confirmation par e-mail est activée côté Supabase, pas encore
       // de session : on invite à confirmer (et à regarder les spams, l'e-mail
       // pouvant tarder ou y atterrir). Sinon, onAuthStateChange ferme.
@@ -5554,12 +5635,14 @@ async function authSignOut(){
    une fonction PostgreSQL « delete_own_account » (SECURITY DEFINER) qui efface
    les données de l'utilisateur (contributions, progression, préférences) puis
    sa ligne auth.users — toujours bornée à auth.uid(), donc à SON seul compte.
+   Depuis le 15 nov. 2026 (2026_rgpd.sql) : les propositions ne sont plus
+   effacées mais ANONYMISÉES (plus de lien au compte, pseudo « anonyme »).
    Voir le SQL à exécuter une fois côté Supabase (communiqué séparément).
    Après suppression : on nettoie la session locale et on revient au formulaire. */
 async function authDeleteAccount(){
   if(!SB||!authUser) return;
   // Confirmation explicite : action irréversible (double sécurité native).
-  if(!confirm("Supprimer définitivement ton compte ?\n\nTa progression de révision, tes préférences et tes propositions seront effacées. Cette action est IRRÉVERSIBLE.")) return;
+  if(!confirm("Supprimer définitivement ton compte ?\n\nTon compte, ta progression de révision et tes préférences seront effacés. Tes propositions restent sur le site, mais sans ton nom ni lien avec toi. Cette action est IRRÉVERSIBLE.")) return;
   authStatus('Suppression du compte…','');
   try{
     const {error}=await SB.rpc('delete_own_account');
@@ -5641,7 +5724,9 @@ function authHumanError(e){
      messageries, AirDrop…). Affiché en tête seulement si supporté.
    • Partout → un QR code (à scanner en personne) + le lien copiable en
      un clic. Ces deux moyens marchent même hors-ligne (aucun compte
-     requis), le QR étant la seule ressource réseau (avec repli si KO).
+     requis). Depuis le 15 nov. 2026, le QR est CALCULÉ dans le navigateur
+     (lib/qrcode.js, chargé à la première ouverture) : avant, l'adresse de
+     la page partait chez api.qrserver.com (RGPD, protocole-donnees.md, A6).
    ══════════════════════════════════════════════════════════════════ */
 
 // URL à partager : celle de la PAGE ouverte (origine + chemin + adresse
@@ -5663,9 +5748,6 @@ function renderShare(){
   if(!body) return;
   const url=shareUrl();
   const urlAttr=url.replace(/"/g,'&quot;');                 // sûr en attribut HTML
-  // Le QR est rendu par un service externe (API publique) : pas de
-  // bibliothèque embarquée. onerror → on masque proprement le bloc.
-  const qr='https://api.qrserver.com/v1/create-qr-code/?size=200x200&margin=0&data='+encodeURIComponent(url);
   // Bouton de partage natif : seulement si l'appareil le propose (mobiles
   // surtout). Sinon on s'appuie sur le QR + la copie, toujours présents.
   const nativeBtn = (typeof navigator!=='undefined' && navigator.share)
@@ -5674,9 +5756,8 @@ function renderShare(){
   body.innerHTML=`
     <div class="share-intro">Partage cette page (${paletteEsc(titrePage().replace(/ · Graphe Philosophie$/,''))}) à tes camarades : scanne le QR code, copie le lien, ou utilise le partage de ton appareil. Le lien ouvre le site directement sur cette page.</div>
     ${nativeBtn}
-    <div class="share-qr-wrap">
-      <img class="share-qr" src="${qr}" alt="QR code vers le site" loading="lazy"
-        onerror="this.parentNode.style.display='none'">
+    <div class="share-qr-wrap" id="share-qr-wrap">
+      <div class="share-qr" id="share-qr" role="img" aria-label="QR code vers cette page"></div>
       <div class="share-qr-cap">Scanne pour ouvrir le site</div>
     </div>
     <div class="share-linkrow">
@@ -5685,6 +5766,36 @@ function renderShare(){
       <button class="share-btn share-btn-copy" id="share-copy" onclick="copyShareLink(this)">Copier</button>
     </div>
     <div class="share-status" id="share-status"></div>`;
+  dessinerQR(url);
+}
+
+/* chargerQRLib() — charge lib/qrcode.js (bibliothèque qrcode-generator de
+   Kazuhiko Arase, licence MIT) une seule fois, à la première ouverture du
+   partage : la plupart des visites n'en ont pas besoin. Renvoie une promesse
+   résolue quand le global « qrcode » existe. Le fichier est dans le précache :
+   ça marche hors-ligne. */
+let _qrLib=null;
+function chargerQRLib(){
+  if(typeof qrcode==='function') return Promise.resolve();
+  if(_qrLib) return _qrLib;
+  _qrLib=new Promise((ok,ko)=>{
+    const s=document.createElement('script');
+    s.src='lib/qrcode.js'; s.onload=ok; s.onerror=()=>{ _qrLib=null; ko(); };
+    document.head.appendChild(s);
+  });
+  return _qrLib;
+}
+
+/* dessinerQR(url) — calcule le QR code de `url` dans le navigateur (aucun
+   appel extérieur) et l'insère en SVG dans #share-qr. Correction d'erreur
+   « M », version choisie d'office (0) selon la longueur. Si la bibliothèque
+   ne se charge pas, le bloc est masqué : le lien copiable reste là. */
+function dessinerQR(url){
+  chargerQRLib().then(()=>{
+    const box=document.getElementById('share-qr'); if(!box) return;
+    const q=qrcode(0,'M'); q.addData(url); q.make();
+    box.innerHTML=q.createSvgTag({cellSize:4, margin:0, scalable:true});
+  }).catch(()=>{ const w=document.getElementById('share-qr-wrap'); if(w) w.style.display='none'; });
 }
 
 /* shareNative() — ouvre la feuille de partage native du système.
@@ -6196,6 +6307,217 @@ function syncResetState(){
   syncMeta.quiz=null; syncMeta.prefs=null;
   syncDirty.quiz=0; syncDirty.prefs=0;
   clearTimeout(syncQuizTimer); clearTimeout(syncPrefsTimer);
+}
+/* js/12-donnees-legales.js — morceau du script du site. Le build (outils/construire.mjs)
+   recolle js/*.js dans l'ORDRE des noms en UN SEUL script, app.js : les
+   fonctions restent visibles d'un morceau à l'autre comme avant, et le code
+   « de premier niveau » s'exécute dans cet ordre. */
+/* ══════════════════════════════════════════════════════════════════
+   DONNÉES PERSONNELLES ET NOTICE LÉGALE (chantier RGPD, 15 nov. 2026)
+   ──────────────────────────────────────────────────────────────────
+   docs/protocole-donnees.md, actions A7 et A8. La notice vient de LEGAL
+   (data.js, depuis contenu/legal.js) : une seule source pour la page
+   /informations-legales/, les Réglages et l'export.
+   • L'accord : case NON cochée à la création d'un compte (et à l'envoi
+     d'une proposition). La version acceptée est gardée dans le compte
+     (user_metadata.cgu_version, cgu_date) et sur l'appareil
+     (« philo-legal »). Quand la notice change, verifierAccordLegal() la
+     redemande au compte, et la signale au visiteur qui l'avait acceptée.
+   • Les droits : exporterMesDonnees() (accès, portabilité),
+     effacerDonneesAppareil(), supprimerMonCompte() (effacement).
+   ══════════════════════════════════════════════════════════════════ */
+
+// La version en vigueur : la date de la dernière entrée de l'historique.
+const LEGAL_VERSION=(LEGAL.historique[LEGAL.historique.length-1]||{}).version||'';
+const LEGAL_URL='informations-legales/';
+
+/* legalDateFr(v) — « 2026-11-15 » → « 15 novembre 2026 » (même règle que
+   outils/lib/legal.mjs, pour la page légale). */
+function legalDateFr(v){
+  const M=['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+  const p=String(v||'').split('-').map(Number); if(p.length!==3) return v||'';
+  return (p[2]===1?'1er':p[2])+' '+M[p[1]-1]+' '+p[0];
+}
+/* legalLocal() / legalRetenir() — la version acceptée sur CET appareil. */
+function legalLocal(){ try{ return localStorage.getItem('philo-legal')||''; }catch(e){ return ''; } }
+function legalRetenir(){ try{ localStorage.setItem('philo-legal', LEGAL_VERSION); }catch(e){} }
+
+/* cguCaseHTML(id, quoi) — la case d'accord, jamais pré-cochée. `quoi` dit ce
+   qu'on fait en cochant (« créer un compte », « envoyer »). Le lien ouvre la
+   notice dans un autre onglet, pour ne pas perdre le formulaire. */
+function cguCaseHTML(id, quoi){
+  return '<label class="cgu-case"><input type="checkbox" id="'+id+'"> '
+    +'<span>J\'ai lu et j\'accepte les <a href="'+LEGAL_URL+'#cgu" target="_blank" rel="noopener">conditions d\'utilisation</a> '
+    +'et la <a href="'+LEGAL_URL+'#donnees" target="_blank" rel="noopener">notice des données</a> pour '+quoi+'.</span></label>';
+}
+/* cguCoche(id) — vrai si la case existe et est cochée. */
+function cguCoche(id){ const c=document.getElementById(id); return !!(c&&c.checked); }
+
+/* legalChangementsDepuis(v) — les entrées de l'historique postérieures à la
+   version `v` (toutes si v est vide), de la plus récente à la plus ancienne. */
+function legalChangementsDepuis(v){
+  return LEGAL.historique.filter(h=>!v||h.version>v).slice().reverse();
+}
+
+/* verifierAccordLegal() — appelée au démarrage et à chaque changement de
+   connexion (initAuth). Avec un compte : si la version acceptée n'est pas
+   celle du site, une fenêtre la redemande (accepter, ou se déconnecter :
+   on ne garde pas un compte sous des conditions qu'il n'a pas vues).
+   L'appareil retient la version acceptée, le jeton pouvant retarder.
+   Sans compte : si le visiteur avait accepté une version plus ancienne (en
+   proposant du contenu), un bandeau discret lui signale le changement. */
+function verifierAccordLegal(){
+  const ancien=document.getElementById('legal-accord'); if(ancien) ancien.remove();
+  const loc=legalLocal();
+  if(typeof authUser!=='undefined' && authUser){
+    const v=(authUser.user_metadata||{}).cgu_version||'';
+    if(v===LEGAL_VERSION || loc===LEGAL_VERSION) return;
+    afficherAccordLegal(true, v);
+    return;
+  }
+  if(loc && loc<LEGAL_VERSION) afficherAccordLegal(false, loc);
+}
+
+/* afficherAccordLegal(compte, depuis) — la fenêtre (compte) ou le bandeau
+   (visiteur) qui annonce la nouvelle version et résume ce qui a changé. */
+function afficherAccordLegal(compte, depuis){
+  const ch=legalChangementsDepuis(depuis);
+  const box=document.createElement('div');
+  box.id='legal-accord'; box.className='legal-accord'+(compte?' legal-accord-compte':'');
+  box.setAttribute('role', compte?'dialog':'status');
+  if(compte) box.setAttribute('aria-modal','true');
+  box.setAttribute('aria-labelledby','legal-accord-titre');
+  box.innerHTML='<div class="legal-accord-panneau">'
+    +'<div class="legal-accord-titre" id="legal-accord-titre">'+(depuis?'Les conditions ont changé':'Les conditions d\'utilisation')+'</div>'
+    +'<ul class="legal-accord-liste">'+ch.map(h=>'<li><strong>'+pEsc(legalDateFr(h.version))+'</strong> : '+pEsc(h.resume)+'</li>').join('')+'</ul>'
+    +(compte?'<p>Pour continuer à utiliser ton compte, accepte la version du '+pEsc(legalDateFr(LEGAL_VERSION))+'. Tu peux aussi te déconnecter : le site marche sans compte.</p>':'')
+    +'<div class="legal-accord-btns">'
+    +'<a class="pbtn pbtn-ghost" href="'+LEGAL_URL+'" target="_blank" rel="noopener">Lire le texte</a>'
+    +(compte
+      ?'<button class="pbtn pbtn-ghost" onclick="refuserAccordLegal()">Me déconnecter</button><button class="pbtn pbtn-primary" onclick="accepterAccordLegal()">J\'accepte</button>'
+      :'<button class="pbtn pbtn-primary" onclick="legalRetenir();fermerAccordLegal()">Compris</button>')
+    +'</div><div class="legal-accord-statut" id="legal-accord-statut"></div></div>';
+  document.body.appendChild(box);
+}
+function fermerAccordLegal(){ const b=document.getElementById('legal-accord'); if(b) b.remove(); }
+
+/* accepterAccordLegal() — écrit la version et la date dans le compte
+   (preuve de l'accord : savoir quand, et à quelle version), puis sur
+   l'appareil. En cas d'échec réseau, la fenêtre reste et le dit. */
+async function accepterAccordLegal(){
+  const st=document.getElementById('legal-accord-statut');
+  if(!SB||!authUser){ legalRetenir(); fermerAccordLegal(); return; }
+  if(st) st.textContent='Enregistrement…';
+  try{
+    const meta={cgu_version:LEGAL_VERSION, cgu_date:new Date().toISOString()};
+    const {error}=await SB.auth.updateUser({data:meta});
+    if(error) throw error;
+    authUser.user_metadata=Object.assign({},authUser.user_metadata,meta);
+    legalRetenir(); fermerAccordLegal();
+  }catch(e){ if(st) st.textContent='Impossible d\'enregistrer ton accord pour l\'instant (hors-ligne ?). Réessaie.'; }
+}
+/* refuserAccordLegal() — déconnecte, sans rien effacer : le compte reste,
+   et la question reviendra à la prochaine connexion. */
+async function refuserAccordLegal(){
+  fermerAccordLegal();
+  if(typeof authSignOut==='function') await authSignOut();
+}
+
+/* ── Les droits ─────────────────────────────────────────────────────── */
+
+/* donneesAppareil() — tout ce que le site garde dans CE navigateur, clé par
+   clé (« philo-… »). La session de connexion (sb-…) n'est PAS exportée :
+   c'est un secret, pas une donnée sur la personne. */
+function donneesAppareil(){
+  const out={};
+  try{
+    for(let i=0;i<localStorage.length;i++){
+      const k=localStorage.key(i);
+      if(!k||k.indexOf('philo-')!==0) continue;
+      const v=localStorage.getItem(k);
+      try{ out[k]=JSON.parse(v); }catch(e){ out[k]=v; }
+    }
+  }catch(e){}
+  return out;
+}
+
+/* exporterMesDonnees() — droit d'accès et de portabilité (RGPD, art. 15 et
+   20) : un fichier JSON avec ce que le site garde sur la personne. Sur
+   l'appareil toujours ; avec un compte, aussi ce qui est en ligne (le compte
+   lui-même, réglages, progression, propositions), lu avec SON jeton : les
+   règles d'accès ne lui rendent que ses lignes. */
+async function exporterMesDonnees(btn){
+  const st=document.getElementById('rg-donnees-statut');
+  const dire=m=>{ if(st) st.textContent=m; };
+  if(btn) btn.disabled=true;
+  dire('Préparation du fichier…');
+  const dossier={
+    genere_le:new Date().toISOString(),
+    site:LEGAL.site,
+    notice:{version:LEGAL_VERSION, adresse:LEGAL.site+'/'+LEGAL_URL},
+    sur_cet_appareil:donneesAppareil(),
+    compte:null
+  };
+  try{
+    if(SB&&authUser){
+      const uid=authUser.id;
+      const [pref,quiz,props]=await Promise.all([
+        SB.from('preferences').select('data,updated_at').eq('user_id',uid),
+        SB.from('quiz_progress').select('data,updated_at').eq('user_id',uid),
+        SB.from('contributions').select('id,payload,statut,explication,avis_ia,created_at,updated_at').eq('user_id',uid).order('created_at')
+      ]);
+      dossier.compte={
+        identifiant:uid,
+        email:authUser.email||null,
+        connexion:(authUser.app_metadata&&authUser.app_metadata.provider)||'email',
+        cree_le:authUser.created_at||null,
+        derniere_connexion:authUser.last_sign_in_at||null,
+        profil:authUser.user_metadata||{},
+        reglages_en_ligne:(pref.data&&pref.data[0])||null,
+        progression_quiz_en_ligne:(quiz.data&&quiz.data[0])||null,
+        propositions:props.data||[],
+        erreurs:[pref.error,quiz.error,props.error].filter(Boolean).map(e=>e.message)
+      };
+    }
+    const blob=new Blob([JSON.stringify(dossier,null,2)],{type:'application/json'});
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download='mes-donnees-philo-'+new Date().toISOString().slice(0,10)+'.json';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+    dire(dossier.compte&&dossier.compte.erreurs.length
+      ?'Fichier téléchargé, mais une partie de tes données en ligne n\'a pas pu être lue (hors-ligne ?).'
+      :'Fichier téléchargé.');
+  }catch(e){ dire('Le fichier n\'a pas pu être préparé : '+((e&&e.message)||'erreur inconnue')+'.'); }
+  if(btn) btn.disabled=false;
+}
+
+/* effacerDonneesAppareil() — efface tout ce que le site garde dans CE
+   navigateur (« philo-… »). Avec un compte, on se déconnecte d'abord : sinon
+   la synchronisation renverrait aussitôt un état vide vers le compte et
+   écraserait la progression en ligne. Le compte, lui, n'est pas touché. */
+async function effacerDonneesAppareil(){
+  const connecte=typeof authUser!=='undefined'&&!!authUser;
+  const msg=connecte
+    ?'Effacer les données de cet appareil ?\n\nTu seras déconnecté. Tes réglages et ta progression restent sur ton compte : tu les retrouveras en te reconnectant.'
+    :'Effacer les données de cet appareil ?\n\nTes réglages, ta progression du quiz et ton brouillon de proposition seront effacés de ce navigateur. C\'est définitif.';
+  if(!confirm(msg)) return;
+  if(connecte && SB){ try{ await SB.auth.signOut(); }catch(e){} }
+  try{
+    const cles=[];
+    for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(k&&(k.indexOf('philo-')===0||/^sb-.*-auth-token$/.test(k))) cles.push(k); }
+    cles.forEach(k=>localStorage.removeItem(k));
+  }catch(e){}
+  location.reload();
+}
+
+/* supprimerMonCompte() — depuis les Réglages : ouvre la fenêtre du compte
+   (qui affiche le déroulement) et lance la suppression (authDeleteAccount,
+   js/09-compte.js, qui demande confirmation). */
+function supprimerMonCompte(){
+  closeSettings();
+  openAuth();
+  authDeleteAccount();
 }
 /* js/13-quiz.js — morceau du script du site. Le build (outils/construire.mjs)
    recolle js/*.js dans l'ORDRE des noms en UN SEUL script, app.js : les
@@ -7965,6 +8287,7 @@ renderSB(); if(document.body.dataset.entree!=='fiches') renderCurrentView();
 initAuth();           // new (comptes) : récupère la session + s'abonne aux changements d'état
 tourStartIfFirst();   // visite guidée auto à la 1re venue (cf. module « Visite guidée »)
 hpInviterSiBesoin();  // étape 5 : propose de masquer le hors programme (une fois, hors visite)
+if(!SB) verifierAccordLegal();   // nov. 2026 : notice changée (avec Supabase, initAuth s'en charge)
 initNotice();         // bandeau « contenu en construction » (auto-fermeture à 1 min)
 
 /* ── PWA — enregistrement du service worker + mise à jour automatique ──

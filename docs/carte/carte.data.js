@@ -101,15 +101,21 @@ window.CARTE = {
       liens:[{to:"nav.open",type:"navigue",note:"Activer un résultat ouvre la cible via les points d'entrée open*."}] },
 
     { id:"ux.settings", label:"Réglages & modes", niveau:1, parent:"ux", domaine:"ux",
-      novice:"Le menu ⚙ Réglages : aide, relance de la visite, bascule révision/édition, « mode fiche » (lecture compressée), et accès à cette carte + à la frise.",
-      ingenieur:"Overlay #settings-overlay regroupant les fonctions non nécessaires à la révision. Deux bascules d'affichage : applyPhiloMode (révision/édition, classe body.mode-edition) et applyFicheMode (mode fiche, classe body.mode-fiche). Le menu offre aussi les liens vers docs/carte/carte.html et frise.html.",
-      symbols:[{kind:"fn",name:"openSettings",ref:"js/07-affichage-reglages.js:184"},{kind:"fn",name:"renderSettingsBody",ref:"js/07-affichage-reglages.js:141"},{kind:"fn",name:"applyPhiloMode",ref:"js/07-affichage-reglages.js:19"},{kind:"fn",name:"togglePhiloMode",ref:"js/07-affichage-reglages.js:27"},{kind:"fn",name:"applyFicheMode",ref:"js/07-affichage-reglages.js:37"},{kind:"fn",name:"toggleFicheMode",ref:"js/07-affichage-reglages.js:42"}],
+      novice:"Le menu ⚙ Réglages, refondu le 15 nov. 2026 : un sommaire, puis cinq cartes (Affichage, Révision, Compte, Mes données, À propos). Chaque carte dit d'abord où on en est ; les explications sont repliées sous « Ce que ça change ».",
+      ingenieur:"Overlay #settings-overlay, rendu par renderSettingsBody à partir de briques : rgCarte (section + ligne d'état), rgSegment (choix exclusif), rgInterrupteur (role=switch, aria-checked), rgAller (sommaire). Bascules : applyPhiloMode (body.mode-edition), applyFicheMode (body.mode-fiche), setVoirHP. La carte « Mes données » appelle le module ux.legal (export, effacement, suppression). La visite guidée trouve l'interrupteur du mode édition par son action (tourSettingsRow).",
+      symbols:[{kind:"fn",name:"rgCarte",ref:"js/07-affichage-reglages.js:165"},{kind:"fn",name:"rgSegment",ref:"js/07-affichage-reglages.js:153"},{kind:"fn",name:"rgInterrupteur",ref:"js/07-affichage-reglages.js:160"},{kind:"fn",name:"rgAller",ref:"js/07-affichage-reglages.js:170"},{kind:"css",name:"rg-switch",ref:"css/11-reglages.css:38"},{kind:"fn",name:"openSettings",ref:"js/07-affichage-reglages.js:240"},{kind:"fn",name:"renderSettingsBody",ref:"js/07-affichage-reglages.js:172"},{kind:"fn",name:"applyPhiloMode",ref:"js/07-affichage-reglages.js:19"},{kind:"fn",name:"togglePhiloMode",ref:"js/07-affichage-reglages.js:27"},{kind:"fn",name:"applyFicheMode",ref:"js/07-affichage-reglages.js:37"},{kind:"fn",name:"toggleFicheMode",ref:"js/07-affichage-reglages.js:42"}],
       liens:[{to:"nav.keys.mode",type:"ecrit",note:"Le mode révision/édition est persisté dans philo-mode."},{to:"nav.keys.fiche",type:"ecrit",note:"Le mode fiche est persisté dans philo-fiche."}] },
+
+    { id:"ux.legal", label:"Données personnelles & notice légale", niveau:1, parent:"ux", domaine:"ux",
+      novice:"Ce qui rend le site conforme au RGPD (15 nov. 2026) : une page « Informations légales », une case à cocher pour accepter les conditions (création de compte, envoi d'une proposition), et dans les Réglages les boutons pour télécharger ses données, les effacer de l'appareil ou supprimer son compte.",
+      ingenieur:"Une seule source : contenu/legal.js → globale LEGAL de data.js et page informations-legales/ (pageLegale, outils/lib/legal.mjs). LEGAL_VERSION = date de la dernière entrée de LEGAL.historique ; la version acceptée vit dans user_metadata.cgu_version (+ cgu_date) et dans philo-legal ; verifierAccordLegal la redemande quand elle change. exporterMesDonnees lit l'appareil et, avec un compte, preferences, quiz_progress et contributions sous le jeton de la personne. La question 15 du vérificateur (empreinteLegal) refuse un build dont une clé, une adresse externe ou une table n'est pas déclarée. Protocole : docs/protocole-donnees.md.",
+      symbols:[{kind:"var",name:"LEGAL_VERSION",ref:"js/12-donnees-legales.js:21"},{kind:"fn",name:"verifierAccordLegal",ref:"js/12-donnees-legales.js:59"},{kind:"fn",name:"accepterAccordLegal",ref:"js/12-donnees-legales.js:97"},{kind:"fn",name:"cguCaseHTML",ref:"js/12-donnees-legales.js:38"},{kind:"fn",name:"exporterMesDonnees",ref:"js/12-donnees-legales.js:139"},{kind:"fn",name:"effacerDonneesAppareil",ref:"js/12-donnees-legales.js:189"},{kind:"fn",name:"supprimerMonCompte",ref:"js/12-donnees-legales.js:207"},{kind:"fn",name:"pageLegale",ref:"outils/lib/legal.mjs:33"},{kind:"fn",name:"empreinteLegal",ref:"outils/lib/legal.mjs:16"},{kind:"fn",name:"effacer_compte",ref:"philo-aggregator/migrations/2026_rgpd.sql:35"},{kind:"fn",name:"purger_comptes_inactifs",ref:"philo-aggregator/migrations/2026_rgpd.sql:94"},{kind:"fn",name:"anonymiser_submission",ref:"philo-aggregator/db.py:685"},{kind:"fn",name:"masquer_coordonnees",ref:"philo-aggregator/export.py:169"}],
+      liens:[{to:"ux.settings",type:"appelle",note:"La carte « Mes données » des Réglages porte les boutons d'export, d'effacement et de suppression."},{to:"nav.keys.legal",type:"ecrit",note:"La version acceptée sur l'appareil."}] },
 
     { id:"ux.hp", label:"Hors programme : réglage et proposition", niveau:1, parent:"ux", domaine:"ux",
       novice:"Le hors programme est visible par défaut ; à la première visite (après la visite guidée), une petite carte propose de s'en tenir au programme. Le choix se change dans les Réglages et suit le compte.",
       ingenieur:"Étape 5. setVoirHP(v) écrit philo-hp ('1' | '0') et philo-hp-choix, redessine barre latérale, page, Réglages et quiz, puis syncOnPrefsChange (champs hp et hpChoix du blob de préférences). hpInviterSiBesoin() : une fois, s'il existe du hors programme, jamais pendant la visite (rappelée par endTour). Barre latérale : section repliable (philo-hp-replie). Liens dynamiques : lienVersHP + repli alt sur le concept homonyme (« Désir ») quand le hors programme est masqué. Recherche : entrées marquées e.hp.",
-      symbols:[{kind:"fn",name:"setVoirHP",ref:"js/07-affichage-reglages.js:100"},{kind:"fn",name:"hpInviterSiBesoin",ref:"js/07-affichage-reglages.js:116"},{kind:"fn",name:"fermerHpInvite",ref:"js/07-affichage-reglages.js:134"},{kind:"fn",name:"lienVersHP",ref:"js/05-liens-dynamiques.js:136"},{kind:"var",name:"HP_CONCEPTS",ref:"js/05-liens-dynamiques.js:134"},{kind:"var",name:"HP_AUTEURS",ref:"js/05-liens-dynamiques.js:135"},{kind:"key",name:"philo-hp",ref:"js/01-donnees-etat.js:210"},{kind:"key",name:"philo-hp-choix",ref:"js/07-affichage-reglages.js:97"},{kind:"key",name:"philo-hp-replie",ref:"js/03-barre-laterale.js:184"}],
+      symbols:[{kind:"fn",name:"setVoirHP",ref:"js/07-affichage-reglages.js:100"},{kind:"fn",name:"hpInviterSiBesoin",ref:"js/07-affichage-reglages.js:116"},{kind:"fn",name:"fermerHpInvite",ref:"js/07-affichage-reglages.js:134"},{kind:"fn",name:"lienVersHP",ref:"js/05-liens-dynamiques.js:136"},{kind:"var",name:"HP_CONCEPTS",ref:"js/05-liens-dynamiques.js:134"},{kind:"var",name:"HP_AUTEURS",ref:"js/05-liens-dynamiques.js:135"},{kind:"key",name:"philo-hp",ref:"js/01-donnees-etat.js:210"},{kind:"key",name:"philo-hp-choix",ref:"js/07-affichage-reglages.js:97"},{kind:"key",name:"philo-hp-replie",ref:"js/03-barre-laterale.js:191"}],
       liens:[{to:"donnees.statuts",type:"lit",note:"voirHP, estHP, statuts."},{to:"ux.tour",type:"appelle",note:"La proposition attend la fin de la visite guidée."}] },
 
     { id:"ux.theme", label:"Thème clair et taille du texte", niveau:1, parent:"ux", domaine:"ux",
@@ -127,7 +133,7 @@ window.CARTE = {
     { id:"ux.bac", label:"Sujets du bac, nouveautés, fiche imprimable", niveau:1, parent:"ux", domaine:"ux",
       novice:"Les sujets réellement tombés au bac depuis 2021 (Explorer, onglet Dissertations de chaque notion, fiche des auteurs dont un texte est tombé, recherche) ; un journal daté des nouveautés, qui remplace pour les visiteurs les badges « Nouveau » ; et une fiche de révision à imprimer pour chaque notion.",
       ingenieur:"Étape 6. contenu/sujets-bac.js → SUJETS_BAC (sujetsCanoniques dans le build : {sources, sujets:[{annee, date, voie, type, q | auteur+oeuvre, notions}]}) ; contenu/nouveautes.js → NOUVEAUTES ; question 14 du vérificateur. Affichage : sujetsHTML et nouveautesHTML (Explorer), sujetBacHTML, sujetsDeNotion, sujetsDAuteur, ouvrirAdresse. Badges « Nouveau / Modifié » et leurs teintes réservés à body.mode-edition (css/01-base.css). Fiche imprimable : ficheImpressionHTML et imprimerFiche (js/16-impression.js), feuille @media print css/10-impression.css.",
-      symbols:[{kind:"var",name:"SUJETS_BAC",ref:"data.js:397"},{kind:"var",name:"NOUVEAUTES",ref:"data.js:398"},{kind:"fn",name:"sujetsCanoniques",ref:"outils/construire.mjs:124"},{kind:"fn",name:"sujetsHTML",ref:"js/15-explorer.js:307"},{kind:"fn",name:"sujetBacHTML",ref:"js/15-explorer.js:293"},{kind:"fn",name:"sujetsDeNotion",ref:"js/15-explorer.js:303"},{kind:"fn",name:"nouveautesHTML",ref:"js/15-explorer.js:333"},{kind:"fn",name:"ouvrirAdresse",ref:"js/15-explorer.js:328"},{kind:"fn",name:"ficheImpressionHTML",ref:"js/16-impression.js:16"},{kind:"fn",name:"imprimerFiche",ref:"js/16-impression.js:50"}],
+      symbols:[{kind:"var",name:"SUJETS_BAC",ref:"data.js:397"},{kind:"var",name:"NOUVEAUTES",ref:"data.js:398"},{kind:"fn",name:"sujetsCanoniques",ref:"outils/construire.mjs:131"},{kind:"fn",name:"sujetsHTML",ref:"js/15-explorer.js:307"},{kind:"fn",name:"sujetBacHTML",ref:"js/15-explorer.js:293"},{kind:"fn",name:"sujetsDeNotion",ref:"js/15-explorer.js:303"},{kind:"fn",name:"nouveautesHTML",ref:"js/15-explorer.js:333"},{kind:"fn",name:"ouvrirAdresse",ref:"js/15-explorer.js:328"},{kind:"fn",name:"ficheImpressionHTML",ref:"js/16-impression.js:16"},{kind:"fn",name:"imprimerFiche",ref:"js/16-impression.js:50"}],
       liens:[{to:"ux.explorer",type:"appelle",note:"Deux onglets de plus dans Explorer."}] },
 
     { id:"ux.mobile", label:"Tiroir & gestes mobile", niveau:1, parent:"ux", domaine:"ux",
@@ -151,7 +157,7 @@ window.CARTE = {
       { id:"front.sidebar.lists", label:"Listes Concepts / Repères", niveau:2, parent:"front.sidebar", domaine:"front",
         novice:"La liste filtrable des concepts, et celle des repères du programme.",
         ingenieur:"renderSBConceptsList() (exclut les repères) et renderSBReperesList() (seulement les repères). Recherche dédiée repereSearch.",
-        symbols:[{kind:"fn",name:"renderSBConceptsList",ref:"js/03-barre-laterale.js:347"},{kind:"fn",name:"renderSBReperesList",ref:"js/03-barre-laterale.js:391"},{kind:"var",name:"repereSearch",ref:"js/01-donnees-etat.js:61"}] },
+        symbols:[{kind:"fn",name:"renderSBConceptsList",ref:"js/03-barre-laterale.js:354"},{kind:"fn",name:"renderSBReperesList",ref:"js/03-barre-laterale.js:398"},{kind:"var",name:"repereSearch",ref:"js/01-donnees-etat.js:61"}] },
       { id:"front.sidebar.tabs", label:"Onglets de notion", niveau:2, parent:"front.sidebar", domaine:"front",
         novice:"Les onglets d'une notion : Auteurs, Textes, Concepts, Dissertations, Exemples.",
         ingenieur:"NOTION_TABS fixe l'ordre des onglets. curTab/curConceptSubTab/curExempleSubTab (déclarées par let dans index.html, section B) mémorisent l'onglet et le sous-onglet actifs.",
@@ -205,7 +211,7 @@ window.CARTE = {
     { id:"donnees.verif", label:"Vérificateur du contenu", niveau:1, parent:"donnees", domaine:"donnees",
       novice:"Le contrôle qui relit tout le contenu avant chaque envoi : doublons, auteurs sans biographie, citations mal guillemetées, renvois à un cours… et qui prouve qu'il voit vraiment les fautes.",
       ingenieur:"outils/verifier_contenu.mjs (Node seul, oct. 2026, modèle verifier_corpus.py de Fiches BUT) : charger() exécute data.js dans un bac à sable vm ; QUESTIONS = 13 contrôles {err, warn} (11e, étape 4 : le programme officiel est couvert ; 12e, étape 5 : minimum d'une notion hors programme ; 13e, étape 6 : dates des auteurs ; 14e : sujets du bac et nouveautés) ; TEMOINS = une faute glissée par question (--temoins) ; sortie « cohérent » (0) ou « À CORRIGER » (1). Lancé par .githooks/pre-commit quand data.js est commité. Règles : docs/protocole-contenu.md.",
-      symbols:[{kind:"fn",name:"charger",ref:"outils/verifier_contenu.mjs:41"},{kind:"var",name:"QUESTIONS",ref:"outils/verifier_contenu.mjs:84"},{kind:"var",name:"TEMOINS",ref:"outils/verifier_contenu.mjs:285"},{kind:"fn",name:"main",ref:"outils/verifier_contenu.mjs:307"}],
+      symbols:[{kind:"fn",name:"charger",ref:"outils/verifier_contenu.mjs:42"},{kind:"var",name:"QUESTIONS",ref:"outils/verifier_contenu.mjs:91"},{kind:"var",name:"TEMOINS",ref:"outils/verifier_contenu.mjs:330"},{kind:"fn",name:"main",ref:"outils/verifier_contenu.mjs:353"}],
       liens:[{to:"donnees.globales",type:"lit",note:"Lit D, KEYS, AM, CONCEPTS, PROGRAMME (et AUTHOR_ALIASES de js/)."}] },
     { id:"donnees.globales", label:"Globales data.js", niveau:1, parent:"donnees", domaine:"donnees",
       novice:"Les grandes listes du contenu : notions, auteurs, concepts, couleurs.",
@@ -230,17 +236,17 @@ window.CARTE = {
       { id:"donnees.globales.PROGRAMME", label:"PROGRAMME (liste officielle)", niveau:2, parent:"donnees.globales", domaine:"donnees",
         novice:"Le programme officiel de terminale : ses 17 notions et les 84 auteurs qui peuvent tomber à l'explication de texte.",
         ingenieur:"Étape 4 (oct. 2026). Source : contenu/programme.js (PROGRAMME({source, notions, auteurs:{période:[nom | {bo, fiches}]}})). Le build (programmeCanonique) l'écrit dans data.js sous la forme {source, notions[], auteurs:[{bo, periode, fiches[]}]}. Les repères n'y sont pas (déjà marqués cat:'Repère').",
-        symbols:[{kind:"var",name:"PROGRAMME",ref:"data.js:395"},{kind:"fn",name:"programmeCanonique",ref:"outils/construire.mjs:138"}] },
+        symbols:[{kind:"var",name:"PROGRAMME",ref:"data.js:395"},{kind:"fn",name:"programmeCanonique",ref:"outils/construire.mjs:145"}] },
 
     { id:"donnees.normalize", label:"Build : sources → data.js", niveau:1, parent:"donnees", domaine:"donnees",
       novice:"Le contenu s'écrit dans des fichiers rangés (un par notion, un par auteur) ; un petit programme les assemble dans le fichier que le site charge, en remettant au passage l'ancien contenu au format actuel.",
       ingenieur:"Étape 3 (oct. 2026) : outils/construire.mjs charge contenu/ (NOTION, AUTEUR, CONCEPT, REPERE, ORDRE dans un bac à sable vm), convertit les anciens formats (outils/lib/formats.mjs : auteur à plat → ideas, axes → plans, tensions → relations), écrit data.js (généré, versionné), recalcule CACHE et PRECACHE de sw.js (empreinte du contenu), puis lance verifier_contenu.mjs. --controle : vérifie sans écrire (hook de commit). Le site ne convertit plus rien au chargement.",
-      symbols:[{kind:"fn",name:"chargerSources",ref:"outils/construire.mjs:73"},{kind:"fn",name:"assembler",ref:"outils/construire.mjs:110"},{kind:"fn",name:"ecrireData",ref:"outils/construire.mjs:148"},{kind:"var",name:"PRECACHE",ref:"outils/construire.mjs:54"},{kind:"fn",name:"normaliserNotion",ref:"outils/lib/formats.mjs:59"},{kind:"fn",name:"normaliserAuteur",ref:"outils/lib/formats.mjs:30"},{kind:"fn",name:"normaliserConcept",ref:"outils/lib/formats.mjs:70"}] },
+      symbols:[{kind:"fn",name:"chargerSources",ref:"outils/construire.mjs:77"},{kind:"fn",name:"assembler",ref:"outils/construire.mjs:117"},{kind:"fn",name:"ecrireData",ref:"outils/construire.mjs:155"},{kind:"var",name:"PRECACHE",ref:"outils/construire.mjs:55"},{kind:"fn",name:"normaliserNotion",ref:"outils/lib/formats.mjs:59"},{kind:"fn",name:"normaliserAuteur",ref:"outils/lib/formats.mjs:30"},{kind:"fn",name:"normaliserConcept",ref:"outils/lib/formats.mjs:70"}] },
 
     { id:"donnees.pagesStatiques", label:"Pages statiques (référencement)", niveau:1, parent:"donnees", domaine:"donnees",
       novice:"Pour que Google et les assistants IA lisent les fiches, le build écrit aussi une vraie page web par notion et par auteur (texte déjà présent, sans JavaScript), avec leur titre, leur résumé et un plan du site.",
       ingenieur:"Nov. 2026 : outils/lib/pages.mjs (genererPages, pure) produit notions/<slug>/index.html (slug avec article : la-liberte), auteurs/<slug>/index.html, fiches/index.html (sommaire), sitemap.xml, robots.txt et llms.txt. Chaque page : title, meta description, canonical, Open Graph, JSON-LD (LearningResource + Article / ProfilePage + Person, BreadcrumbList), Depuis nov. 2026 (pages d'entrée), les pages notions/ et auteurs/ sont l'APP elle-même : pageApp part d'index.html (gabarit), y met <base href="/">, les métadonnées de la fiche, <body data-entree="notion:<clé>|auteur:<nom>"> et la fiche pré-rendue avec les classes de l'app (sbPrerendu, fil d'Ariane, onglets, en-tête, définition, cartes d'auteurs) : un miroir exact de l'onglet par défaut. fiches/ (pageSommaire) suit le même gabarit ; fiche.css a disparu. construire.mjs écrit les pages et retire les orphelines ; --controle les compare. Côté app : PAGES_STATIQUES (data.js, via cheminsPages) donne les adresses ; les notions de la barre latérale sont des <a href> vers ces pages (clic normal intercepté), le titre de notion est un <h1>, et piedNotionHTML ajoute sous chaque fiche une présentation et des liens. index.html a deux zones PRERENDU (dans #sb et .main-content) que le build remplit (prerenduAccueil, injecterPrerendu) : h1 et liens lisibles sans JS, remplacés par l'app au démarrage. TITRE_ACCUEIL garde le titre d'index.html tant qu'on n'a pas navigué. vercel.json : trailingSlash.",
-      symbols:[{kind:"fn",name:"genererPages",ref:"outils/lib/pages.mjs:293"},{kind:"fn",name:"pageNotion",ref:"outils/lib/pages.mjs:132"},{kind:"fn",name:"pageAuteur",ref:"outils/lib/pages.mjs:172"},{kind:"var",name:"SLUG_NOTION",ref:"outils/lib/pages.mjs:26"},{kind:"var",name:"DOSSIERS_PAGES",ref:"outils/construire.mjs:57"},{kind:"fn",name:"pageApp",ref:"outils/lib/pages.mjs:92"},{kind:"fn",name:"sbPrerendu",ref:"outils/lib/pages.mjs:270"},{kind:"fn",name:"prerenduAccueil",ref:"outils/lib/pages.mjs:260"},{kind:"fn",name:"injecterPrerendu",ref:"outils/construire.mjs:230"},{kind:"fn",name:"cheminsPages",ref:"outils/lib/pages.mjs:281"},{kind:"var",name:"PAGES_STATIQUES",ref:"data.js:400"},{kind:"fn",name:"piedNotionHTML",ref:"js/04-fiches.js:1150"},{kind:"var",name:"TITRE_ACCUEIL",ref:"js/02-navigation.js:253"}] },
+      symbols:[{kind:"fn",name:"genererPages",ref:"outils/lib/pages.mjs:293"},{kind:"fn",name:"pageNotion",ref:"outils/lib/pages.mjs:132"},{kind:"fn",name:"pageAuteur",ref:"outils/lib/pages.mjs:172"},{kind:"var",name:"SLUG_NOTION",ref:"outils/lib/pages.mjs:26"},{kind:"var",name:"DOSSIERS_PAGES",ref:"outils/construire.mjs:61"},{kind:"fn",name:"pageApp",ref:"outils/lib/pages.mjs:92"},{kind:"fn",name:"sbPrerendu",ref:"outils/lib/pages.mjs:270"},{kind:"fn",name:"prerenduAccueil",ref:"outils/lib/pages.mjs:260"},{kind:"fn",name:"injecterPrerendu",ref:"outils/construire.mjs:239"},{kind:"fn",name:"cheminsPages",ref:"outils/lib/pages.mjs:281"},{kind:"var",name:"PAGES_STATIQUES",ref:"data.js:402"},{kind:"fn",name:"piedNotionHTML",ref:"js/04-fiches.js:1150"},{kind:"var",name:"TITRE_ACCUEIL",ref:"js/02-navigation.js:253"}] },
 
     { id:"donnees.programme", label:"Étiquette « Au programme »", niveau:1, parent:"donnees", domaine:"donnees",
       novice:"Un petit badge vert sur la fiche et la carte des auteurs de la liste officielle : ce sont eux qui peuvent tomber à l'explication de texte.",
@@ -304,7 +310,7 @@ window.CARTE = {
     { id:"nav.open", label:"Points d'entrée open*", niveau:1, parent:"nav", domaine:"nav",
       novice:"Les fonctions qui ouvrent une notion, un auteur ou un concept (depuis un lien ou la recherche).",
       ingenieur:"openNotion()/openConcept()/openAuthor() posent l'état (cur/curConcept/curAuthor + sbMode) puis rendent la vue et déclenchent la surbrillance.",
-      symbols:[{kind:"fn",name:"openNotion",ref:"js/03-barre-laterale.js:450"},{kind:"fn",name:"openConcept",ref:"js/03-barre-laterale.js:429"},{kind:"fn",name:"openAuthor",ref:"js/04-fiches.js:635"}],
+      symbols:[{kind:"fn",name:"openNotion",ref:"js/03-barre-laterale.js:457"},{kind:"fn",name:"openConcept",ref:"js/03-barre-laterale.js:436"},{kind:"fn",name:"openAuthor",ref:"js/04-fiches.js:635"}],
       liens:[{to:"front.notion",type:"navigue",note:"openNotion → renderContent()"},{to:"front.focus",type:"appelle",note:"chaque open* finit par focusAfterRender()."}] },
 
     { id:"nav.cross", label:"Liens croisés ciblés", niveau:1, parent:"nav", domaine:"nav",
@@ -332,6 +338,10 @@ window.CARTE = {
         novice:"Le fait que tu as déjà vu la visite guidée.",
         ingenieur:"localStorage 'philo-onboarded' = drapeau de 1re visite (tourStartIfFirst).",
         symbols:[{kind:"key",name:"philo-onboarded",ref:"index.html:61"}] },
+      { id:"nav.keys.legal", label:"philo-legal", niveau:2, parent:"nav.keys", domaine:"nav",
+        novice:"La version des conditions d'utilisation déjà acceptée sur cet appareil.",
+        ingenieur:"localStorage 'philo-legal' = AAAA-MM-JJ (legalRetenir). Sert de relais quand le jeton du compte retarde, et permet de signaler un changement de notice à un visiteur qui avait proposé du contenu (verifierAccordLegal).",
+        symbols:[{kind:"key",name:"philo-legal",ref:"js/12-donnees-legales.js:14"}] },
       { id:"nav.keys.fiche", label:"philo-fiche", niveau:2, parent:"nav.keys", domaine:"nav",
         novice:"Le « mode fiche » : afficher les auteurs en version compressée (lecture rapide) ou complète.",
         ingenieur:"localStorage 'philo-fiche' ∈ 0|1 (applyFicheMode/toggleFicheMode → classe body.mode-fiche). Borne chaque boîte d'auteur des notions à ~2 lignes et masque les citations.",
@@ -407,7 +417,7 @@ window.CARTE = {
     { id:"contrib.render", label:"Rendu de la modale", niveau:1, parent:"contrib", domaine:"contrib",
       novice:"L'affichage du formulaire de proposition et les boutons « + » dans les fiches.",
       ingenieur:"renderProposal() rend la modale ; renderBoxFields() dispatche les champs par (categorie × cible × type). openProposalFromPlus() ouvre depuis un bouton + (pPlus/pPlusCat).",
-      symbols:[{kind:"fn",name:"renderProposal",ref:"js/06-contribution.js:1351"},{kind:"fn",name:"renderBoxFields",ref:"js/06-contribution.js:635"},{kind:"fn",name:"openProposalFromPlus",ref:"js/06-contribution.js:1488"},{kind:"fn",name:"pPlus",ref:"js/06-contribution.js:1462"},{kind:"fn",name:"pPlusCat",ref:"js/06-contribution.js:1467"}] },
+      symbols:[{kind:"fn",name:"renderProposal",ref:"js/06-contribution.js:1356"},{kind:"fn",name:"renderBoxFields",ref:"js/06-contribution.js:635"},{kind:"fn",name:"openProposalFromPlus",ref:"js/06-contribution.js:1496"},{kind:"fn",name:"pPlus",ref:"js/06-contribution.js:1470"},{kind:"fn",name:"pPlusCat",ref:"js/06-contribution.js:1475"}] },
 
     { id:"contrib.draft", label:"Brouillon", niveau:1, parent:"contrib", domaine:"contrib",
       novice:"Ta proposition en cours est gardée automatiquement, pour ne rien perdre.",
@@ -422,12 +432,12 @@ window.CARTE = {
     { id:"contrib.submit", label:"Envoi", niveau:1, parent:"contrib", domaine:"contrib",
       novice:"L'envoi de la proposition : par ton compte si tu es connecté, sinon en anonyme ; en dernier recours, par e-mail.",
       ingenieur:"submitProposalOnline() aiguille : connecté → sendProposalToSupabase (table contributions) ; anonyme → sendProposalAnonSupabase (même table, user_id NULL) ; Supabase indisponible ou échec → proposalMailtoFallback() = repli mailto (PROPOSAL_EMAIL). La boîte PythonAnywhere (sendProposalOnline) a été retirée en oct. 2026.",
-      symbols:[{kind:"fn",name:"submitProposalOnline",ref:"js/06-contribution.js:1115"},{kind:"fn",name:"sendProposalToSupabase",ref:"js/06-contribution.js:1022"},{kind:"fn",name:"sendProposalAnonSupabase",ref:"js/06-contribution.js:1049"},{kind:"fn",name:"sendProposal",ref:"js/06-contribution.js:985"},{kind:"fn",name:"proposalMailtoFallback",ref:"js/06-contribution.js:1000"},{kind:"var",name:"PROPOSAL_EMAIL",ref:"js/06-contribution.js:36"}] },
+      symbols:[{kind:"fn",name:"submitProposalOnline",ref:"js/06-contribution.js:1120"},{kind:"fn",name:"sendProposalToSupabase",ref:"js/06-contribution.js:1022"},{kind:"fn",name:"sendProposalAnonSupabase",ref:"js/06-contribution.js:1049"},{kind:"fn",name:"sendProposal",ref:"js/06-contribution.js:985"},{kind:"fn",name:"proposalMailtoFallback",ref:"js/06-contribution.js:1000"},{kind:"var",name:"PROPOSAL_EMAIL",ref:"js/06-contribution.js:36"}] },
 
     { id:"contrib.edit", label:"Édition d'un envoi", niveau:1, parent:"contrib", domaine:"contrib",
       novice:"Tant qu'une proposition n'est pas traitée, tu peux la modifier depuis « Mes propositions ».",
       ingenieur:"editMyContribution() reconstruit les boîtes via boxesFromPayload() ; updateProposalInSupabase() fait l'UPDATE (RLS : seulement statut 'en_attente'). exitEditContrib() restaure le brouillon mis de côté (editDraftBackup).",
-      symbols:[{kind:"fn",name:"editMyContribution",ref:"js/06-contribution.js:1182"},{kind:"fn",name:"boxesFromPayload",ref:"js/06-contribution.js:1164"},{kind:"fn",name:"updateProposalInSupabase",ref:"js/06-contribution.js:1131"},{kind:"fn",name:"exitEditContrib",ref:"js/06-contribution.js:1205"},{kind:"var",name:"editingContribId",ref:"js/06-contribution.js:137"},{kind:"var",name:"myContribCache",ref:"js/06-contribution.js:139"}] },
+      symbols:[{kind:"fn",name:"editMyContribution",ref:"js/06-contribution.js:1187"},{kind:"fn",name:"boxesFromPayload",ref:"js/06-contribution.js:1169"},{kind:"fn",name:"updateProposalInSupabase",ref:"js/06-contribution.js:1136"},{kind:"fn",name:"exitEditContrib",ref:"js/06-contribution.js:1210"},{kind:"var",name:"editingContribId",ref:"js/06-contribution.js:137"},{kind:"var",name:"myContribCache",ref:"js/06-contribution.js:139"}] },
 
   /* ═══════════════ COMPTE / SYNC ═══════════════ */
   { id:"sync", label:"Compte / Sync", niveau:0, parent:null, domaine:"sync",
@@ -442,7 +452,7 @@ window.CARTE = {
     { id:"sync.auth", label:"Authentification", niveau:1, parent:"sync", domaine:"sync",
       novice:"Se connecter avec un compte Google, et se déconnecter.",
       ingenieur:"initAuth() lit la session et s'abonne aux changements ; openAuth() ouvre la modale ; authSignInGoogle()/authSignOut() gèrent la session.",
-      symbols:[{kind:"fn",name:"initAuth",ref:"js/09-compte.js:25"},{kind:"fn",name:"openAuth",ref:"js/09-compte.js:115"},{kind:"fn",name:"authSignInGoogle",ref:"js/09-compte.js:263"},{kind:"fn",name:"authSignOut",ref:"js/09-compte.js:309"}] },
+      symbols:[{kind:"fn",name:"initAuth",ref:"js/09-compte.js:25"},{kind:"fn",name:"openAuth",ref:"js/09-compte.js:117"},{kind:"fn",name:"authSignInGoogle",ref:"js/09-compte.js:273"},{kind:"fn",name:"authSignOut",ref:"js/09-compte.js:319"}] },
 
     { id:"sync.prefs", label:"Préférences cross-appareil", niveau:1, parent:"sync", domaine:"sync",
       novice:"Ce qui fait voyager ta progression et tes réglages entre tes appareils.",
@@ -459,7 +469,7 @@ window.CARTE = {
     { id:"sync.banc", label:"Banc d'essai des règles d'accès", niveau:1, parent:"sync", domaine:"sync",
       novice:"Une fausse base de données, montée sur l'ordinateur, sur laquelle on vérifie que personne ne peut lire ou modifier ce qui ne lui appartient pas.",
       ingenieur:"outils/banc/banc_schema.mjs (oct. 2026) : PGlite + decor_supabase.sql (rôles et droits par défaut de Supabase, auth.uid()) ; joue ORDRE (les migrations) puis 10 essais sous un rôle via sous(), chacun avec un témoin qui retire la règle. A révélé que le REVOKE colonne de 2026_aggregator_state.sql ne cachait rien.",
-      symbols:[{kind:"var",name:"ORDRE",ref:"outils/banc/banc_schema.mjs:29"},{kind:"var",name:"ESSAIS",ref:"outils/banc/banc_schema.mjs:63"},{kind:"fn",name:"sous",ref:"outils/banc/banc_schema.mjs:47"}],
+      symbols:[{kind:"var",name:"ORDRE",ref:"outils/banc/banc_schema.mjs:29"},{kind:"var",name:"ESSAIS",ref:"outils/banc/banc_schema.mjs:64"},{kind:"fn",name:"sous",ref:"outils/banc/banc_schema.mjs:48"}],
       liens:[{to:"sync.tables",type:"lit",note:"Éprouve les règles des tables Supabase."}] },
 
     { id:"sync.tables", label:"Tables Supabase", niveau:1, parent:"sync", domaine:"sync",
@@ -492,7 +502,7 @@ window.CARTE = {
     { id:"pwa.register", label:"Enregistrement & MAJ", niveau:1, parent:"pwa", domaine:"pwa",
       novice:"Ce qui installe le programme de fond et récupère sans heurt la dernière version.",
       ingenieur:"index.html enregistre sw.js, appelle reg.update() au chargement, et recharge une fois sur 'controllerchange' (garde anti-boucle swReloading).",
-      symbols:[{kind:"var",name:"swReloading",ref:"js/99-demarrage.js:38"},{kind:"var",name:"controllerchange",ref:"js/99-demarrage.js:31"},{kind:"var",name:"register",ref:"js/09-compte.js:377"}],
+      symbols:[{kind:"var",name:"swReloading",ref:"js/99-demarrage.js:39"},{kind:"var",name:"controllerchange",ref:"js/99-demarrage.js:32"},{kind:"var",name:"register",ref:"js/09-compte.js:389"}],
       note:"controllerchange/register ne sont pas des fonctions nommées mais des appels (addEventListener/serviceWorker.register) ; cités pour le repère de ligne." },
 
     { id:"pwa.manifest", label:"Manifeste", niveau:1, parent:"pwa", domaine:"pwa",
@@ -533,12 +543,12 @@ window.CARTE = {
     { id:"backend.review", label:"Relecture Gemini", niveau:1, parent:"backend", domaine:"backend",
       novice:"Une IA lit chaque proposition et donne un avis (valable, douteux, à rejeter) avant la décision humaine.",
       ingenieur:"review.py : SDK google-genai (client genai.Client, adaptateur _GeminiModel ; remplace google-generativeai, abandonné par Google fin 2025), modèle DEFAULT_MODEL='gemini-flash-latest' (surchargé par GEMINI_MODEL), SYSTEM_INSTRUCTION (rôle + format JSON). review_box() interroge Gemini (gestion des quotas) ; parse_verdict() extrait le verdict ; run() boucle. Exclut les retours « site » (SITE_CIBLES).",
-      symbols:[{kind:"var",name:"DEFAULT_MODEL",ref:"philo-aggregator/review.py:41"},{kind:"var",name:"SYSTEM_INSTRUCTION",ref:"philo-aggregator/review.py:67"},{kind:"fn",name:"_configure_model",ref:"philo-aggregator/review.py:117"},{kind:"fn",name:"parse_verdict",ref:"philo-aggregator/review.py:150"},{kind:"fn",name:"review_box",ref:"philo-aggregator/review.py:248"},{kind:"fn",name:"run",ref:"philo-aggregator/review.py:302"}] },
+      symbols:[{kind:"var",name:"DEFAULT_MODEL",ref:"philo-aggregator/review.py:43"},{kind:"var",name:"SYSTEM_INSTRUCTION",ref:"philo-aggregator/review.py:69"},{kind:"fn",name:"_configure_model",ref:"philo-aggregator/review.py:119"},{kind:"fn",name:"parse_verdict",ref:"philo-aggregator/review.py:152"},{kind:"fn",name:"review_box",ref:"philo-aggregator/review.py:250"},{kind:"fn",name:"run",ref:"philo-aggregator/review.py:305"}] },
 
     { id:"backend.db", label:"Base locale (SQLite)", niveau:1, parent:"backend", domaine:"backend",
       novice:"Le carnet où le programme range les propositions reçues et leur état.",
       ingenieur:"db.py : SQLite proposals.db, tables submissions (1/fichier) et boxes (1/boîte). Statuts (STATUSES), catégories/cibles. update_status() et set_ai_review() font évoluer chaque boîte. get_unreviewed_boxes() exclut SITE_CIBLES.",
-      symbols:[{kind:"table",name:"submissions",ref:"philo-aggregator/db.py:101"},{kind:"table",name:"boxes",ref:"philo-aggregator/db.py:116"},{kind:"var",name:"STATUSES",ref:"philo-aggregator/db.py:34"},{kind:"fn",name:"init_db",ref:"philo-aggregator/db.py:252"},{kind:"fn",name:"update_status",ref:"philo-aggregator/db.py:524"},{kind:"fn",name:"set_ai_review",ref:"philo-aggregator/db.py:570"},{kind:"fn",name:"get_unreviewed_boxes",ref:"philo-aggregator/db.py:446"}] },
+      symbols:[{kind:"table",name:"submissions",ref:"philo-aggregator/db.py:103"},{kind:"table",name:"boxes",ref:"philo-aggregator/db.py:118"},{kind:"var",name:"STATUSES",ref:"philo-aggregator/db.py:36"},{kind:"fn",name:"init_db",ref:"philo-aggregator/db.py:254"},{kind:"fn",name:"update_status",ref:"philo-aggregator/db.py:526"},{kind:"fn",name:"set_ai_review",ref:"philo-aggregator/db.py:572"},{kind:"fn",name:"get_unreviewed_boxes",ref:"philo-aggregator/db.py:448"}] },
 
     { id:"backend.supabase", label:"Client Supabase (serveur)", niveau:1, parent:"backend", domaine:"backend",
       novice:"Le lien entre le programme des coulisses et le tableau en ligne des propositions.",
@@ -553,7 +563,7 @@ window.CARTE = {
     { id:"backend.export", label:"Export relecture", niveau:1, parent:"backend", domaine:"backend",
       novice:"L'export d'un fichier texte regroupant les propositions à intégrer à la main dans le contenu.",
       ingenieur:"export.py : génère review_*.txt (boîtes en attente, groupées par section), chaque boîte préfixée [BOX <id>]. FIELD_LABELS mappe les noms de champ.",
-      symbols:[{kind:"var",name:"FIELD_LABELS",ref:"philo-aggregator/export.py:32"}] },
+      symbols:[{kind:"var",name:"FIELD_LABELS",ref:"philo-aggregator/export.py:33"}] },
 
     { id:"backend.cli", label:"Ligne de commande", niveau:1, parent:"backend", domaine:"backend",
       novice:"Les commandes tapées au clavier pour piloter le programme (ingest, pull, review, dashboard…).",

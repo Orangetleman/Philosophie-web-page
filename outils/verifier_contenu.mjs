@@ -26,6 +26,7 @@ import fs from 'fs';
 import path from 'path';
 import vm from 'vm';
 import { fileURLToPath } from 'url';
+import { empreinteLegal } from './lib/legal.mjs';   // question 15 (nov. 2026)
 
 // --racine <dossier> : contrôler une autre copie du site (ex. un ancien état).
 const iR = process.argv.indexOf('--racine');
@@ -44,7 +45,7 @@ function charger() {
   vm.createContext(bac);
   // PROGRAMME n'existe que depuis l'étape 4 : une copie plus ancienne (--racine)
   // se charge quand même, et la question 11 dit ce qui manque.
-  const data = vm.runInContext(src + "\n;({D, KEYS, AM, CONCEPTS, PROGRAMME: typeof PROGRAMME === 'undefined' ? null : PROGRAMME, SUJETS_BAC: typeof SUJETS_BAC === 'undefined' ? null : SUJETS_BAC, NOUVEAUTES: typeof NOUVEAUTES === 'undefined' ? null : NOUVEAUTES})", bac, { filename: 'data.js' });
+  const data = vm.runInContext(src + "\n;({D, KEYS, AM, CONCEPTS, PROGRAMME: typeof PROGRAMME === 'undefined' ? null : PROGRAMME, SUJETS_BAC: typeof SUJETS_BAC === 'undefined' ? null : SUJETS_BAC, NOUVEAUTES: typeof NOUVEAUTES === 'undefined' ? null : NOUVEAUTES, LEGAL: typeof LEGAL === 'undefined' ? null : LEGAL})", bac, { filename: 'data.js' });
   // AUTHOR_ALIASES vit dans le code du site : js/*.js depuis l'étape 3 (avant,
   // dans index.html, encore lu pour contrôler une ancienne copie via --racine).
   const dJs = path.join(RACINE, 'js');
@@ -54,6 +55,12 @@ function charger() {
   const m = code.replace(/\r\n/g, '\n').match(/const AUTHOR_ALIASES=(\{[\s\S]*?\n\});/);
   if (!m) throw new Error('AUTHOR_ALIASES introuvable dans js/ (ou index.html)');
   data.ALIASES = m ? vm.runInNewContext('(' + m[1] + ')') : {};
+  // Question 15 (nov. 2026) : le code servi au navigateur (index.html + js/)
+  // et les migrations Supabase, pour y chercher clés locales, adresses
+  // externes et tables à déclarer dans LEGAL.
+  data.CODE = code + '\n' + (fs.existsSync(dJs) ? fs.readFileSync(path.join(RACINE, 'index.html'), 'utf8') : '');
+  const dMig = path.join(RACINE, 'philo-aggregator', 'migrations');
+  data.MIGRATIONS = fs.existsSync(dMig) ? fs.readdirSync(dMig).filter(f => f.endsWith('.sql')).map(f => fs.readFileSync(path.join(dMig, f), 'utf8')).join('\n') : '';
   // Les noms d'auteurs présents dans les notions (question 14).
   data.AI_NOMS = new Set();
   (data.KEYS || []).forEach(k => ((data.D[k] || {}).auteurs || []).forEach(a => data.AI_NOMS.add(a.n)));
@@ -279,6 +286,44 @@ const QUESTIONS = [
       });
       return { err, warn: [] };
     } },
+  /* Question 15 (nov. 2026, docs/protocole-donnees.md § 2.3) : la notice
+     légale suit le code. Toute clé localStorage « philo-… », toute adresse
+     externe chargée par le site et toute table Supabase doit y être
+     déclarée ; et la notice ne change pas sans nouvelle version datée. */
+  { n: 15, titre: "les données personnelles sont toutes déclarées (contenu/legal.js)",
+    f({ LEGAL, CODE, MIGRATIONS }) {
+      const err = [];
+      if (!LEGAL) return { err: ['LEGAL absent de data.js (contenu/legal.js, puis le build)'], warn: [] };
+      // a. Les clés du stockage local.
+      const cles = new Set((LEGAL.stockage || []).map(x => x.cle));
+      new Set((CODE.match(/['"`]philo-[a-z0-9-]+['"`]/g) || []).map(x => x.slice(1, -1)))
+        .forEach(k => { if (!cles.has(k)) err.push(`clé localStorage « ${k} » utilisée par le code mais absente de LEGAL.stockage`); });
+      // b. Les adresses externes (https://hôte) du code servi.
+      const hotes = (LEGAL.tiers || []).flatMap(t => t.domaines || []).concat(LEGAL.domainesNeutres || []);
+      const declare = h => hotes.some(d => h === d || h.endsWith('.' + d));
+      new Set((CODE.match(/https?:\/\/[a-z0-9.-]+\.[a-z]{2,}/gi) || []).map(u => u.replace(/^https?:\/\//i, '').toLowerCase()))
+        .forEach(h => { if (!declare(h)) err.push(`adresse externe « ${h} » chargée par le site mais déclarée par aucun LEGAL.tiers`); });
+      // c. Les tables Supabase des migrations.
+      const tables = new Set((LEGAL.traitements || []).flatMap(t => t.tables || []));
+      new Set((MIGRATIONS.match(/create table (?:if not exists )?(public\.[a-z_]+)/gi) || []).map(x => x.split(/\s+/).pop().toLowerCase()))
+        .forEach(t => { if (!tables.has(t)) err.push(`table « ${t} » créée par une migration mais citée par aucun LEGAL.traitements`); });
+      // d. Les tiers cités par un traitement existent.
+      const ids = new Set((LEGAL.tiers || []).map(t => t.id));
+      (LEGAL.traitements || []).forEach(t => (t.tiers || []).forEach(id => { if (!ids.has(id)) err.push(`traitement « ${t.id} » : tiers inconnu « ${id} »`); }));
+      // e. L'historique : dates qui se suivent, et l'empreinte de la dernière
+      //    version = celle du contenu actuel (sinon la notice a changé en douce).
+      const h = LEGAL.historique || [];
+      if (!h.length) err.push('LEGAL.historique est vide : il faut au moins une version datée');
+      h.forEach((x, i) => {
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(x.version || '')) err.push(`historique n° ${i + 1} : version au format AAAA-MM-JJ attendue`);
+        if (i && !(x.version > h[i - 1].version)) err.push(`historique « ${x.version} » : doit être plus récent que « ${h[i - 1].version} »`);
+        if (!x.resume) err.push(`historique « ${x.version} » : résumé manquant (il est montré à l'élève)`);
+      });
+      const e = empreinteLegal(LEGAL);
+      if (h.length && h[h.length - 1].empreinte !== e)
+        err.push(`la notice a changé depuis la version « ${h[h.length - 1].version} » : ajouter à LEGAL.historique une entrée datée du jour, avec un résumé et empreinte: "${e}" (protocole § 2.2)`);
+      return { err, warn: [] };
+    } },
 ];
 
 /* ── Les témoins : une faute par question, glissée dans une COPIE ────── */
@@ -296,6 +341,7 @@ const TEMOINS = {
   11: d => { d.KEYS.forEach(k => { d.D[k].auteurs = d.D[k].auteurs.filter(a => a.n !== 'Montaigne'); }); },
   14: d => { d.SUJETS_BAC.sujets[0].notions = ['notion-imaginaire']; },
   13: d => { const nom = d.D[d.KEYS[0]].auteurs[0].n; delete d.AM[nom].naissance; },
+  15: d => { d.CODE += "\nlocalStorage.setItem('philo-temoin-non-declare','1');"; },
   12: d => { d.D['temoin-hp'] = { c: '#000', l: 'Témoin', s: '?', def: 'x', auteurs: [], plans: [], exemples: [], liens: [], diss: [] }; d.KEYS.push('temoin-hp'); },
 };
 

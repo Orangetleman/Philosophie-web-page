@@ -133,52 +133,108 @@ function hpInviterSiBesoin(){
 }
 function fermerHpInvite(){ const b=document.getElementById('hp-invite'); if(b) b.remove(); }
 
-/* ── Menu « ⚙ Réglages » ─────────────────────────────────────────────────
-   Regroupe les fonctions NON nécessaires à la révision. Le toggle de mode y
-   est rendu EXPLICITE : le bouton nomme le mode-CIBLE (l'action), avec le mode
-   ACTUEL rappelé en petit au-dessus (avant, le bouton affichait le mode courant
-   et l'on ne savait pas si c'était un bouton ou un état). */
+/* ── Menu « ⚙ Réglages » (refondu le 15 nov. 2026) ──────────────────────
+   Avant : une liste continue de lignes, chacune avec un long paragraphe et un
+   gros bouton. Refonte d'après les leçons de l'interface de Fiches BUT
+   (docs/protocole-donnees.md § 1.4) :
+   - le plus courant en haut : Affichage, Révision, puis Compte, Mes données
+     (les droits RGPD), À propos ;
+   - un sommaire de pastilles : chaque section est à un geste ;
+   - des cartes, avec l'ÉTAT en première ligne (« Sombre · texte normal ») ;
+   - une commande par réglage : choix segmenté, ou interrupteur (role=switch)
+     qui dit l'état sans qu'on ait à lire un libellé de bouton ;
+   - la prose RANGÉE dans un <details> « Ce que ça change », pas supprimée ;
+   - l'action risquée (supprimer le compte) en dernier, à part, en rouge.
+   La visite guidée cherche le bouton du mode édition par son action
+   (tourSettingsRow('togglePhiloMode')) : l'interrupteur la garde. */
+
+/* rgSegment(titre, options, actuel, fn) — un choix à options exclusives
+   (thème, taille), en boutons accolés. */
+function rgSegment(titre, options, actuel, fn){
+  return '<div class="rg-ligne"><span class="rg-lib">'+titre+'</span>'
+    +'<div class="rg-seg" role="group" aria-label="'+titre+'">'
+    +Object.keys(options).map(k=>'<button class="'+(k===actuel?'on':'')+'" aria-pressed="'+(k===actuel)+'" onclick="'+fn+'(\''+k+'\')">'+options[k]+'</button>').join('')
+    +'</div></div>';
+}
+/* rgInterrupteur(libelle, sous, actif, appel) — un réglage oui/non. */
+function rgInterrupteur(libelle, sous, actif, appel){
+  return '<div class="rg-ligne"><span class="rg-lib">'+libelle+(sous?'<span class="rg-sous">'+sous+'</span>':'')+'</span>'
+    +'<button class="rg-switch" role="switch" aria-checked="'+actif+'" aria-label="'+libelle.replace(/<[^>]+>/g,'')+'" onclick="'+appel+'"><span></span></button></div>';
+}
+/* rgCarte(id, titre, etat, contenu) — une section du menu. */
+function rgCarte(id, titre, etat, contenu, extra){
+  return '<section class="rg-carte'+(extra?' '+extra:'')+'" id="'+id+'"><div class="rg-tete"><h3>'+titre+'</h3>'
+    +(etat?'<span class="rg-etat">'+etat+'</span>':'')+'</div>'+contenu+'</section>';
+}
+/* rgAller(id) — le sommaire : fait défiler la fenêtre jusqu'à la carte. */
+function rgAller(id){ const el=document.getElementById(id); if(el) el.scrollIntoView({behavior:'smooth',block:'start'}); }
+
 function renderSettingsBody(){
   const body=document.getElementById('settings-body'); if(!body) return;
   const isEd=(localStorage.getItem('philo-mode')||'revision')==='edition';
   const isFiche=localStorage.getItem('philo-fiche')==='1';
-  // Étape 6 : thème et taille du texte, en boutons à choix unique.
-  const choix=(titre, desc, options, actuel, fn)=>'<div class="set-row">'
-    +'<div class="set-row-cur">'+titre+' : <strong>'+options[actuel]+'</strong></div>'
-    +'<div class="set-row-desc">'+desc+'</div>'
-    +'<div class="set-choix" role="group" aria-label="'+titre+'">'
-    +Object.keys(options).map(k=>'<button class="pbtn '+(k===actuel?'pbtn-primary':'pbtn-ghost')+'" aria-pressed="'+(k===actuel)+'" onclick="'+fn+'(\''+k+'\')">'+options[k]+'</button>').join('')
-    +'</div></div>';
-  body.innerHTML=
-    choix('Thème', 'Le thème clair, sur fond papier, repose les yeux pour lire longtemps ; « Automatique » suit le réglage de ton appareil.', THEMES, lireReglage('philo-theme','sombre'), 'setTheme')
-    +choix('Taille du texte', 'Agrandit la zone de lecture (notions, fiches), pas la barre latérale.', TAILLES, lireReglage('philo-texte','normal'), 'setTailleTexte')
-    +'<div class="set-row">'
-    +'<div class="set-row-cur">Mode d\'affichage actuel : <strong>'+(isEd?'Édition':'Révision')+'</strong></div>'
-    +'<div class="set-row-desc">Le mode <em>édition</em> révèle les badges « ✦ nouveau / ✎ modifié » et les boutons « + » pour proposer du contenu. Le mode <em>révision</em> épure l\'affichage pour se concentrer sur l\'apprentissage.</div>'
-    +'<button class="pbtn pbtn-primary set-mode-btn" onclick="togglePhiloMode()">'
-      +(isEd?'👁 Revenir au mode révision':'✎ Passer en mode édition')+'</button>'
+  const theme=lireReglage('philo-theme','sombre'), taille=lireReglage('philo-texte','normal');
+  const connecte=typeof authUser!=='undefined'&&!!authUser;
+  const hp=KEYS_HP.length>0;
+
+  // ── Sommaire ──
+  const sommaire=[['rg-affichage','Affichage'],['rg-revision','Révision'],['rg-compte','Compte'],['rg-donnees','Mes données'],['rg-apropos','À propos']];
+  let h='<nav class="rg-sommaire" aria-label="Sections des réglages">'
+    +sommaire.map(([id,t])=>'<button onclick="rgAller(\''+id+'\')">'+t+'</button>').join('')+'</nav>';
+
+  // ── Affichage : le réglage le plus courant, en premier ──
+  h+=rgCarte('rg-affichage','Affichage', THEMES[theme]+' · texte '+({normal:'normal',grand:'grand','tres-grand':'très grand'}[taille]||'normal'),
+    rgSegment('Thème', THEMES, theme, 'setTheme')
+    +rgSegment('Taille du texte', TAILLES, taille, 'setTailleTexte')
+    +'<details class="rg-plus"><summary>Ce que ça change</summary>'
+    +'<p>Le thème clair, sur fond papier, repose les yeux pour lire longtemps ; « Automatique » suit le réglage de ton appareil.</p>'
+    +'<p>La taille agrandit la zone de lecture (notions, fiches), pas la barre latérale.</p></details>');
+
+  // ── Révision : trois interrupteurs ──
+  const etatRev=[isEd?'Mode édition':'Mode révision'].concat(isFiche?['fiche']:[]).concat(hp?[voirHP()?'hors programme visible':'programme seul']:[]).join(' · ');
+  h+=rgCarte('rg-revision','Révision', etatRev,
+    rgInterrupteur('Mode fiche','idées en deux lignes, sans citations', isFiche, 'toggleFicheMode()')
+    +(hp?rgInterrupteur('Hors programme','les '+KEYS_HP.length+' notions au-delà du bac', voirHP(), 'setVoirHP('+(voirHP()?'false':'true')+')'):'')
+    +rgInterrupteur('Mode édition','pour proposer du contenu', isEd, 'togglePhiloMode()')
+    +'<details class="rg-plus"><summary>Ce que ça change</summary>'
+    +'<p><strong>Mode fiche</strong> : compresse chaque boîte d\'auteur dans les notions (idée bornée à 2 lignes, citations masquées) pour une <em>lecture rapide</em>, façon fiche de révision. Le contenu complet reste sur la fiche de l\'auteur.</p>'
+    +(hp?'<p><strong>Hors programme</strong> : les notions qui ne sont pas au programme de terminale ('+KEYS_HP.length+' pour l\'instant), et ce qui n\'apparaît que sous elles : auteurs, concepts, cartes du quiz. Masqué, le site s\'en tient au programme du bac.</p>':'')
+    +'<p><strong>Mode édition</strong> : révèle les badges « ✦ nouveau / ✎ modifié » et les boutons « + » pour proposer du contenu. Le mode <em>révision</em> épure l\'affichage pour se concentrer sur l\'apprentissage.</p></details>');
+
+  // ── Compte ──
+  h+=rgCarte('rg-compte','Compte', connecte?'Connecté':'Sans compte',
+    connecte
+      ?'<p class="rg-texte">Connecté en tant que <strong>'+pEsc(authLabel())+'</strong>'+(authUser.email?' ('+pEsc(authUser.email)+')':'')+'. Ta progression et tes réglages se synchronisent entre tes appareils.</p>'
+        +'<div class="rg-actions"><button class="pbtn" onclick="closeSettings();openAuth()">Gérer mon compte</button>'
+        +'<button class="pbtn" onclick="authSignOut().then(renderSettingsBody)">Se déconnecter</button></div>'
+      :'<p class="rg-texte">Sans compte, tout reste sur cet appareil. Un compte (facultatif) retrouve ta progression sur tous tes appareils et permet de suivre tes propositions.</p>'
+        +'<div class="rg-actions"><button class="pbtn pbtn-primary" onclick="closeSettings();openAuth(\'signup\')">Créer un compte</button>'
+        +'<button class="pbtn" onclick="closeSettings();openAuth(\'signin\')">Se connecter</button></div>');
+
+  // ── Mes données : les droits RGPD, en un clic ──
+  const surAppareil=Object.keys(donneesAppareil()).length;
+  h+=rgCarte('rg-donnees','Mes données', surAppareil+' élément'+(surAppareil>1?'s':'')+' sur cet appareil'+(connecte?' · compte':''),
+    '<p class="rg-texte">Pas de publicité, pas de statistiques, pas de traceur. Le site garde seulement ce qui sert à ta révision'+(connecte?', sur cet appareil et sur ton compte':', sur cet appareil')+'.</p>'
+    +'<div class="rg-actions"><button class="pbtn" onclick="exporterMesDonnees(this)">↓ Télécharger mes données</button>'
+    +'<button class="pbtn" onclick="effacerDonneesAppareil()">Effacer les données de cet appareil</button></div>'
+    +'<div class="rg-statut" id="rg-donnees-statut" role="status"></div>'
+    +'<details class="rg-plus"><summary>Ce que le site garde sur toi</summary><ul>'
+    +LEGAL.traitements.map(t=>'<li><strong>'+pEsc(t.titre)+'</strong> : '+pEsc(t.donnees.join(', '))+'. <span class="rg-sous">'+pEsc(t.duree)+'</span></li>').join('')
+    +'</ul><p>Le détail, les services qui reçoivent ces données et tes droits : <a href="'+LEGAL_URL+'" target="_blank" rel="noopener">informations légales</a>.</p></details>'
+    +(connecte?'<div class="rg-danger"><div><strong>Supprimer mon compte</strong><span class="rg-sous">Compte, réglages et progression effacés. Tes propositions restent sur le site, sans ton nom.</span></div>'
+      +'<button class="pbtn rg-btn-danger" onclick="supprimerMonCompte()">Supprimer</button></div>':''));
+
+  // ── À propos ──
+  h+=rgCarte('rg-apropos','À propos', 'Version du '+legalDateFr(LEGAL_VERSION),
+    '<div class="rg-liens">'
+    +'<a href="'+LEGAL_URL+'" target="_blank" rel="noopener">Informations légales et conditions ↗</a>'
+    +'<a href="mailto:'+pEsc(LEGAL.contact)+'">Écrire à l\'éditeur</a>'
+    +'<a href="docs/carte/carte.html" target="_blank" rel="noopener">🗺 Carte du projet ↗</a>'
+    +'<a href="docs/carte/frise.html" target="_blank" rel="noopener">🕓 Frise des commits ↗</a>'
     +'</div>'
-    // Mode fiche : compresse les cartes d'auteur des notions pour une lecture rapide.
-    +'<div class="set-row">'
-    +'<div class="set-row-cur">Mode fiche : <strong>'+(isFiche?'activé':'désactivé')+'</strong></div>'
-    +'<div class="set-row-desc">Compresse chaque boîte d\'auteur dans les notions (idée bornée à 2 lignes, citations masquées) pour une <em>lecture rapide</em>, façon fiche de révision. Le contenu complet reste sur la fiche de l\'auteur.</div>'
-    +'<button class="pbtn pbtn-primary set-mode-btn" onclick="toggleFicheMode()">'
-      +(isFiche?'📖 Affichage complet':'🗂 Activer le mode fiche')+'</button>'
-    +'</div>'
-    // Étape 5 : afficher ou masquer le hors programme (visible par défaut).
-    +(KEYS_HP.length?'<div class="set-row">'
-    +'<div class="set-row-cur">Hors programme : <strong>'+(voirHP()?'affiché':'masqué')+'</strong></div>'
-    +'<div class="set-row-desc">Les notions qui ne sont pas au programme de terminale ('+KEYS_HP.length+' pour l\'instant), et ce qui n\'apparaît que sous elles : auteurs, concepts, cartes du quiz. Masqué, le site s\'en tient au programme du bac.</div>'
-    +'<button class="pbtn pbtn-primary set-mode-btn" onclick="setVoirHP('+(voirHP()?'false':'true')+')">'
-      +(voirHP()?'🎯 M\'en tenir au programme':'🧭 Afficher le hors programme')+'</button>'
-    +'</div>':'')
-    // Carte technique du projet (doc) — discret, pour les curieux de l'envers du décor.
-    +'<div class="set-row">'
-    +'<div class="set-row-cur">🔎 Découvrir l\'envers du projet</div>'
-    +'<div class="set-row-desc">Pour les curieux de la technique : une <strong>carte interactive</strong> de l\'architecture (du parcours élève jusqu\'au nom des fonctions) et une <strong>frise</strong> de l\'évolution du projet commit par commit.</div>'
-    +'<a class="pbtn pbtn-ghost set-mode-btn" href="docs/carte/carte.html" target="_blank" rel="noopener" style="display:inline-block;text-decoration:none;margin-right:6px">🗺 Carte du projet ↗</a>'
-    +'<a class="pbtn pbtn-ghost set-mode-btn" href="docs/carte/frise.html" target="_blank" rel="noopener" style="display:inline-block;text-decoration:none">🕓 Frise des commits ↗</a>'
-    +'</div>';
+    +'<details class="rg-plus"><summary>La carte et la frise, c\'est quoi ?</summary><p>Pour les curieux de la technique : une <strong>carte interactive</strong> de l\'architecture (du parcours élève jusqu\'au nom des fonctions) et une <strong>frise</strong> de l\'évolution du projet commit par commit.</p></details>');
+
+  body.innerHTML=h;
 }
 /* openSettings / closeSettings — ouvre/ferme l'overlay de réglages. */
 function openSettings(){ const ov=document.getElementById('settings-overlay'); if(!ov) return; renderSettingsBody(); ov.classList.add('open'); }

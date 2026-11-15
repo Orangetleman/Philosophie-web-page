@@ -35,7 +35,8 @@ self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
   const url = new URL(e.request.url);
   // On ne s'occupe QUE des ressources de même origine sous /triage/.
-  // Tout le reste (Supabase, CDN supabase-js) part directement au réseau.
+  // Tout le reste (Supabase, et /lib/supabase.js du site principal) part
+  // directement au réseau.
   if (url.origin !== location.origin) return;
   if (!url.pathname.includes('/triage/') && !url.pathname.endsWith('/icon.svg')) return;
 
