@@ -1,8 +1,26 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
-  "genere_le": "2026-11-15T00:29:02.465Z",
+  "genere_le": "2026-11-15T00:33:53.737Z",
   "commits": [
+    {
+      "hash": "8ec99b77aef0f36e70a3db342440ca6d6d091939",
+      "short": "8ec99b7",
+      "auteur": "Orangentleman",
+      "date": "2026-11-15T01:30:55+01:00",
+      "sujet": "Merge pull request #22 from Orangetleman/claude/indexnow",
+      "corps": "IndexNow : clé à la racine et script d'envoi des adresses du sitemap",
+      "tag": ""
+    },
+    {
+      "hash": "fab398120f9d3b7561b3fe0c1dad2c29d5ab7d29",
+      "short": "fab3981",
+      "auteur": "Orangentleman",
+      "date": "2026-11-15T01:29:00+01:00",
+      "sujet": "IndexNow : clé à la racine et script d'envoi des adresses du sitemap",
+      "corps": "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": "IndexNow"
+    },
     {
       "hash": "8ed51df8a596162bdbd51278393d18b692d8eb99",
       "short": "8ed51df",
