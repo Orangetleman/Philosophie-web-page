@@ -49,6 +49,8 @@ self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
   const sameOrigin = url.origin === location.origin;
   if (!sameOrigin) return;                              // les autres : laissés au navigateur
+  // (Lot A6 : triage/ ne fait plus que rediriger vers /admin/ et son SW se
+  // désinstalle ; la règle reste pour ceux qui l'ont encore.)
   // L'appli de TRIAGE (/triage/) est une PWA SÉPARÉE, avec son propre service
   // worker (scope /triage/). Bien que le scope de CE SW soit « / » (donc couvre
   // /triage/), on s'en désintéresse explicitement : sinon on intercepterait son

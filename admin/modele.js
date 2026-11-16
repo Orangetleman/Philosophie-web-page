@@ -63,7 +63,7 @@
   // Les champs montrés en tête, dans cet ordre ; le reste suit.
   const EN_TETE = ['nom', 'notion', 'cnotions', 'cterme', 'cibleref', 'remelement'];
 
-  // Avis de l'IA (review.py : valide | douteux | rejet).
+  // Avis de l'IA (valide | douteux | rejet ; supabase/functions/relire).
   const VERDICTS = {
     valide: ['ok', 'Plutôt bon'],
     douteux: ['warn', 'À vérifier'],

@@ -1,8 +1,17 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
-  "genere_le": "2026-11-16T18:01:28.899Z",
+  "genere_le": "2026-11-16T18:12:54.329Z",
   "commits": [
+    {
+      "hash": "462d8378825b16d672fd88e3d947add10356f68f",
+      "short": "462d837",
+      "auteur": "Orangentleman",
+      "date": "2026-11-16T19:01:28+01:00",
+      "sujet": "Update cli-latest",
+      "corps": "",
+      "tag": ""
+    },
     {
       "hash": "39a5ce23fd69b9c91179610dcd6ad2532a64cfcb",
       "short": "39a5ce2",

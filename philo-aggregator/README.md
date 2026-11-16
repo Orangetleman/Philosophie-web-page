@@ -1,295 +1,65 @@
 # philo-aggregator
 
-Outil en ligne de commande qui agrège les propositions de contribution
-envoyées par les visiteurs du site **Graphe Philosophie — Terminale**.
+Ce dossier a longtemps contenu l'**agrégateur** : un programme Python sur le
+PC qui récupérait les propositions, les rangeait dans une base SQLite, les
+faisait relire par Gemini, et un tableau de bord Flask pour les trier. Le
+chantier Administration (novembre 2026) l'a remplacé, et le lot A6 a retiré
+son code (il reste dans l'historique git, avant le commit « Administration
+A6 »).
 
-Chaque proposition arrive sous forme de fichier `.txt` (corps d'un mail
-généré par le formulaire de contribution du site). Ce programme :
+Aujourd'hui, tout se passe en ligne :
 
-1. extrait le bloc JSON délimité par `[PHILO-PROPOSAL-JSON-START]` /
-   `[PHILO-PROPOSAL-JSON-END]` ;
-2. stocke chaque boîte dans une base SQLite locale (`proposals.db`) ;
-3. permet de consulter, filtrer, dédoublonner ;
-4. génère un grand `.txt` de synthèse à coller dans une session Claude
-   pour la revue et l'intégration finale dans `index.html`.
-
-## Prérequis
-
-- Python 3.7 ou plus récent.
-- **Cœur de l'outil** (`ingest`, `list`, `show`, `dupes`, `export`,
-  `mark`, `note`, `archive`, `purge`, `stats`) : **aucune dépendance**,
-  tout est en bibliothèque standard (`argparse`, `sqlite3`, `json`, `re`,
-  `hashlib`, `difflib`, `unicodedata`, `pathlib`, `urllib`).
-- **Cerveau local** (`review`, `dashboard`) : nécessite deux paquets,
-  installés via `pip install -r requirements.txt` (Flask pour le dashboard,
-  google-genai pour la relecture IA). Les commandes réseau
-  `pull-cloud`, `sync` et `push` n'utilisent qu'`urllib` (stdlib) ; seuls
-  les secrets du `.env` leur sont nécessaires.
-
-## Utilisation rapide
-
-```powershell
-# 1. Déposer un ou plusieurs .txt dans inbox/
-# 2. Ingérer
-python aggregate.py ingest
-
-# 3. Voir ce qu'il y a en attente
-python aggregate.py list
-
-# 4. Détail d'une boîte
-python aggregate.py show 42
-
-# 5. Détecter doublons et propositions proches
-python aggregate.py dupes
-
-# 6. Générer le .txt de revue pour Claude (review_YYYYMMDD.txt)
-python aggregate.py export
-
-# 7. Après revue manuelle dans Claude, marquer ce qui est intégré
-python aggregate.py mark 12 17 23 --as integree
-
-# 8. Archiver et purger plus tard
-python aggregate.py archive --yes
-python aggregate.py purge --before 2026-12-01 --yes
-```
-
-## Le cerveau local (en ligne → base → tri)
-
-Au lieu de déposer des `.txt` à la main, on récupère les propositions
-directement depuis le **cloud**, on les fait **pré-vérifier par Gemini**,
-puis on les trie dans un **tableau de bord local**.
-
-Une seule source en ligne : **Supabase** (`pull-cloud`). Les visiteurs
-**connectés** envoient leur proposition dans la table `contributions`,
-rattachée à leur compte : on peut alors leur **renvoyer le statut** (`push`),
-qu'ils voient dans « Mes propositions » sur le site. Les visiteurs **anonymes**
-écrivent dans la même table avec `user_id` vide (pas de renvoi de statut).
-L'ancienne boîte anonyme PythonAnywhere (`philo-mailbox/`, commande `pull`)
-a été retirée en octobre 2026 : le service était éteint.
-
-### Configuration (une fois)
-
-```powershell
-# 1. Installer les dépendances du cerveau
-pip install -r requirements.txt
-
-# 2. Créer le fichier de secrets (jamais publié : ignoré par Git)
-copy .env.example .env
-#    …puis ouvrir .env et coller :
-#      - SUPABASE_URL + SUPABASE_SERVICE_KEY (source Supabase) ;
-#      - GEMINI_API_KEY (relecture IA).
-```
-
-> ⚠ **`SUPABASE_SERVICE_KEY`** est la clé « service_role » : toute-puissante
-> (elle ignore les règles RLS). Elle ne doit **jamais** finir dans le site
-> ni sur GitHub — uniquement dans ce `.env`, qui reste sur ton PC.
-
-**Migration Supabase (une seule fois)** — pour la synchro cross-plateforme
-(ci-dessous), lance le script `migrations/2026_aggregator_state.sql` dans
-l'éditeur SQL de Supabase (Dashboard → SQL Editor → coller → Run). Il ajoute
-les colonnes `aggregator_state` / `aggregator_updated_at` à la table
-`contributions`. Sans cette migration, `sync`/`push` échoueront avec une
-erreur de colonne absente. ⚠ Son « REVOKE SELECT (aggregator_state) » ne
-suffisait pas à cacher ces notes internes aux contributeurs : lance aussi
-`migrations/2026_contributions_colonnes.sql` (droits colonne par colonne).
-
-**Toutes les migrations, dans l'ordre** (pour une base neuve) :
-`2026_schema_base.sql` (tables du compte et des propositions, reconstituées
-depuis le code en oct. 2026 : à comparer d'abord avec la base réelle grâce à
-`2026_schema_lecture.sql`, en lecture seule), `2026_aggregator_state.sql`,
-`2026_admin_mobile.sql`, `2026_anon_contributions.sql`,
-`2026_contributions_colonnes.sql`, `2026_rgpd.sql` (nov. 2026 : supprimer un
-compte garde ses propositions, anonymisées ; purge des comptes inactifs depuis
-trois ans, cf. `docs/protocole-donnees.md`). Puis `2026_administration.sql` (nov. 2026, chantier Administration : boîtes,
-sujets, votes, suivi anonyme ; à passer en même temps que la mise en ligne de
-`/admin/`, cf. son en-tête). Leurs règles d'accès sont éprouvées par
-le banc `outils/banc/` (`npm ci && node banc_schema.mjs`, à la racine du
-banc).
-
-### Flux
-
-```powershell
-python aggregate.py pull-cloud  # récupère les contributions Supabase -> base
-python aggregate.py review      # pré-vérifie avec Gemini (verdict par boîte)
-python aggregate.py dashboard   # ouvre le tri dans le navigateur (localhost)
-
-# Après tri (ex. on a marqué des boîtes « integree »), renvoyer le statut
-# aux contributeurs connectés (ne concerne que les boîtes venues de Supabase) :
-python aggregate.py mark 12 17 --as integree
-python aggregate.py push 12 17  --explication "Intégré, merci !"
-```
-
-Le dashboard est un **cockpit** : toutes les commandes sont des boutons
-(plus besoin du terminal).
-
-- **Barre d'outils** (actions globales) : ☁ Récupérer (Supabase / `pull-cloud`),
-  🔄 Synchroniser (cloud / `sync`), 🤖 Relire (IA / `review`),
-  📤 Exporter (`export` du statut filtré), 🗄 Archiver intégrées
-  (`integree` → `archivee`), 🗑 Purger archivées (destructeur, confirmation).
-- **Panneau de stats** : compteurs par statut, dans l'en-tête.
-- **Tri par carte** : **Valider** (`validee`), **Intégrer** (`integree`),
-  **Rejeter** (`rejetee`), **Archiver** (`archivee`), **En attente**.
-- **Provenance visible** : une pastille distingue les trois canaux —
-  **☁ compte** (Supabase, statut renvoyé à l'auteur), **⬇ anonyme** (anciens
-  envois de la boîte PythonAnywhere, retirée), **📄 fichier** (`.txt` déposé à la main).
-
-**Écriture-retour automatique** : changer le statut d'une boîte issue d'un
-**compte** (pastille ☁) pousse aussitôt le statut « contributeur » vers
-Supabase (Valider → « en cours d'intégration », Intégrer → « intégrée »,
-Rejeter → « refusée »), avec une **explication facultative** saisie sur la
-carte. Rien n'est poussé pour les canaux anonyme / fichier (pas de pendant
-en ligne). Comme pour le reste de l'outil, **rien n'est écrit dans `data.js`**
-ici : la recopie finale dans le site reste une étape manuelle séparée (via
-`export` puis intégration dans une session Claude).
-
-### Synchro cross-plateforme (plusieurs machines)
-
-Tout l'état de tri (statut, note, avis IA de chaque boîte) est **miroité dans
-Supabase** (colonne `aggregator_state`). On peut donc consulter et reprendre
-le travail depuis **n'importe quelle machine** — y compris retrouver des
-contributions **déjà validées ailleurs** (que `pull-cloud`, filtré sur
-« en_attente », ne renvoie jamais).
-
-- **Push automatique** : valider / intégrer / rejeter / noter une boîte issue
-  d'un compte pousse aussitôt l'état complet de sa contribution vers Supabase.
-- **`sync`** (bouton **🔄 Synchroniser** ou `python aggregate.py sync`) :
-  récupère **toutes** les contributions, ingère les inconnues + **restaure leur
-  état**, et **arbitre** avec celles déjà connues par horodatage — *dernière
-  écriture gagne* (`aggregator_updated_at` côté cloud vs `state_updated_at`
-  local). Le local plus récent est au contraire **repoussé** vers le cloud.
-
-> Pensé pour **un seul mainteneur, une machine à la fois**. Sur une machine
-> neuve : lance `sync` → le tableau de bord se reconstruit entièrement depuis
-> Supabase. Les relectures IA faites localement remontent au `sync` suivant.
-
-## Accès mobile — triage depuis le téléphone (`triage/`)
-
-Pour **trier en déplacement** (valider / intégrer / rejeter + note) sans le PC,
-une petite **page web installable** (PWA) vit dans `triage/` à la racine du
-dépôt (publiée avec le site). On s'y connecte avec **son propre compte**
-(Google ou e-mail + mot de passe) — **jamais** avec la clé `service_role`.
-
-**Modèle de sécurité.** La page n'embarque que la clé **anon** (publique). La
-vérification « es-tu l'administrateur ? » se fait **côté base**, via deux
-fonctions PostgreSQL `SECURITY DEFINER` qui refusent quiconque n'est pas dans
-la table `app_admins` :
-
-- `admin_list_contributions()` — renvoie toutes les contributions (le rôle
-  `authenticated` n'a normalement pas accès à `aggregator_state` ; la fonction,
-  elle, peut le lire pour préserver notes/avis IA) ;
-- `admin_triage(id, statut, explication, état)` — écrit le statut contributeur,
-  l'explication et l'état de tri interne, horodaté.
-
-### Mise en place (une fois)
-
-1. **SQL** : lancer `migrations/2026_admin_mobile.sql` dans l'éditeur SQL de
-   Supabase (Dashboard → SQL Editor → coller → Run).
-2. **Se déclarer admin** : ouvrir `…/triage/`, se connecter ; la page affiche
-   ton **UID**. Le coller dans :
-   `insert into public.app_admins (user_id) values ('TON-UID');`
-   (l'éditeur SQL Supabase), puis rafraîchir la page.
-3. **Installer l'appli** (option) : depuis le navigateur du téléphone, menu →
-   « Ajouter à l'écran d'accueil ». La page a son manifeste + service worker.
-
-### Cohérence avec le PC
-
-Un triage mobile écrit `aggregator_state` + `aggregator_updated_at` **au format
-exact** attendu par la synchro. Au prochain `python aggregate.py sync` (ou bouton
-« 🔄 Synchroniser »), le dashboard PC récupère ce qui a été trié au téléphone
-(et inversement — *dernière écriture gagne*). La page mobile trie à la
-**granularité contribution** (toutes les boîtes d'une contribution prennent le
-même statut) ; la relecture IA, l'export `.txt` et l'intégration dans `data.js`
-restent des étapes **sur le PC**.
-
-## Commandes
-
-| Commande | Rôle |
+| Besoin | Où |
 |---|---|
-| `ingest [--dir D]` | parse les `.txt` de `inbox/`, insère, déplace |
-| `pull-cloud [--limit N]` | récupère les contributions Supabase (comptes), ingère (dédoublonné sur l'UUID, rejouable) |
-| `sync [--limit N]` | synchro cross-plateforme : récupère TOUTES les contributions, restaure leur état, arbitre local/cloud par horodatage (dans les 2 sens) |
-| `push <id>... [--explication T]` | renvoie le statut des contributions vers Supabase (ids de boîte → contribution) |
-| `review [--limit N] [--redo] [--status S]` | pré-vérifie les boîtes avec Gemini (verdict IA) |
-| `dashboard [--port P]` | lance le tableau de bord local (navigateur) |
-| `list [--status S] [--cible C] [--notion N] [--no-preview]` | liste groupée (4 sections : Notions/Auteurs/Concepts/Retours site) |
-| `show <id>` | détail complet d'une boîte |
-| `dupes [--threshold 0.80] [--status S]` | rapport doublons (signature + difflib + inclusion de noms) |
-| `export [-o fichier.txt] [--status S]` | gros `.txt` daté pour Claude |
-| `mark <id>... --as <statut>` | change le statut (`en_attente` / `integree` / `rejetee` / `archivee`) |
-| `note <id> "texte"` &nbsp;\|&nbsp; `--clear` | annote ou efface |
-| `archive [--before YYYY-MM-DD] [--yes]` | `integree` → `archivee` |
-| `purge   [--before YYYY-MM-DD] [--yes]` | supprime définitivement les `archivee` |
-| `stats` | compteurs globaux |
+| Trier les propositions, répondre, ranger dans un sujet | la page `/admin/` (en ligne, ou en local par `dashboard.bat`) |
+| Avis de l'IA | bouton « 🤖 Relire avec l'IA » de `/admin/`, fonction Supabase `supabase/functions/relire` |
+| Être prévenu d'une proposition | fonction Supabase `supabase/functions/prevenir` (message Discord) |
+| Intégrer au site ce qui est validé | onglet « À intégrer » de `/admin/` et `docs/protocole-integration.md` |
+| Trier depuis le téléphone | `/admin/` aussi (l'ancienne page `triage/` y redirige) |
 
-## Arborescence
+Le dossier garde deux choses.
 
-```
-philo-aggregator/
-  aggregate.py        entrée CLI
-  db.py               accès SQLite
-  ingest.py           parsing + validation
-  view.py             affichage terminal
-  export.py           génération .txt
-  localenv.py         lecture du .env (cerveau local)
-  supabase_client.py  client HTTP de Supabase (pull-cloud / push statut)
-  pipeline.py         orchestration pull-cloud → ingestion + écriture-retour
-  review.py           relecture IA (Gemini)
-  dashboard.py        tableau de bord local (Flask)
-  requirements.txt    dépendances du cerveau (Flask, google-genai)
-  .env.example        modèle de configuration (à copier en .env)
-  .env                secrets locaux (gitignored — jamais publié)
-  inbox/              à déposer ici (gitignored)
-  processed/          fichiers ingérés avec succès (gitignored)
-  quarantine/         fichiers rejetés + .err (gitignored)
-  proposals.db        base SQLite (gitignored)
-  review_*.txt        exports (gitignored)
-```
+## `dashboard.bat`
 
-## Détection des doublons
+Le raccourci du bureau. Il sert le site depuis ce PC (port 8123, sauf si un
+serveur tourne déjà) et ouvre `http://localhost:8123/admin/`, sur la vraie
+base. Ajouter `?essai` à l'adresse donne de fausses données. Pour la
+connexion Google en local, `http://localhost:8123/admin/` doit figurer dans
+les « Redirect URLs » de Supabase (Authentication › URL Configuration).
 
-Deux passes complémentaires :
+## `migrations/` : le schéma de la base Supabase
 
-- **Signature** SHA-256 sur `type | cible | notion | key_term`, après
-  normalisation (minuscules, accents retirés). Capture les doublons
-  *quasi-exacts* (« Jean-Paul Sartre » vs « JEAN-PAUL SARTRE »).
-- **Fuzzy** `difflib.SequenceMatcher` (seuil 0.80 par défaut) + heuristique
-  d'**inclusion de noms** : « sartre » est rapproché de « Jean-Paul Sartre »
-  même si difflib ne les juge pas similaires (substring strict).
+À passer dans l'éditeur SQL de Supabase (Dashboard › SQL Editor › coller ›
+Run). Toutes sont rejouables. Pour une base neuve, dans l'ordre :
 
-## Schéma JSON consommé
+1. `2026_schema_base.sql` : tables du compte et des propositions,
+   reconstituées depuis le code en oct. 2026. À comparer d'abord avec la
+   base réelle grâce à `2026_schema_lecture.sql` (lecture seule).
+2. `2026_aggregator_state.sql` : colonnes de travail de l'ancien agrégateur ;
+   la migration 5 en reprend les données.
+3. `2026_admin_mobile.sql` : `is_admin()`, table `app_admins`.
+4. `2026_anon_contributions.sql` : envoi sans compte.
+5. `2026_contributions_colonnes.sql` : droits colonne par colonne (le
+   « REVOKE SELECT » de la migration 2 ne cachait rien).
+6. `2026_rgpd.sql` : supprimer un compte garde ses propositions,
+   anonymisées ; purge des comptes inactifs depuis trois ans
+   (`docs/protocole-donnees.md`).
+7. `2026_administration.sql` : boîtes, sujets, votes, suivi anonyme,
+   fonctions `admin_*` (chantier Administration).
+8. `2026_relecture.sql` : `admin_ecrire_avis`, pour la fonction `relire`.
 
-`philo-proposal/v1`, `v2` **et** `v3`, générés par le site (rétro-compat
-totale — les anciens `.txt` restent ingestibles).
+Leurs règles d'accès sont éprouvées par le banc `outils/banc/`
+(`npm ci && node banc_schema.mjs`, depuis ce dossier du banc). Une migration
+nouvelle va dans `ORDRE` de `banc_schema.mjs`, avec ses essais.
 
-- **v2** : multi-idées pour la cible `auteur` (`fields.ideas[]`).
-- **v3** : menu à 2 niveaux — chaque boîte porte `categorie`
-  (`notion`/`auteur`/`concept`/`site`) + `cible` (sous-cible) + `type`. Les
-  idées d'un auteur portent leur **notion** et un tableau **`citations[]`** :
-  `fields.ideas[] = {notion, oeuvre, date, idee, citations:[…], concepts}`.
-  Nouvelles sous-cibles : `auteur-citation`, `auteur-dialogue`, `auteur-bio`,
-  `concept-relation`. Pour la cible `auteur`, `extract_notions` lit les
-  notions dans `ideas[].notion` (pas `fields.notion`).
+Les fonctions `admin_list_contributions` et `admin_triage` de
+`2026_admin_mobile.sql` ne servent plus (c'était l'ancienne page `triage/`).
+Elles sont inoffensives, gardées par `is_admin()`, et restent dans la base.
 
-## Catégorie `site` (retours sur l'outil, pas sur le contenu)
+## Ce qui peut traîner sur le PC
 
-En plus du contenu philosophique, le formulaire accepte deux **retours sur
-le site lui-même** :
-
-- `site-bug` — signaler une erreur / un bug d'usage ;
-- `site-fonction` — proposer une nouvelle fonctionnalité.
-
-Ces boîtes traversent toute la chaîne (ingestion, base, dashboard) mais avec
-deux particularités, car elles ne visent **pas** `data.js` :
-
-- **Pas de relecture Gemini** : `review` les ignore (rien de philosophique à
-  vérifier). Elles gardent un `ai_verdict` NULL sans bloquer la file de
-  relecture (exclues directement dans le SQL de `get_unreviewed_boxes`).
-- **Section dédiée** : dans `list` (et l'export), elles sont regroupées sous
-  **« RETOURS SITE »**, après Notions / Auteurs / Concepts.
-
-Côté front, leur `type` est figé sur `remarque` (le menu « Type d'action »
-est masqué) pour ne pas avoir à propager un nouveau type dans toute la
-pipeline ; seules les deux nouvelles cibles distinguent ces retours.
-
-Voir `CLAUDE.md` à la racine du projet pour la spécification détaillée
-(catégories, sous-cibles, champs par sous-cible).
+`proposals.db` (l'ancienne base SQLite), `.env` (clés de l'agrégateur) et
+`__pycache__/` ne sont pas suivis par git. Tout ce que contenait
+`proposals.db` venait de Supabase, où tout se trouve toujours. Ces fichiers
+peuvent être supprimés à la main. La clé Gemini du `.env` est aussi posée
+comme secret de la fonction `relire`.
