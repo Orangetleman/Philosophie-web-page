@@ -959,6 +959,11 @@ body.is-signed-in .sb-account{color:var(--color-ok);border-color:rgba(123,216,14
 .quiz-end-stat{flex:1;background:var(--color-background-primary);border-radius:var(--border-radius-md);padding:11px 6px}
 .quiz-end-num{font-size:20px;font-weight:700;color:var(--color-text-quiz)}
 .quiz-end-level{display:flex;flex-direction:column;gap:0}
+/* nov. 2026 (chantier Administration) : lien « 🛠 Administration », visible
+   des seuls comptes admin (verifierAdmin, js/09-compte.js). C'est un <a> :
+   on lui rend l'allure des boutons du compte. */
+a.sb-account.sb-admin{box-sizing:border-box;text-align:center;text-decoration:none}
+body.is-signed-in .sb-account.sb-admin{color:var(--color-text-info);border-color:var(--color-border-info)}
 /* css/05-visite-guidee.css — morceau de la feuille de style du site. Le build
    (outils/construire.mjs) recolle css/*.css dans l'ORDRE des noms pour
    produire app.css : l'ordre compte (cascade CSS). */

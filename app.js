@@ -5587,13 +5587,35 @@ function renderAccountBtn(){
   wrap.style.display='';
   document.body.classList.toggle('is-signed-in',!!authUser);
   if(authUser){
-    // Connecté : un seul bouton (nom → ouvre le profil / la déconnexion).
-    wrap.innerHTML=`<button class="sb-account" title="Gérer le compte ou se déconnecter" onclick="openAuth()">👤 ${pEsc(authLabel())}</button>`;
+    // Connecté : un seul bouton (nom → ouvre le profil / la déconnexion),
+    // plus « Administration » si la base reconnaît ce compte comme admin
+    // (nov. 2026, chantier Administration : verifierAdmin()).
+    wrap.innerHTML=`<button class="sb-account" title="Gérer le compte ou se déconnecter" onclick="openAuth()">👤 ${pEsc(authLabel())}</button>`+
+      (authEstAdmin===authUser.id?`<a class="sb-account sb-admin" href="/admin/" title="Trier les propositions (réservé aux administrateurs)">🛠 Administration</a>`:'');
+    if(authEstAdmin!==authUser.id) verifierAdmin();
   }else{
     // Déconnecté : deux boutons distincts (chacun ouvre le bon onglet).
     wrap.innerHTML=`<button class="sb-account" title="Déjà un compte ? Se connecter" onclick="openAuth('signin')">Se connecter</button>`+
       `<button class="sb-account" title="Pas encore de compte ? En créer un" onclick="openAuth('signup')">Créer un compte</button>`;
   }
+}
+
+/* verifierAdmin() — demande UNE fois par compte à la base si l'utilisateur
+   connecté est administrateur, puis redessine le bouton du compte.
+   On appelle admin_sujets() (déjà ouverte aux comptes connectés, gardée
+   par is_admin()) : un refus 42501 = pas admin. is_admin() elle-même n'est
+   pas accordée aux comptes (2026_admin_mobile.sql), d'où ce détour.
+   Le bouton n'est qu'un raccourci : la page /admin/ et la base refusent
+   d'elles-mêmes tout compte ordinaire. */
+let authEstAdmin=null;            // id du compte reconnu admin, sinon null
+let authAdminDemande=null;        // id du compte déjà vérifié (une seule demande)
+async function verifierAdmin(){
+  if(!SB||!authUser||authAdminDemande===authUser.id) return;
+  const uid=authAdminDemande=authUser.id;
+  try{
+    const {error}=await SB.rpc('admin_sujets');
+    if(!error&&authUser&&authUser.id===uid){ authEstAdmin=uid; renderAccountBtn(); }
+  }catch(e){ /* hors ligne : pas de bouton, sans gêne */ }
 }
 
 /* openAuth(view) — affiche la modale de compte sur l'onglet « signin »

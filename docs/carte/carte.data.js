@@ -456,8 +456,8 @@ window.CARTE = {
 
     { id:"sync.auth", label:"Authentification", niveau:1, parent:"sync", domaine:"sync",
       novice:"Se connecter avec un compte Google, et se déconnecter.",
-      ingenieur:"initAuth() lit la session et s'abonne aux changements ; openAuth() ouvre la modale ; authSignInGoogle()/authSignOut() gèrent la session.",
-      symbols:[{kind:"fn",name:"initAuth",ref:"js/09-compte.js:25"},{kind:"fn",name:"openAuth",ref:"js/09-compte.js:119"},{kind:"fn",name:"authSignInGoogle",ref:"js/09-compte.js:275"},{kind:"fn",name:"authSignOut",ref:"js/09-compte.js:321"}] },
+      ingenieur:"initAuth() lit la session et s'abonne aux changements ; openAuth() ouvre la modale ; authSignInGoogle()/authSignOut() gèrent la session ; verifierAdmin() demande à la base (admin_sujets) si le compte est admin et ajoute alors le lien « 🛠 Administration » vers /admin/.",
+      symbols:[{kind:"fn",name:"initAuth",ref:"js/09-compte.js:25"},{kind:"fn",name:"openAuth",ref:"js/09-compte.js:141"},{kind:"fn",name:"authSignInGoogle",ref:"js/09-compte.js:297"},{kind:"fn",name:"authSignOut",ref:"js/09-compte.js:343"},{kind:"fn",name:"verifierAdmin",ref:"js/09-compte.js:128"}] },
 
     { id:"sync.prefs", label:"Préférences cross-appareil", niveau:1, parent:"sync", domaine:"sync",
       novice:"Ce qui fait voyager ta progression et tes réglages entre tes appareils.",
@@ -474,7 +474,7 @@ window.CARTE = {
     { id:"sync.banc", label:"Banc d'essai des règles d'accès", niveau:1, parent:"sync", domaine:"sync",
       novice:"Une fausse base de données, montée sur l'ordinateur, sur laquelle on vérifie que personne ne peut lire ou modifier ce qui ne lui appartient pas.",
       ingenieur:"outils/banc/banc_schema.mjs (oct. 2026) : PGlite + decor_supabase.sql (rôles et droits par défaut de Supabase, auth.uid()) ; joue ORDRE (les migrations) puis ses essais (23 en nov. 2026) sous un rôle via sous(), chacun avec un témoin qui retire la règle. A révélé que le REVOKE colonne de 2026_aggregator_state.sql ne cachait rien.",
-      symbols:[{kind:"var",name:"ORDRE",ref:"outils/banc/banc_schema.mjs:30"},{kind:"var",name:"ESSAIS",ref:"outils/banc/banc_schema.mjs:66"},{kind:"fn",name:"sous",ref:"outils/banc/banc_schema.mjs:50"}],
+      symbols:[{kind:"var",name:"ORDRE",ref:"outils/banc/banc_schema.mjs:30"},{kind:"var",name:"ESSAIS",ref:"outils/banc/banc_schema.mjs:67"},{kind:"fn",name:"sous",ref:"outils/banc/banc_schema.mjs:51"}],
       liens:[{to:"sync.tables",type:"lit",note:"Éprouve les règles des tables Supabase."}] },
 
     { id:"sync.tables", label:"Tables Supabase", niveau:1, parent:"sync", domaine:"sync",
@@ -519,7 +519,7 @@ window.CARTE = {
     { id:"pwa.register", label:"Enregistrement & MAJ", niveau:1, parent:"pwa", domaine:"pwa",
       novice:"Ce qui installe le programme de fond et récupère sans heurt la dernière version.",
       ingenieur:"index.html enregistre sw.js, appelle reg.update() au chargement, et recharge une fois sur 'controllerchange' (garde anti-boucle swReloading).",
-      symbols:[{kind:"var",name:"swReloading",ref:"js/99-demarrage.js:39"},{kind:"var",name:"controllerchange",ref:"js/99-demarrage.js:32"},{kind:"var",name:"register",ref:"js/09-compte.js:391"}],
+      symbols:[{kind:"var",name:"swReloading",ref:"js/99-demarrage.js:39"},{kind:"var",name:"controllerchange",ref:"js/99-demarrage.js:32"},{kind:"var",name:"register",ref:"js/09-compte.js:413"}],
       note:"controllerchange/register ne sont pas des fonctions nommées mais des appels (addEventListener/serviceWorker.register) ; cités pour le repère de ligne." },
 
     { id:"pwa.manifest", label:"Manifeste", niveau:1, parent:"pwa", domaine:"pwa",
@@ -580,12 +580,12 @@ window.CARTE = {
     { id:"backend.admin", label:"Page /admin/", niveau:1, parent:"backend", domaine:"backend",
       novice:"La page où l'éditeur trie les propositions, la même sur ordinateur et téléphone, en ligne et en local. Elle remplacera le tableau de bord et la page de triage.",
       ingenieur:"admin/ (nov. 2026, lot A2) : index.html charge data.js (titres des notions), lib/supabase.js, modele.js (AdminModele : filtrer, champsLisibles, vuContributeur, depuis, erreur ; éprouvé par outils/essais_admin.mjs), essai.js (AdminEssai : fausses données, /admin/?essai) et admin.js (état, rendre(), gestes, clavier V/R/A/J/K, #n°). Tout passe par les fonctions admin_* (2026_administration.sql). Hors du service worker du site et de robots.txt.",
-      symbols:[{kind:"fn",name:"rendre",ref:"admin/admin.js:137"},{kind:"fn",name:"changer",ref:"admin/admin.js:462"},{kind:"fn",name:"suivreAdresse",ref:"admin/admin.js:549"},{kind:"fn",name:"filtrer",ref:"admin/modele.js:93"},{kind:"fn",name:"champsLisibles",ref:"admin/modele.js:136"},{kind:"fn",name:"vuContributeur",ref:"admin/modele.js:202"}],
+      symbols:[{kind:"fn",name:"rendre",ref:"admin/admin.js:137"},{kind:"fn",name:"changer",ref:"admin/admin.js:473"},{kind:"fn",name:"suivreAdresse",ref:"admin/admin.js:560"},{kind:"fn",name:"filtrer",ref:"admin/modele.js:93"},{kind:"fn",name:"champsLisibles",ref:"admin/modele.js:136"},{kind:"fn",name:"vuContributeur",ref:"admin/modele.js:202"}],
       liens:[{to:"sync.tables.admin",type:"lit",note:"Lit et écrit les boîtes et les sujets par les fonctions admin_*."}] },
     { id:"backend.relire", label:"Relecture IA (Supabase)", niveau:1, parent:"backend", domaine:"backend",
       novice:"Le bouton « Relire avec l'IA » de /admin/ demande à Gemini un premier avis sur les propositions en attente. Il tourne chez Supabase : plus besoin du PC.",
       ingenieur:"supabase/functions/relire (nov. 2026, lot A4 ; Deno). index.ts : vérifie l'admin (jeton → app_admins), choisit les boîtes (ids, sinon en attente jamais relues hors 'site', 8 par appel), appelle generateContent (GEMINI_API_KEY, GEMINI_MODEL), écrit boites.ia_verdict / ia_avis / ia_message / ia_le et contributions.avis_ia. relecture.js (pur, outils/essais_relecture.mjs) : CONSIGNE (celle de review.py), texteBoite (anonyme, masquer), lireVerdict, avisContributeur, attenteQuota. Doublons dans /admin/ : AdminModele.doublons (signature, inclusion de nom, ressemblance = Ratcliff-Obershelp comme difflib).",
-      symbols:[{kind:"fn",name:"demanderAGemini",ref:"supabase/functions/relire/index.ts:46"},{kind:"fn",name:"texteBoite",ref:"supabase/functions/relire/relecture.js:60"},{kind:"fn",name:"lireVerdict",ref:"supabase/functions/relire/relecture.js:80"},{kind:"fn",name:"doublons",ref:"admin/modele.js:324"},{kind:"fn",name:"ressemblance",ref:"admin/modele.js:297"}],
+      symbols:[{kind:"fn",name:"demanderAGemini",ref:"supabase/functions/relire/index.ts:51"},{kind:"fn",name:"texteBoite",ref:"supabase/functions/relire/relecture.js:60"},{kind:"fn",name:"lireVerdict",ref:"supabase/functions/relire/relecture.js:80"},{kind:"fn",name:"doublons",ref:"admin/modele.js:324"},{kind:"fn",name:"ressemblance",ref:"admin/modele.js:297"}],
       liens:[{to:"sync.tables.boites",type:"ecrit",note:"Avis de l'IA, boîte par boîte."}] },
 
     { id:"backend.export", label:"Export relecture", niveau:1, parent:"backend", domaine:"backend",

@@ -1,8 +1,17 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
-  "genere_le": "2026-11-15T11:48:05.789Z",
+  "genere_le": "2026-11-16T01:08:58.849Z",
   "commits": [
+    {
+      "hash": "8f3ff26aa32d11e998f974fb2bd0ef0c432e5269",
+      "short": "8f3ff26",
+      "auteur": "Orangentleman",
+      "date": "2026-11-15T12:48:05+01:00",
+      "sujet": "Relecture IA : modèle gemini-2.5-flash-lite et délai de 25 s",
+      "corps": "gemini-flash-latest ne répondait plus (plus de 2 min, essai du 15 nov.) ;\nle modèle du .env répond en 3 s. Un appel trop long est abandonné et dit.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": "Relecture IA"
+    },
     {
       "hash": "432ac7d81a4a33f26f537ab55e04d39c6f43c0ed",
       "short": "432ac7d",
