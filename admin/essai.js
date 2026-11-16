@@ -114,6 +114,25 @@
       });
       return { relues: choisies.map(b => ({ id: b.id, verdict: b.ia_verdict })), erreurs: [], arret: null };
     },
+    // Lot A5 : mêmes règles que admin_importer_integration (2026_administration.sql).
+    async importer(r) {
+      await attendre();
+      return (r.boites || []).map(it => {
+        const b = boites.find(x => x.id === Number(it.id));
+        if (!b) return { id: it.id, resultat: 'inconnue', avant: null, apres: null };
+        if (b.statut === 'integree' && b.integration && b.integration.commit === r.commit) return { id: b.id, resultat: 'deja', avant: b.statut, apres: b.statut };
+        if (b.statut !== 'validee' || !['integree', 'retouchee', 'non_integree'].includes(it.resultat)) return { id: b.id, resultat: 'ignoree', avant: b.statut, apres: b.statut };
+        if (it.resultat === 'non_integree') {
+          b.statut = 'en_attente';
+          b.note = [b.note, `[Intégration ${String(r.fait_le || new Date().toISOString()).slice(0, 10)}, non intégrée] ${it.detail || ''}`].filter(Boolean).join('\n');
+          return { id: b.id, resultat: it.resultat, avant: 'validee', apres: 'en_attente' };
+        }
+        b.statut = 'integree';
+        b.integration = { commit: r.commit, fait_le: r.fait_le, resultat: it.resultat, detail: it.detail };
+        if (it.reponse) { b.reponse = it.reponse; b.repondu_le = new Date().toISOString(); }
+        return { id: b.id, resultat: it.resultat, avant: 'validee', apres: 'integree' };
+      });
+    },
     async creerSujet(titre) {
       await attendre();
       const id = Math.max(0, ...sujets.map(s => s.id)) + 1;

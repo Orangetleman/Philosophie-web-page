@@ -61,6 +61,9 @@ self.addEventListener('fetch', e => {
   // montrer une vieille version, et un repli hors-ligne vers l'index du site
   // serait trompeur.
   if (sameOrigin && url.pathname.startsWith('/admin')) return;
+  // Les comptes rendus d'intégration (lot A5) : /admin/ vérifie qu'ils sont
+  // en ligne ; une copie en cache fausserait cette vérification.
+  if (sameOrigin && url.pathname.startsWith('/integrations/')) return;
 
   // Le « code » du site = HTML et JS de même origine (et toute navigation).
   // C'est ce qui change à chaque déploiement → réseau d'abord.

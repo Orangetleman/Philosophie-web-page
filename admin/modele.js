@@ -340,10 +340,111 @@
     return out.sort((p, q) => q.score - p.score);
   }
 
+  // ── L'aller-retour d'intégration (lot A5, cadrage § 9) ───────────────
+  // Aller : export philo-export/v1 des boîtes validées, SANS donnée
+  // personnelle (ni pseudo, ni compte, ni réponse). Retour : compte rendu
+  // philo-integration/v1 écrit par Claude (docs/protocole-integration.md),
+  // relu ici ligne par ligne avant d'être appliqué par la base
+  // (admin_importer_integration).
+
+  const FORMAT_EXPORT = 'philo-export/v1';
+  const FORMAT_RETOUR = 'philo-integration/v1';
+  const RESULTATS = { integree: 'Intégrée telle quelle', retouchee: 'Intégrée avec retouches', non_integree: 'Non intégrée' };
+
+  /* slug(t) — comme outils/lib/pages.mjs : « Simone Weil » → simone-weil. */
+  const slug = t => sansAccents(t).replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+
+  /* fichierCible(b) — le fichier de contenu/ que la boîte touche, pour
+     regrouper l'onglet « À intégrer » : notion → contenu/notions/<clé>.js,
+     auteur → contenu/auteurs/<nom>.js (nom à vérifier : alias possibles),
+     concept → contenu/concepts.js, retour sur le site → « le code du site ». */
+  function fichierCible(b) {
+    const cat = categorieDe(b), f = (b && b.contenu && b.contenu.fields) || {};
+    if (cat === 'site') return 'le code du site (js/, css/)';
+    if (cat === 'concept') return 'contenu/concepts.js';
+    if (cat === 'auteur' && f.nom) return 'contenu/auteurs/' + slug(f.nom) + '.js';
+    const n = notionDe(b);
+    return n ? 'contenu/notions/' + n + '.js' : '(fichier à trouver)';
+  }
+
+  /* jourDe(date) — « AAAA-MM-JJ » à l'heure locale. */
+  function jourDe(date) {
+    const d = new Date(date);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  }
+
+  /* exporter(boites, maintenant) — {nom, json} : le fichier de l'aller.
+     Seulement les boîtes « validee », triées par fichier puis n°. Champs
+     gardés : n°, proposition, catégorie, cible, type, notion, fichier,
+     contenu, avis de l'IA, note interne (consignes de l'admin à Claude),
+     doublons (n° seulement). Jamais : pseudo, compte, suivi, réponse. */
+  function exporter(boites, maintenant) {
+    const quand = maintenant == null ? new Date() : new Date(maintenant);
+    const val = boites.filter(b => b.statut === 'validee')
+      .map(b => ({ b, fichier: fichierCible(b) }))
+      .sort((p, q) => (p.fichier < q.fichier ? -1 : p.fichier > q.fichier ? 1 : p.b.id - q.b.id));
+    const json = {
+      format: FORMAT_EXPORT,
+      cree_le: quand.toISOString(),
+      boites: val.map(({ b, fichier }) => ({
+        id: b.id, contribution: b.contribution,
+        categorie: categorieDe(b), cible: (b.contenu || {}).cible || null, type: (b.contenu || {}).type || 'ajout',
+        notion: notionDe(b), fichier,
+        contenu: (b.contenu || {}).fields || {},
+        avis_ia: b.ia_verdict ? { verdict: b.ia_verdict, avis: b.ia_avis || '' } : null,
+        note_interne: b.note || null,
+        doublons: doublons(b, boites, null, true).map(d => d.id),
+      })),
+    };
+    return { nom: `philo-export-${jourDe(quand)}.json`, json };
+  }
+
+  /* lireCompteRendu(texte, boites) — {rapport, lignes, erreur} : le fichier
+     du retour, contrôlé, et une ligne d'aperçu par boîte :
+     {id, resultat, detail, reponse, fichiers, etat, coche, resume}.
+     etat : 'ok' (sera appliquée), 'deja' (même commit déjà appliqué),
+     'inconnue' (n° absent), 'pas-validee' (n'est plus « Validée »),
+     'resultat-inconnu'. Seules les lignes 'ok' sont cochées. */
+  function lireCompteRendu(texte, boites) {
+    let r;
+    try { r = typeof texte === 'string' ? JSON.parse(texte) : texte; } catch (e) { return { erreur: 'Ce fichier n’est pas du JSON lisible.' }; }
+    if (!r || r.format !== FORMAT_RETOUR) return { erreur: `Format inattendu (${JSON.stringify(r && r.format)}) : il faut un compte rendu ${FORMAT_RETOUR}.` };
+    if (!r.commit || !String(r.commit).trim()) return { erreur: 'Le compte rendu ne donne pas de commit.' };
+    if (!Array.isArray(r.boites) || !r.boites.length) return { erreur: 'Le compte rendu ne contient aucune boîte.' };
+    const vues = new Set();
+    const lignes = r.boites.map(x => {
+      const id = Number(x && x.id), b = boites.find(y => y.id === id);
+      let etat = 'ok';
+      if (vues.has(id)) etat = 'double';
+      else if (!b) etat = 'inconnue';
+      else if (b.statut === 'integree' && b.integration && b.integration.commit === r.commit) etat = 'deja';
+      else if (!RESULTATS[x.resultat]) etat = 'resultat-inconnu';
+      else if (b.statut !== 'validee') etat = 'pas-validee';
+      vues.add(id);
+      return {
+        id, resultat: x.resultat, detail: String(x.detail || ''), fichiers: Array.isArray(x.fichiers) ? x.fichiers : [],
+        reponse: x.resultat === 'non_integree' ? '' : String(x.reponse_proposee || ''),
+        etat, coche: etat === 'ok', resume: b ? resume(b) : '',
+      };
+    });
+    return { rapport: r, lignes };
+  }
+
+  /* rapportAEnvoyer(rapport, lignes) — ce que la page passe à la base :
+     les seules lignes cochées, avec la réponse telle que corrigée. */
+  function rapportAEnvoyer(rapport, lignes) {
+    return {
+      format: FORMAT_RETOUR, commit: String(rapport.commit), fait_le: rapport.fait_le || null,
+      boites: lignes.filter(l => l.coche && l.etat === 'ok')
+        .map(l => ({ id: l.id, resultat: l.resultat, detail: l.detail, reponse: l.resultat === 'non_integree' ? '' : l.reponse })),
+    };
+  }
+
   const M = {
     STATUTS, ETATS_SUJET, CATEGORIES, CIBLES, TYPES, CHAMPS, VERDICTS, FILTRES_ETAT, FILTRES_IA, FILTRES_DEFAUT,
     categorieDe, filtrer, champsLisibles, resume, etiquette, notionDe, lienSite, vuContributeur, depuis, erreur,
     cleDe, signature, ressemblance, doublons,
+    FORMAT_EXPORT, FORMAT_RETOUR, RESULTATS, fichierCible, exporter, lireCompteRendu, rapportAEnvoyer,
   };
   racine.AdminModele = M;
   if (typeof module !== 'undefined' && module.exports) module.exports = M;

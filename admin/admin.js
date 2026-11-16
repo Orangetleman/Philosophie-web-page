@@ -51,12 +51,18 @@ const API = ESSAI ? window.AdminEssai : {
     try { code = (await error.context.json()).erreur || ''; } catch (e) { /* pas de corps JSON */ }
     throw Object.assign(new Error(error.message), { code: code ? 'relire-' + code : (error.name === 'FunctionsHttpError' ? 'relire-http' : 'relire-absente'), status: error.context && error.context.status });
   },
+  // Lot A5 : appliquer un compte rendu d'intégration (lignes cochées).
+  importer: rapport => rpc('admin_importer_integration', { p_rapport: rapport }),
 };
+
+// Lot A5 : le site EN LIGNE, où l'on vérifie qu'un compte rendu est publié
+// (/integrations/<fichier>, en-tête CORS posé par vercel.json).
+const SITE_EN_LIGNE = 'https://philo.myprisme.fr';
 
 // ── L'état ────────────────────────────────────────────────────────────────
 const etat = {
   phase: 'chargement',      // chargement | connexion | pas-admin | boite
-  onglet: 'boite',          // boite | sujets (lot A3)
+  onglet: 'boite',          // boite | sujets (lot A3) | integrer (lot A5)
   sujet: null,              // n° du sujet ouvert dans l'onglet Sujets
   filtreSujet: '',          // état des sujets montrés ('' = tous)
   email: '', uid: '',
@@ -66,6 +72,7 @@ const etat = {
   sel: null,                // n° de la boîte ouverte
   nouveauSujet: false,      // le champ « nouveau sujet » est ouvert
   occupe: false,
+  apercu: null,             // lot A5 : {nom, rapport, lignes, enLigne} du compte rendu chargé
 };
 const brouillons = new Map();   // n° → {reponse, note} tapés, pas encore enregistrés
 const racine = document.getElementById('racine');
@@ -141,7 +148,7 @@ function rendre(focus) {
     etat.phase === 'chargement' ? `<p class="vide">Chargement…</p>` :
     etat.phase === 'connexion' ? pageConnexion() :
     etat.phase === 'pas-admin' ? pagePasAdmin() :
-    entete() + (etat.onglet === 'sujets' ? ongletSujets() : boiteDeReception());
+    entete() + (etat.onglet === 'sujets' ? ongletSujets() : etat.onglet === 'integrer' ? ongletIntegrer() : boiteDeReception());
   if (garde) {
     const el = racine.querySelector(garde);
     if (el) {
@@ -193,6 +200,7 @@ function entete() {
     <div class="tabs" role="tablist" aria-label="Parties de l'administration">
       ${onglet('boite', `Boîte de réception${nouvelles ? `<span class="chip" title="jamais ouvertes">${nouvelles}</span>` : ''}`)}
       ${onglet('sujets', `Sujets (${etat.sujets.length})`)}
+      ${onglet('integrer', `À intégrer (${etat.boites.filter(b => b.statut === 'validee').length})`)}
     </div>
     <span class="right">${etat.relecture ? `<span class="relecture" role="status"><span class="toupie" aria-hidden="true"></span>L'IA relit ${etat.relecture.n} boîte${etat.relecture.n > 1 ? 's' : ''}… <span id="relecture-temps">${Math.round((Date.now() - etat.relecture.debut) / 1000)} s</span> <span class="hint">(≈ ${etat.relecture.n * 5} s)</span></span>`
       : `<button type="button" data-act="relire"${aRelire && !etat.occupe ? '' : ' disabled'} title="Gemini donne un avis sur les boîtes en attente jamais relues (8 au plus par clic). Il ne reçoit que leur texte.">🤖 Relire avec l'IA${aRelire ? ` (${aRelire})` : ''}</button>`}${mode}${etat.email ? `<span>${esc(etat.email)}</span>` : ''}
@@ -293,7 +301,7 @@ function detail(b) {
     <button type="button" class="back" data-act="liste">← Liste</button>
     <div class="acts"><h2 id="det-titre" tabindex="-1">n° ${b.id} · ${esc(M.etiquette(b))}</h2>
       ${b.statut === 'integree' ? '' : `<span class="seg" role="group" aria-label="État de la boîte">${seg}</span>`}
-      ${b.statut === 'validee' ? `<button type="button" data-act="integree" title="En attendant l'onglet « À intégrer » (lot A5)">Marquer intégrée</button>` : ''}</div>
+      ${b.statut === 'validee' ? `<button type="button" data-act="integree" title="À la main, sans compte rendu (d'ordinaire : onglet « À intégrer », Importer un compte rendu)">Marquer intégrée</button>` : ''}</div>
     ${integ}
     <div class="ctx"><span>${qui}</span><span>reçue ${esc(M.depuis(b.cree_le))}</span>
       ${notion ? `<span>notion : ${esc(NOTIONS[notion] || notion)}</span>` : ''}
@@ -418,6 +426,100 @@ async function supprimerSujet() {
   try { await API.supprimerSujet(s.id); etat.sujet = null; await rechargerSujets(); dire('Sujet supprimé.'); }
   catch (e) { echec(e); }
   rendre();
+}
+
+// ── Onglet À intégrer (lot A5, cadrage § 9) ───────────────────────────────
+// Les boîtes « Validée » groupées par fichier de contenu/ ; l'export
+// philo-export/v1 part vers Claude (docs/protocole-integration.md), le
+// compte rendu philo-integration/v1 revient, relu ici avant d'être appliqué.
+
+function ongletIntegrer() {
+  const val = etat.boites.filter(b => b.statut === 'validee');
+  const groupes = new Map();
+  val.forEach(b => { const f = M.fichierCible(b); if (!groupes.has(f)) groupes.set(f, []); groupes.get(f).push(b); });
+  const cles = [...groupes.keys()].sort();
+  return `<div class="integ" role="tabpanel" aria-labelledby="onglet-integrer">
+    <div class="acts">
+      <button type="button" class="primary" data-act="exporter"${val.length ? '' : ' disabled'}>📤 Exporter les validées (${val.length})</button>
+      <label class="bouton">📥 Importer un compte rendu<input type="file" id="i-fichier" accept=".json,application/json" hidden></label>
+      <span class="hint">L'export ne contient ni pseudo ni compte. Mode d'emploi : docs/protocole-integration.md.</span>
+    </div>
+    ${etat.apercu ? apercuHtml() : ''}
+    ${val.length ? cles.map(f => `<section class="groupe"><h3><code>${esc(f)}</code> <span class="hint">${groupes.get(f).length}</span></h3>
+      <ul class="it">${groupes.get(f).map(ligne).join('')}</ul></section>`).join('')
+      : '<p class="vide">Aucune boîte validée : rien à intégrer.</p>'}
+  </div>`;
+}
+
+/* apercuHtml() — le compte rendu chargé, une ligne par boîte : résultat,
+   détail, réponse modifiable, case à cocher ; rien n'est appliqué avant
+   « Appliquer ». */
+const ETATS_CR = { ok: '', deja: 'déjà appliquée', inconnue: 'n° inconnu', 'pas-validee': 'n’est plus « Validée »', 'resultat-inconnu': 'résultat inconnu', double: 'en double' };
+function apercuHtml() {
+  const a = etat.apercu;
+  const n = a.lignes.filter(l => l.coche && l.etat === 'ok').length;
+  const enLigne = a.enLigne === true ? '<span class="pill ok">en ligne</span>'
+    : a.enLigne === 'essai' ? '<span class="pill">essai : pas de vérification</span>'
+    : a.enLigne === false ? `<span class="pill bad">pas encore en ligne</span> <span class="hint">${esc(SITE_EN_LIGNE)}/integrations/${esc(a.nom)} ne répond pas avec ce commit : fusionne, attends le déploiement, puis réimporte.</span>`
+    : '<span class="hint">vérification de la mise en ligne…</span>';
+  const peut = n && (a.enLigne === true || a.enLigne === 'essai') && !etat.occupe;
+  return `<section class="apercu" aria-label="Compte rendu à appliquer">
+    <h3>Compte rendu <code>${esc(a.nom)}</code> · commit <code>${esc(a.rapport.commit)}</code> ${enLigne}</h3>
+    <ul class="it">${a.lignes.map((l, i) => `<li class="ligne-cr${l.etat === 'ok' ? '' : ' ecartee'}">
+      <label><input type="checkbox" data-cr="${i}"${l.coche ? ' checked' : ''}${l.etat === 'ok' ? '' : ' disabled'}> <b>n° ${l.id}</b>
+        · ${esc(M.RESULTATS[l.resultat] || l.resultat)}${l.etat !== 'ok' ? ` · <i>${esc(ETATS_CR[l.etat])}, ignorée</i>` : ''}</label>
+      ${l.resume ? `<span class="hint">${esc(l.resume.slice(0, 120))}</span>` : ''}
+      ${l.detail ? `<div>${esc(l.detail)}</div>` : ''}
+      ${l.fichiers.length ? `<div class="hint">${l.fichiers.map(esc).join(' · ')}</div>` : ''}
+      ${l.etat === 'ok' && l.resultat !== 'non_integree' ? `<textarea data-cr-reponse="${i}" maxlength="2000" rows="2" aria-label="Réponse au contributeur, n° ${l.id}">${esc(l.reponse)}</textarea>`
+        : l.etat === 'ok' ? '<span class="hint">repasse « En attente », la raison va dans la note interne</span>' : ''}
+    </li>`).join('')}</ul>
+    <div class="acts"><button type="button" class="primary" data-act="appliquer"${peut ? '' : ' disabled'}>Appliquer (${n})</button>
+      <button type="button" data-act="fermer-apercu">Fermer</button></div>
+  </section>`;
+}
+
+/* exporterValidees() — télécharge philo-export-AAAA-MM-JJ.json. */
+function exporterValidees() {
+  const { nom, json } = M.exporter(etat.boites);
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(json, null, 2)], { type: 'application/json' }));
+  a.download = nom; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  dire(`${json.boites.length} boîte${json.boites.length > 1 ? 's' : ''} exportée${json.boites.length > 1 ? 's' : ''} : ${nom}.`);
+}
+
+/* chargerCompteRendu(fichier) — lit le fichier choisi, prépare l'aperçu,
+   puis vérifie que le même fichier (même commit) est servi par le site en
+   ligne ; sinon l'intégration n'est pas publiée et « Appliquer » reste grisé. */
+async function chargerCompteRendu(fichier) {
+  const r = M.lireCompteRendu(await fichier.text(), etat.boites);
+  if (r.erreur) return dire(r.erreur, true);
+  etat.apercu = { nom: fichier.name, rapport: r.rapport, lignes: r.lignes, enLigne: ESSAI ? 'essai' : null };
+  rendre();
+  if (ESSAI) return;
+  let enLigne = false;
+  try {
+    const rep = await fetch(`${SITE_EN_LIGNE}/integrations/${encodeURIComponent(fichier.name)}`, { cache: 'no-store' });
+    enLigne = rep.ok && (await rep.json().catch(() => ({}))).commit === r.rapport.commit;
+  } catch (e) { /* réseau ou CORS : considéré comme pas en ligne */ }
+  if (etat.apercu && etat.apercu.rapport === r.rapport) { etat.apercu.enLigne = enLigne; rendre(); }
+}
+
+/* appliquer() — envoie les lignes cochées à admin_importer_integration,
+   puis dit ce que la base a fait (integree, non_integree, deja…). */
+async function appliquer() {
+  const a = etat.apercu; if (!a) return;
+  etat.occupe = true; rendre();
+  try {
+    const res = (await API.importer(M.rapportAEnvoyer(a.rapport, a.lignes))) || [];
+    etat.boites = (await API.boites()) || etat.boites;
+    const c = k => res.filter(x => x.resultat === k).length;
+    const integ = c('integree') + c('retouchee'), non = c('non_integree'), autres = res.length - integ - non;
+    dire(`${integ} intégrée${integ > 1 ? 's' : ''}, ${non} remise${non > 1 ? 's' : ''} en attente${autres ? `, ${autres} ignorée${autres > 1 ? 's' : ''}` : ''}.`);
+    etat.apercu = null;
+  } catch (e) { echec(e); }
+  etat.occupe = false; rendre();
 }
 
 // ── Relecture par l'IA (lot A4) ───────────────────────────────────────────
@@ -589,6 +691,9 @@ racine.addEventListener('click', async e => {
     case 'integree': return changer(etat.sel, { statut: 'integree' }, `Boîte n° ${etat.sel} : intégrée.`);
     case 'supprimer': return supprimer();
     case 'creer-sujet': return creerSujet();
+    case 'exporter': return exporterValidees();
+    case 'appliquer': return appliquer();
+    case 'fermer-apercu': etat.apercu = null; return rendre();
     case 'annuler-sujet': etat.nouveauSujet = false; return rendre('#d-sujet');
   }
 });
@@ -601,6 +706,8 @@ racine.addEventListener('submit', e => {
 
 racine.addEventListener('change', e => {
   const id = e.target.id;
+  if (id === 'i-fichier') { const f = e.target.files[0]; e.target.value = ''; if (f) chargerCompteRendu(f); return; }
+  if (e.target.dataset.cr != null) { etat.apercu.lignes[Number(e.target.dataset.cr)].coche = e.target.checked; return rendre(`[data-cr="${e.target.dataset.cr}"]`); }
   if (id === 'f-sujet') { etat.filtreSujet = e.target.value; return rendre('#f-sujet'); }
   if (id === 'f-cat' || id === 'f-etat' || id === 'f-ia') {
     etat.filtres[id.slice(2)] = e.target.value;
@@ -613,6 +720,7 @@ racine.addEventListener('change', e => {
 });
 
 racine.addEventListener('input', e => {
+  if (e.target.dataset.crReponse != null) { etat.apercu.lignes[Number(e.target.dataset.crReponse)].reponse = e.target.value; return; }
   if (e.target.id === 'f-q') { etat.filtres.q = e.target.value; return rendre('#f-q'); }
   if (e.target.id === 'd-reponse' || e.target.id === 'd-note') {
     const br = brouillons.get(etat.sel) || {};
@@ -634,7 +742,9 @@ document.addEventListener('keydown', e => {
   }
   // Onglets au clavier : ← → (modèle des onglets ARIA).
   if (e.target.matches('[role=tab]') && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
-    e.preventDefault(); etat.onglet = etat.onglet === 'boite' ? 'sujets' : 'boite'; return rendre('#onglet-' + etat.onglet);
+    // Lot A5 : trois onglets, en boucle.
+    const ordre = ['boite', 'sujets', 'integrer'], pas = e.key === 'ArrowRight' ? 1 : 2;
+    e.preventDefault(); etat.onglet = ordre[(ordre.indexOf(etat.onglet) + pas) % 3]; return rendre('#onglet-' + etat.onglet);
   }
   if (saisie || e.ctrlKey || e.metaKey || e.altKey || etat.onglet !== 'boite') return;
   const k = e.key.toLowerCase();
