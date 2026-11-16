@@ -1,11 +1,11 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
-  "genere_le": "2026-11-16T18:39:42.607Z",
+  "genere_le": "2026-11-16T18:39:53.761Z",
   "commits": [
     {
-      "hash": "80ab969b2e8dd8f1904d38c96f5183af64993549",
-      "short": "80ab969",
+      "hash": "4222cfc698977eb60e0d02f91323bb60928c404c",
+      "short": "4222cfc",
       "auteur": "Orangentleman",
       "date": "2026-11-16T19:39:33+01:00",
       "sujet": "Intégration du 16 nov. 2026 : boîte n° 36 (Jankélévitch, le temps)",

@@ -1,0 +1,15 @@
+{
+  "format": "philo-integration/v1",
+  "export": "philo-export-2026-11-16.json",
+  "commit": "4222cfc",
+  "fait_le": "2026-11-16",
+  "boites": [
+    {
+      "id": 36,
+      "resultat": "retouchee",
+      "fichiers": ["contenu/notions/temps.js"],
+      "detail": "Ajoutée à l'idée existante de Jankélévitch (notion Le temps, L'Irréversible et la nostalgie), en reformulation sans guillemets : la phrase proposée n'a pas été retrouvée mot pour mot dans l'œuvre ni dans une source qui donne la page (seule l'idée est confirmée, p. 290 de l'éd. Flammarion d'après un compte rendu). Elle est donc hors du quiz « Qui a dit cela ? ». La fiche existe déjà sous le nom « Jankélévitch » (le fichier proposé par l'export, vladimir-jankelevitch.js, n'existe pas). À noter : l'avis de l'IA était rédigé en anglais.",
+      "reponse_proposee": "Merci pour cette belle idée de Jankélévitch ! Elle est maintenant dans la notion Le temps. On l'a écrite avec nos mots plutôt qu'entre guillemets, car on n'a pas pu retrouver la phrase exacte dans le livre : si tu as la page de ton édition, n'hésite pas à nous la donner."
+    }
+  ]
+}
