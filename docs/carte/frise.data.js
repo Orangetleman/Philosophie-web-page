@@ -1,8 +1,17 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
-  "genere_le": "2026-11-16T18:12:54.329Z",
+  "genere_le": "2026-11-16T18:35:53.743Z",
   "commits": [
+    {
+      "hash": "9a3453570fae05044c72aaf4b9e9294096cdb0d8",
+      "short": "9a34535",
+      "auteur": "Orangentleman",
+      "date": "2026-11-16T19:12:52+01:00",
+      "sujet": "Administration A6 : ménage, l'agrégateur Python et triage/ retirés",
+      "corps": "/admin/ remplace le tableau de bord Flask et la page de triage. Le code\nPython de philo-aggregator/ est retiré (il reste dans l'historique) ;\nle dossier garde migrations/ et dashboard.bat. triage/ redirige vers\n/admin/ et son service worker se désinstalle. Doc et carte à jour.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": "Administration A6"
+    },
     {
       "hash": "462d8378825b16d672fd88e3d947add10356f68f",
       "short": "462d837",
