@@ -1,8 +1,17 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
-  "genere_le": "2026-11-16T01:08:58.849Z",
+  "genere_le": "2026-11-16T01:19:50.792Z",
   "commits": [
+    {
+      "hash": "759291d6180f9a14319a2e5d9403c6e5a1be978f",
+      "short": "759291d",
+      "auteur": "Orangentleman",
+      "date": "2026-11-16T02:08:56+01:00",
+      "sujet": "Site : lien « Administration » pour les comptes admin",
+      "corps": "verifierAdmin() demande une fois à la base (admin_sujets, refus 42501 pour\nun compte ordinaire) et ajoute le lien vers /admin/ sous le bouton du compte.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": "Site"
+    },
     {
       "hash": "8f3ff26aa32d11e998f974fb2bd0ef0c432e5269",
       "short": "8f3ff26",

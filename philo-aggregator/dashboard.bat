@@ -1,13 +1,9 @@
 @echo off
-REM Lanceur du tableau de bord local (le « dashboard »).
-REM Double-cliquer sur ce fichier ouvre le dashboard dans le navigateur.
-REM
-REM %~dp0 = dossier où se trouve ce .bat (philo-aggregator). On s'y place
-REM d'abord pour que python trouve aggregate.py quel que soit l'endroit
-REM d'où le raccourci est lancé.
-cd /d "%~dp0"
-python aggregate.py dashboard
-
-REM Si python plante (dépendance manquante, etc.), la fenêtre reste ouverte
-REM pour qu'on puisse lire le message d'erreur au lieu de se fermer aussitôt.
-if errorlevel 1 pause
+REM Ouvre l'administration (/admin/) du site servi depuis ce PC.
+cd /d "%~dp0.."
+netstat -ano | findstr /r /c:":8123 .*LISTENING" >nul
+if errorlevel 1 (
+  start "Philo admin" /min python -m http.server 8123
+  timeout /t 2 /nobreak >nul
+)
+start "" "http://localhost:8123/admin/"
