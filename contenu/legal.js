@@ -43,11 +43,17 @@ LEGAL({
       duree: "Aussi longtemps que ton compte existe ; effacé avec lui.",
       tables: ["public.preferences", "public.quiz_progress"], tiers: ["supabase"]},
     {id: "propositions", titre: "Tes propositions de contenu",
-      donnees: ["le contenu que tu proposes", "le pseudo que tu choisis d'indiquer (facultatif)", "si tu es connecté : le lien avec ton compte, pour suivre la réponse"],
-      finalite: "Relire ta proposition, l'intégrer au site si elle est retenue, et te répondre.",
+      donnees: ["le contenu que tu proposes", "le pseudo que tu choisis d'indiquer (facultatif)", "si tu es connecté : le lien avec ton compte, pour suivre la réponse", "si tu envoies sans compte : une empreinte de ton numéro de suivi (le numéro lui-même n'est gardé que par toi)", "l'état de chaque partie de ta proposition et la réponse de l'éditeur"],
+      finalite: "Relire ta proposition, l'intégrer au site si elle est retenue, te répondre, et regrouper les demandes qui reviennent (la page Propositions n'en montre qu'un titre et un nombre, jamais ton texte ni ton pseudo).",
       base: "Les conditions d'utilisation que tu acceptes en envoyant (article 6.1.b du RGPD) ; la pré-relecture automatique repose sur l'intérêt légitime de l'éditeur à trier vite (article 6.1.f).",
       duree: "Le contenu reste : il fait partie du site. Si tu supprimes ton compte, ton pseudo et le lien avec ton compte sont effacés, la proposition devient anonyme.",
-      tables: ["public.contributions"], tiers: ["supabase", "gemini"]},
+      tables: ["public.contributions", "public.boites", "public.sujets"], tiers: ["supabase", "gemini"]},
+    {id: "votes", titre: "Tes votes sur la page Propositions (avec un compte)",
+      donnees: ["les sujets pour lesquels tu as voté, pour ou contre"],
+      finalite: "Compter un seul vote par personne, et te montrer le tien.",
+      base: "L'exécution du service que tu demandes en votant (article 6.1.b du RGPD).",
+      duree: "Jusqu'à ce que tu retires ton vote ; effacés avec ton compte.",
+      tables: ["public.votes"], tiers: ["supabase"]},
     {id: "technique", titre: "Les journaux techniques",
       donnees: ["l'adresse IP de ton appareil", "le type de navigateur", "la page demandée et l'heure"],
       finalite: "Faire fonctionner le site et le protéger des abus. Aucune statistique de visite, aucune publicité, aucun traceur.",
@@ -103,6 +109,7 @@ LEGAL({
     {cle: "philo-nav", role: "la dernière page ouverte"},
     {cle: "philo-navhist", role: "l'historique de navigation dans le site (boutons précédent et suivant)"},
     {cle: "philo-drafts", role: "le brouillon de proposition en cours (il peut contenir ton pseudo)"},
+    {cle: "philo-suivis", role: "les numéros de suivi de tes propositions envoyées sans compte, pour lire leur réponse"},
     {cle: "philo-tour-v1", role: "tu as déjà vu la visite guidée"},
     {cle: "philo-sync", role: "avec un compte : l'identifiant du compte et l'heure de la dernière synchronisation"},
     {cle: "philo-legal", role: "la version des conditions déjà acceptée sur cet appareil"},
@@ -111,7 +118,7 @@ LEGAL({
 
   // ── Tes droits (RGPD, art. 15 à 21) ──────────────────────────────────
   droits: [
-    {titre: "Voir et emporter tes données", texte: "⚙ Réglages › Mes données › « Télécharger mes données » : un fichier avec tout ce que le site garde sur toi (compte, progression, réglages, propositions)."},
+    {titre: "Voir et emporter tes données", texte: "⚙ Réglages › Mes données › « Télécharger mes données » : un fichier avec tout ce que le site garde sur toi (compte, progression, réglages, propositions et leurs réponses, votes)."},
     {titre: "Corriger", texte: "Ton pseudo se change dans 👤 Mon compte ; tes propositions en attente se corrigent depuis « Mes propositions »."},
     {titre: "Effacer", texte: "⚙ Réglages › Mes données : « Effacer les données de cet appareil », et avec un compte « Supprimer mon compte ». La suppression est immédiate et définitive."},
     {titre: "T'opposer, limiter", texte: "Écris à l'adresse de contact. Réponse sous un mois au plus."},
@@ -137,5 +144,8 @@ LEGAL({
   // par le vérificateur (question 15). Ne jamais modifier une entrée passée.
   historique: [
     {version: "2026-11-15", resume: "Première version : mentions légales, données personnelles et conditions d'utilisation.", empreinte: "429fc389cc7a"},
+    // Chantier Administration (lots A1 et A3), pas encore publiée : on met à jour
+    // cette entrée plutôt que d'en ajouter une ; à redater au jour de la mise en ligne.
+    {version: "2026-11-16", resume: "Tu peux suivre une proposition envoyée sans compte grâce à un numéro de suivi, lire la réponse à chaque partie de ta proposition, et voter, avec un compte, sur la page Propositions.", empreinte: "8d5fe0dd4e50"},
   ],
 });

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#121212">
+<title>Administration · Graphe Philo</title>
+<!-- /admin/ : le tri des propositions (chantier Administration, lot A2,
+     docs/chantier-administration.md ; maquette docs/maquettes/admin.html).
+     La même page en ligne et en local (serveur de prévisualisation) ; elle
+     remplace triage/ et le tableau de bord Flask (lot A6).
+     Sécurité : seule la clé publique (« anon ») est ici ; tout passe par
+     les fonctions admin_* de la base, qui refusent un compte non inscrit
+     dans app_admins (2026_administration.sql).
+     /admin/?essai : la même page sur de fausses données (admin/essai.js),
+     sans compte ni réseau, pour essayer ou vérifier l'interface.
+     Chemins absolus (/admin/…) : l'adresse peut être « /admin » sans barre
+     finale. -->
+<link rel="icon" href="/icon.svg">
+<link rel="stylesheet" href="/admin/admin.css">
+</head>
+<body>
+<div id="racine" aria-live="polite"></div>
+<div id="message" class="message" role="status" aria-live="polite"></div>
+<dialog id="confirmer">
+  <form method="dialog">
+    <h2 id="confirmer-titre"></h2>
+    <p id="confirmer-texte"></p>
+    <div class="acts">
+      <button value="non">Annuler</button>
+      <button value="oui" class="danger" id="confirmer-oui"></button>
+    </div>
+  </form>
+</dialog>
+
+<!-- data.js : titres des notions (D) ; supabase : le même fichier que le site
+     (lib/supabase.js, 2.117.2, servi par le site) ; puis la logique pure,
+     les fausses données, et la page. -->
+<script src="/data.js"></script>
+<script src="/lib/supabase.js"></script>
+<script src="/admin/modele.js"></script>
+<script src="/admin/essai.js"></script>
+<script src="/admin/admin.js"></script>
+</body>
+</html>

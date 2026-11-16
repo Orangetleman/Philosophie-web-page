@@ -232,7 +232,7 @@ function sitemap(chemins, date) {
 // Robots des moteurs ET des assistants IA nommés explicitement (certains
 // hébergeurs bloquent par défaut les robots d'IA qui ne sont pas cités).
 const ROBOTS_IA = ['Googlebot', 'Bingbot', 'GPTBot', 'OAI-SearchBot', 'ChatGPT-User', 'ClaudeBot', 'Claude-SearchBot', 'Claude-User', 'PerplexityBot', 'Perplexity-User', 'Google-Extended', 'Applebot', 'Applebot-Extended', 'DuckAssistBot', 'MistralAI-User', 'CCBot'];
-const PRIVE = ['/triage/', '/outils/', '/philo-aggregator/', '/philo-mailbox/', '/cours_manuscrits/'];
+const PRIVE = ['/admin/', '/supabase/', '/triage/', '/outils/', '/philo-aggregator/', '/philo-mailbox/', '/cours_manuscrits/'];
 function robots() {
   const bloc = ua => `User-agent: ${ua}\nAllow: /\n` + PRIVE.map(p => `Disallow: ${p}`).join('\n');
   return '# GÉNÉRÉ par outils/construire.mjs. NE PAS ÉDITER.\n# Tout le site est ouvert aux moteurs et aux assistants IA ; seuls les outils internes sont exclus.\n\n' +

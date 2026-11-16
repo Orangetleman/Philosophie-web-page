@@ -1,8 +1,107 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
-  "genere_le": "2026-11-15T07:44:21.029Z",
+  "genere_le": "2026-11-16T01:19:50.792Z",
   "commits": [
+    {
+      "hash": "759291d6180f9a14319a2e5d9403c6e5a1be978f",
+      "short": "759291d",
+      "auteur": "Orangentleman",
+      "date": "2026-11-16T02:08:56+01:00",
+      "sujet": "Site : lien « Administration » pour les comptes admin",
+      "corps": "verifierAdmin() demande une fois à la base (admin_sujets, refus 42501 pour\nun compte ordinaire) et ajoute le lien vers /admin/ sous le bouton du compte.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": "Site"
+    },
+    {
+      "hash": "8f3ff26aa32d11e998f974fb2bd0ef0c432e5269",
+      "short": "8f3ff26",
+      "auteur": "Orangentleman",
+      "date": "2026-11-15T12:48:05+01:00",
+      "sujet": "Relecture IA : modèle gemini-2.5-flash-lite et délai de 25 s",
+      "corps": "gemini-flash-latest ne répondait plus (plus de 2 min, essai du 15 nov.) ;\nle modèle du .env répond en 3 s. Un appel trop long est abandonné et dit.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": "Relecture IA"
+    },
+    {
+      "hash": "432ac7d81a4a33f26f537ab55e04d39c6f43c0ed",
+      "short": "432ac7d",
+      "auteur": "Orangentleman",
+      "date": "2026-11-15T12:21:48+01:00",
+      "sujet": "Relecture IA : la fonction agit avec le jeton de l'administrateur",
+      "corps": "La clé de service ne voyait pas app_admins sur ce projet (nouvelles clés) :\n« ne reconnaît pas ce compte comme administrateur ». Lecture par\nadmin_boites, écriture par admin_ecrire_avis (2026_relecture.sql, banc\navec témoin). Plus aucune clé secrète dans la fonction.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": "Relecture IA"
+    },
+    {
+      "hash": "7ecb3a98147dc80422241f834e2ec2d77d58d200",
+      "short": "7ecb3a9",
+      "auteur": "Orangentleman",
+      "date": "2026-11-15T11:34:35+01:00",
+      "sujet": "Administration A4 : relecture IA dans Supabase et doublons",
+      "corps": "Fonction Supabase « relire » (Deno) : vérifie l'administrateur, relit\n8 boîtes au plus avec la consigne de review.py, n'envoie à Gemini que le\ntexte (coordonnées masquées), écrit l'avis boîte par boîte (colonne\nia_message ajoutée à la migration) et l'avis au contributeur. Partie pure\néprouvée par outils/essais_relecture.mjs ; fonction pas encore déployée.\n/admin/ : bouton « Relire avec l'IA », doublons (signature, même nom,\nratio de difflib) dans la liste et le détail.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": "Administration A4"
+    },
+    {
+      "hash": "2476fe4ef448f7c6eaab078588801c496291781c",
+      "short": "2476fe4",
+      "auteur": "Orangentleman",
+      "date": "2026-11-15T10:54:53+01:00",
+      "sujet": "Administration A3 : sujets, page Propositions, suivi anonyme",
+      "corps": "/admin/ : onglet Sujets (état, publication, réponse publique copiée aux\nboîtes rangées, suppression). Site : onglet Propositions d'Explorer avec\nvotes des comptes ; numéro de suivi à l'envoi sans compte (seule l'empreinte\npart en base, le numéro reste dans philo-suivis) ; « Mes propositions »\nboîte par boîte, avec ou sans compte. Essai : le site et /admin/ annoncent\nle même état au contributeur. Notice : clé philo-suivis.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": "Administration A3"
+    },
+    {
+      "hash": "d74272d72a36684a01d5d32db57ab4d7fa5dabef",
+      "short": "d74272d",
+      "auteur": "Orangentleman",
+      "date": "2026-11-15T10:37:18+01:00",
+      "sujet": "Administration A2 : la page /admin/ (boîte de réception)",
+      "corps": "Une seule page de tri, en ligne et en local : connexion, boîte de réception\nfiltrée, détail mis en forme, état boîte par boîte, sujet, réponse, note\ninterne, suppression confirmée, /admin/#n°, raccourcis clavier, erreurs en\nclair. /admin/?essai la montre sur de fausses données. Logique pure dans\nadmin/modele.js, éprouvée par outils/essais_admin.mjs (12 essais avec témoin).\n/admin/ hors du service worker du site et interdit dans robots.txt.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": "Administration A2"
+    },
+    {
+      "hash": "5a1bce8e04e09df0cd9dd568082f93c5238cb437",
+      "short": "5a1bce8",
+      "auteur": "Orangentleman",
+      "date": "2026-11-15T09:55:43+01:00",
+      "sujet": "Administration A1 : boîtes, sujets, votes et suivi anonyme dans la base",
+      "corps": "Migration 2026_administration.sql : l'état du tri passe boîte par boîte\n(table boites, reprise d'aggregator_state), le statut de la proposition se\ncalcule, sujets et votes pour la page Propositions, numéro de suivi anonyme\ngardé en empreinte, fonctions admin_* réservées à is_admin(), import du\ncompte rendu d'intégration idempotent. Banc : 10 essais avec témoin.\nNotice légale et export « Mes données » à jour. Pas encore passée en\nproduction : elle part avec /admin/ (A2).\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": "Administration A1"
+    },
+    {
+      "hash": "018b520f62646781272498b2e2e939dd5e3747a6",
+      "short": "018b520",
+      "auteur": "Orangentleman",
+      "date": "2026-11-15T09:18:59+01:00",
+      "sujet": "Administration : aller-retour d'intégration (export, compte rendu, import)",
+      "corps": "Validée = à intégrer. L'export JSON sans donnée personnelle remplace le .txt ;\nClaude rend un compte rendu philo-integration/v1 que l'admin importe après\naperçu. Intégrée seulement une fois le compte rendu servi par le site en ligne.\nMaquette : boutons et aperçu de l'import dans l'onglet À intégrer.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": "Administration"
+    },
+    {
+      "hash": "cacad5f182f282b78e58c3cd96dcb5302e01f0e5",
+      "short": "cacad5f",
+      "auteur": "Orangentleman",
+      "date": "2026-11-15T09:09:35+01:00",
+      "sujet": "Administration : cadrage du chantier et maquette A0",
+      "corps": "Cadrage inspiré du tableau de bord des remarques d'Industrialist : une seule\npage /admin/ en local et en ligne, Supabase seule source, sujets, page\npublique Propositions, suivi anonyme par numéro, message Discord.\nDécisions de l'auteur au § 8, maquette à valider.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": "Administration"
+    },
+    {
+      "hash": "4636fdb8ed1fb006fb3e65877cf40f88aafa8d64",
+      "short": "4636fdb",
+      "auteur": "Orangentleman",
+      "date": "2026-11-15T08:49:05+01:00",
+      "sujet": "Merge pull request #26 from Orangetleman/claude/nervous-robinson-24bc5d",
+      "corps": "Carte du projet : réparer carte.data.js (boîte 59)",
+      "tag": ""
+    },
+    {
+      "hash": "45d4f20c19bfce513e0307f4108fb6f75f814c12",
+      "short": "45d4f20",
+      "auteur": "Orangentleman",
+      "date": "2026-11-15T08:44:19+01:00",
+      "sujet": "Carte du projet : réparer carte.data.js (guillemets droits) et le vérifier",
+      "corps": "Deux textes de la carte contenaient des guillemets droits (data-entree=\"…\"),\nce qui coupait la chaîne : le navigateur rejetait tout le fichier et la page\naffichait « carte.data.js introuvable » (boîte 59). Remplacés par “ ”.\n\nverifie.mjs compile désormais carte.data.js et exige window.CARTE, donc le\nbuild échoue si l'erreur revient (témoin fait à la main).\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": "Carte du projet"
+    },
     {
       "hash": "6d58864bc2843ea0864f2027ff02427365dcfbbd",
       "short": "6d58864",

@@ -21,6 +21,7 @@ const EXPLORER_TOPICS=[
   {id:'graphe', label:'Graphe des idées'},
   {id:'sujets', label:'Sujets du bac'},
   {id:'nouveautes', label:'Nouveautés'},
+  {id:'propositions', label:'Propositions'},   // nov. 2026, chantier Administration (lot A3)
 ];
 let sujetsNotion='', sujetsVoie='';                // filtres des sujets du bac
 let friseProgramme=false, friseNotion='';          // filtres de la frise
@@ -39,8 +40,10 @@ function renderExplorerContent(){
   mc.innerHTML=explorerTopic==='graphe'?grapheHTML()
     :explorerTopic==='sujets'?sujetsHTML()
     :explorerTopic==='nouveautes'?nouveautesHTML()
+    :explorerTopic==='propositions'?propositionsHTML()
     :friseHTML();
   if(explorerTopic==='graphe') grapheBrancher();
+  if(explorerTopic==='propositions') chargerPropositions();
 }
 
 /* optionsNotions(val) — les <option> d'un filtre par notion (notions visibles). */
@@ -340,3 +343,80 @@ function nouveautesHTML(){
     </article>`).join('');
 }
 
+
+/* ── Propositions (nov. 2026, chantier Administration, lot A3) ──────────
+   Les demandes que l'éditeur a regroupées en SUJETS et publiées depuis
+   /admin/ : titre, état (proposé, prévu, fait, refusé), sa réponse, combien
+   de personnes l'ont demandé. Un compte vote pour (▲) ou contre (▼) ; un
+   second clic sur le même bouton retire le vote. Rien n'est montré du texte
+   des propositions ni de leurs auteurs. Données : la fonction publique
+   propositions() de 2026_administration.sql (score = demandes + ▲ − ▼) ;
+   vote : voter(sujet, valeur). Lues à l'ouverture de l'onglet. */
+const ETATS_PROPOSITION={propose:'Proposé', prevu:'Prévu', fait:'Fait ✓', refuse:'Refusé'};
+let propositionsEtat={charge:false, erreur:'', liste:[], filtre:'', occupe:false};
+
+/* chargerPropositions(force) — lit les sujets publiés (une fois, ou de
+   nouveau si force), puis redessine l'onglet s'il est toujours affiché. */
+async function chargerPropositions(force){
+  if(propositionsEtat.charge&&!force) return;
+  if(!SB){ propositionsEtat.charge=true; propositionsEtat.erreur='Les propositions ne se lisent qu’en ligne.'; return majPropositions(); }
+  try{
+    const {data,error}=await SB.rpc('propositions');
+    if(error) throw error;
+    propositionsEtat.liste=data||[]; propositionsEtat.erreur='';
+  }catch(e){ propositionsEtat.erreur='Impossible de charger les propositions (hors-ligne ?).'; }
+  propositionsEtat.charge=true;
+  majPropositions();
+}
+/* majPropositions() — redessine l'onglet, seulement s'il est affiché. */
+function majPropositions(){
+  if(sbMode!=='explorer'||explorerTopic!=='propositions') return;
+  const mc=document.querySelector('#main .main-content');
+  if(mc) mc.innerHTML=propositionsHTML();
+}
+
+/* propositionsHTML() — l'onglet : intro, filtre par état, une carte par
+   sujet (votes à gauche, titre, état, nombre de demandes, réponse). */
+function propositionsHTML(){
+  const P=propositionsEtat;
+  const html=`<div class="explorer-intro">Ce que les visiteurs demandent, et ce qui est prévu. Les demandes qui reviennent sont regroupées ; vote pour ce qui t'aiderait le plus : les plus demandées passent en premier.</div>
+  <div class="explorer-filtres">
+    <select aria-label="Filtrer par état" onchange="propositionsEtat.filtre=this.value;majPropositions()">
+      <option value="">Toutes</option>${Object.keys(ETATS_PROPOSITION).map(k=>`<option value="${k}"${k===P.filtre?' selected':''}>${ETATS_PROPOSITION[k]}</option>`).join('')}
+    </select>
+    <span class="explorer-compte">${authUser?'Un vote par sujet ; reclique pour le retirer.':'<button class="lien-bouton" onclick="openAuth()">Connecte-toi</button> pour voter.'}
+      Une idée qui manque ? <button class="lien-bouton" onclick="openProposalFromPlus('remarque','site-fonction')">Fais une proposition</button></span>
+  </div>`;
+  if(!P.charge) return html+'<div class="explorer-vide">Chargement…</div>';
+  if(P.erreur) return html+`<div class="explorer-vide">${pEsc(P.erreur)}</div>`;
+  const liste=P.liste.filter(s=>!P.filtre||s.etat===P.filtre);
+  if(!liste.length) return html+'<div class="explorer-vide">Aucun sujet publié pour l’instant.</div>';
+  return html+liste.map(s=>{
+    const vote=(v,sym,nom)=>`<button class="prop-vote" aria-pressed="${s.mon_vote===v}" aria-label="${nom}${s.mon_vote===v?' (ton vote, reclique pour le retirer)':''}"${P.occupe?' disabled':''} onclick="voterProposition(${Number(s.id)},${v})">${sym}</button>`;
+    const dem=s.demandes+s.pour;
+    return `<article class="prop">
+      <div class="prop-votes">${vote(1,'▲','Pour')}<span class="prop-score" title="score : demandes + pour − contre">${s.score}</span>${vote(-1,'▼','Contre')}</div>
+      <div class="prop-corps">
+        <h3 class="prop-titre">${pEsc(s.titre)} <span class="prop-etat prop-${pEsc(s.etat)}">${ETATS_PROPOSITION[s.etat]||pEsc(s.etat)}</span></h3>
+        ${s.description?`<p class="prop-desc">${pEsc(s.description)}</p>`:''}
+        <div class="prop-meta">${dem} personne${dem>1?'s l’ont':' l’a'} demandé</div>
+        ${s.reponse?`<div class="prop-reponse">${pEsc(s.reponse)}</div>`:''}
+      </div>
+    </article>`;
+  }).join('');
+}
+
+/* voterProposition(id, v) — vote pour (1) ou contre (-1) ; le même bouton
+   une seconde fois retire le vote (0). Sans compte : ouvre la connexion. */
+async function voterProposition(id,v){
+  if(!SB||!authUser){ openAuth(); return; }
+  const s=propositionsEtat.liste.find(x=>x.id===id); if(!s) return;
+  const valeur=s.mon_vote===v?0:v;
+  propositionsEtat.occupe=true; majPropositions();
+  try{
+    const {error}=await SB.rpc('voter',{p_sujet:id,p_valeur:valeur});
+    if(error) throw error;
+    await chargerPropositions(true);
+  }catch(e){ alert('Le vote n’a pas pu être enregistré (hors-ligne ?).'); }
+  propositionsEtat.occupe=false; majPropositions();
+}

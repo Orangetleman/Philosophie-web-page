@@ -149,3 +149,8 @@ body.sb-open .sb-backdrop{display:block;opacity:1}
 .pst-prog{background:var(--color-background-info);color:var(--color-text-info)}
 .pst-ok{background:rgba(46,204,113,.15);color:#2ecc71}
 .pst-no{background:rgba(231,76,60,.14);color:#e74c3c}
+/* nov. 2026 (lot A3) : l'état et la réponse de chaque boîte dans « Mes
+   propositions », et le numéro de suivi d'un envoi sans compte. */
+.psuivi-boites{margin-top:7px;display:grid;gap:6px}
+.psuivi-boite{font-size:11.5px;color:var(--color-text-secondary)}
+.psuivi-num{font-family:ui-monospace,Consolas,monospace;letter-spacing:.06em;font-size:13px}
