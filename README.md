@@ -15,7 +15,7 @@ Application web de révision pour le **baccalauréat de philosophie** (Terminale
 *   **Une adresse par page** (`#/notion/liberte`, `#/auteur/Kant`…) : on peut partager un lien vers une fiche, la mettre en favori, et le bouton « précédent » du navigateur fonctionne.
 *   **Quiz 🎯** : des cartes à **répétition espacée** (système de Leitner, 5 paliers de mémorisation) générées depuis les données : concept ↔ définition (le mot à trouver est masqué dans la définition), citation ↔ auteur (seules les citations exactes), notion → auteurs. Deux rythmes à progression indépendante (sprint ~2 semaines, long terme ~2 mois), cartes à retourner ou QCM, filtres, objectif du jour, série, XP et niveaux, badges, et un bouton « Relire la fiche » sur chaque carte.
 *   **Compte (facultatif)** : connexion Google ou e-mail ; la progression du quiz, la position de lecture, les réglages et les brouillons de proposition suivent d'un appareil à l'autre. Le quiz fusionne carte par carte : ce qui est fait hors ligne n'est pas perdu.
-*   **Proposer du contenu** : une modale permet à n'importe qui de suggérer un ajout, une correction ou une remarque. La proposition est envoyée en ligne (Supabase, avec ou sans compte) ; l'e-mail ne sert plus que de repli si l'envoi échoue. L'agrégateur (`philo-aggregator/`) les trie.
+*   **Proposer du contenu** : une modale permet à n'importe qui de suggérer un ajout, une correction ou une remarque. La proposition est envoyée en ligne (Supabase, avec ou sans compte) ; l'e-mail ne sert plus que de repli si l'envoi échoue. L'administrateur les trie dans la page `/admin/`.
 *   **Deux modes d'affichage** : *Révision* (épuré, par défaut) et *Édition* (révèle les boutons de contribution). Les badges « Nouveau » / « Modifié » sont visibles dans les deux. Un *mode fiche* (Réglages) compresse les cartes pour une lecture rapide.
 *   **Responsive & PWA** : utilisable au téléphone (barre latérale en tiroir, fil d'Ariane cliquable), **installable** comme une application et **fonctionnel hors-ligne** grâce à un *service worker*.
 
@@ -26,7 +26,7 @@ Application web de révision pour le **baccalauréat de philosophie** (Terminale
 *   **Build léger** (`node outils/construire.mjs`, Node seul) : assemble `data.js`, `app.js` et `app.css`, calcule la version du cache hors-ligne, vérifie la syntaxe et la cohérence du contenu.
 *   **Supabase** (comptes, synchronisation, propositions) via `supabase-js`, chargé depuis jsDelivr en **version figée avec empreinte d'intégrité**.
 *   **PWA** : `manifest.json` + `sw.js` (*service worker* : le code HTML/JS en « réseau d'abord », le reste en « cache d'abord ») + `icon.svg`.
-*   **Agrégateur** : scripts **Python** (dossier `philo-aggregator/`) et un tableau de bord local pour récupérer, relire (avec Gemini) et exporter les propositions. La page `triage/` permet de trier depuis le téléphone.
+*   **Administration** : la page `/admin/` (ordinateur et téléphone, en ligne ou en local) pour trier les propositions, avec un avis de Gemini et un message Discord à chaque arrivée ; l'onglet « À intégrer » prépare leur intégration (`docs/protocole-integration.md`).
 
 ## 📂 Structure du projet
 
@@ -39,8 +39,9 @@ Application web de révision pour le **baccalauréat de philosophie** (Terminale
 | `manifest.json`, `sw.js`, `icon.svg` | Installation et hors-ligne (PWA). La version du cache de `sw.js` est calculée par le build. |
 | `outils/` | Le build (`construire.mjs`), le vérificateur du contenu (`verifier_contenu.mjs`) et le banc d'essai de la base Supabase (`banc/`). |
 | `robots.txt`, `sitemap.xml` | Consignes pour les moteurs de recherche. |
-| `triage/` | Mini-application de tri des propositions, pour le téléphone (accès administrateur). |
-| `philo-aggregator/` | Outil Python pour traiter les propositions de contenu (voir son `README.md`), et migrations SQL de la base. |
+| `admin/` | La page d'administration des propositions (accès administrateur). |
+| `triage/` | Ancienne page de tri, redirige vers `/admin/`. |
+| `philo-aggregator/` | Migrations SQL de la base et raccourci local vers `/admin/` (voir son `README.md`). |
 | `icon.ico`, `icon_gear.ico` | Icônes du raccourci Windows du tableau de bord local de l'agrégateur. |
 | `docs/` | Diagnostic et plan de la mise à jour, protocole du contenu, architecture détaillée, carte du projet (`docs/carte/`). |
 | `CLAUDE.md` | Consignes de maintenance : où est quoi, règles, contrôles, pièges. |
@@ -59,4 +60,4 @@ Application web de révision pour le **baccalauréat de philosophie** (Terminale
 
 **Depuis le site** :
 
-Le bouton **« 💡 Proposer du contenu »** (visible en mode Édition) ouvre une modale où l'on empile une ou plusieurs « boîtes » : une **catégorie** (notion, auteur, concept, ou retour sur le site), une **cible** précise et un **type** (ajout, correction, remarque). La proposition est mise en forme automatiquement (texte + JSON) et envoyée en ligne. Côté mainteneur, `philo-aggregator/` rassemble, dédoublonne et relit ces propositions avant leur intégration dans `data.js`.
+Le bouton **« 💡 Proposer du contenu »** (visible en mode Édition) ouvre une modale où l'on empile une ou plusieurs « boîtes » : une **catégorie** (notion, auteur, concept, ou retour sur le site), une **cible** précise et un **type** (ajout, correction, remarque). La proposition est mise en forme automatiquement (texte + JSON) et envoyée en ligne. Côté mainteneur, la page `/admin/` les trie, signale les doublons et les fait relire par Gemini avant leur intégration dans `contenu/`.

@@ -1,8 +1,35 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
-  "genere_le": "2026-11-16T01:22:50.492Z",
+  "genere_le": "2026-11-16T18:12:54.329Z",
   "commits": [
+    {
+      "hash": "462d8378825b16d672fd88e3d947add10356f68f",
+      "short": "462d837",
+      "auteur": "Orangentleman",
+      "date": "2026-11-16T19:01:28+01:00",
+      "sujet": "Update cli-latest",
+      "corps": "",
+      "tag": ""
+    },
+    {
+      "hash": "39a5ce23fd69b9c91179610dcd6ad2532a64cfcb",
+      "short": "39a5ce2",
+      "auteur": "Orangentleman",
+      "date": "2026-11-16T18:01:03+01:00",
+      "sujet": "Administration A5 : onglet À intégrer, export et compte rendu, Discord",
+      "corps": "/admin/ : boîtes validées groupées par fichier, export philo-export/v1\nsans donnée personnelle, import d'un compte rendu philo-integration/v1\nrelu avant application et appliqué seulement s'il est en ligne.\nProtocole docs/protocole-integration.md, dossier integrations/.\nFonction prevenir : message Discord à chaque proposition.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": "Administration A5"
+    },
+    {
+      "hash": "aba2edf6544f9ca6e8ecc7ca3ebc7baa173f990f",
+      "short": "aba2edf",
+      "auteur": "Orangentleman",
+      "date": "2026-11-16T02:22:50+01:00",
+      "sujet": "Affiche la progression de la relecture IA",
+      "corps": "Remplace le bouton par une pastille avec animation et temps écoulé pendant la relecture, en respectant la préférence de réduction des animations.",
+      "tag": ""
+    },
     {
       "hash": "e742592ce0e40e157a274136f118915a5d1692ce",
       "short": "e742592",

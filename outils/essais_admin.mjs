@@ -120,6 +120,33 @@ const ESSAIS = [
     // Ce cas ne dépend que du site : le témoin y glisse la faute (temoinSite).
     temoinSite: src => src.replace(".toUpperCase().replace(/[^0-9A-Z]/g,'')", '.toUpperCase()'),
     f: (M, S) => S.normaliserSuivi('k7q-4md 2xa-b3c') === 'K7Q4MD2XAB3C' && S.formaterSuivi('k7q4md2xab3c') === 'K7Q-4MD-2XA-B3C' },
+  // Lot A5 : l'aller-retour d'intégration (cadrage § 9).
+  { nom: 'export : seulement les validées, sans pseudo ni réponse',
+    temoin: remplace("const val = boites.filter(b => b.statut === 'validee')", 'const val = boites.filter(b => b)'),
+    f: M => {
+      const e = M.exporter([B(1, 'validee', { pseudo: 'Léa', reponse: 'merci', note: 'garder sans guillemets' }), B(2, 'en_attente')], '2026-11-16T10:00:00Z');
+      const t = JSON.stringify(e.json);
+      return e.json.format === 'philo-export/v1' && e.json.boites.length === 1 && e.json.boites[0].fichier === 'contenu/notions/travail.js'
+        && e.json.boites[0].note_interne === 'garder sans guillemets' && !/Léa|merci/.test(t) && /^philo-export-2026-11-1\d\.json$/.test(e.nom);
+    } },
+  { nom: 'compte rendu : boîte inconnue, plus validée ou déjà appliquée → décochée',
+    temoin: remplace("else if (b.statut !== 'validee') etat = 'pas-validee';", ''),
+    f: M => {
+      const boites = [B(1, 'validee'), B(2, 'refusee'), B(3, 'integree', { integration: { commit: 'abc' } })];
+      const r = M.lireCompteRendu(JSON.stringify({ format: 'philo-integration/v1', commit: 'abc', boites: [
+        { id: 1, resultat: 'integree', reponse_proposee: 'Ajoutée !' }, { id: 2, resultat: 'integree' }, { id: 3, resultat: 'integree' }, { id: 9, resultat: 'integree' }] }), boites);
+      return r.lignes.map(l => l.etat).join() === 'ok,pas-validee,deja,inconnue' && r.lignes.filter(l => l.coche).length === 1;
+    } },
+  { nom: 'compte rendu : seules les lignes cochées partent, sans réponse si non intégrée',
+    temoin: remplace("boites: lignes.filter(l => l.coche && l.etat === 'ok')", 'boites: lignes.filter(l => l)'),
+    f: M => {
+      const r = M.lireCompteRendu({ format: 'philo-integration/v1', commit: 'c1', boites: [
+        { id: 1, resultat: 'non_integree', detail: 'citation introuvable', reponse_proposee: 'x' }, { id: 2, resultat: 'retouchee' }] }, [B(1, 'validee'), B(2, 'validee')]);
+      r.lignes[1].coche = false;
+      const a = M.rapportAEnvoyer(r.rapport, r.lignes);
+      return a.boites.length === 1 && a.boites[0].id === 1 && a.boites[0].reponse === '' && a.commit === 'c1'
+        && M.lireCompteRendu('{"format":"autre"}', []).erreur && M.lireCompteRendu('pas du json', []).erreur;
+    } },
 ];
 
 /* site() — les fonctions du site utiles aux essais, extraites de

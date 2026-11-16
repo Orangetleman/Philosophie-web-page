@@ -284,3 +284,45 @@ l'import le dit (« pas encore en ligne : réimporte après la fusion »).
   2. `supabase secrets set GEMINI_API_KEY=…` (la clé du `.env` de l'agrégateur) ;
   3. `supabase functions deploy relire` ;
   4. premier essai : une seule boîte, par « Relire cette boîte ».
+- **A5** (16 novembre 2026). **Onglet « À intégrer »** de `/admin/` : les
+  boîtes validées regroupées par fichier de `contenu/` (`M.fichierCible`),
+  « 📤 Exporter les validées » (`philo-export/v1`, `M.exporter`, sans pseudo,
+  compte ni réponse), « 📥 Importer un compte rendu » (`philo-integration/v1`,
+  `M.lireCompteRendu`) : aperçu une ligne par boîte, réponses modifiables, cases
+  à décocher ; boîte inconnue, plus validée, déjà appliquée ou en double
+  décochée d'office. « Appliquer » reste grisé tant que
+  `https://philo.myprisme.fr/integrations/<fichier>` ne répond pas avec le même
+  commit (`vercel.json` y pose l'en-tête CORS, `sw.js` ne le met pas en cache),
+  puis la base applique par `admin_importer_integration` (A1). Écart avec le
+  § 9 : l'export ne porte pas de champ `code` (le `generateAjout` du site
+  dépend de toute l'app) ; Claude intègre depuis `contenu`. Protocole :
+  [`docs/protocole-integration.md`](protocole-integration.md) ; dossier
+  [`integrations/`](../integrations/README.md). 3 essais de plus (19 en tout).
+  Vérifié en mode essai (aperçu, application : 1 intégrée, 1 remise en
+  attente, 1 n° inconnu ignoré ; console vide), **pas sur la vraie base**.
+  **Message Discord** : fonction `supabase/functions/prevenir`, appelée par un
+  Database Webhook (insertion dans `boites`, rang 0), poste « n° et lien
+  `/admin/#n°` », sans texte ni nom. Syntaxe vérifiée seulement : **jamais
+  exécutée**.
+
+  **Pour Discord** (à faire par l'auteur) :
+  1. dans Discord, salon › Modifier › Intégrations › Webhooks › Nouveau webhook, copier l'URL ;
+  2. `supabase secrets set DISCORD_WEBHOOK_URL=<l'URL>` et `supabase secrets set PREVENIR_SECRET=<une chaîne au hasard>` ;
+  3. `supabase functions deploy prevenir --no-verify-jwt` ;
+  4. Supabase › Database › Webhooks › Create : table `boites`, événement Insert, type « Supabase Edge Functions », fonction `prevenir`, en-tête `x-prevenir` = la même chaîne ;
+  5. essai : envoyer une proposition depuis le site.
+- **A6** (16 novembre 2026). **Ménage**. L'agrégateur Python est retiré
+  (`aggregate.py`, `dashboard.py`, `db.py`, `export.py`, `ingest.py`,
+  `pipeline.py`, `review.py`, `supabase_client.py`, `view.py`, `localenv.py`,
+  `requirements.txt`, dossiers `inbox/`…) : il reste dans l'historique git.
+  Avant le retrait, on a vérifié que les 29 propositions de `proposals.db`
+  venaient toutes de Supabase : rien n'existait qu'en local. `philo-aggregator/`
+  garde `migrations/`, `dashboard.bat` (ouvre `/admin/` en local) et un README
+  réécrit. `triage/` redirige vers `/admin/` (en gardant `#n°`) et son service
+  worker se désinstalle et vide ses caches chez ceux qui l'avaient installé.
+  README, `architecture.md`, `CLAUDE.md`, carte (dix nœuds de l'agrégateur et
+  leurs arêtes retirés, racine « Administration des propositions ») à jour.
+  Restent dans la base, inoffensives : `admin_list_contributions`,
+  `admin_triage` et la colonne `aggregator_state`. **Préalable du cadrage pas
+  rempli** : le parcours réel complet (A2 à A5 sur la vraie base) n'a pas été
+  validé avant ce ménage. Le code retiré se récupère par git si besoin.

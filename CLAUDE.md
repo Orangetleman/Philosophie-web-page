@@ -26,9 +26,10 @@ liste officielle, 5 hors programme, 6 enrichir ; décisions de l'auteur au
 | `outils/` | `construire.mjs` (build), `verifier_contenu.mjs` (contrôle), `lib/` (formats, écriture), `banc/` (règles d'accès Supabase) | oui |
 | `docs/` | diagnostic, protocole du contenu, architecture détaillée, carte du projet | oui |
 | `admin/` | page `/admin/` : tri des propositions, en ligne et en local (`/admin/?essai` : fausses données) ; logique dans `modele.js` | oui |
-| `supabase/functions/` | fonctions Supabase (Deno) : `relire` (relecture des propositions par Gemini) ; déployées par `supabase functions deploy` | oui |
-| `triage/` | mini-appli de tri des propositions sur téléphone (remplacée par `admin/`, retrait au lot A6) | oui |
-| `philo-aggregator/` | outil Python local : récupère, relit (Gemini) et exporte les propositions ; migrations SQL | oui |
+| `supabase/functions/` | fonctions Supabase (Deno) : `relire` (relecture des propositions par Gemini), `prevenir` (message Discord à chaque proposition) ; déployées par `supabase functions deploy` | oui |
+| `integrations/` | comptes rendus d'intégration des propositions (`philo-integration/v1`), écrits par Claude selon `docs/protocole-integration.md`, servis par le site hors précache | oui |
+| `triage/` | ancienne page de tri sur téléphone : redirige vers `/admin/`, son service worker se désinstalle (lot A6) | non |
+| `philo-aggregator/` | `migrations/` (schéma SQL de Supabase) et `dashboard.bat` (ouvre `/admin/` en local) ; l'ancien agrégateur Python est retiré (lot A6) | oui |
 | `icon.ico`, `icon_gear.ico` | icônes du raccourci Windows du tableau de bord local de l'agrégateur | non |
 
 ## Travailler

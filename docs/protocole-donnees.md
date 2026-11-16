@@ -50,7 +50,7 @@ dans la notice.
 | A2 | La **page légale** générée : mentions légales, confidentialité, CGU, sur une page à sommaire | `outils/lib/legal.mjs` → `informations-legales/index.html` | fait |
 | A3 | **Suppression du compte** : propositions conservées et anonymisées (`on delete set null`, pseudo remplacé par « anonyme ») | `philo-aggregator/migrations/2026_rgpd.sql`, `outils/banc/banc_schema.mjs` | fait (migration à passer, § 1.5) |
 | A4 | **Purge des comptes inactifs** depuis 3 ans, automatique chaque mois (pg_cron) | `2026_rgpd.sql` | fait (avec la migration) |
-| A5 | **Gemini sans identité** : `render_box(..., anonyme=True)` sans pseudo ni date, e-mails et numéros masqués dans le texte | `philo-aggregator/export.py`, `review.py` | fait |
+| A5 | **Gemini sans identité** : `render_box(..., anonyme=True)` sans pseudo ni date, e-mails et numéros masqués dans le texte | `philo-aggregator/export.py`, `review.py` (depuis le lot A6 : `supabase/functions/relire/relecture.js`, `texteBoite`, `masquer`) | fait |
 | A6 | **Plus d'appel tiers inutile** : police Inter servie par le site, QR code calculé dans le navigateur | `polices/`, `lib/qrcode.js`, `css/01-base.css`, `js/10-partage.js`, `index.html` | fait |
 | A7 | **Les droits en un clic** : télécharger ses données (JSON), effacer celles de l'appareil, supprimer son compte | `js/07-affichage-reglages.js`, `js/09-compte.js` | fait |
 | A8 | **Acceptation des CGU** : case non cochée à la création du compte et à l'envoi d'une proposition ; version acceptée gardée dans le compte ; redemandée quand la notice change | `js/09-compte.js`, `js/06-contribution.js` | fait |

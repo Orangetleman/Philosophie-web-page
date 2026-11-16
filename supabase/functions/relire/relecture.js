@@ -3,7 +3,8 @@
    calcule sans réseau (lot A4, docs/chantier-administration.md).
    ────────────────────────────────────────────────────────────────────────
    Repris de philo-aggregator/review.py (consigne, lecture du verdict) et
-   export.py (rendu anonyme d'une boîte, masquer_coordonnees). Module pur :
+   export.py (rendu anonyme d'une boîte, masquer_coordonnees), fichiers
+   retirés au lot A6 (ils restent dans l'historique git). Module pur :
    la fonction Supabase (index.ts, Deno) l'importe, et
    outils/essais_relecture.mjs l'éprouve dans Node.
    ════════════════════════════════════════════════════════════════════════ */

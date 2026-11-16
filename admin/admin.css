@@ -127,3 +127,17 @@ dialog p{color:var(--tx2)}
 .toupie{width:13px;height:13px;border-radius:50%;border:2px solid var(--accent-soft);border-top-color:var(--accent-tx);animation:toupie .8s linear infinite}
 @keyframes toupie{to{transform:rotate(360deg)}}
 @media (prefers-reduced-motion:reduce){.toupie{animation:none;border-color:var(--accent-tx)}}
+
+/* ── Onglet À intégrer (lot A5) ─────────────────────────────────────────── */
+.integ{display:grid;align-content:start;gap:14px;padding:14px 16px;max-width:980px;background:var(--bg);min-height:calc(100vh - 54px)}
+/* le choix d'un fichier : un <label> qui a l'air d'un bouton */
+label.bouton{display:inline-flex;align-items:center;cursor:pointer;background:var(--bg2);border:1px solid var(--bd);border-radius:8px;padding:5px 11px;min-height:32px}
+label.bouton:hover{border-color:var(--bd2)}
+label.bouton:focus-within{outline:2px solid var(--accent);outline-offset:1px}
+.groupe h3,.apercu h3{font-size:14px;margin:0 0 6px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.groupe .it{border:1px solid var(--bd);border-radius:8px;overflow:hidden}
+.apercu{border:1px solid var(--accent);border-radius:10px;padding:12px;display:grid;gap:10px}
+.ligne-cr{display:grid;gap:4px;padding:8px 0;border-bottom:1px solid var(--bd)}
+.ligne-cr.ecartee{opacity:.6}
+.ligne-cr textarea{width:100%;box-sizing:border-box}
+@media (max-width:760px){.integ{padding:10px}}

@@ -41,12 +41,11 @@ node docs/carte/verifie.mjs --corriger   # réécrit les refs (le build le fait)
 | Ajouter une **fonction** notable (≥ rôle de module) | ajouter un nœud `niveau:2` sous le bon module, avec `symbols` |
 | Ajouter un **module** entier (nouvelle zone de logique) | ajouter un nœud `niveau:1` sous le domaine, + ses L2 |
 | Ajouter/retirer une **clé localStorage** | domaine `nav` → `nav.keys.*` (ou le domaine porteur) ; `kind:"key"` |
-| Ajouter/retirer une **table Supabase** | `sync.tables.*` et/ou `backend.supabase` ; `kind:"table"` |
-| Ajouter/modifier une **route Flask** (dashboard) | `backend.dashboard` ; `kind:"route"` |
+| Ajouter/retirer une **table Supabase** | `sync.tables.*` et/ou `backend.admin` ; `kind:"table"` |
 | Changer la **version du cache** PWA (`philo-vN`) | `pwa.sw` (texte `ingenieur`) — la `ref` `sw.js:12` reste valable |
-| Modifier le **schéma de proposition** (vX) | `contrib.generate` + `backend.ingest` (`SUPPORTED_SCHEMAS`) |
+| Modifier le **schéma de proposition** (vX) | `contrib.generate` + `backend.admin` (`admin/modele.js`) |
 | Modifier un **flux** (envoi, pull, review, sync) | tableau `edges[]` (note + `from`/`to`) |
-| Changer le **modèle Gemini** | `backend.review` (`DEFAULT_MODEL`, `ref` review.py:41) |
+| Changer le **modèle Gemini** | `backend.relire` (`MODELE` de `supabase/functions/relire/index.ts`, ou le secret `GEMINI_MODEL`) |
 | Ajouter un **domaine** entier | `domaines[]` (id+couleur) + un nœud `niveau:0` + ses enfants |
 | Zone du code **ambiguë** | poser `incertain:true` + `note` sur le nœud (un ⚑ apparaît) |
 

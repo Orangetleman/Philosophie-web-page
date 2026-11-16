@@ -370,7 +370,7 @@ d'ouverture `.sb-propose` (« 💡 Proposer du contenu ») intégré à la sideb
   déjà connue de la pipeline → rien de neuf à propager côté base). La cible
   (`site-bug` / `site-fonction`) suffit à distinguer les deux. Ces boîtes
   ne visent **pas** `data.js` : elles ont leur propre section « RETOURS SITE »
-  dans le dashboard de l'agrégateur et sont **exclues de la relecture Gemini**.
+  dans `/admin/` (catégorie « Le site ») et sont **exclues de la relecture Gemini**.
 
   État dans `proposalBoxes` (`{id, categorie, cible, type, f}`) ; valeurs de
   champ dans `box.f`. `PROPOSAL_SOUSCIBLES` mappe catégorie→sous-cibles ;
@@ -442,23 +442,24 @@ d'ouverture `.sb-propose` (« 💡 Proposer du contenu ») intégré à la sideb
 - **`auteur-dialogue` / `auteur-bio` / `concept-relation`** : pas de notion.
 - **Autres cibles** : la notion est dans `fields.notion` (clé de `D`).
 
-**Rétro-compat** : l'agrégateur (`philo-aggregator/`) lit v1/v2/v3. En v1/v2,
+**Rétro-compat** : la base (`boites_aligner`) et `/admin/` (`admin/modele.js`) lisent v1/v2/v3. En v1/v2,
 la boîte n'a pas de `categorie` (déduite via `cibleCat`) et la cible `auteur`
 a ses champs d'idée à plat (v1) ou dans `ideas[]` sans `notion`/`citations`
 (v2). Tenir compte de ces différences dans tout code qui lit une proposition.
 
-### Page de triage mobile (`triage/`)
+### Administration (`admin/`)
 
-Mini-PWA autonome (`triage/index.html` + `manifest.webmanifest` + `sw.js`,
-servie à la racine du site) pour **trier les contributions depuis le téléphone**
-(valider / intégrer / rejeter + note). Connexion par **compte perso** (Google ou
-e-mail) avec la **clé anon uniquement** — la clé `service_role` ne doit
-**JAMAIS** y figurer. L'autorisation est vérifiée côté base par deux fonctions
-`SECURITY DEFINER` (`admin_list_contributions`, `admin_triage`) gardées par la
-table `app_admins` (cf. `philo-aggregator/migrations/2026_admin_mobile.sql`). Le
-triage écrit `aggregator_state`/`aggregator_updated_at` au format de la synchro
-PC (« dernière écriture gagne »), à la **granularité contribution**. Voir le
-README de `philo-aggregator/` (section « Accès mobile »).
+La page `/admin/` (chantier Administration, nov. 2026 ;
+`docs/chantier-administration.md`) remplace l'ancienne page de triage mobile et
+l'agrégateur Python, retirés au lot A6 (`triage/` ne fait plus que rediriger, et
+son service worker se désinstalle). Connexion par compte perso avec la **clé anon
+uniquement** ; tout passe par des fonctions `SECURITY DEFINER` gardées par
+`is_admin()` (table `app_admins`) : `admin_boites`, `admin_maj_boite`,
+`admin_sujets`, `admin_importer_integration`… (`philo-aggregator/migrations/2026_administration.sql`).
+Tri boîte par boîte, sujets votés sur la page Propositions, avis de Gemini
+(fonction `supabase/functions/relire`), message Discord (`prevenir`), aller-retour
+d'intégration (`docs/protocole-integration.md`). Logique sans DOM dans
+`admin/modele.js`, éprouvée par `node outils/essais_admin.mjs`.
 
 ## Interface & ergonomie (déjà en place)
 
