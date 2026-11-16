@@ -1,8 +1,17 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
-  "genere_le": "2026-11-16T17:01:06.224Z",
+  "genere_le": "2026-11-16T18:01:28.899Z",
   "commits": [
+    {
+      "hash": "39a5ce23fd69b9c91179610dcd6ad2532a64cfcb",
+      "short": "39a5ce2",
+      "auteur": "Orangentleman",
+      "date": "2026-11-16T18:01:03+01:00",
+      "sujet": "Administration A5 : onglet À intégrer, export et compte rendu, Discord",
+      "corps": "/admin/ : boîtes validées groupées par fichier, export philo-export/v1\nsans donnée personnelle, import d'un compte rendu philo-integration/v1\nrelu avant application et appliqué seulement s'il est en ligne.\nProtocole docs/protocole-integration.md, dossier integrations/.\nFonction prevenir : message Discord à chaque proposition.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": "Administration A5"
+    },
     {
       "hash": "aba2edf6544f9ca6e8ecc7ca3ebc7baa173f990f",
       "short": "aba2edf",
