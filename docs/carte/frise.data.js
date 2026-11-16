@@ -1,8 +1,26 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
-  "genere_le": "2026-11-16T18:35:53.743Z",
+  "genere_le": "2026-11-16T18:39:42.607Z",
   "commits": [
+    {
+      "hash": "80ab969b2e8dd8f1904d38c96f5183af64993549",
+      "short": "80ab969",
+      "auteur": "Orangentleman",
+      "date": "2026-11-16T19:39:33+01:00",
+      "sujet": "Intégration du 16 nov. 2026 : boîte n° 36 (Jankélévitch, le temps)",
+      "corps": "Citation proposée introuvable telle quelle : ajoutée en reformulation.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": "Intégration du 16 nov. 2026"
+    },
+    {
+      "hash": "c9510e9d9533672bd820adec302fe96f50c9f15f",
+      "short": "c9510e9",
+      "auteur": "Orangentleman",
+      "date": "2026-11-16T19:35:53+01:00",
+      "sujet": "Migration relecture : ajoute la colonne ia_message aux bases déjà créées",
+      "corps": "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": "Migration relecture"
+    },
     {
       "hash": "9a3453570fae05044c72aaf4b9e9294096cdb0d8",
       "short": "9a34535",
