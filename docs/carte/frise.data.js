@@ -1,8 +1,17 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
-  "genere_le": "2026-11-16T01:19:50.792Z",
+  "genere_le": "2026-11-16T01:22:50.492Z",
   "commits": [
+    {
+      "hash": "e742592ce0e40e157a274136f118915a5d1692ce",
+      "short": "e742592",
+      "auteur": "Orangentleman",
+      "date": "2026-11-16T02:19:50+01:00",
+      "sujet": "Raccourci local : dashboard.bat ouvre /admin/ au lieu de l'ancien tableau Flask",
+      "corps": "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": "Raccourci local"
+    },
     {
       "hash": "759291d6180f9a14319a2e5d9403c6e5a1be978f",
       "short": "759291d",

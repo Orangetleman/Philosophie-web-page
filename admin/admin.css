@@ -118,3 +118,12 @@ dialog p{color:var(--tx2)}
   .right{margin-left:0;width:100%}
   .kbd{display:none}
 }
+
+/* Relecture par l'IA en cours : pastille de l'en-tête, avec une toupie
+   (anneau qui tourne) et le temps écoulé. Mouvement coupé si le système
+   demande moins d'animations. */
+.relecture{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--accent);background:var(--accent-soft);color:var(--tx);border-radius:999px;padding:3px 11px;font-size:12.5px}
+.relecture #relecture-temps{font-family:var(--mono);color:var(--accent-tx)}
+.toupie{width:13px;height:13px;border-radius:50%;border:2px solid var(--accent-soft);border-top-color:var(--accent-tx);animation:toupie .8s linear infinite}
+@keyframes toupie{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.toupie{animation:none;border-color:var(--accent-tx)}}

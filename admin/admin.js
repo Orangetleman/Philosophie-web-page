@@ -194,7 +194,8 @@ function entete() {
       ${onglet('boite', `Boîte de réception${nouvelles ? `<span class="chip" title="jamais ouvertes">${nouvelles}</span>` : ''}`)}
       ${onglet('sujets', `Sujets (${etat.sujets.length})`)}
     </div>
-    <span class="right"><button type="button" data-act="relire"${aRelire && !etat.occupe ? '' : ' disabled'} title="Gemini donne un avis sur les boîtes en attente jamais relues (8 au plus par clic). Il ne reçoit que leur texte.">🤖 Relire avec l'IA${aRelire ? ` (${aRelire})` : ''}</button>${mode}${etat.email ? `<span>${esc(etat.email)}</span>` : ''}
+    <span class="right">${etat.relecture ? `<span class="relecture" role="status"><span class="toupie" aria-hidden="true"></span>L'IA relit ${etat.relecture.n} boîte${etat.relecture.n > 1 ? 's' : ''}… <span id="relecture-temps">${Math.round((Date.now() - etat.relecture.debut) / 1000)} s</span> <span class="hint">(≈ ${etat.relecture.n * 5} s)</span></span>`
+      : `<button type="button" data-act="relire"${aRelire && !etat.occupe ? '' : ' disabled'} title="Gemini donne un avis sur les boîtes en attente jamais relues (8 au plus par clic). Il ne reçoit que leur texte.">🤖 Relire avec l'IA${aRelire ? ` (${aRelire})` : ''}</button>`}${mode}${etat.email ? `<span>${esc(etat.email)}</span>` : ''}
       <button type="button" class="link" data-act="actualiser">Actualiser</button>
       ${ESSAI ? '<a href="/admin/">Quitter l\'essai</a>' : '<button type="button" class="link" data-act="sortir">Se déconnecter</button>'}</span>
   </header>`;
@@ -425,9 +426,17 @@ async function supprimerSujet() {
    {ids}), puis relit les boîtes et dit ce qui s'est passé. Compter ~5 s
    par boîte (Gemini, plus une pause pour son quota gratuit). */
 async function relire(corps) {
-  etat.occupe = true; rendre();
   const n = corps.ids ? corps.ids.length : Math.min(8, etat.boites.filter(b => b.statut === 'en_attente' && !b.ia_verdict && M.categorieDe(b) !== 'site').length);
-  dire(`Relecture de ${n} boîte${n > 1 ? 's' : ''} par l'IA… (quelques secondes par boîte)`);
+  // Témoin visible pendant toute l'attente (une seule requête, sans étapes
+  // intermédiaires) : pastille animée dans l'en-tête avec le temps écoulé,
+  // mis à jour chaque seconde sans redessiner la page (la saisie en cours
+  // n'est pas perturbée).
+  etat.relecture = { debut: Date.now(), n };
+  etat.occupe = true; rendre();
+  const minuteurRelecture = setInterval(() => {
+    const el = document.getElementById('relecture-temps');
+    if (el) el.textContent = Math.round((Date.now() - etat.relecture.debut) / 1000) + ' s';
+  }, 1000);
   try {
     const r = await API.relire(corps);
     etat.boites = (await API.boites()) || etat.boites;
@@ -437,6 +446,8 @@ async function relire(corps) {
     if (r && r.erreurs && r.erreurs.length) bilan.push(r.erreurs.length + ' refus : ' + r.erreurs.slice(0, 2).join(' ; '));
     dire(bilan.join(' '), !!(r && (r.arret || (r.erreurs && r.erreurs.length))));
   } catch (e) { echec(e); }
+  clearInterval(minuteurRelecture);
+  etat.relecture = null;
   etat.occupe = false; rendre();
 }
 
