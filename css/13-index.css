@@ -87,3 +87,10 @@ body.en-accueil .topbar{view-transition-name:none}
 @keyframes vt-glisse-g{from{transform:translateX(-100%);opacity:.3}to{transform:none;opacity:1}}
 @keyframes vt-glisse-h{from{transform:translateY(-100%);opacity:0}to{transform:none;opacity:1}}
 @media (prefers-reduced-motion:reduce){.idx-panneau{animation:none}}
+
+/* Méthodo (nov. 2026) : deux grandes cartes, une par parcours. */
+.idx-larges .idx-grille{grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.idx-larges .idx-carte{padding:22px 24px;--coul:var(--color-ocre)}
+.idx-larges .idx-carte b{font-size:24px}
+.idx-larges .idx-texte{font-size:14px;line-height:1.6;margin-top:6px}
+.idx-larges .idx-compte{display:none}

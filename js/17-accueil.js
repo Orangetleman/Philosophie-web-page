@@ -81,7 +81,7 @@ function marquerAccueil(){
   // Nov. 2026 : la barre latérale n'est montrée que sur une fiche (notion,
   // auteur, concept, repère) et dans la Méthodo ; ailleurs, body.sans-barre
   // la replie avec une animation (css/13-index.css).
-  document.body.classList.toggle('sans-barre', sbMode==='accueil'||sbMode==='explorer'||(enIndex&&!!MODES_INDEX[sbMode]));
+  document.body.classList.toggle('sans-barre', sbMode==='accueil'||sbMode==='explorer'||(enIndex&&!!MODES_INDEX[sbMode]));   // Méthodo comprise depuis qu'elle a sa page
   document.querySelectorAll('.topbar-mode').forEach(b=>b.classList.toggle('on', b.dataset.mode===sbMode));
 }
 

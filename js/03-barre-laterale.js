@@ -105,7 +105,7 @@ function renderSB(){
     <div class="sb-tab${sbMode==='auteurs'?' active':''}" onclick="allerIndex('auteurs')" style="font-size:9px">Auteurs</div>
     <div class="sb-tab${sbMode==='concepts'?' active':''}" onclick="allerIndex('concepts')" style="font-size:9px">Concepts</div>
     <div class="sb-tab${sbMode==='reperes'?' active':''}" onclick="allerIndex('reperes')" style="font-size:9px" title="Repères du programme : les distinctions conceptuelles (absolu/relatif, légal/légitime…)">Repères</div>
-    <div class="sb-tab${sbMode==='methodo'?' active':''}" onclick="if(sbMode!=='methodo'){sbMode='methodo';renderSB();renderMethodoContent();}" style="font-size:9px" title="Méthode pas à pas : dissertation et explication de texte">Méthodo</div>
+    <div class="sb-tab${sbMode==='methodo'?' active':''}" onclick="allerIndex('methodo')" style="font-size:9px" title="Méthode pas à pas : dissertation et explication de texte">Méthodo</div>
     <div class="sb-tab${sbMode==='explorer'?' active':''}" onclick="if(sbMode!=='explorer'){pushHistory();sbMode='explorer';renderSB();renderExplorerContent();}" style="font-size:9px" title="Frise des auteurs et graphe des idées">Explorer</div>
   </div>`;
 

@@ -265,7 +265,7 @@ const TOUR_STEPS=[
         +"Ici, le <b>guide de méthode</b> : comment analyser un sujet, problématiser, bâtir un plan et "
         +"rédiger une <b>dissertation</b> ou une <b>explication de texte</b> — avec un squelette "
         +"visuel de la copie et des phrases toutes prêtes, étape par étape.",
-    setup:()=>tourShowSidebarMode('methodo'), target:()=>document.querySelector('#sb .sidebar-list'),
+    setup:()=>tourShowSidebarMode('methodo'), target:()=>document.querySelector('#sb .sidebar-list'),   // un parcours ouvert (renderMethodoContent remet enIndex à false)
     halo:tourSbTabActif },
   // — Au cœur du projet : le DÉTAIL d'une fiche de notion. On montre la
   //   définition, le volet « Approfondir », puis CHAQUE onglet (en basculant

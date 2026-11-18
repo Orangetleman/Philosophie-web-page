@@ -1,8 +1,17 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
-  "genere_le": "2026-11-18T15:21:33.400Z",
+  "genere_le": "2026-11-18T15:26:13.596Z",
   "commits": [
+    {
+      "hash": "e49c8b123270089496be45f9b47c074b3182fe9b",
+      "short": "e49c8b1",
+      "auteur": "Orangentleman",
+      "date": "2026-11-18T16:21:25+01:00",
+      "sujet": "Lobby d'accueil, pages de présentation des onglets et identité visuelle (piste A)",
+      "corps": "Accueil : une page à part (sbMode='accueil', js/17-accueil.js), sans\nbarre latérale ni barre du haut, avec sa propre en-tête, la notion du\njour, « Reprendre où j'en étais », les sujets du bac et les nouveautés.\nLa position d'un autre appareil n'en fait plus sortir : elle alimente\n« Reprendre ».\n\nOnglets : Notions, Auteurs, Concepts et Repères ouvrent une page de\nprésentation pleine largeur (js/18-index.js, #/notions…), avec recherche\net filtre par notion repliable (au moins une / toutes). En mode édition,\ndrapeaux Nouveau / Modifié et bouton Proposer. La barre latérale ne\ns'affiche que sur une fiche (et la Méthodo) ; ses boutons du bas passent\ndans la barre du haut quand elle est repliée.\n\nAnimations : transitions de vue du navigateur, la barre latérale glisse\ndepuis la gauche, y compris au Retour et au précédent du navigateur.\n\nDA : thème sombre en bruns chauds, accent ocre, titres en Literata\nservie depuis polices/ (OFL, précache). Visite guidée revue autour du\nlobby et des pages de présentation. Carte du projet à jour. Maquette\ndans docs/maquettes/.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": ""
+    },
     {
       "hash": "b91c6a5e82a93262e6b7b1896afe8a861ab3afb5",
       "short": "b91c6a5",

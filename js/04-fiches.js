@@ -429,6 +429,7 @@ const METHODO_GUIDE={
    dans la zone principale : bascule de parcours, squelette visuel, puis étapes
    dépliables. Mirroir de renderConceptContent pour la structure du #main. */
 function renderMethodoContent(){
+  enIndex=false;   // nov. 2026 : un parcours, pas la page de présentation (js/18-index.js)
   renderCrumbs();
   const mainEl=document.getElementById('main');
   if(!mainEl.querySelector('.tabs')||!mainEl.querySelector('.main-content')){
