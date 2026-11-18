@@ -354,16 +354,39 @@
   /* slug(t) — comme outils/lib/pages.mjs : « Simone Weil » → simone-weil. */
   const slug = t => sansAccents(t).replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 
-  /* fichierCible(b) — le fichier de contenu/ que la boîte touche, pour
-     regrouper l'onglet « À intégrer » : notion → contenu/notions/<clé>.js,
-     auteur → contenu/auteurs/<nom>.js (nom à vérifier : alias possibles),
-     concept → contenu/concepts.js, retour sur le site → « le code du site ». */
-  function fichierCible(b) {
+  /* auteurConnu(nom, auteurs) — le nom de la fiche existante (clé de AM,
+     passée par la page) qui correspond au nom proposé, ou null. Sans accents
+     ni casse ; à défaut d'égalité, un nom contenu dans l'autre, 4 lettres au
+     moins (« Vladimir Jankélévitch » → « Jankélévitch »). Corrige l'export du
+     16 nov. 2026, qui devinait un fichier vladimir-jankelevitch.js inexistant. */
+  function auteurConnu(nom, auteurs) {
+    const n = norme(nom || '');
+    if (!n || !Array.isArray(auteurs)) return null;
+    const exact = auteurs.find(a => norme(a) === n);
+    if (exact) return exact;
+    // Le plus long nom contenu gagne (« Simone Weil » avant « Weil »).
+    const proches = auteurs.filter(a => { const k = norme(a); return k.length >= 4 && (n.includes(k) || k.includes(n)); });
+    return proches.sort((a, b) => b.length - a.length)[0] || null;
+  }
+
+  /* fichierCible(b, auteurs) — le fichier de contenu/ que la boîte touche,
+     pour regrouper l'onglet « À intégrer » et guider l'intégration :
+       - idée ou citation d'auteur rattachée à une notion → la notion
+         (c'est là que vivent les idées : contenu/notions/<clé>.js) ;
+       - biographie, dialogue, ou auteur sans notion → sa fiche,
+         contenu/auteurs/<nom>.js, avec le nom de la fiche EXISTANTE si
+         auteurConnu la trouve (auteurs = clés de AM), sinon « nouvelle fiche » ;
+       - concept → contenu/concepts.js ; retour sur le site → le code. */
+  function fichierCible(b, auteurs) {
     const cat = categorieDe(b), f = (b && b.contenu && b.contenu.fields) || {};
+    const cible = (b && b.contenu && b.contenu.cible) || '';
     if (cat === 'site') return 'le code du site (js/, css/)';
     if (cat === 'concept') return 'contenu/concepts.js';
-    if (cat === 'auteur' && f.nom) return 'contenu/auteurs/' + slug(f.nom) + '.js';
     const n = notionDe(b);
+    if (cat === 'auteur' && f.nom && (!n || cible === 'auteur-bio' || cible === 'auteur-dialogue')) {
+      const connu = auteurConnu(f.nom, auteurs);
+      return connu ? 'contenu/auteurs/' + slug(connu) + '.js' : 'contenu/auteurs/' + slug(f.nom) + '.js (nouvelle fiche)';
+    }
     return n ? 'contenu/notions/' + n + '.js' : '(fichier à trouver)';
   }
 
@@ -377,11 +400,12 @@
      Seulement les boîtes « validee », triées par fichier puis n°. Champs
      gardés : n°, proposition, catégorie, cible, type, notion, fichier,
      contenu, avis de l'IA, note interne (consignes de l'admin à Claude),
-     doublons (n° seulement). Jamais : pseudo, compte, suivi, réponse. */
-  function exporter(boites, maintenant) {
+     doublons (n° seulement), et pour un auteur le nom de sa fiche existante
+     (auteurs = clés de AM). Jamais : pseudo, compte, suivi, réponse. */
+  function exporter(boites, maintenant, auteurs) {
     const quand = maintenant == null ? new Date() : new Date(maintenant);
     const val = boites.filter(b => b.statut === 'validee')
-      .map(b => ({ b, fichier: fichierCible(b) }))
+      .map(b => ({ b, fichier: fichierCible(b, auteurs) }))
       .sort((p, q) => (p.fichier < q.fichier ? -1 : p.fichier > q.fichier ? 1 : p.b.id - q.b.id));
     const json = {
       format: FORMAT_EXPORT,
@@ -390,6 +414,8 @@
         id: b.id, contribution: b.contribution,
         categorie: categorieDe(b), cible: (b.contenu || {}).cible || null, type: (b.contenu || {}).type || 'ajout',
         notion: notionDe(b), fichier,
+        // le nom de la fiche existante, quand le nom proposé en est une variante
+        auteur: categorieDe(b) === 'auteur' ? auteurConnu(((b.contenu || {}).fields || {}).nom, auteurs) : null,
         contenu: (b.contenu || {}).fields || {},
         avis_ia: b.ia_verdict ? { verdict: b.ia_verdict, avis: b.ia_avis || '' } : null,
         note_interne: b.note || null,
@@ -444,7 +470,7 @@
     STATUTS, ETATS_SUJET, CATEGORIES, CIBLES, TYPES, CHAMPS, VERDICTS, FILTRES_ETAT, FILTRES_IA, FILTRES_DEFAUT,
     categorieDe, filtrer, champsLisibles, resume, etiquette, notionDe, lienSite, vuContributeur, depuis, erreur,
     cleDe, signature, ressemblance, doublons,
-    FORMAT_EXPORT, FORMAT_RETOUR, RESULTATS, fichierCible, exporter, lireCompteRendu, rapportAEnvoyer,
+    FORMAT_EXPORT, FORMAT_RETOUR, RESULTATS, auteurConnu, fichierCible, exporter, lireCompteRendu, rapportAEnvoyer,
   };
   racine.AdminModele = M;
   if (typeof module !== 'undefined' && module.exports) module.exports = M;

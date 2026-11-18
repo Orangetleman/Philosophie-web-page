@@ -23,6 +23,10 @@ const LOCAL = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
 // Titres des notions, depuis data.js (D) : « travail » → « Le travail ».
 const NOTIONS = {};
 try { Object.keys(D).forEach(k => { NOTIONS[k] = D[k].l || k; }); } catch (e) { /* data.js absent : on garde les clés */ }
+// Les noms des fiches d'auteurs (AM, data.js) : l'export y retrouve la fiche
+// existante d'un auteur proposé sous une autre forme de nom.
+let AUTEURS = [];
+try { AUTEURS = Object.keys(AM); } catch (e) { /* data.js absent */ }
 
 /* rpc(nom, args) — appelle une fonction de la base et rend ses données, ou
    lève l'erreur de Supabase (traduite plus haut par M.erreur). */
@@ -436,7 +440,7 @@ async function supprimerSujet() {
 function ongletIntegrer() {
   const val = etat.boites.filter(b => b.statut === 'validee');
   const groupes = new Map();
-  val.forEach(b => { const f = M.fichierCible(b); if (!groupes.has(f)) groupes.set(f, []); groupes.get(f).push(b); });
+  val.forEach(b => { const f = M.fichierCible(b, AUTEURS); if (!groupes.has(f)) groupes.set(f, []); groupes.get(f).push(b); });
   const cles = [...groupes.keys()].sort();
   return `<div class="integ" role="tabpanel" aria-labelledby="onglet-integrer">
     <div class="acts">
@@ -481,7 +485,7 @@ function apercuHtml() {
 
 /* exporterValidees() — télécharge philo-export-AAAA-MM-JJ.json. */
 function exporterValidees() {
-  const { nom, json } = M.exporter(etat.boites);
+  const { nom, json } = M.exporter(etat.boites, undefined, AUTEURS);
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([JSON.stringify(json, null, 2)], { type: 'application/json' }));
   a.download = nom; a.click();

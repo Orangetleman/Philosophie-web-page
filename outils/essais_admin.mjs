@@ -147,6 +147,17 @@ const ESSAIS = [
       return a.boites.length === 1 && a.boites[0].id === 1 && a.boites[0].reponse === '' && a.commit === 'c1'
         && M.lireCompteRendu('{"format":"autre"}', []).erreur && M.lireCompteRendu('pas du json', []).erreur;
     } },
+  { nom: 'export : l’auteur retrouve sa fiche existante, l’idée va dans la notion',
+    temoin: remplace("const proches = auteurs.filter(a => { const k = norme(a); return k.length >= 4 && (n.includes(k) || k.includes(n)); });", 'const proches = [];'),
+    f: M => {
+      const AUT = ['Jankélévitch', 'Weil', 'Simone Weil'];
+      const bio = B(1, 'validee', { contenu: { categorie: 'auteur', cible: 'auteur-bio', fields: { nom: 'Vladimir Jankélévitch' } } });
+      const cit = B(2, 'validee', { contenu: { categorie: 'auteur', cible: 'auteur-citation', fields: { nom: 'Vladimir Jankélévitch', notion: 'temps' } } });
+      const nouv = B(3, 'validee', { contenu: { categorie: 'auteur', cible: 'auteur-bio', fields: { nom: 'Hannah Inconnue' } } });
+      return M.fichierCible(bio, AUT) === 'contenu/auteurs/jankelevitch.js' && M.fichierCible(cit, AUT) === 'contenu/notions/temps.js'
+        && /nouvelle fiche/.test(M.fichierCible(nouv, AUT)) && M.auteurConnu('simone weil', AUT) === 'Simone Weil'
+        && M.exporter([cit], null, AUT).json.boites[0].auteur === 'Jankélévitch';
+    } },
 ];
 
 /* site() — les fonctions du site utiles aux essais, extraites de

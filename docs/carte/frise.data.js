@@ -1,8 +1,26 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
-  "genere_le": "2026-11-16T18:39:53.761Z",
+  "genere_le": "2026-11-18T12:46:48.006Z",
   "commits": [
+    {
+      "hash": "f3be07c7854cec7f384e64e3cdf65214247c997e",
+      "short": "f3be07c",
+      "auteur": "Orangentleman",
+      "date": "2026-11-18T13:43:57+01:00",
+      "sujet": "Fusion de claude/integration-2026-11-16 : boîte n° 36 et correctif ia_message",
+      "corps": "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": "Fusion de claude/integration-2026-11-16"
+    },
+    {
+      "hash": "90f07fe78d2cc848040818fece63e8b42f670184",
+      "short": "90f07fe",
+      "auteur": "Orangentleman",
+      "date": "2026-11-16T19:39:53+01:00",
+      "sujet": "Compte rendu de l'intégration du 16 nov. 2026",
+      "corps": "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": ""
+    },
     {
       "hash": "4222cfc698977eb60e0d02f91323bb60928c404c",
       "short": "4222cfc",
@@ -20,6 +38,15 @@ window.FRISE = {
       "sujet": "Migration relecture : ajoute la colonne ia_message aux bases déjà créées",
       "corps": "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
       "tag": "Migration relecture"
+    },
+    {
+      "hash": "53502622ed966024c4c58fd3960628e7753c189b",
+      "short": "5350262",
+      "auteur": "Orangentleman",
+      "date": "2026-11-16T19:30:57+01:00",
+      "sujet": "Fusion de claude/administration : lots A5 et A6",
+      "corps": "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": "Fusion de claude/administration"
     },
     {
       "hash": "9a3453570fae05044c72aaf4b9e9294096cdb0d8",
@@ -49,12 +76,30 @@ window.FRISE = {
       "tag": "Administration A5"
     },
     {
+      "hash": "35bb13c6798bbade0a82e3ba47fe71851405f856",
+      "short": "35bb13c",
+      "auteur": "Orangentleman",
+      "date": "2026-11-16T02:23:36+01:00",
+      "sujet": "Merge pull request #28 from Orangetleman/claude/administration",
+      "corps": "Affiche la progression de la relecture IA",
+      "tag": ""
+    },
+    {
       "hash": "aba2edf6544f9ca6e8ecc7ca3ebc7baa173f990f",
       "short": "aba2edf",
       "auteur": "Orangentleman",
       "date": "2026-11-16T02:22:50+01:00",
       "sujet": "Affiche la progression de la relecture IA",
       "corps": "Remplace le bouton par une pastille avec animation et temps écoulé pendant la relecture, en respectant la préférence de réduction des animations.",
+      "tag": ""
+    },
+    {
+      "hash": "3191eda5e4ea14e51c23efdc6df4a812d0049eff",
+      "short": "3191eda",
+      "auteur": "Orangentleman",
+      "date": "2026-11-16T02:22:39+01:00",
+      "sujet": "Merge pull request #27 from Orangetleman/claude/administration",
+      "corps": "Claude/administration",
       "tag": ""
     },
     {

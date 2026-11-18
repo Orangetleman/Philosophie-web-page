@@ -15,7 +15,7 @@ Format `philo-export/v1` :
 ```json
 { "format": "philo-export/v1", "cree_le": "2026-11-16T10:00:00.000Z",
   "boites": [ { "id": 47, "contribution": "…", "categorie": "notion",
-    "cible": "exemple", "type": "ajout", "notion": "travail",
+    "cible": "exemple", "type": "ajout", "notion": "travail", "auteur": null,
     "fichier": "contenu/notions/travail.js",
     "contenu": { "…": "les champs de la boîte" },
     "avis_ia": { "verdict": "valide", "avis": "…" },
@@ -24,9 +24,13 @@ Format `philo-export/v1` :
 ```
 
 L'export ne contient **aucune donnée personnelle** : ni pseudo, ni compte, ni
-numéro de suivi, ni réponse déjà envoyée. `fichier` est une indication : pour un
-auteur, le nom proposé peut être un alias (`AUTHOR_ALIASES`). Il faut donc
-chercher la vraie fiche avant d'en créer une.
+numéro de suivi, ni réponse déjà envoyée. `fichier` est une indication : une idée ou
+une citation d'auteur rattachée à une notion va dans le fichier de la notion ;
+une biographie ou un dialogue, dans la fiche de l'auteur. `auteur` donne le nom
+de la fiche existante quand `/admin/` l'a reconnue sous une autre forme
+(« Vladimir Jankélévitch » → « Jankélévitch ») ; « (nouvelle fiche) » veut dire
+qu'aucune n'a été trouvée : chercher quand même (`AUTHOR_ALIASES`) avant d'en
+créer une.
 
 ## 2. Le travail de Claude
 

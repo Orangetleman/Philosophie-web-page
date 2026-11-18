@@ -51,6 +51,9 @@ const ESSAIS = [
     temoin: remplace("if (/perday/i.test(t.replace(/[^a-z]/gi, ''))) return null;", ''),
     f: R => R.attenteQuota('GenerateRequestsPerDayPerProjectPerModel-FreeTier') === null
       && R.attenteQuota('Please retry in 26.5s') === 27.5 && R.attenteQuota('retry in 90s') === 30 },
+  { nom: 'l’avis est demandé en français (consigne et texte de la boîte)',
+    temoin: src => remplace('Écris TOUJOURS en français', 'Écris')(remplace('(Réponds en français.)\\n', '')(src)),
+    f: R => /TOUJOURS en français/.test(R.CONSIGNE) && R.texteBoite({ categorie: 'notion', fields: {} }).startsWith('(Réponds en français.)') },
 ];
 
 let ko = 0;

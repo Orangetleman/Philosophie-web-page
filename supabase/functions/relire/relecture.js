@@ -10,7 +10,8 @@
    ════════════════════════════════════════════════════════════════════════ */
 
 /* La consigne donnée à Gemini : son rôle et le format exact de la réponse.
-   Même texte que SYSTEM_INSTRUCTION de review.py. */
+   Texte de SYSTEM_INSTRUCTION de review.py, plus l'obligation du français
+   (18 nov. 2026 : la boîte n° 36 avait reçu un avis en anglais). */
 export const CONSIGNE = `Tu es correcteur de philosophie pour des élèves de Terminale (France).
 On te soumet une proposition de contribution à un site de révision
 (ajout, correction ou remarque sur une notion, un auteur, un texte, un
@@ -20,6 +21,9 @@ concept ou une dissertation).
   1. Exactitude : pas d'erreur factuelle ou d'attribution fausse.
   2. Pertinence : en lien avec le programme de philosophie de Terminale.
   3. Clarté : formulation compréhensible, niveau lycée.
+
+Écris TOUJOURS en français, y compris "review" (même si la proposition
+contient de l'anglais ou des titres étrangers).
 
 Réponds UNIQUEMENT par un objet JSON valide, sans texte autour, de la
 forme exacte :
@@ -65,7 +69,9 @@ export function texteBoite(contenu) {
     const t = Array.isArray(v) ? v.filter(x => String(x).trim()).join(' · ') : String(v).trim();
     return t ? `${k} : ${masquer(t)}\n` : '';
   };
-  let s = `Catégorie : ${c.categorie || '?'} · cible : ${c.cible || '?'} · type : ${c.type || 'ajout'}\n`;
+  // La consigne rappelée en tête du texte : le modèle léger suit mieux une
+  // langue demandée près de la question qu'au seul message système.
+  let s = `(Réponds en français.)\nCatégorie : ${c.categorie || '?'} · cible : ${c.cible || '?'} · type : ${c.type || 'ajout'}\n`;
   Object.keys(f).forEach(k => { if (k !== 'ideas') s += ligne(k, f[k]); });
   (Array.isArray(f.ideas) ? f.ideas : []).forEach((it, i) => {
     s += `Idée ${i + 1} :\n`;
