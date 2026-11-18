@@ -108,3 +108,9 @@ body.en-accueil .topbar{view-transition-name:none}
 .methodo-phrases li{background:var(--color-background-primary);border-left-color:var(--color-ocre,var(--color-border-quiz))}
 .methodo-autre{margin:22px 0 10px;font:inherit;font-size:14px;padding:10px 16px;border-radius:var(--border-radius-md);border:1px solid var(--color-border-tertiary);background:var(--color-background-secondary);color:var(--color-text-primary);cursor:pointer}
 .methodo-autre:hover{border-color:var(--color-ocre,var(--color-border-secondary))}
+
+/* Référencement (nov. 2026) : le nom d'un auteur et le terme d'un concept
+   sont désormais des <h1> (renderAuthorContent, renderConceptContent), comme
+   le titre d'une notion ; on leur retire la marge par défaut d'un h1. */
+h1.concept-title{margin:0;line-height:inherit}
+h1.author-title{line-height:inherit}

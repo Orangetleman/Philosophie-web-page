@@ -267,7 +267,7 @@ function renderConceptContent(){
   let html=`
 <div class="notion-head">
   <div>
-    <div class="concept-title">${c.term}${statutConcept(c)==='hors-programme'?' '+hpBadgeHTML():''}</div>
+    <h1 class="concept-title">${c.term}${statutConcept(c)==='hors-programme'?' '+hpBadgeHTML():''}</h1>
     ${c.cat?`<span class="concept-cat-badge facet-clickable" title="Voir les concepts de cette catégorie" onclick="openFacet('cat','${String(c.cat).replace(/'/g,"\\'")}')">${c.cat}</span>`:''}
   </div>
 </div>
@@ -739,7 +739,7 @@ function renderAuthorContent(){
 <div class="notion-head">
   <div>
     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-      <div class="author-title">${curAuthor}</div>
+      <h1 class="author-title">${curAuthor}</h1>
       ${statutAuteurHTML(curAuthor)}
       ${meta.courant?`<span class="author-courant facet-clickable" style="background:${cc}18;color:${cc};border:0.5px solid ${cc}40" title="Voir les auteurs de ce courant" onclick="openFacet('courant','${String(meta.courant).replace(/'/g,"\\'")}')">${meta.courant}</span>`:''}
     </div>

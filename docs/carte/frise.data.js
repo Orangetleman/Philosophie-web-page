@@ -1,8 +1,17 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
-  "genere_le": "2026-11-18T15:30:33.107Z",
+  "genere_le": "2026-11-18T15:35:02.211Z",
   "commits": [
+    {
+      "hash": "55f625d04d38cf5d382dcad364479837ad53dbfe",
+      "short": "55f625d",
+      "auteur": "Orangentleman",
+      "date": "2026-11-18T16:30:25+01:00",
+      "sujet": "Méthodo : la page d'un parcours sans sélecteur, aux couleurs de la DA",
+      "corps": "Le sélecteur « Je révise la méthode de… » faisait doublon avec la page\nde présentation et la barre latérale : remplacé par un titre (Literata)\net, en bas de page, un lien vers l'autre parcours. Les accents bleus\nrepris du quiz (squelette, numéros d'étapes, phrases, pastilles de la\nbarre) passent à l'ocre ; l'ocre est aussi défini pour le thème clair.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": "Méthodo"
+    },
     {
       "hash": "761a8d5904f7bb784eb8247788c784130dd1f7e0",
       "short": "761a8d5",
