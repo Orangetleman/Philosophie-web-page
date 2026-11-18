@@ -1,8 +1,17 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
-  "genere_le": "2026-11-18T12:46:48.006Z",
+  "genere_le": "2026-11-18T15:21:33.400Z",
   "commits": [
+    {
+      "hash": "b91c6a5e82a93262e6b7b1896afe8a861ab3afb5",
+      "short": "b91c6a5",
+      "auteur": "Orangentleman",
+      "date": "2026-11-18T13:46:46+01:00",
+      "sujet": "Admin : l'export retrouve la fiche d'auteur existante, l'IA répond en français",
+      "corps": "fichierCible cherche le nom proposé parmi les fiches (AM), sans accents et\nà une inclusion près, et range une idée rattachée à une notion dans la\nnotion. La consigne de Gemini exige le français et le rappelle en tête du\ntexte de chaque boîte (avis en anglais sur la n° 36).\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": "Admin"
+    },
     {
       "hash": "f3be07c7854cec7f384e64e3cdf65214247c997e",
       "short": "f3be07c",

@@ -11,6 +11,7 @@
 restoreDraftsFromStorage();   // new (Phase 3) : recharge le brouillon de proposition local
 restoreNavFromStorage();      // position survit à l'actualisation (philo-nav)
 restoreNavFromAddress();      // … mais une adresse #/… (lien partagé, favori) l'emporte
+accueilAuDemarrage();         // nov. 2026 : à la racine sans adresse, la page d'accueil (js/17-accueil.js)
 restoreNavHistory();          // pile « ← Retour » survit aussi (philo-navhist)
 appliquerAffichage();         // étape 6 : thème et taille du texte (avant le premier rendu)
 // Sommaire /fiches/ (page d'entrée data-entree="fiches") : son contenu pré-rendu

@@ -1,0 +1,56 @@
+/* css/12-accueil.css — la page d'ACCUEIL (nov. 2026, piste A « Bibliothèque »),
+   rendue par renderAccueilContent (js/17-accueil.js) dans .main-content.
+   Maquette d'origine : docs/maquettes/accueil-piste-a.html. Couleurs : les
+   variables du thème (01-base.css), donc le thème clair marche aussi.
+   Titres de fiche : même police que l'accueil, pour l'unité du site. */
+.ntitle,.author-title,.concept-title{font-family:var(--font-titre)}
+.acc{max-width:1000px;margin:0 auto;padding:8px 4px 40px}
+.acc-hero{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:32px;align-items:end;padding:24px 0 32px}
+.acc h1{font:500 clamp(28px,4vw,42px)/1.15 var(--font-titre);margin:0 0 14px;color:var(--color-text-primary);letter-spacing:-.01em}
+.acc-chapo{color:var(--color-text-secondary);margin:0 0 22px;line-height:1.6;max-width:34em}
+.acc-btn{display:inline-block;padding:10px 18px;border-radius:var(--border-radius-md);font-size:15px;font-weight:500;margin:0 8px 8px 0;cursor:pointer;border:1px solid var(--color-border-tertiary);background:none;color:var(--color-text-primary);font-family:inherit}
+.acc-btn:hover{background:var(--color-background-secondary)}
+.acc-btn.p{background:var(--color-ocre);border-color:var(--color-ocre);color:var(--color-ocre-texte)}
+.acc-btn.p:hover{filter:brightness(1.08)}
+.acc-carte{border:1px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:16px 18px;background:var(--color-background-secondary);cursor:pointer;display:block}
+.acc-carte:hover{border-color:var(--color-border-secondary)}
+.acc-petit{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-tertiary);margin:0 0 6px}
+.acc-carte b{font:500 20px var(--font-titre);display:block;margin-bottom:4px;color:var(--color-text-primary)}
+.acc-carte small{color:var(--color-text-secondary);font-size:13px}
+.acc h2{font:500 22px var(--font-titre);margin:0 0 14px;color:var(--color-text-primary)}
+.acc-section{padding:26px 0;border-top:1px solid var(--color-border-tertiary)}
+.acc-notions{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}
+.acc-n{display:block;background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:14px 16px;border-left:3px solid var(--coul);text-decoration:none;color:inherit;transition:background .15s}
+.acc-n:hover{background:var(--color-border-tertiary)}
+.acc-n b{font:500 18px var(--font-titre);display:block;color:var(--color-text-primary)}
+.acc-n small{color:var(--color-text-secondary);font-size:13px;line-height:1.4;display:block;margin-top:4px}
+.acc-n.vedette{grid-column:span 2;grid-row:span 2;padding:22px}
+.acc-n.vedette b{font-size:28px}
+.acc-n.vedette small{font-size:15px;margin-top:10px}
+.acc-def{color:var(--color-text-secondary);font-size:14px;margin-top:14px;line-height:1.55}
+.acc-deux{display:grid;grid-template-columns:1fr 1fr;gap:36px}
+.acc-ligne{padding:10px 0;border-bottom:1px solid var(--color-border-tertiary);cursor:pointer}
+.acc-ligne:hover .acc-l1{color:var(--color-ocre)}
+.acc-l1{font:500 16px/1.4 var(--font-titre);color:var(--color-text-primary)}
+.acc-ligne small{display:block;color:var(--color-text-tertiary);font-size:13px;margin-top:2px}
+.acc-plus{margin-top:12px;font-size:13px;color:var(--color-text-secondary);cursor:pointer;background:none;border:0;padding:0;font-family:inherit}
+.acc-plus:hover{color:var(--color-ocre)}
+@media (max-width:760px){
+  .acc-hero,.acc-deux{grid-template-columns:1fr;gap:22px}
+  .acc-n.vedette{grid-column:auto;grid-row:auto}
+}
+
+/* ── Lobby (nov. 2026) : l'accueil est une page à part, hors du cadre de
+   l'app. body.en-accueil (marquerAccueil) cache la barre latérale, la barre
+   du haut, les onglets et le bandeau ; la zone principale prend tout l'écran. */
+body.en-accueil .sidebar,body.en-accueil .sb-backdrop,body.en-accueil .topbar,
+body.en-accueil .tabs,body.en-accueil .notice-banner{display:none!important}
+body.en-accueil .main,body.en-accueil .main-content{background:var(--color-page)}
+body.en-accueil .main-content{padding:0 20px}
+.acc-entete{max-width:1000px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:18px 4px;border-bottom:1px solid var(--color-border-tertiary);flex-wrap:wrap}
+.acc-logo{font:500 20px var(--font-titre);color:var(--color-text-primary)}
+.acc-logo span{color:var(--color-ocre)}
+.acc-nav{display:flex;flex-wrap:wrap;gap:2px}
+.acc-nav-l{background:none;border:0;color:var(--color-text-secondary);font-size:14px;font-family:inherit;padding:6px 10px;border-radius:var(--border-radius-md);cursor:pointer}
+.acc-nav-l:hover{color:var(--color-text-primary);background:var(--color-background-secondary)}
+@media (max-width:760px){.acc-nav{width:100%;overflow-x:auto;flex-wrap:nowrap}}

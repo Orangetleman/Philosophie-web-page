@@ -26,13 +26,13 @@
 
 /* ── 1. Variables globales ───────────────────────────────────────── */
 :root{
-  --color-background-primary:#1e1e1e;
-  --color-background-secondary:#2a2a2a;
-  --color-text-primary:#f5f5f5;
-  --color-text-secondary:#d4d4d4;
-  --color-text-tertiary:#a0a0a0;
-  --color-border-tertiary:#3a3a3a;
-  --color-border-secondary:#555555;
+  --color-background-primary:#1f1913;
+  --color-background-secondary:#2a221a;
+  --color-text-primary:#ede4d3;
+  --color-text-secondary:#d3c6b0;
+  --color-text-tertiary:#a3957f;
+  --color-border-tertiary:#3a3026;
+  --color-border-secondary:#56493b;
   --color-background-info:#1e2d1e;
   --color-border-info:#2d5a2d;
   --color-text-info:#6abf6a;
@@ -45,7 +45,7 @@
   --border-radius-md:8px;
   /* Étape 6 (oct. 2026) : couleurs auparavant écrites en dur, passées en
      variables pour que le thème clair puisse les redéfinir. */
-  --color-page:#121212;                       /* fond autour du cadre */
+  --color-page:#17130f;                       /* fond autour du cadre */
   --color-accent:var(--color-accent-quiz);    /* était utilisé sans être défini (accroches) */
   --color-bad:#e08a8a; --color-bad-bg:#3a1e1e; --color-bad-border:#5a2d2d;
   --color-ok:#7bd88f;
@@ -55,6 +55,11 @@
   --dial-oppose:#e05a5a; --dial-oppose-bg:#3a1a1a; --dial-oppose-border:#6a2a2a;
   --dial-prolonge:#5aaa5a; --dial-prolonge-bg:#1a3a1a; --dial-prolonge-border:#2a5a2a;
   --dial-repond:#5a8ae0; --dial-repond-bg:#1a2a3a; --dial-repond-border:#2a4a6a;
+  /* Nov. 2026, piste A « Bibliothèque » (docs/maquettes/accueil-piste-a.html) :
+     les gris neutres du thème sombre ci-dessus sont passés en bruns chauds,
+     plus un accent ocre et la police des titres. Le thème clair ne change pas. */
+  --color-ocre:#c8873f; --color-ocre-texte:#1b130a;
+  --font-titre:"Literata",Georgia,serif;
   color-scheme:dark;
 }
 

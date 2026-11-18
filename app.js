@@ -65,6 +65,10 @@ let repereSearch='';
 //   'dissertation' | 'explication'. METHODO_TOPICS pilote la liste de la
 //   sidebar et le fil d'Ariane (défini plus bas, près de METHODO_GUIDE).
 let methodoTopic='dissertation';
+/* MODES_INDEX — les onglets qui ont une page de présentation (js/18-index.js),
+   et leur titre. Ici, et pas en 18, car du code de premier niveau (js/17) s'en sert. */
+const MODES_INDEX={notions:'Notions', auteurs:'Auteurs', concepts:'Concepts', reperes:'Repères'};
+let enIndex=false;           // nov. 2026 : page de présentation de l'onglet (js/18-index.js) plutôt qu'une fiche
 let explorerTopic='frise';   // étape 6 : sujet du mode Explorer (frise | graphe)
 // REPERES() / vrais concepts : helpers de partition du tableau CONCEPTS.
 //   isRepere(c)    → ce concept est-il un repère méthodologique ?
@@ -341,8 +345,9 @@ function pushHistory(){
   // Ne pas pousser si on est déjà sur la même page
   if(last&&last.sbMode===sbMode&&last.cur===cur&&last.curTab===curTab
     &&last.curAuthor===curAuthor&&last.curAuthorTab===curAuthorTab
-    &&last.curConcept===curConcept&&last.methodoTopic===methodoTopic&&last.explorerTopic===explorerTopic) return;
-  navHistory.push({sbMode,cur,curTab,curAuthor,curAuthorTab,curConcept,methodoTopic,explorerTopic});
+    &&last.curConcept===curConcept&&last.methodoTopic===methodoTopic&&last.explorerTopic===explorerTopic
+    &&!!last.enIndex===enIndex) return;
+  navHistory.push({sbMode,cur,curTab,curAuthor,curAuthorTab,curConcept,methodoTopic,explorerTopic,enIndex});
   if(navHistory.length>50) navHistory.shift();
   updateBackBtn();
 }
@@ -357,6 +362,7 @@ function goBack(){
   curAuthor=s.curAuthor; curAuthorTab=s.curAuthorTab; curConcept=s.curConcept;
   if(s.methodoTopic) methodoTopic=s.methodoTopic;
   if(s.explorerTopic) explorerTopic=s.explorerTopic;
+  enIndex=!!s.enIndex&&!!MODES_INDEX[s.sbMode];   // nov. 2026 : page de présentation
   renderSB();
   renderCurrentView();
   _navigating=false;
@@ -386,17 +392,19 @@ const NOTION_TABS=['auteurs','textes','concepts','diss','exemples'];
 /* renderCurrentView() — (re)rend la vue correspondant au sbMode courant.
    Même aiguillage que goBack ; factorisé pour la restauration et le démarrage. */
 function renderCurrentView(){
+  if(enIndex&&MODES_INDEX[sbMode]) return renderIndexContent();   // nov. 2026 (js/18-index.js)
   if(sbMode==='auteurs'&&curAuthor) renderAuthorContent();
   else if(sbMode==='concepts'||sbMode==='reperes') renderConceptContent();
   else if(sbMode==='methodo') renderMethodoContent();
   else if(sbMode==='explorer') renderExplorerContent();   // étape 6 : frise, graphe
+  else if(sbMode==='accueil') renderAccueilContent();     // nov. 2026 : page d'accueil (js/17-accueil.js)
   else renderContent();
 }
 
 /* navStateNow() — capture la position courante sous forme d'objet sérialisable. */
 function navStateNow(){
   return {sbMode,cur,curTab,curConceptSubTab,curExempleSubTab,
-          curAuthor,curAuthorTab,curConcept,methodoTopic,explorerTopic};
+          curAuthor,curAuthorTab,curConcept,methodoTopic,explorerTopic,enIndex};
 }
 
 /* sameNav(a,b) — deux états désignent-ils la même page ? (champs « cœur »,
@@ -405,7 +413,7 @@ function sameNav(a,b){
   return !!a&&!!b&&a.sbMode===b.sbMode&&a.cur===b.cur&&a.curTab===b.curTab
     &&a.curAuthor===b.curAuthor&&a.curAuthorTab===b.curAuthorTab
     &&a.curConcept===b.curConcept&&a.methodoTopic===b.methodoTopic
-    &&a.explorerTopic===b.explorerTopic;
+    &&a.explorerTopic===b.explorerTopic&&!!a.enIndex===!!b.enIndex;
 }
 
 /* persistNav() — sauvegarde la position dans localStorage à chaque rendu (donc
@@ -413,7 +421,10 @@ function sameNav(a,b){
    qu'il est connecté, la synchro des préférences (debouncée) emportera aussi la
    position vers le cloud. Appelée depuis renderCrumbs (commun aux 4 vues). */
 function persistNav(){
-  try{ localStorage.setItem('philo-nav', JSON.stringify(navStateNow())); }catch(e){}
+  // L'accueil n'est pas une « position » : on garde la dernière fiche, que la
+  // carte « Reprendre » de l'accueil propose (js/17-accueil.js).
+  // Idem pour une page de présentation (nov. 2026) : son adresse #/auteurs suffit à l'actualisation.
+  if(sbMode!=='accueil'&&!enIndex) try{ localStorage.setItem('philo-nav', JSON.stringify(navStateNow())); }catch(e){}
   majAdresse();   // l'adresse #/… et le titre de l'onglet suivent la page affichée
   if(navTouched && typeof syncOnPrefsChange==='function') syncOnPrefsChange();
 }
@@ -425,6 +436,9 @@ function persistNav(){
 function applyNavState(s){
   if(!s||typeof s!=='object') return false;
   const m=s.sbMode;
+  // Nov. 2026 : page de présentation d'un onglet (js/18-index.js).
+  if(s.enIndex&&MODES_INDEX[m]){ sbMode=m; enIndex=true; return true; }
+  enIndex=false;
   if(m==='notions'){
     if(!s.cur||!D[s.cur]) return false;
     cur=s.cur; sbMode='notions';
@@ -449,6 +463,7 @@ function applyNavState(s){
     sbMode='methodo';
     return true;
   }
+  if(m==='accueil'){ sbMode='accueil'; return true; }   // nov. 2026 : page d'accueil
   if(m==='explorer'){
     explorerTopic=(EXPLORER_TOPICS.find(t=>t.id===s.explorerTopic))?s.explorerTopic:'frise';
     sbMode='explorer';
@@ -468,10 +483,11 @@ function restoreNavFromStorage(){
    cible existante ? (sans muter l'état). Sert à nettoyer l'historique restauré. */
 function navEntryValid(s){
   if(!s) return false;
+  if(s.enIndex&&MODES_INDEX[s.sbMode]) return true;   // page de présentation
   if(s.sbMode==='notions') return !!D[s.cur];
   if(s.sbMode==='auteurs') return !!(s.curAuthor&&AI[s.curAuthor]);
   if(s.sbMode==='concepts'||s.sbMode==='reperes') return !!CONCEPTS.find(x=>x&&x.id===s.curConcept);
-  if(s.sbMode==='methodo'||s.sbMode==='explorer') return true;
+  if(s.sbMode==='methodo'||s.sbMode==='explorer'||s.sbMode==='accueil') return true;
   return false;
 }
 
@@ -488,7 +504,7 @@ function restoreNavHistory(){
    de navigation est vide). Inséré en tête des barres d'onglets. */
 function backBtnHTML(){
   const disabled=navHistory.length===0;
-  return `<button class="back-btn"${disabled?' disabled':''} onclick="goBack()" title="${disabled?'Aucune page précédente':`Retour (${navHistory.length} page${navHistory.length>1?'s':''})`}">← Retour</button>`;
+  return `<button class="back-btn"${disabled?' disabled':''} onclick="avecTransition(goBack)" title="${disabled?'Aucune page précédente':`Retour (${navHistory.length} page${navHistory.length>1?'s':''})`}">← Retour</button>`;
 }
 
 /* ── Adresses de page (#/…) — étape 3, octobre 2026 ──────────────────────
@@ -513,11 +529,13 @@ let navAdresseEnAttente=false;   // la prochaine majAdresse doit-elle créer une
 /* adresseDe(s) — l'adresse (#/…) d'un état de navigation. */
 function adresseDe(s){
   const e=encodeURIComponent;
+  if(s.enIndex&&MODES_INDEX[s.sbMode]) return '#/'+s.sbMode;   // nov. 2026 : #/notions, #/auteurs…
   if(s.sbMode==='auteurs'&&s.curAuthor) return '#/auteur/'+e(s.curAuthor)+(s.curAuthorTab&&s.curAuthorTab!=='idees'?'/'+e(s.curAuthorTab):'');
   if(s.sbMode==='concepts'&&s.curConcept) return '#/concept/'+e(s.curConcept);
   if(s.sbMode==='reperes'&&s.curConcept) return '#/repere/'+e(s.curConcept);
   if(s.sbMode==='methodo') return '#/methodo/'+e(s.methodoTopic||'dissertation');
   if(s.sbMode==='explorer') return '#/explorer/'+e(s.explorerTopic||'frise');
+  if(s.sbMode==='accueil') return '';   // nov. 2026 : l'accueil, c'est la racine sans #
   return '#/notion/'+e(s.cur)+(s.curTab&&s.curTab!=='auteurs'?'/'+e(s.curTab):'');
 }
 
@@ -526,6 +544,9 @@ function adresseDe(s){
    ramené au nom canonique. La validité de la cible est vérifiée ensuite par
    applyNavState (une adresse vers une fiche disparue est ignorée). */
 function etatDe(h){
+  // Nov. 2026 : #/notions, #/auteurs, #/concepts, #/reperes = pages de présentation.
+  const i=/^#\/([a-z]+)\/?$/.exec(h||'');
+  if(i&&MODES_INDEX[i[1]]) return {sbMode:i[1],enIndex:true};
   const m=/^#\/([a-z]+)\/([^/]+)(?:\/([^/]+))?$/.exec(h||'');
   if(!m) return null;
   let v, o;
@@ -543,6 +564,8 @@ function etatDe(h){
 
 /* titrePage() — le titre de l'onglet : « Liberté · Graphe Philosophie ». */
 function titrePage(){
+  if(sbMode==='accueil') return TITRE_ACCUEIL;   // nov. 2026 : le titre d'index.html
+  if(enIndex&&MODES_INDEX[sbMode]) return MODES_INDEX[sbMode]+' · Graphe Philosophie';
   let t='';
   if(sbMode==='auteurs'&&curAuthor) t=curAuthor;
   else if((sbMode==='concepts'||sbMode==='reperes')&&curConcept){ const c=CONCEPTS.find(x=>x.id===curConcept); t=c?c.term:''; }
@@ -645,10 +668,16 @@ window.addEventListener('popstate',()=>{
   const s=etatDe(location.hash)||etatDeChemin(location.pathname);
   // Retour au sommaire /fiches/ (pré-rendu, sans état d'app) : on recharge la page.
   if(!s&&!location.hash&&/^\/fiches\/$/.test(location.pathname)){ location.reload(); return; }
+  // Nov. 2026 : revenu à la racine sans # = l'accueil.
+  if(!s&&!location.hash&&!PAGE_ENTREE){ applyNavState({sbMode:'accueil'}); avecTransition(()=>{ _navigating=true; renderSB(); renderCurrentView(); _navigating=false; }); return; }
   if(!s||!applyNavState(s)) return;
-  _navigating=true;
-  renderSB(); renderCurrentView();
-  _navigating=false;
+  // Nov. 2026 : rendu dans une transition de vue (avecTransition, js/18-index.js),
+  // pour que la barre latérale glisse aussi au « précédent » du navigateur.
+  avecTransition(()=>{
+    _navigating=true;
+    renderSB(); renderCurrentView();
+    _navigating=false;
+  });
   const top=navHistory[navHistory.length-1];
   if(top&&sameNav(top,navStateNow())){ navHistory.pop(); updateBackBtn(); }
 });
@@ -779,11 +808,15 @@ function renderSB(){
   // « Méthodo » est à part : un GUIDE de méthodologie (renderMethodoContent),
   // pas une fiche concept. (Les onglets s'enroulent sur plusieurs lignes —
   // cf. CSS .sb-tabs/.sb-tab — pour rester tous visibles dans la sidebar.)
+  // Nov. 2026 : onglet « Accueil » en tête (ouvrirAccueil, js/17-accueil.js).
+  // Notions, Auteurs, Concepts, Repères mènent à leur page de présentation
+  // (allerIndex, js/18-index.js) ; une fiche s'ouvre ensuite depuis la liste.
   fixed.innerHTML=`<div class="sb-tabs" style="gap:1px;padding:8px 0 6px">
-    <div class="sb-tab${sbMode==='notions'?' active':''}" onclick="sbMode='notions';renderSB();renderContent()" style="font-size:9px">Notions</div>
-    <div class="sb-tab${sbMode==='auteurs'?' active':''}" onclick="if(sbMode!=='auteurs'){sbMode='auteurs';if(!curAuthor)curAuthor=authorsSorted()[0];curAuthorTab='idees';renderSB();renderAuthorContent();}" style="font-size:9px">Auteurs</div>
-    <div class="sb-tab${sbMode==='concepts'?' active':''}" onclick="if(sbMode!=='concepts'){sbMode='concepts';const c0=realConcepts().find(c=>c.id===curConcept)||realConcepts()[0];if(c0)curConcept=c0.id;renderSB();renderConceptContent();}" style="font-size:9px">Concepts</div>
-    <div class="sb-tab${sbMode==='reperes'?' active':''}" onclick="if(sbMode!=='reperes'){sbMode='reperes';const r0=REPERES().find(c=>c.id===curConcept)||REPERES()[0];if(r0)curConcept=r0.id;renderSB();renderConceptContent();}" style="font-size:9px" title="Repères du programme : les distinctions conceptuelles (absolu/relatif, légal/légitime…)">Repères</div>
+    <div class="sb-tab${sbMode==='accueil'?' active':''}" onclick="ouvrirAccueil()" style="font-size:9px" title="Retour au lobby (page d'accueil)">Accueil</div>
+    <div class="sb-tab${sbMode==='notions'?' active':''}" onclick="allerIndex('notions')" style="font-size:9px">Notions</div>
+    <div class="sb-tab${sbMode==='auteurs'?' active':''}" onclick="allerIndex('auteurs')" style="font-size:9px">Auteurs</div>
+    <div class="sb-tab${sbMode==='concepts'?' active':''}" onclick="allerIndex('concepts')" style="font-size:9px">Concepts</div>
+    <div class="sb-tab${sbMode==='reperes'?' active':''}" onclick="allerIndex('reperes')" style="font-size:9px" title="Repères du programme : les distinctions conceptuelles (absolu/relatif, légal/légitime…)">Repères</div>
     <div class="sb-tab${sbMode==='methodo'?' active':''}" onclick="if(sbMode!=='methodo'){sbMode='methodo';renderSB();renderMethodoContent();}" style="font-size:9px" title="Méthode pas à pas : dissertation et explication de texte">Méthodo</div>
     <div class="sb-tab${sbMode==='explorer'?' active':''}" onclick="if(sbMode!=='explorer'){pushHistory();sbMode='explorer';renderSB();renderExplorerContent();}" style="font-size:9px" title="Frise des auteurs et graphe des idées">Explorer</div>
   </div>`;
@@ -852,7 +885,8 @@ function renderSB(){
   applyPhiloMode();   // met à jour le libellé selon l'état actuel
   applyFicheMode();   // applique le « mode fiche » (lecture compressée) si actif
 
-  if(sbMode==='notions'){
+  // Sur l'accueil, la barre latérale garde la liste des notions (aucune active).
+  if(sbMode==='notions'||sbMode==='accueil'){
     const ajouterNotion=k=>{
       // Référencement (nov. 2026) : un VRAI lien <a href> vers la page
       // statique de la notion (les robots suivent les href, pas les onclick).
@@ -860,7 +894,7 @@ function renderSB(){
       // page statique dans un nouvel onglet, comme tout lien.
       const el=document.createElement('a');
       el.href=(PAGES_STATIQUES.notions[k]||'#/notion/'+k);
-      el.className='nb'+(k===cur?' active':'')+(estHP(k)?' nb-hp':'');
+      el.className='nb'+(k===cur&&sbMode==='notions'?' active':'')+(estHP(k)?' nb-hp':'');
       el.innerHTML=`<span class="dot" style="background:${D[k].c}"></span>${D[k].l}`;
       el.onclick=ev=>{
         if(ev.ctrlKey||ev.metaKey||ev.shiftKey||ev.button!==0) return;   // laisse le navigateur ouvrir le lien
@@ -1382,6 +1416,7 @@ function planCardHTML(p){
    Contenu : titre, catégorie, définition, auteur(s) associé(s),
    tensions conceptuelles, notion-pills (liens vers les notions liées). */
 function renderConceptContent(){
+  enIndex=false;   // nov. 2026 : une fiche, pas la page de présentation (js/18-index.js)
   renderCrumbs();
   const mainEl=document.getElementById('main');
   if(!mainEl.querySelector('.tabs')||!mainEl.querySelector('.main-content')){
@@ -1696,6 +1731,7 @@ document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeFacet(); });
    pour y revenir directement. Le dernier segment (en cours) est inerte. */
 function renderCrumbs(){
   persistNav();   // mémorise la position courante (résiste à l'actualisation + cloud)
+  marquerAccueil();   // nov. 2026 : lobby plein écran sur l'accueil (js/17-accueil.js)
   const el=document.getElementById('crumbs'); if(!el) return;
   // Helper : un segment. cur=true → segment « courant » (non cliquable).
   const seg=(label,act,arg,cur)=>cur
@@ -1703,7 +1739,9 @@ function renderCrumbs(){
     : `<span class="crumb" data-act="${act}" data-arg="${pEsc(arg||'')}">${label}</span>`;
   const sep=`<span class="crumb-sep">›</span>`;
   const segs=[];
-  if(sbMode==='notions'){
+  if(enIndex&&MODES_INDEX[sbMode]){
+    segs.push(seg(MODES_INDEX[sbMode],'',null,true));   // nov. 2026 : page de présentation
+  }else if(sbMode==='notions'){
     segs.push(seg('Notions','mode','notions',false));
     const n=D[cur];
     if(n){
@@ -1754,6 +1792,8 @@ function renderCrumbs(){
     segs.push(seg('Méthodo','mode','methodo',false));
     const t=METHODO_TOPICS.find(t=>t.id===methodoTopic);
     if(t) segs.push(seg(t.label,'',null,true));
+  }else if(sbMode==='accueil'){
+    segs.push(seg('Accueil','',null,true));   // nov. 2026 : page d'accueil
   }else if(sbMode==='explorer'){
     // Explorer (étape 6) : racine « Explorer » + sujet courant.
     segs.push(seg('Explorer','mode','explorer',false));
@@ -1765,6 +1805,9 @@ function renderCrumbs(){
 /* goMode(mode) — bascule la sidebar vers un mode (notions/auteurs/concepts)
    et re-rend la zone principale. Utilisé par les crumbs et la sb-tab. */
 function goMode(mode){
+  // Nov. 2026 : les onglets qui ont une page de présentation y mènent
+  // (fil d'Ariane, lobby) ; allerIndex empile l'historique.
+  if(MODES_INDEX[mode]){ allerIndex(mode); return; }
   if(sbMode===mode){ renderSB(); return; }
   sbMode=mode;
   if(mode==='notions'){ renderSB(); renderContent(); }
@@ -1773,6 +1816,7 @@ function goMode(mode){
   else if(mode==='reperes'){ const r0=REPERES().find(c=>c.id===curConcept)||REPERES()[0]; if(r0) curConcept=r0.id; renderSB(); renderConceptContent(); }
   else if(mode==='methodo'){ renderSB(); renderMethodoContent(); }   // guide de méthodologie
   else if(mode==='explorer'){ renderSB(); renderExplorerContent(); }   // étape 6 : frise, graphe
+  else if(mode==='accueil'){ renderSB(); renderAccueilContent(); }    // nov. 2026 : page d'accueil
 }
 
 /* openAuthor(name) — ouvre la fiche d'un auteur depuis n'importe où :
@@ -1841,6 +1885,7 @@ function ideaSynthese(it){
 }
 
 function renderAuthorContent(){
+  enIndex=false;   // nov. 2026 : une fiche, pas la page de présentation (js/18-index.js)
   renderCrumbs();
   const mainEl=document.getElementById('main');
   if(!mainEl.querySelector('.tabs')||!mainEl.querySelector('.main-content')){
@@ -2021,6 +2066,7 @@ function sourcesHTML(src){
 }
 
 function renderContent(){
+  enIndex=false;   // nov. 2026 : une fiche, pas la page de présentation (js/18-index.js)
   renderCrumbs();
   const mainEl=document.getElementById('main');
   // Garantir la structure .tabs + .main-content
@@ -4585,6 +4631,14 @@ function tourShowTab(tab){
   renderSB(); renderContent();
 }
 
+/* tourShowAccueil() / tourShowIndex(mode) — nov. 2026 : montrent le lobby ou
+   la page de présentation d'un onglet (js/17-accueil.js, js/18-index.js),
+   sans toucher à l'historique. tourModeActif : l'onglet allumé de la barre
+   du haut, qui sert de halo (où cliquer pour revenir à cette page). */
+function tourShowAccueil(){ sbMode='accueil'; renderSB(); renderAccueilContent(); }
+function tourShowIndex(mode){ sbMode=mode; enIndex=true; indexRecherche=''; indexNotions=new Set(); indexFiltreOuvert=false; renderSB(); renderIndexContent(); }
+function tourModeActif(){ return document.querySelector('.topbar-mode.on'); }
+
 /* tourSbTabActif() — renvoie l'onglet actif de la barre latérale (Notions,
    Auteurs…). Sert de halo aux étapes qui présentent la LISTE d'un mode :
    le projecteur reste sur la liste, le halo rappelle sur quel onglet
@@ -4722,40 +4776,47 @@ const TOUR_STEPS=[
     nextLabel:'Commencer ▶' },
 
   // ── Partie 1 : Les fiches ──
-  { part:'fiches', side:'sidebar', title:'Cinq portes d’entrée',
-    text:"Tout en haut de la barre latérale, <b>cinq onglets</b> ouvrent l’outil "
-        +"sous plusieurs angles : <b>Notions</b>, <b>Auteurs</b>, <b>Concepts</b>, "
-        +"<b>Repères</b> (les distinctions du programme) et <b>Méthodo</b> "
-        +"(la méthode pas à pas de la dissertation et de l’explication de texte).",
-    setup:tourShowNotion, target:()=>document.querySelector('.sb-tabs') },
+  // Nov. 2026 : la visite part du lobby, puis présente chaque rubrique par sa
+  // page de présentation (pleine largeur, barre latérale repliée).
+  { part:'fiches', side:'main', title:'L’accueil',
+    text:"Tu arrives ici en ouvrant le site. En haut, les <b>rubriques</b> : <b>Notions</b>, "
+        +"<b>Auteurs</b>, <b>Concepts</b>, <b>Méthodo</b>, <b>Explorer</b>, le <b>Quiz</b> et la recherche. "
+        +"Plus bas, la <b>notion du jour</b>, « Reprendre où j’en étais », les sujets tombés au bac et les nouveautés.",
+    setup:tourShowAccueil, target:()=>document.querySelector('.acc-entete') },
   // Chaque porte d'entrée est PRÉSENTÉE en basculant réellement la sidebar dans
   // son mode (tourShowSidebarMode) puis en mettant en valeur sa LISTE, pas le
   // simple bouton d'onglet (retour utilisateur BOX 17 : « tu dis Notions, tu
   // présentes les notions ; tu dis Auteurs, tu présentes les auteurs… »).
   // L'onglet lui-même reçoit un léger halo (tourSbTabActif), comme les
   // onglets de la fiche plus bas (tourTabEl) : on voit la liste ET où cliquer.
-  { part:'fiches', side:'sidebar', title:'Les Notions',
-    text:"Voici la liste des <b>notions</b> du programme (la conscience, la nature, l’art…). "
-        +"C’est le point de départ le plus naturel.",
-    setup:()=>tourShowSidebarMode('notions'), target:()=>document.querySelector('#sb .sidebar-list'),
-    halo:tourSbTabActif },
-  { part:'fiches', side:'sidebar', title:'Les Auteurs',
-    text:"Tu préfères entrer par un <b>philosophe</b> ? Cet onglet liste les auteurs et, pour "
-        +"chacun, ses idées clés et les notions qu’il a traitées.",
-    setup:()=>tourShowSidebarMode('auteurs'), target:()=>document.querySelector('#sb .sidebar-list'),
-    halo:tourSbTabActif },
-  { part:'fiches', side:'sidebar', title:'Les Concepts',
+  { part:'fiches', side:'main', title:'Les Notions',
+    text:"Chaque rubrique s’ouvre d’abord sur une <b>page de présentation</b>. Ici, les "
+        +"<b>notions</b> du programme (la conscience, la nature, l’art…) : le point de départ le plus naturel.",
+    setup:()=>tourShowIndex('notions'), target:()=>document.querySelector('.idx-grille'),
+    halo:tourModeActif },
+  { part:'fiches', side:'main', title:'Les Auteurs',
+    text:"Tu préfères entrer par un <b>philosophe</b> ? Les auteurs, avec leurs dates, leur courant "
+        +"et des points de couleur pour les notions où ils apparaissent.",
+    setup:()=>tourShowIndex('auteurs'), target:()=>document.querySelector('.idx-grille'),
+    halo:tourModeActif },
+  { part:'fiches', side:'main', title:'Chercher et filtrer',
+    text:"Sur chaque page, une <b>recherche</b> et un bouton <b>Filtrer par notion</b> : coche des notions, "
+        +"puis choisis <b>Au moins une</b> (ce qui touche l’une d’elles) ou <b>Toutes</b> (ce qui les touche toutes).",
+    setup:()=>{ tourShowIndex('concepts'); indexFiltreOuvert=true; renderIndexContent(); },
+    target:()=>document.querySelector('.idx-outils'), halo:tourModeActif },
+  { part:'fiches', side:'main', title:'Les Concepts',
     text:"Le <b>glossaire</b> des termes techniques (le déterminisme, l’aliénation…), avec leur "
         +"définition et leurs liens vers les notions et les autres concepts.",
-    setup:()=>tourShowSidebarMode('concepts'), target:()=>document.querySelector('#sb .sidebar-list'),
-    halo:tourSbTabActif },
-  { part:'fiches', side:'sidebar', title:'Les Repères',
+    setup:()=>tourShowIndex('concepts'), target:()=>document.querySelector('.idx-grille'),
+    halo:tourModeActif },
+  { part:'fiches', side:'main', title:'Les Repères',
     text:"Les <b>repères du programme</b> : les distinctions à maîtriser pour analyser un sujet "
         +"(absolu/relatif, légal/légitime, en fait/en droit…), chacune avec sa définition et un exemple.",
-    setup:()=>tourShowSidebarMode('reperes'), target:()=>document.querySelector('#sb .sidebar-list'),
-    halo:tourSbTabActif },
+    setup:()=>tourShowIndex('reperes'), target:()=>document.querySelector('.idx-grille'),
+    halo:tourModeActif },
   { part:'fiches', side:'sidebar', title:'La Méthodo',
-    text:"Le <b>guide de méthode</b> : comment analyser un sujet, problématiser, bâtir un plan et "
+    text:"Quand tu ouvres une fiche, la <b>barre latérale</b> apparaît à gauche avec la liste de la rubrique. "
+        +"Ici, le <b>guide de méthode</b> : comment analyser un sujet, problématiser, bâtir un plan et "
         +"rédiger une <b>dissertation</b> ou une <b>explication de texte</b> — avec un squelette "
         +"visuel de la copie et des phrases toutes prêtes, étape par étape.",
     setup:()=>tourShowSidebarMode('methodo'), target:()=>document.querySelector('#sb .sidebar-list'),
@@ -4827,7 +4888,7 @@ const TOUR_STEPS=[
         +"tape une notion, un auteur ou un concept et saute droit à sa fiche.",
     setup:tourShowNotion, target:()=>document.getElementById('topbar-search') },
   { part:'nav', side:'sidebar', title:'Réglages & aide',
-    text:"Tout en bas de la barre, <b>⚙ Réglages</b> regroupe deux options :"
+    text:"Tout en bas de la barre latérale (ou en haut à droite quand elle est repliée), <b>⚙ Réglages</b> regroupe deux options :"
         +"<ul class='tour-list'>"
         +"<li><b>Mode fiche</b> : compresse chaque fiche d’auteur en une <b>synthèse courte</b>, pour réviser vite.</li>"
         +"<li><b>Mode édition</b> : fait apparaître les boutons <b>+</b> pour proposer des corrections.</li>"
@@ -4946,7 +5007,7 @@ const TOUR_STEPS=[
   // CLIQUE pas le bouton : aucun risque si Supabase n'est pas encore configuré,
   // on ne fait que le désigner.
   { part:'compte', side:'sidebar', title:'Un compte (facultatif)',
-    text:"Tout en bas de la barre latérale, tu peux <b>créer un compte</b>. Ce n’est pas "
+    text:"Tout en bas de la barre latérale (ou avec 👤 en haut quand elle est repliée), tu peux <b>créer un compte</b>. Ce n’est pas "
         +"obligatoire pour réviser, mais ça débloque deux choses bien pratiques.",
     setup:tourShowNotion, target:()=>document.querySelector('.sb-account') },
   { part:'compte', center:true, title:'Sync & suivi',
@@ -5098,6 +5159,9 @@ function endTour(){
   }
   tourState.i=-1;
   tourCloseOverlays();                           // referme quiz/contribution ouverts par la visite
+  // Nov. 2026 : l'étape « Chercher et filtrer » déplie le filtre des pages de
+  // présentation (js/18-index.js) ; on le replie en sortant de la visite.
+  if(indexFiltreOuvert){ indexFiltreOuvert=false; if(enIndex&&MODES_INDEX[sbMode]) renderIndexContent(); }
   applyPhiloMode();                              // restaure le mode (édition tempo)
   try{ localStorage.setItem('philo-tour-v1','1'); }catch(e){}
   syncOnPrefsChange();                           // new (Phase 2) : « visite vue » suit le compte
@@ -6169,7 +6233,10 @@ function applyPrefsBlob(p){
   // n'a pas encore navigué sur cet appareil (navTouched). Sinon sa position
   // locale fait foi — on ne le « téléporte » jamais en pleine lecture, et on
   // n'écrase pas non plus son philo-nav local.
-  if(p.nav && !navTouched && !sameNav(p.nav, navStateNow())){
+  // Nov. 2026 : sur l'accueil (lobby), on ne bascule pas : la position
+  // distante devient la cible de la carte « Reprendre » (accueilPositionDistante).
+  if(p.nav && !navTouched && sbMode==='accueil') accueilPositionDistante(p.nav);
+  else if(p.nav && !navTouched && !sameNav(p.nav, navStateNow())){
     // Avant de basculer sur la page d'un AUTRE appareil, on empile la page
     // LOCALE courante dans l'historique : ainsi « ← Retour » ramène à là où CET
     // appareil en était (la page distante ne fait pas disparaître la locale).
@@ -8557,6 +8624,362 @@ function imprimerFiche(k){
   window.addEventListener('afterprint',fin);
   window.print();
 }
+/* js/17-accueil.js — morceau du script du site. Le build (outils/construire.mjs)
+   recolle js/*.js dans l'ORDRE des noms en UN SEUL script, app.js : les
+   fonctions restent visibles d'un morceau à l'autre comme avant, et le code
+   « de premier niveau » s'exécute dans cet ordre. */
+/* ── PAGE D'ACCUEIL (nov. 2026, piste A « Bibliothèque ») ────────────────
+   sbMode='accueil' : la vue affichée quand on arrive sur le site SANS
+   adresse précise (racine, sans #/… ni page d'entrée ; cf. accueilAuDemarrage
+   appelée par js/99-demarrage.js). On y revient par l'onglet « Accueil » de
+   la barre latérale ou le bouton Retour.
+   Contenu, tiré des données (rien d'écrit à la main qui vieillirait) :
+     · accroche + deux entrées : découvrir (1re notion) / réviser (quiz) ;
+     · « Reprendre » : la dernière page ouverte, lue dans philo-nav AU
+       CHARGEMENT (NAV_REPRENDRE), avant que l'accueil ne s'affiche ;
+     · les notions, dont une « notion du jour » en grand (change chaque jour,
+       la même pour tout le monde) ;
+     · les derniers sujets tombés au bac et les dernières nouveautés.
+   Aucune donnée nouvelle : philo-nav existe déjà (js/02-navigation.js), et
+   l'accueil ne l'écrit PAS (persistNav l'ignore), pour que « Reprendre »
+   désigne toujours une vraie fiche. Styles : css/12-accueil.css. */
+
+/* NAV_REPRENDRE — la position mémorisée au chargement (ou null). Lue ici,
+   au premier niveau, donc avant le démarrage (99) et avant tout rendu. */
+let NAV_REPRENDRE=(()=>{   // let : une position distante peut la remplacer
+  try{ const s=JSON.parse(localStorage.getItem('philo-nav')||'null');
+       return s&&s.sbMode&&s.sbMode!=='accueil'&&!s.enIndex&&navEntryValid(s)?s:null; }
+  catch(e){ return null; }
+})();
+
+/* accueilPositionDistante(nav) — la synchro (js/11-synchro.js) a reçu la
+   position d'un autre appareil alors qu'on est sur l'accueil : au lieu d'y
+   emmener l'élève d'autorité, elle devient la cible de « Reprendre ». */
+function accueilPositionDistante(nav){
+  if(!nav||nav.sbMode==='accueil'||nav.enIndex||!navEntryValid(nav)) return;
+  NAV_REPRENDRE=nav;
+  if(sbMode==='accueil') renderAccueilContent();
+}
+
+/* accueilAuDemarrage() — au démarrage : bascule sur l'accueil si l'on arrive
+   à la racine du site sans adresse (#/…) ni page d'entrée (/notions/…,
+   /auteurs/…, /fiches/). Une actualisation sur une fiche garde sa fiche,
+   puisque son adresse #/… est dans l'URL. */
+function accueilAuDemarrage(){
+  if(location.hash||PAGE_ENTREE||document.body.dataset.entree) return;
+  if(etatDeChemin(location.pathname)||/[?&]depuis=/.test(location.search)) return;
+  sbMode='accueil';
+}
+
+/* ouvrirAccueil() — l'onglet « Accueil » de la barre latérale. */
+function ouvrirAccueil(){ allerIndex('accueil'); }   // transition comprise (js/18-index.js)
+
+/* accueilOuvrirNotion(k) — depuis l'accueil, ouvre une notion (onglet Auteurs). */
+function accueilOuvrirNotion(k){
+  if(!D[k]) return;
+  indexOuvrir('notion', k);   // même chemin qu'une carte : la barre latérale glisse
+}
+
+/* accueilReprendre() — rouvre la page mémorisée (NAV_REPRENDRE). */
+function accueilReprendre(){
+  if(!NAV_REPRENDRE) return;
+  avecTransition(()=>{ pushHistory(); applyNavState(NAV_REPRENDRE); renderSB(); renderCurrentView(); });
+}
+
+/* accueilExplorer(t) — ouvre un sujet du mode Explorer (sujets, nouveautés). */
+function accueilExplorer(t){
+  avecTransition(()=>{ pushHistory(); sbMode='explorer'; explorerTopic=t; renderSB(); renderExplorerContent(); });
+}
+
+/* accueilAller(mode) — depuis l'en-tête du lobby : entre dans l'app sur un
+   mode de la barre latérale (notions, auteurs, concepts, méthodo, explorer). */
+function accueilAller(mode){
+  allerIndex(mode);   // transition et historique compris (js/18-index.js)
+}
+
+/* marquerAccueil() — pose ou retire body.en-accueil selon la vue : sur
+   l'accueil, le CSS (css/12-accueil.css) cache le cadre de l'app (barre
+   latérale, barre du haut, onglets, bandeau) pour en faire un « lobby ».
+   Appelée par renderCrumbs, que toutes les vues appellent. */
+function marquerAccueil(){
+  if(!(enIndex&&MODES_INDEX[sbMode])){ const mc=document.querySelector('#main .main-content'); if(mc) delete mc.dataset.idx; }
+  document.body.classList.toggle('en-accueil', sbMode==='accueil');
+  // Nov. 2026 : la barre latérale n'est montrée que sur une fiche (notion,
+  // auteur, concept, repère) et dans la Méthodo ; ailleurs, body.sans-barre
+  // la replie avec une animation (css/13-index.css).
+  document.body.classList.toggle('sans-barre', sbMode==='accueil'||sbMode==='explorer'||(enIndex&&!!MODES_INDEX[sbMode]));
+  document.querySelectorAll('.topbar-mode').forEach(b=>b.classList.toggle('on', b.dataset.mode===sbMode));
+}
+
+/* libelleNav(s) — nom lisible d'une position mémorisée, pour « Reprendre ». */
+function libelleNav(s){
+  const ongN={auteurs:'Auteurs',textes:'Textes',concepts:'Concepts',diss:'Dissertations',exemples:'Exemples'};
+  const ongA={idees:'Idées',citations:'Citations',oeuvres:'Œuvres',dialogues:'Dialogues'};
+  if(s.sbMode==='notions') return {t:D[s.cur].l, d:'Notion · onglet '+(ongN[s.curTab]||'Auteurs')};
+  if(s.sbMode==='auteurs') return {t:s.curAuthor, d:'Auteur · '+(ongA[s.curAuthorTab]||'Idées')};
+  if(s.sbMode==='concepts'||s.sbMode==='reperes'){
+    const c=CONCEPTS.find(x=>x&&x.id===s.curConcept);
+    return {t:c?c.term:'Concept', d:s.sbMode==='reperes'?'Repère':'Concept'};
+  }
+  if(s.sbMode==='methodo') return {t:'Méthodo', d:'Guide de méthode'};
+  const x=EXPLORER_TOPICS.find(x=>x.id===s.explorerTopic);
+  return {t:x?x.label:'Explorer', d:'Explorer'};
+}
+
+/* texteBrut(h) — le texte d'un fragment HTML (définitions avec <span class='kw'>). */
+function texteBrut(h){ const d=document.createElement('div'); d.innerHTML=h||''; return d.textContent; }
+
+/* renderAccueilContent() — rend la page d'accueil dans .main-content.
+   Même squelette que les autres vues (.tabs avec Retour + .main-content). */
+function renderAccueilContent(){
+  renderCrumbs();
+  const mainEl=document.getElementById('main');
+  if(!mainEl.querySelector('.tabs')||!mainEl.querySelector('.main-content')){
+    mainEl.innerHTML='<div class="tabs"></div><div class="main-content"></div>';
+  }
+  mainEl.querySelector('.tabs').innerHTML='';   // lobby : pas d'onglets (masqués par body.en-accueil)
+  const mc=mainEl.querySelector('.main-content');
+
+  // Notions du programme seulement (le hors programme reste dans la barre latérale),
+  // dans l'ordre du site (KEYS), pas l'ordre alphabétique de PROGRAMME.
+  const notions=KEYS.filter(k=>PROG_NOTIONS.has(k));
+  const nbAuteurs=(PROGRAMME.auteurs||[]).length;
+  // Notion du jour : jour depuis 1970 modulo le nombre de notions.
+  const jour=Math.floor(Date.now()/864e5);
+  const vedette=notions[jour%notions.length];
+  const premiere=notions[0];
+
+  // ── Accroche + « Reprendre » (ou, à la 1re visite, « Comment ça marche »)
+  let carte;
+  if(NAV_REPRENDRE){
+    const l=libelleNav(NAV_REPRENDRE);
+    carte=`<div class="acc-carte" role="button" tabindex="0" onclick="accueilReprendre()" onkeydown="if(event.key==='Enter')accueilReprendre()">
+      <p class="acc-petit">Reprendre où j'en étais</p><b>${pEsc(l.t)}</b><small>${pEsc(l.d)}</small></div>`;
+  }else{
+    carte=`<div class="acc-carte" role="button" tabindex="0" onclick="toggleHelpMenu(event)" onkeydown="if(event.key==='Enter')toggleHelpMenu(event)">
+      <p class="acc-petit">Première visite ?</p><b>Visite guidée</b><small>Deux minutes pour voir comment le site est rangé.</small></div>`;
+  }
+
+  // ── Grille des notions, la vedette en premier
+  const carteN=(k,v)=>{
+    const n=D[k];
+    return `<a class="acc-n${v?' vedette':''}" href="${pEsc(PAGES_STATIQUES.notions[k]||'#/notion/'+k)}" style="--coul:${n.c}"
+      onclick="event.preventDefault();accueilOuvrirNotion('${k}')">
+      ${v?'<p class="acc-petit">Notion du jour</p>':''}<b>${pEsc(n.l)}</b><small>${pEsc(n.s||'')}</small>
+      ${v?`<div class="acc-def">${pEsc(texteBrut(n.def).slice(0,240))}…</div>`:''}</a>`;
+  };
+  const grille=[vedette,...notions.filter(k=>k!==vedette)].map(k=>carteN(k,k===vedette)).join('');
+
+  // ── Derniers sujets (dissertations : ceux qui ont une question)
+  const sujets=(SUJETS_BAC.sujets||[]).filter(x=>x.q).slice(0,4).map(x=>
+    `<div class="acc-ligne" onclick="accueilExplorer('sujets')"><div class="acc-l1">« ${pEsc(x.q)} »</div><small>${pEsc(x.date)} · voie ${pEsc(x.voie)}</small></div>`).join('');
+
+  // ── Dernières nouveautés
+  const nouv=(NOUVEAUTES||[]).slice(0,4).map(x=>{
+    const d=new Date(x.date+'T12:00:00').toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'});
+    return `<div class="acc-ligne" onclick="accueilExplorer('nouveautes')"><div class="acc-l1">${pEsc(x.titre)}</div><small>${d}</small></div>`;
+  }).join('');
+
+  // En-tête PROPRE au lobby : la barre latérale et la barre du haut sont
+  // masquées (body.en-accueil, posée par marquerAccueil) ; on entre dans l'app
+  // par ces liens, une notion, ou les boutons de l'accroche.
+  const lien=(l,m)=>`<button class="acc-nav-l" onclick="accueilAller('${m}')">${l}</button>`;
+  const entete=`<header class="acc-entete"><span class="acc-logo">Philo<span>.</span> Terminale</span>
+    <nav class="acc-nav">${lien('Notions','notions')}${lien('Auteurs','auteurs')}${lien('Concepts','concepts')}${lien('Méthodo','methodo')}${lien('Explorer','explorer')}<button class="acc-nav-l" onclick="openQuiz()">Quiz</button><button class="acc-nav-l" onclick="openPalette()" aria-label="Rechercher">🔍</button></nav></header>`;
+  mc.innerHTML=entete+`<div class="acc">
+    <div class="acc-hero">
+      <div>
+        <h1>Les ${notions.length} notions du bac de philo, expliquées et reliées.</h1>
+        <p class="acc-chapo">${notions.length} notions, ${nbAuteurs} auteurs du programme, des concepts reliés entre eux et les sujets tombés depuis 2021. Pour découvrir sans rien connaître, ou pour réviser avant l'écrit.</p>
+        <button class="acc-btn p" onclick="accueilOuvrirNotion('${premiere}')">Je découvre : ${pEsc(D[premiere].l.toLowerCase())}</button><button class="acc-btn" onclick="openQuiz()">Je révise : le quiz</button>
+      </div>
+      ${carte}
+    </div>
+    <section class="acc-section"><h2>Les notions</h2><div class="acc-notions">${grille}</div></section>
+    <section class="acc-section acc-deux">
+      <div><h2>Tombé au bac</h2>${sujets}<button class="acc-plus" onclick="accueilExplorer('sujets')">Tous les sujets →</button></div>
+      <div><h2>Nouveautés</h2>${nouv}<button class="acc-plus" onclick="accueilExplorer('nouveautes')">Tout le journal →</button></div>
+    </section>
+  </div>`;
+}
+/* js/18-index.js — morceau du script du site. Le build (outils/construire.mjs)
+   recolle js/*.js dans l'ORDRE des noms en UN SEUL script, app.js : les
+   fonctions restent visibles d'un morceau à l'autre comme avant, et le code
+   « de premier niveau » s'exécute dans cet ordre. */
+/* ── PAGES DE PRÉSENTATION des onglets (nov. 2026) ────────────────────────
+   Notions, Auteurs, Concepts, Repères ont chacun une page « index » : pleine
+   largeur, grande recherche, filtre par notion (repliable, « au moins une »
+   ou « toutes »), cartes. État : enIndex=true (js/01-donnees-etat.js) avec le
+   sbMode de l'onglet ; adresses #/notions, #/auteurs, #/concepts, #/reperes
+   (adresseDe / etatDe, js/02-navigation.js). On y arrive par les onglets de
+   mode (allerIndex), le lobby, le fil d'Ariane (goMode). Ouvrir une fiche
+   remet enIndex=false (les rendus de fiche de js/04-fiches.js le font en tête).
+   La BARRE LATÉRALE n'est montrée que sur une fiche : body.sans-barre
+   (posée par marquerAccueil) la replie sur le lobby, ces pages et Explorer ;
+   la barre du haut reçoit alors les onglets de mode et les boutons du bas de
+   la barre (Réviser, Proposer, Réglages, compte).
+   Mode édition : les cartes portent les drapeaux ✦ Nouveau / ✎ Modifié (new,
+   modified du contenu) et la page un bouton « + Proposer » (pPlusCat), comme
+   les fiches ; le CSS existant les cache en mode révision.
+   Animations : avecTransition passe par les transitions de vue du navigateur
+   (document.startViewTransition) ; css/13-index.css fait glisser la barre
+   latérale et la barre du haut quand elles apparaissent ou disparaissent.
+   Styles : css/13-index.css. */
+
+/* MODES_INDEX (les onglets qui ont une page de présentation) est défini dans
+   js/01-donnees-etat.js : NAV_REPRENDRE (js/17) s'en sert dès le chargement. */
+let indexRecherche='';          // texte de la recherche de la page affichée
+let indexNotions=new Set();     // notions cochées dans le filtre (vide = toutes)
+let indexModeFiltre='or';       // 'or' = au moins une notion cochée ; 'and' = toutes
+let indexFiltreOuvert=false;    // panneau du filtre déplié ?
+
+/* avecTransition(fn) — exécute fn (un changement de vue) dans une transition
+   de vue du navigateur quand elle existe, sinon directement. Rien d'animé si
+   l'élève a demandé à réduire les animations (réglage du système). */
+function avecTransition(fn){
+  const reduit=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(document.startViewTransition&&!reduit){
+    document.documentElement.classList.add('vt');   // coupe la transition CSS de largeur (doublon)
+    document.startViewTransition(fn);
+  }else fn();
+}
+
+/* allerIndex(mode) — ouvre la page de présentation d'un onglet (onglets de la
+   barre latérale, barre du haut, lobby). Pour Méthodo et Explorer, qui n'en
+   ont pas, ouvre leur page habituelle ; 'accueil' rouvre le lobby. */
+function allerIndex(mode){
+  if(sbMode===mode&&(enIndex||!MODES_INDEX[mode])) return;
+  avecTransition(()=>{
+    pushHistory();
+    if(mode==='accueil'){ sbMode='accueil'; renderSB(); renderAccueilContent(); return; }
+    if(!MODES_INDEX[mode]){ sbMode=mode; enIndex=false; renderSB(); renderCurrentView(); return; }
+    if(sbMode!==mode){ indexRecherche=''; indexNotions=new Set(); indexFiltreOuvert=false; }
+    sbMode=mode; enIndex=true;
+    renderSB(); renderIndexContent();
+  });
+}
+
+/* indexOuvrir(type, cle) — depuis une carte : ouvre la fiche (enIndex
+   repasse à false dans le rendu de la fiche), avec la barre qui glisse. */
+function indexOuvrir(type, cle){
+  avecTransition(()=>{
+    if(type==='notion'){ pushHistory(); sbMode='notions'; cur=cle; curTab='auteurs'; renderSB(); renderContent(); }
+    else if(type==='auteur') openAuthor(cle);
+    else openConcept(cle);
+  });
+}
+
+/* indexFiltrer(k) — coche / décoche une notion du filtre (null : tout
+   effacer), puis re-rend. */
+function indexFiltrer(k){
+  if(k===null) indexNotions=new Set();
+  else if(indexNotions.has(k)) indexNotions.delete(k); else indexNotions.add(k);
+  renderIndexContent();
+}
+/* indexModeDeFiltre(m) — « au moins une » ('or') ou « toutes » ('and'). */
+function indexModeDeFiltre(m){ indexModeFiltre=m; renderIndexContent(); }
+/* indexBasculerFiltre() — déplie / replie le panneau du filtre. */
+function indexBasculerFiltre(){ indexFiltreOuvert=!indexFiltreOuvert; renderIndexContent(); }
+
+/* indexChercher(v) — la recherche : ne re-rend que la grille (le champ
+   garde le focus et le curseur). */
+function indexChercher(v){
+  indexRecherche=v;
+  const g=document.getElementById('index-grille');
+  if(g) g.innerHTML=indexGrilleHTML();
+}
+
+/* sansAccents(s) — minuscules sans accents, pour une recherche tolérante. */
+function sansAccents(s){ return String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,''); }
+
+/* indexElements() — les éléments de l'onglet courant, filtrés : {type, cle,
+   titre, sous, notions[], couleur, nouveau, modifie}. Même visibilité que la
+   barre latérale (hors programme masqué si l'élève l'a choisi). */
+function indexElements(){
+  const q=sansAccents(indexRecherche.trim());
+  let el=[];
+  if(sbMode==='notions'){
+    el=notionsVisibles().map(k=>({type:'notion',cle:k,titre:D[k].l,sous:D[k].s||'',notions:[k],couleur:D[k].c,hp:estHP(k),nouveau:D[k].new,modifie:D[k].modified}));
+  }else if(sbMode==='auteurs'){
+    el=authorsSorted().filter(auteurVisible).map(n=>{
+      const f=AM[n]||{};
+      const dates=f.naissance!=null?anneeTxt(f.naissance)+(f.mort!=null?' – '+anneeTxt(f.mort):''):'';
+      return {type:'auteur',cle:n,titre:n,sous:[dates,f.courant].filter(Boolean).join(' · '),notions:AI[n].notions.filter(notionVisible),texte:f.bio||'',nouveau:f.new,modifie:f.modified};
+    });
+  }else{
+    const src=sbMode==='reperes'?REPERES():realConcepts().filter(conceptVisible);
+    el=src.map(c=>({type:'concept',cle:c.id,titre:c.term,sous:c.cat&&c.cat!=='Repère'?c.cat:'',notions:c.notions.filter(k=>D[k]),texte:texteBrut(c.def),nouveau:c.new,modifie:c.modified}));
+    el.sort((a,b)=>a.titre.localeCompare(b.titre,'fr'));
+  }
+  const coche=[...indexNotions];
+  return el.filter(x=>(!q||sansAccents(x.titre+' '+x.sous).includes(q))
+    &&(!coche.length||(indexModeFiltre==='and'?coche.every(k=>x.notions.includes(k)):coche.some(k=>x.notions.includes(k)))));
+}
+
+/* indexGrilleHTML() — les cartes (ou « Aucun résultat »), avec le compteur. */
+function indexGrilleHTML(){
+  const el=indexElements();
+  if(!el.length) return `<p class="idx-vide">Aucun résultat. Essaie un autre mot, ou retire le filtre.</p>`;
+  const pts=ks=>ks.slice(0,8).map(k=>`<span class="idx-pt" style="background:${D[k].c}" title="${pEsc(D[k].l)}"></span>`).join('');
+  return `<p class="idx-compte">${el.length} résultat${el.length>1?'s':''}</p><div class="idx-grille">`+el.map(x=>
+    `<button class="idx-carte${x.nouveau?' is-new':x.modifie?' is-modified':''}" style="--coul:${x.couleur||'var(--color-border-secondary)'}" onclick="indexOuvrir('${x.type}','${pEsc(x.cle).replace(/'/g,"\\'")}')">
+      <b>${pEsc(x.titre)}</b>${x.sous?`<small>${pEsc(x.sous)}</small>`:''}
+      ${x.nouveau?'<span class="new-badge">✦ Nouveau</span>':x.modifie?'<span class="modified-badge">✎ Modifié</span>':''}
+      ${x.texte?`<span class="idx-texte">${pEsc(x.texte.slice(0,140))}${x.texte.length>140?'…':''}</span>`:''}
+      ${x.type!=='notion'?`<span class="idx-pts">${pts(x.notions)}</span>`:''}${x.hp?'<span class="idx-hp">hors programme</span>':''}
+    </button>`).join('')+`</div>`;
+}
+
+/* indexFiltreHTML() — le bouton « Filtrer » et, déplié, le panneau : mode
+   « au moins une / toutes » et les pastilles de notions. Rien sur Notions. */
+function indexFiltreHTML(){
+  if(sbMode==='notions') return '';
+  const n=indexNotions.size;
+  const bouton=`<button class="idx-filtrer${n||indexFiltreOuvert?' on':''}" onclick="indexBasculerFiltre()" aria-expanded="${indexFiltreOuvert}">⊟ Filtrer par notion${n?` (${n})`:''}</button>`;
+  if(!indexFiltreOuvert) return bouton;
+  const choix=(m,l,t)=>`<button class="idx-mode${indexModeFiltre===m?' on':''}" onclick="indexModeDeFiltre('${m}')" title="${t}">${l}</button>`;
+  return bouton+`<div class="idx-panneau">
+    <div class="idx-modes">${choix('or','Au moins une','Garder ce qui touche au moins une des notions cochées')}${choix('and','Toutes','Garder seulement ce qui touche toutes les notions cochées')}
+      ${n?'<button class="idx-mode" onclick="indexFiltrer(null)">Effacer</button>':''}</div>
+    <div class="idx-filtre">`+notionsVisibles().map(k=>`<button class="idx-puce${indexNotions.has(k)?' on':''}" style="--coul:${D[k].c}" onclick="indexFiltrer('${k}')">${pEsc(D[k].l)}</button>`).join('')+`</div></div>`;
+}
+
+/* renderIndexContent() — la page de présentation de l'onglet courant. */
+function renderIndexContent(){
+  enIndex=true;
+  renderCrumbs();
+  const mainEl=document.getElementById('main');
+  if(!mainEl.querySelector('.tabs')||!mainEl.querySelector('.main-content')){
+    mainEl.innerHTML='<div class="tabs"></div><div class="main-content"></div>';
+  }
+  mainEl.querySelector('.tabs').innerHTML=backBtnHTML();
+  const intro={
+    notions:'Les notions du programme de Terminale. Chacune s’ouvre sur ses auteurs, ses textes, ses concepts, des plans de dissertation et des exemples.',
+    auteurs:'Les auteurs cités dans les notions, du plus présent au moins présent. Chaque fiche donne leurs idées, citations, œuvres et dialogues.',
+    concepts:'Le vocabulaire philosophique, relié aux notions et aux autres concepts. De quoi définir précisément les termes d’un sujet.',
+    reperes:'Les repères du programme : des distinctions (absolu / relatif, légal / légitime…) qui servent à problématiser un sujet.'
+  }[sbMode];
+  // Mode édition : proposer un nouvel élément (même mécanique que les fiches).
+  const proposer=sbMode==='auteurs'?pPlusCat('auteur','','Proposer un auteur')
+    :sbMode==='concepts'?pPlusCat('concept','','Proposer un concept'):'';
+  const mc=mainEl.querySelector('.main-content');
+  const garde=document.activeElement&&document.activeElement.classList.contains('idx-recherche');
+  // L'animation d'entrée ne joue qu'en arrivant sur la page, pas quand un
+  // filtre la re-rend (mc.dataset.idx retient la page affichée).
+  const meme=mc.dataset.idx===sbMode; mc.dataset.idx=sbMode;
+  mc.innerHTML=`<div class="idx${meme?' sans-anim':''}">
+    <h1 class="idx-titre">${MODES_INDEX[sbMode]}</h1>
+    <p class="idx-intro">${intro}</p>
+    <div class="idx-outils">
+      <input class="idx-recherche" type="search" placeholder="Rechercher ${sbMode==='notions'?'une notion':sbMode==='auteurs'?'un auteur':sbMode==='reperes'?'un repère':'un concept'}…" value="${pEsc(indexRecherche)}" oninput="indexChercher(this.value)" aria-label="Rechercher">
+      ${indexFiltreHTML()}
+    </div>
+    ${proposer}
+    <div id="index-grille">${indexGrilleHTML()}</div>
+    <p class="idx-pied"><a href="${LEGAL_URL}">Informations légales</a></p>
+  </div>`;
+  if(garde){ const i=mc.querySelector('.idx-recherche'); if(i){ i.focus(); i.setSelectionRange(i.value.length,i.value.length); } }
+}
 /* js/99-demarrage.js — morceau du script du site. Numéroté 99 (étape 6) pour
    s'exécuter EN DERNIER : le démarrage appelle des rendus qui lisent les
    constantes de tous les autres morceaux (ex. js/15-explorer.js). Le build (outils/construire.mjs)
@@ -8570,6 +8993,7 @@ function imprimerFiche(k){
 restoreDraftsFromStorage();   // new (Phase 3) : recharge le brouillon de proposition local
 restoreNavFromStorage();      // position survit à l'actualisation (philo-nav)
 restoreNavFromAddress();      // … mais une adresse #/… (lien partagé, favori) l'emporte
+accueilAuDemarrage();         // nov. 2026 : à la racine sans adresse, la page d'accueil (js/17-accueil.js)
 restoreNavHistory();          // pile « ← Retour » survit aussi (philo-navhist)
 appliquerAffichage();         // étape 6 : thème et taille du texte (avant le premier rendu)
 // Sommaire /fiches/ (page d'entrée data-entree="fiches") : son contenu pré-rendu

@@ -96,11 +96,15 @@ function renderSB(){
   // « Méthodo » est à part : un GUIDE de méthodologie (renderMethodoContent),
   // pas une fiche concept. (Les onglets s'enroulent sur plusieurs lignes —
   // cf. CSS .sb-tabs/.sb-tab — pour rester tous visibles dans la sidebar.)
+  // Nov. 2026 : onglet « Accueil » en tête (ouvrirAccueil, js/17-accueil.js).
+  // Notions, Auteurs, Concepts, Repères mènent à leur page de présentation
+  // (allerIndex, js/18-index.js) ; une fiche s'ouvre ensuite depuis la liste.
   fixed.innerHTML=`<div class="sb-tabs" style="gap:1px;padding:8px 0 6px">
-    <div class="sb-tab${sbMode==='notions'?' active':''}" onclick="sbMode='notions';renderSB();renderContent()" style="font-size:9px">Notions</div>
-    <div class="sb-tab${sbMode==='auteurs'?' active':''}" onclick="if(sbMode!=='auteurs'){sbMode='auteurs';if(!curAuthor)curAuthor=authorsSorted()[0];curAuthorTab='idees';renderSB();renderAuthorContent();}" style="font-size:9px">Auteurs</div>
-    <div class="sb-tab${sbMode==='concepts'?' active':''}" onclick="if(sbMode!=='concepts'){sbMode='concepts';const c0=realConcepts().find(c=>c.id===curConcept)||realConcepts()[0];if(c0)curConcept=c0.id;renderSB();renderConceptContent();}" style="font-size:9px">Concepts</div>
-    <div class="sb-tab${sbMode==='reperes'?' active':''}" onclick="if(sbMode!=='reperes'){sbMode='reperes';const r0=REPERES().find(c=>c.id===curConcept)||REPERES()[0];if(r0)curConcept=r0.id;renderSB();renderConceptContent();}" style="font-size:9px" title="Repères du programme : les distinctions conceptuelles (absolu/relatif, légal/légitime…)">Repères</div>
+    <div class="sb-tab${sbMode==='accueil'?' active':''}" onclick="ouvrirAccueil()" style="font-size:9px" title="Retour au lobby (page d'accueil)">Accueil</div>
+    <div class="sb-tab${sbMode==='notions'?' active':''}" onclick="allerIndex('notions')" style="font-size:9px">Notions</div>
+    <div class="sb-tab${sbMode==='auteurs'?' active':''}" onclick="allerIndex('auteurs')" style="font-size:9px">Auteurs</div>
+    <div class="sb-tab${sbMode==='concepts'?' active':''}" onclick="allerIndex('concepts')" style="font-size:9px">Concepts</div>
+    <div class="sb-tab${sbMode==='reperes'?' active':''}" onclick="allerIndex('reperes')" style="font-size:9px" title="Repères du programme : les distinctions conceptuelles (absolu/relatif, légal/légitime…)">Repères</div>
     <div class="sb-tab${sbMode==='methodo'?' active':''}" onclick="if(sbMode!=='methodo'){sbMode='methodo';renderSB();renderMethodoContent();}" style="font-size:9px" title="Méthode pas à pas : dissertation et explication de texte">Méthodo</div>
     <div class="sb-tab${sbMode==='explorer'?' active':''}" onclick="if(sbMode!=='explorer'){pushHistory();sbMode='explorer';renderSB();renderExplorerContent();}" style="font-size:9px" title="Frise des auteurs et graphe des idées">Explorer</div>
   </div>`;
@@ -169,7 +173,8 @@ function renderSB(){
   applyPhiloMode();   // met à jour le libellé selon l'état actuel
   applyFicheMode();   // applique le « mode fiche » (lecture compressée) si actif
 
-  if(sbMode==='notions'){
+  // Sur l'accueil, la barre latérale garde la liste des notions (aucune active).
+  if(sbMode==='notions'||sbMode==='accueil'){
     const ajouterNotion=k=>{
       // Référencement (nov. 2026) : un VRAI lien <a href> vers la page
       // statique de la notion (les robots suivent les href, pas les onclick).
@@ -177,7 +182,7 @@ function renderSB(){
       // page statique dans un nouvel onglet, comme tout lien.
       const el=document.createElement('a');
       el.href=(PAGES_STATIQUES.notions[k]||'#/notion/'+k);
-      el.className='nb'+(k===cur?' active':'')+(estHP(k)?' nb-hp':'');
+      el.className='nb'+(k===cur&&sbMode==='notions'?' active':'')+(estHP(k)?' nb-hp':'');
       el.innerHTML=`<span class="dot" style="background:${D[k].c}"></span>${D[k].l}`;
       el.onclick=ev=>{
         if(ev.ctrlKey||ev.metaKey||ev.shiftKey||ev.button!==0) return;   // laisse le navigateur ouvrir le lien

@@ -55,7 +55,9 @@ const CONTROLE = process.argv.includes('--controle');
 export const PRECACHE = ['./', './index.html', './app.css', './app.js', './data.js', './manifest.json', './icon.svg',
   // Nov. 2026 (RGPD, docs/protocole-donnees.md, A6) : ce que des tiers servaient avant.
   './lib/supabase.js', './lib/qrcode.js',
-  ...['latin', 'latin-ext'].flatMap(j => [400, 500, 600].map(g => `./polices/inter-${j}-${g}-normal.woff2`))];
+  ...['latin', 'latin-ext'].flatMap(j => [400, 500, 600].map(g => `./polices/inter-${j}-${g}-normal.woff2`)),
+  // Nov. 2026 : Literata, police des titres (piste A, css/00-polices.css).
+  ...['latin', 'latin-ext'].map(j => `./polices/literata-${j}-500-normal.woff2`)];
 
 // Dossiers des pages statiques : ENTIÈREMENT générés (une page sans fiche y est retirée).
 const DOSSIERS_PAGES = ['notions', 'auteurs', 'fiches'];

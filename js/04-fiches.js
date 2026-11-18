@@ -236,6 +236,7 @@ function planCardHTML(p){
    Contenu : titre, catégorie, définition, auteur(s) associé(s),
    tensions conceptuelles, notion-pills (liens vers les notions liées). */
 function renderConceptContent(){
+  enIndex=false;   // nov. 2026 : une fiche, pas la page de présentation (js/18-index.js)
   renderCrumbs();
   const mainEl=document.getElementById('main');
   if(!mainEl.querySelector('.tabs')||!mainEl.querySelector('.main-content')){
@@ -550,6 +551,7 @@ document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeFacet(); });
    pour y revenir directement. Le dernier segment (en cours) est inerte. */
 function renderCrumbs(){
   persistNav();   // mémorise la position courante (résiste à l'actualisation + cloud)
+  marquerAccueil();   // nov. 2026 : lobby plein écran sur l'accueil (js/17-accueil.js)
   const el=document.getElementById('crumbs'); if(!el) return;
   // Helper : un segment. cur=true → segment « courant » (non cliquable).
   const seg=(label,act,arg,cur)=>cur
@@ -557,7 +559,9 @@ function renderCrumbs(){
     : `<span class="crumb" data-act="${act}" data-arg="${pEsc(arg||'')}">${label}</span>`;
   const sep=`<span class="crumb-sep">›</span>`;
   const segs=[];
-  if(sbMode==='notions'){
+  if(enIndex&&MODES_INDEX[sbMode]){
+    segs.push(seg(MODES_INDEX[sbMode],'',null,true));   // nov. 2026 : page de présentation
+  }else if(sbMode==='notions'){
     segs.push(seg('Notions','mode','notions',false));
     const n=D[cur];
     if(n){
@@ -608,6 +612,8 @@ function renderCrumbs(){
     segs.push(seg('Méthodo','mode','methodo',false));
     const t=METHODO_TOPICS.find(t=>t.id===methodoTopic);
     if(t) segs.push(seg(t.label,'',null,true));
+  }else if(sbMode==='accueil'){
+    segs.push(seg('Accueil','',null,true));   // nov. 2026 : page d'accueil
   }else if(sbMode==='explorer'){
     // Explorer (étape 6) : racine « Explorer » + sujet courant.
     segs.push(seg('Explorer','mode','explorer',false));
@@ -619,6 +625,9 @@ function renderCrumbs(){
 /* goMode(mode) — bascule la sidebar vers un mode (notions/auteurs/concepts)
    et re-rend la zone principale. Utilisé par les crumbs et la sb-tab. */
 function goMode(mode){
+  // Nov. 2026 : les onglets qui ont une page de présentation y mènent
+  // (fil d'Ariane, lobby) ; allerIndex empile l'historique.
+  if(MODES_INDEX[mode]){ allerIndex(mode); return; }
   if(sbMode===mode){ renderSB(); return; }
   sbMode=mode;
   if(mode==='notions'){ renderSB(); renderContent(); }
@@ -627,6 +636,7 @@ function goMode(mode){
   else if(mode==='reperes'){ const r0=REPERES().find(c=>c.id===curConcept)||REPERES()[0]; if(r0) curConcept=r0.id; renderSB(); renderConceptContent(); }
   else if(mode==='methodo'){ renderSB(); renderMethodoContent(); }   // guide de méthodologie
   else if(mode==='explorer'){ renderSB(); renderExplorerContent(); }   // étape 6 : frise, graphe
+  else if(mode==='accueil'){ renderSB(); renderAccueilContent(); }    // nov. 2026 : page d'accueil
 }
 
 /* openAuthor(name) — ouvre la fiche d'un auteur depuis n'importe où :
@@ -695,6 +705,7 @@ function ideaSynthese(it){
 }
 
 function renderAuthorContent(){
+  enIndex=false;   // nov. 2026 : une fiche, pas la page de présentation (js/18-index.js)
   renderCrumbs();
   const mainEl=document.getElementById('main');
   if(!mainEl.querySelector('.tabs')||!mainEl.querySelector('.main-content')){
@@ -875,6 +886,7 @@ function sourcesHTML(src){
 }
 
 function renderContent(){
+  enIndex=false;   // nov. 2026 : une fiche, pas la page de présentation (js/18-index.js)
   renderCrumbs();
   const mainEl=document.getElementById('main');
   // Garantir la structure .tabs + .main-content

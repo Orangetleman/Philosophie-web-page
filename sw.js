@@ -10,8 +10,8 @@
 // La version du cache (CACHE) est une empreinte du contenu des fichiers
 // précachés, recalculée par outils/construire.mjs : ne pas l'éditer à la main.
 
-const CACHE = 'philo-d23fa55f2f';   // version calculée par outils/construire.mjs : ne pas éditer
-const PRECACHE = ['./', './index.html', './app.css', './app.js', './data.js', './manifest.json', './icon.svg', './lib/supabase.js', './lib/qrcode.js', './polices/inter-latin-400-normal.woff2', './polices/inter-latin-500-normal.woff2', './polices/inter-latin-600-normal.woff2', './polices/inter-latin-ext-400-normal.woff2', './polices/inter-latin-ext-500-normal.woff2', './polices/inter-latin-ext-600-normal.woff2'];
+const CACHE = 'philo-8e44755b00';   // version calculée par outils/construire.mjs : ne pas éditer
+const PRECACHE = ['./', './index.html', './app.css', './app.js', './data.js', './manifest.json', './icon.svg', './lib/supabase.js', './lib/qrcode.js', './polices/inter-latin-400-normal.woff2', './polices/inter-latin-500-normal.woff2', './polices/inter-latin-600-normal.woff2', './polices/inter-latin-ext-400-normal.woff2', './polices/inter-latin-ext-500-normal.woff2', './polices/inter-latin-ext-600-normal.woff2', './polices/literata-latin-500-normal.woff2', './polices/literata-latin-ext-500-normal.woff2'];
 
 // Installation : on précache les ressources critiques.
 self.addEventListener('install', e => {
