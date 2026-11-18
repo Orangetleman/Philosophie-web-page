@@ -15,6 +15,27 @@
 const SUPABASE_URL = 'https://fipdatwirklhgdbujobz.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_7A5cSXlmufU1mDfjs1hIIA_PSHpXOdB';
 
+/* ICONES_ADMIN / ico(nom) — icônes SVG au trait de la page d'administration,
+   même dessin que js/00-icones.js (la page ne charge pas app.js). Règle de
+   la charte : pas d'émoji dans l'interface (docs/charte-graphique.md). */
+const ICONES_ADMIN = {
+  dossier: '<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
+  ia: '<rect x="4" y="8" width="16" height="12" rx="3"/><path d="M12 4v4"/><circle cx="12" cy="3" r="1"/><path d="M9 13v1"/><path d="M15 13v1"/><path d="M2 13v2"/><path d="M22 13v2"/>',
+  alerte: '<path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/>',
+  nuage: '<path d="M7 18a5 5 0 0 1-.6-10A6 6 0 0 1 18 9a4.5 4.5 0 0 1-.5 9z"/>',
+  exporter: '<path d="M12 15V3"/><path d="M7 8l5-5 5 5"/><path d="M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/>',
+  flecheG: '<path d="M19 12H5"/><path d="M11 6l-6 6 6 6"/>',
+  externe: '<path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>',
+  chevronH: '<path d="M6 15l6-6 6 6"/>',
+  chevronB: '<path d="M6 9l6 6 6-6"/>',
+  point: '<circle cx="12" cy="12" r="4" fill="currentColor"/>',
+  importer: '<path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/>'
+};
+function ico(nom) {
+  const c = ICONES_ADMIN[nom]; if (!c) return '';
+  return '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false">' + c + '</svg>';
+}
+
 const M = window.AdminModele;
 const ESSAI = new URLSearchParams(location.search).has('essai');
 const SB = !ESSAI && window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
@@ -165,7 +186,7 @@ function rendre(focus) {
 
 function pageConnexion() {
   return `<main class="login">
-    <h1>🗂️ Administration</h1>
+    <h1>${ico('dossier')} Administration</h1>
     <p class="hint">Le tri des propositions de Graphe Philo. Connecte-toi avec ton compte administrateur.</p>
     ${etat.erreurConnexion ? `<div class="err">${esc(etat.erreurConnexion)}</div>` : ''}
     <button type="button" data-act="google">Continuer avec Google</button>
@@ -181,7 +202,7 @@ function pageConnexion() {
 
 function pagePasAdmin() {
   return `<main class="login">
-    <h1>🗂️ Administration</h1>
+    <h1>${ico('dossier')} Administration</h1>
     <div class="info">
       <b>Ce compte n'est pas administrateur.</b>
       <span>Connecté en tant que ${esc(etat.email)}. Pour l'autoriser, colle son identifiant dans l'éditeur SQL de Supabase :</span>
@@ -200,14 +221,14 @@ function entete() {
   const aRelire = etat.boites.filter(b => b.statut === 'en_attente' && !b.ia_verdict && M.categorieDe(b) !== 'site').length;
   const onglet = (k, label) => `<button type="button" role="tab" id="onglet-${k}" data-onglet="${k}" aria-selected="${etat.onglet === k}" tabindex="${etat.onglet === k ? 0 : -1}">${label}</button>`;
   return `<header class="head">
-    <h1>🗂️</h1>
+    <h1>${ico('dossier')}</h1>
     <div class="tabs" role="tablist" aria-label="Parties de l'administration">
       ${onglet('boite', `Boîte de réception${nouvelles ? `<span class="chip" title="jamais ouvertes">${nouvelles}</span>` : ''}`)}
       ${onglet('sujets', `Sujets (${etat.sujets.length})`)}
       ${onglet('integrer', `À intégrer (${etat.boites.filter(b => b.statut === 'validee').length})`)}
     </div>
     <span class="right">${etat.relecture ? `<span class="relecture" role="status"><span class="toupie" aria-hidden="true"></span>L'IA relit ${etat.relecture.n} boîte${etat.relecture.n > 1 ? 's' : ''}… <span id="relecture-temps">${Math.round((Date.now() - etat.relecture.debut) / 1000)} s</span> <span class="hint">(≈ ${etat.relecture.n * 5} s)</span></span>`
-      : `<button type="button" data-act="relire"${aRelire && !etat.occupe ? '' : ' disabled'} title="Gemini donne un avis sur les boîtes en attente jamais relues (8 au plus par clic). Il ne reçoit que leur texte.">🤖 Relire avec l'IA${aRelire ? ` (${aRelire})` : ''}</button>`}${mode}${etat.email ? `<span>${esc(etat.email)}</span>` : ''}
+      : `<button type="button" data-act="relire"${aRelire && !etat.occupe ? '' : ' disabled'} title="Gemini donne un avis sur les boîtes en attente jamais relues (8 au plus par clic). Il ne reçoit que leur texte.">${ico('ia')} Relire avec l'IA${aRelire ? ` (${aRelire})` : ''}</button>`}${mode}${etat.email ? `<span>${esc(etat.email)}</span>` : ''}
       <button type="button" class="link" data-act="actualiser">Actualiser</button>
       ${ESSAI ? '<a href="/admin/">Quitter l\'essai</a>' : '<button type="button" class="link" data-act="sortir">Se déconnecter</button>'}</span>
   </header>`;
@@ -243,7 +264,7 @@ function pilleIA(b) {
 
 function ligne(b) {
   const h = [
-    b.lue_le ? '' : '<span class="new">● nouvelle</span>',
+    b.lue_le ? '' : '<span class="new">'+ico('point')+' nouvelle</span>',
     'n° ' + b.id,
     esc(M.etiquette(b)),
     M.notionDe(b) ? esc(NOTIONS[M.notionDe(b)] || M.notionDe(b)) : '',
@@ -264,7 +285,7 @@ function boiteDeReception() {
   return `<div class="tb${b ? ' a-choix' : ''}">
     <nav class="tb-list" aria-label="Boîtes">${filtresHtml()}
       <div class="compte">${liste.length} boîte${liste.length > 1 ? 's' : ''} sur ${etat.boites.length}</div>
-      ${liste.length ? `<ul class="it">${liste.map(ligne).join('')}</ul>` : `<p class="vide">Rien ici. ${etat.filtres.etat === 'a-traiter' ? 'Tout est trié 🎉' : ''}</p>`}
+      ${liste.length ? `<ul class="it">${liste.map(ligne).join('')}</ul>` : `<p class="vide">Rien ici. ${etat.filtres.etat === 'a-traiter' ? 'Tout est trié.' : ''}</p>`}
     </nav>
     ${b ? detail(b) : `<section class="det rien"><p>Choisis une boîte dans la liste.</p></section>`}
   </div>`;
@@ -286,30 +307,30 @@ function detail(b) {
   const seg = [['en_attente', 'En attente', 'A'], ['validee', 'Validée', 'V'], ['refusee', 'Refusée', 'R']]
     .map(([k, l, t]) => `<button type="button" data-statut="${k}" aria-pressed="${b.statut === k}"${etat.occupe ? ' disabled' : ''}>${l}<span class="kbd">${t}</span></button>`).join('');
   const notion = M.notionDe(b), lien = M.lienSite(b);
-  const qui = b.a_compte ? `☁ compte : <b>${esc(b.pseudo || 'sans pseudo')}</b>`
+  const qui = b.a_compte ? `${ico('nuage')} compte : <b>${esc(b.pseudo || 'sans pseudo')}</b>`
     : b.a_suivi ? `sans compte${b.pseudo ? ' (' + esc(b.pseudo) + ')' : ''} · suivi par numéro` : `sans compte${b.pseudo ? ' (' + esc(b.pseudo) + ')' : ''} · pas de suivi`;
   const lecteur = b.a_compte ? 'le contributeur la lit dans « Mes propositions »'
     : b.a_suivi ? 'lue avec son numéro de suivi' : 'envoi sans compte ni numéro : personne ne la lira';
   const ia = b.ia_verdict
     ? `<details class="ia"${b.ia_verdict !== 'valide' ? ' open' : ''}><summary>${pilleIA(b)} Avis de l'IA${b.ia_le ? ` <span class="hint">${esc(M.depuis(b.ia_le))}</span>` : ''}</summary><div>${esc(b.ia_avis || '(pas de commentaire)')}</div></details>`
     : `<span class="hint">${M.categorieDe(b) === 'site' ? 'Retour sur le site : pas de relecture par l’IA.' : 'Pas encore relue par l’IA.'}</span>`;
-  const relireUne = M.categorieDe(b) === 'site' ? '' : `<button type="button" class="link" data-act="relire-une"${etat.occupe ? ' disabled' : ''}>🤖 ${b.ia_verdict ? 'Relire à nouveau' : 'Relire cette boîte'}</button>`;
+  const relireUne = M.categorieDe(b) === 'site' ? '' : `<button type="button" class="link" data-act="relire-une"${etat.occupe ? ' disabled' : ''}>${ico('ia')} ${b.ia_verdict ? 'Relire à nouveau' : 'Relire cette boîte'}</button>`;
   // Lot A4 : les boîtes qui lui ressemblent (M.doublons), cliquables.
   const dbl = M.doublons(b, etat.boites).slice(0, 5);
-  const doublonsHtml = dbl.length ? `<div class="dup"><b>⚠ Ressemble à :</b> ${dbl.map(d => `<button type="button" class="link" data-boite="${d.id}">n° ${d.id}</button> <span class="hint">(${esc(d.raison)}, ${esc(M.STATUTS[d.statut] || d.statut)})</span>`).join(' · ')}</div>` : '';
+  const doublonsHtml = dbl.length ? `<div class="dup"><b>${ico('alerte')} Ressemble à :</b> ${dbl.map(d => `<button type="button" class="link" data-boite="${d.id}">n° ${d.id}</button> <span class="hint">(${esc(d.raison)}, ${esc(M.STATUTS[d.statut] || d.statut)})</span>`).join(' · ')}</div>` : '';
   const integ = b.statut === 'integree'
     ? `<div class="info"><span><span class="pill ok">Intégrée</span> ${b.integration ? `commit <code>${esc(b.integration.commit)}</code>${b.integration.detail ? ' · ' + esc(b.integration.detail) : ''}` : 'à la main'}</span>
        <div class="acts"><button type="button" data-statut="validee">Remettre en « Validée »</button></div></div>` : '';
   const sujets = etat.sujets.map(s => `<option value="${s.id}"${b.sujet === s.id ? ' selected' : ''}>${esc(s.titre)} (${s.demandes})</option>`).join('');
   return `<section class="det" aria-labelledby="det-titre">
-    <button type="button" class="back" data-act="liste">← Liste</button>
+    <button type="button" class="back" data-act="liste">${ico('flecheG')} Liste</button>
     <div class="acts"><h2 id="det-titre" tabindex="-1">n° ${b.id} · ${esc(M.etiquette(b))}</h2>
       ${b.statut === 'integree' ? '' : `<span class="seg" role="group" aria-label="État de la boîte">${seg}</span>`}
       ${b.statut === 'validee' ? `<button type="button" data-act="integree" title="À la main, sans compte rendu (d'ordinaire : onglet « À intégrer », Importer un compte rendu)">Marquer intégrée</button>` : ''}</div>
     ${integ}
     <div class="ctx"><span>${qui}</span><span>reçue ${esc(M.depuis(b.cree_le))}</span>
       ${notion ? `<span>notion : ${esc(NOTIONS[notion] || notion)}</span>` : ''}
-      ${lien ? `<a href="${esc(lien)}" target="_blank" rel="noopener">voir sur le site ↗</a>` : ''}</div>
+      ${lien ? `<a href="${esc(lien)}" target="_blank" rel="noopener">voir sur le site ${ico('externe')}</a>` : ''}</div>
     ${soeurs.length > 1 ? `<div class="contrib"><span>Envoyée avec :</span>${soeurs.map(s => `<button type="button" data-boite="${s.id}" aria-current="${s.id === b.id}" title="${esc(M.STATUTS[s.statut])}">n° ${s.id}</button>`).join('')}
       <span class="hint">le contributeur voit « ${esc(M.vuContributeur(soeurs.map(s => s.statut)))} »</span></div>` : ''}
     ${fiche(b)}
@@ -337,7 +358,7 @@ function detail(b) {
 
 function ligneSujet(s) {
   return `<li><button type="button" class="${s.id === etat.sujet ? 'sel' : ''}" data-sujet="${s.id}" aria-current="${s.id === etat.sujet}">
-    <span class="h"><b class="score">${s.score}</b> ${esc(M.ETATS_SUJET[s.etat] || s.etat)} · ${s.demandes} demande${s.demandes > 1 ? 's' : ''} · ▲ ${s.pour} ▼ ${s.contre} · ${s.publie ? 'publié' : '<i>non publié</i>'}</span>
+    <span class="h"><b class="score">${s.score}</b> ${esc(M.ETATS_SUJET[s.etat] || s.etat)} · ${s.demandes} demande${s.demandes > 1 ? 's' : ''} · ${ico('chevronH')} ${s.pour} ${ico('chevronB')} ${s.contre} · ${s.publie ? 'publié' : '<i>non publié</i>'}</span>
     <span class="t">${esc(s.titre)}</span></button></li>`;
 }
 
@@ -349,7 +370,7 @@ function ongletSujets() {
     <nav class="tb-list" aria-label="Sujets">
       <div class="filters"><select id="f-sujet" aria-label="État des sujets">${opt('', 'Tous les états')}${Object.entries(M.ETATS_SUJET).map(([k, v]) => opt(k, v)).join('')}</select>
         <button type="button" data-act="sujet-nouveau">+ Nouveau sujet</button></div>
-      <div class="compte">les plus demandés d'abord · score = demandes + ▲ − ▼</div>
+      <div class="compte">les plus demandés d'abord · score = demandes + pour − contre</div>
       ${liste.length ? `<ul class="it">${liste.map(ligneSujet).join('')}</ul>` : `<p class="vide">Aucun sujet. On en crée un depuis une boîte (« Ranger dans un sujet ») ou par « + Nouveau sujet ».</p>`}
     </nav>
     ${s ? detailSujet(s) : `<section class="det rien"><p>Choisis un sujet dans la liste.</p></section>`}
@@ -361,9 +382,9 @@ function detailSujet(s) {
   const seg = Object.entries(M.ETATS_SUJET).map(([k, l]) => `<button type="button" data-etat-sujet="${k}" aria-pressed="${s.etat === k}"${etat.occupe ? ' disabled' : ''}>${esc(l)}</button>`).join('');
   const sansReponse = rangees.filter(b => !b.reponse && (b.a_compte || b.a_suivi)).length;
   return `<section class="det" aria-labelledby="sujet-titre">
-    <button type="button" class="back" data-act="liste">← Liste</button>
+    <button type="button" class="back" data-act="liste">${ico('flecheG')} Liste</button>
     <div class="acts"><h2 id="sujet-titre" tabindex="-1">Sujet · score ${s.score}</h2><span class="seg" role="group" aria-label="État du sujet">${seg}</span></div>
-    <span class="hint">${s.demandes} demande${s.demandes > 1 ? 's' : ''} + ${s.pour} ▲ − ${s.contre} ▼${s.publie ? ' · visible sur la page Propositions' : ' · pas publié : personne ne le voit'}</span>
+    <span class="hint">${s.demandes} demande${s.demandes > 1 ? 's' : ''} + ${s.pour} ${ico('chevronH')} − ${s.contre} ${ico('chevronB')}${s.publie ? ' · visible sur la page Propositions' : ' · pas publié : personne ne le voit'}</span>
     <label class="blk">Titre <span class="hint">public s'il est publié</span><input type="text" id="s-titre" maxlength="300" value="${esc(s.titre)}"></label>
     <label class="blk">Description <span class="hint">facultative, publique</span><textarea id="s-description" maxlength="2000" rows="2" style="min-height:48px">${esc(s.description || '')}</textarea></label>
     <label class="blk">Réponse publique <span class="hint">affichée sous le sujet, sur la page Propositions</span><textarea id="s-reponse" maxlength="2000">${esc(s.reponse || '')}</textarea></label>
@@ -444,8 +465,8 @@ function ongletIntegrer() {
   const cles = [...groupes.keys()].sort();
   return `<div class="integ" role="tabpanel" aria-labelledby="onglet-integrer">
     <div class="acts">
-      <button type="button" class="primary" data-act="exporter"${val.length ? '' : ' disabled'}>📤 Exporter les validées (${val.length})</button>
-      <label class="bouton">📥 Importer un compte rendu<input type="file" id="i-fichier" accept=".json,application/json" hidden></label>
+      <button type="button" class="primary" data-act="exporter"${val.length ? '' : ' disabled'}>${ico('exporter')} Exporter les validées (${val.length})</button>
+      <label class="bouton">${ico('importer')} Importer un compte rendu<input type="file" id="i-fichier" accept=".json,application/json" hidden></label>
       <span class="hint">L'export ne contient ni pseudo ni compte. Mode d'emploi : docs/protocole-integration.md.</span>
     </div>
     ${etat.apercu ? apercuHtml() : ''}

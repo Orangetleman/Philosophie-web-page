@@ -13,6 +13,7 @@ restoreNavFromStorage();      // position survit à l'actualisation (philo-nav)
 restoreNavFromAddress();      // … mais une adresse #/… (lien partagé, favori) l'emporte
 accueilAuDemarrage();         // nov. 2026 : à la racine sans adresse, la page d'accueil (js/17-accueil.js)
 restoreNavHistory();          // pile « ← Retour » survit aussi (philo-navhist)
+icosStatiques();              // nov. 2026 : icônes SVG des <i data-ico> du HTML statique (js/00-icones.js)
 appliquerAffichage();         // étape 6 : thème et taille du texte (avant le premier rendu)
 // Sommaire /fiches/ (page d'entrée data-entree="fiches") : son contenu pré-rendu
 // reste affiché tel quel ; la barre latérale démarre, la 1re navigation le remplace.

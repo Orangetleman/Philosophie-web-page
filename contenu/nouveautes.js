@@ -6,10 +6,10 @@
    adresses. */
 NOUVEAUTES([
   {date: "2026-11-15", titre: "Des Réglages plus clairs, et tes données entre tes mains",
-    texte: "Les ⚙ Réglages sont rangés en cinq cartes, avec un sommaire et des interrupteurs. Une nouvelle carte « Mes données » permet de télécharger tout ce que le site garde sur toi, de l'effacer de ton appareil ou de supprimer ton compte. Le site ne contacte plus aucun service extérieur pour s'afficher (police et QR code servis par lui-même). Mentions légales, données personnelles et conditions d'utilisation : lien « Informations légales » en bas de la barre latérale.",
+    texte: "Les Réglages sont rangés en cinq cartes, avec un sommaire et des interrupteurs. Une nouvelle carte « Mes données » permet de télécharger tout ce que le site garde sur toi, de l'effacer de ton appareil ou de supprimer ton compte. Le site ne contacte plus aucun service extérieur pour s'afficher (police et QR code servis par lui-même). Mentions légales, données personnelles et conditions d'utilisation : lien « Informations légales » en bas de la barre latérale.",
     liens: []},
   {date: "2026-10-06", titre: "Thème clair, frise, graphe et sujets du bac",
-    texte: "Un thème clair sur fond papier et trois tailles de texte (⚙ Réglages). Un nouvel onglet Explorer : la frise des auteurs, le graphe des idées et les sujets tombés au bac depuis 2021. Moins de liens dans les textes, et utilisables au clavier. Chaque notion se télécharge en fiche imprimable.",
+    texte: "Un thème clair sur fond papier et trois tailles de texte (Réglages). Un nouvel onglet Explorer : la frise des auteurs, le graphe des idées et les sujets tombés au bac depuis 2021. Moins de liens dans les textes, et utilisables au clavier. Chaque notion se télécharge en fiche imprimable.",
     liens: [{l: "Frise des auteurs", h: "#/explorer/frise"}, {l: "Graphe des idées", h: "#/explorer/graphe"}, {l: "Sujets du bac", h: "#/explorer/sujets"}]},
   {date: "2026-10-06", titre: "Tout le programme de 2003, en hors programme",
     texte: "Sept notions de plus, celles de l'ancien programme : la perception, l'existence, le vivant, la matière et l'esprit, l'interprétation, la démonstration, la société.",

@@ -215,11 +215,11 @@ function tourSettingsRow(fn){
 
 const TOUR_STEPS=[
   // ── Partie 0 : Bienvenue (carte centrée, sans projecteur) ──
-  { part:'welcome', center:true, title:'🏛️ Bienvenue !',
+  { part:'welcome', center:true, title:'Bienvenue !',
     text:"Tu viens d'arriver sur un <b>outil de fiches de philo</b> pour le bac : "
         +"notions, auteurs et concepts du programme de Terminale, reliés entre eux, "
         +"avec une <b>révision active</b> en cartes. Petit tour du propriétaire ?",
-    nextLabel:'Commencer ▶' },
+    nextLabel:'Commencer '+ico('chevronD') },
 
   // ── Partie 1 : Les fiches ──
   // Nov. 2026 : la visite part du lobby, puis présente chaque rubrique par sa
@@ -327,14 +327,14 @@ const TOUR_STEPS=[
     text:"En haut, le <b>fil d’Ariane</b> montre où tu te trouves : clique un niveau pour y remonter.",
     setup:tourShowNotion, target:()=>document.getElementById('crumbs') },
   { part:'nav', side:'main', title:'Revenir en arrière',
-    text:"Le bouton <b>← Retour</b> te ramène à la page précédente — pratique après avoir suivi un lien.",
+    text:"Le bouton <b>"+ico('flecheG')+" Retour</b> te ramène à la page précédente — pratique après avoir suivi un lien.",
     setup:tourShowNotion, target:()=>document.querySelector('.back-btn') },
   { part:'nav', side:'main', title:'Chercher partout (Ctrl + K)',
-    text:"Ce bouton, ou le raccourci <b>Ctrl + K</b> (⌘ + K sur Mac), ouvre la <b>recherche globale</b> : "
+    text:"Ce bouton, ou le raccourci <b>Ctrl + K</b> ("+ico('commande')+" + K sur Mac), ouvre la <b>recherche globale</b> : "
         +"tape une notion, un auteur ou un concept et saute droit à sa fiche.",
     setup:tourShowNotion, target:()=>document.getElementById('topbar-search') },
   { part:'nav', side:'sidebar', title:'Réglages & aide',
-    text:"Tout en bas de la barre latérale (ou en haut à droite quand elle est repliée), <b>⚙ Réglages</b> regroupe deux options :"
+    text:"Tout en bas de la barre latérale (ou en haut à droite quand elle est repliée), <b>"+ico('reglages')+" Réglages</b> regroupe deux options :"
         +"<ul class='tour-list'>"
         +"<li><b>Mode fiche</b> : compresse chaque fiche d’auteur en une <b>synthèse courte</b>, pour réviser vite.</li>"
         +"<li><b>Mode édition</b> : fait apparaître les boutons <b>+</b> pour proposer des corrections.</li>"
@@ -347,7 +347,7 @@ const TOUR_STEPS=[
   // (QR code à scanner, lien à copier, partage natif du téléphone). On ne fait
   // que DÉSIGNER le bouton : la visite ne l'ouvre pas, pour rester simple.
   { part:'partage', side:'main', title:'Partager l’outil',
-    text:"Le bouton <b>🔗 Partager</b> ouvre une fenêtre pour transmettre le site à un camarade : "
+    text:"Le bouton <b>"+ico('partager')+" Partager</b> ouvre une fenêtre pour transmettre le site à un camarade : "
         +"un <b>QR code</b> à scanner, le <b>lien à copier</b>, et — sur téléphone — le <b>partage "
         +"direct</b> (messages, mail…). De quoi réviser à plusieurs.",
     setup:tourShowNotion, target:()=>document.getElementById('topbar-share') },
@@ -357,7 +357,7 @@ const TOUR_STEPS=[
   // pointe le bouton (quiz fermé), les suivantes pilotent l'overlay ouvert
   // (setup:tourOpenQuiz) et mettent en valeur chaque réglage du tableau de bord.
   { part:'reviser', side:'sidebar', title:'Réviser activement',
-    text:"Le bouton <b>🎯 Réviser</b> ouvre le <b>mode révision</b> : un quiz en cartes que le site "
+    text:"Le bouton <b>"+ico('cible')+" Réviser</b> ouvre le <b>mode révision</b> : un quiz en cartes que le site "
         +"fabrique tout seul à partir des fiches. Ouvrons-le pour le visiter.",
     setup:tourShowNotion, target:()=>document.querySelector('.sb-quiz') },
   { part:'reviser', side:'main', title:'Ton niveau et tes points',
@@ -370,13 +370,13 @@ const TOUR_STEPS=[
         +"erreur la fait redescendre. C’est la <b>répétition espacée</b>.",
     setup:tourOpenQuiz, target:()=>document.querySelector('#quiz-overlay .quiz-mastery') },
   { part:'reviser', side:'main', title:'Sprint ou long terme',
-    text:"Choisis ton <b>rythme</b> : <b>⚡ Sprint</b> resserre les révisions (avant un contrôle), "
-        +"<b>📅 Long terme</b> les espace pour ancrer durablement. Chaque rythme garde sa propre "
+    text:"Choisis ton <b>rythme</b> : <b>"+ico('eclair')+" Sprint</b> resserre les révisions (avant un contrôle), "
+        +"<b>"+ico('calendrier')+" Long terme</b> les espace pour ancrer durablement. Chaque rythme garde sa propre "
         +"progression.",
     setup:tourOpenQuiz, target:()=>document.querySelector('#quiz-overlay .quiz-horizon') },
   { part:'reviser', side:'main', title:'Cartes ou QCM',
-    text:"Deux formats au choix : <b>🃏 Cartes</b> (tu retournes la carte pour vérifier) ou "
-        +"<b>📝 QCM</b> (choix multiples). Prends celui qui t’aide le plus à mémoriser.",
+    text:"Deux formats au choix : <b>"+ico('cartes')+" Cartes</b> (tu retournes la carte pour vérifier) ou "
+        +"<b>"+ico('qcm')+" QCM</b> (choix multiples). Prends celui qui t’aide le plus à mémoriser.",
     setup:tourOpenQuiz, target:()=>document.querySelector('#quiz-overlay .quiz-mode-toggle') },
   { part:'reviser', side:'main', title:'Cibler une révision',
     text:"Tu peux <b>filtrer</b> : une ou plusieurs notions, un type de question, ou seulement "
@@ -387,7 +387,7 @@ const TOUR_STEPS=[
         +"maintenant. Une session interrompue se <b>reprend</b> là où tu l’avais laissée.",
     setup:tourOpenQuiz, target:()=>document.querySelector('#quiz-overlay .quiz-start') },
   { part:'reviser', side:'main', title:'Un objectif par jour',
-    text:"Fixe un <b>objectif quotidien</b> (10, 20 ou 50 cartes) et garde ta <b>série</b> 🔥 en "
+    text:"Fixe un <b>objectif quotidien</b> (10, 20 ou 50 cartes) et garde ta <b>série</b> "+ico('flamme')+" en "
         +"révisant un peu chaque jour. Le vrai secret, c’est la régularité.",
     setup:tourOpenQuiz, target:()=>document.querySelector('#quiz-overlay .quiz-goal-pick') },
 
@@ -402,14 +402,14 @@ const TOUR_STEPS=[
   // 💡) ; les suivantes OUVRENT la modale de contribution (tourOpenProposal)
   // et détaillent les 3 menus en cascade, les champs, l'empilement et l'envoi.
   // La 1re étape dans la modale souligne d'un halo le bouton 💡 qui l'ouvre.
-  { part:'proposer', side:'main', title:'Réglages → mode édition',
-    text:"Dans <b>⚙ Réglages</b> (en bas de la barre latérale), ce bouton fait passer en "
+  { part:'proposer', side:'main', title:'Réglages '+ico('flecheD')+' mode édition',
+    text:"Dans <b>"+ico('reglages')+" Réglages</b> (en bas de la barre latérale), ce bouton fait passer en "
         +"<b>mode édition</b> : il fait apparaître partout de petits boutons <b>+</b> sur les cartes "
         +"(cachés par défaut pour un rendu épuré), pour proposer des corrections ciblées.",
     setup:tourOpenSettings, target:()=>tourSettingsRow('togglePhiloMode'),
     halo:()=>document.querySelector('.sb-settings') },
   { part:'proposer', side:'sidebar', title:'Proposer du contenu',
-    text:"En mode édition, <b>💡 Proposer du contenu</b> ouvre une fenêtre pour suggérer un "
+    text:"En mode édition, <b>"+ico('idee')+" Proposer du contenu</b> ouvre une fenêtre pour suggérer un "
         +"<b>ajout</b>, une <b>correction</b> ou une <b>remarque</b>. Ouvrons-la pour la découvrir.",
     // On force l'affichage du bouton (caché en mode révision) le temps de
     // l'étape ; endTour()/renderTourStep() restaurent le mode réel ensuite.
@@ -453,14 +453,14 @@ const TOUR_STEPS=[
   // CLIQUE pas le bouton : aucun risque si Supabase n'est pas encore configuré,
   // on ne fait que le désigner.
   { part:'compte', side:'sidebar', title:'Un compte (facultatif)',
-    text:"Tout en bas de la barre latérale (ou avec 👤 en haut quand elle est repliée), tu peux <b>créer un compte</b>. Ce n’est pas "
+    text:"Tout en bas de la barre latérale (ou avec "+ico('personne')+" en haut quand elle est repliée), tu peux <b>créer un compte</b>. Ce n’est pas "
         +"obligatoire pour réviser, mais ça débloque deux choses bien pratiques.",
     setup:tourShowNotion, target:()=>document.querySelector('.sb-account') },
   { part:'compte', center:true, title:'Sync & suivi',
     text:"<b>1.</b> Ta <b>révision</b> (progression, série, objectif) te suit sur <b>tous tes "
         +"appareils</b> — commence sur l’ordi, continue sur le téléphone.<br>"
         +"<b>2.</b> Les <b>propositions</b> qu’on vient de voir sont reliées à ton compte : suis "
-        +"leur <b>statut</b> (en attente, intégrée, refusée) via le bouton <b>📋 Mes propositions</b>, "
+        +"leur <b>statut</b> (en attente, intégrée, refusée) via le bouton <b>"+ico('liste')+" Mes propositions</b>, "
         +"qui apparaît en haut de la page une fois connecté.<br>"
         +"Tu restes maître de tes données : on peut se <b>déconnecter</b> ou <b>supprimer son "
         +"compte</b> à tout moment." },
@@ -473,9 +473,9 @@ const TOUR_STEPS=[
     text:"Ce bouton <b>?</b>, en haut à droite, <b>rouvre cette visite</b> quand tu veux — "
         +"en entier ou directement sur une partie précise. Tu peux donc y revenir sans crainte.",
     setup:tourShowNotion, target:()=>document.getElementById('help-btn') },
-  { part:'end', center:true, title:'C’est parti 🎓',
-    text:"Voilà l’essentiel ! 💡 Astuce : le site s’<b>installe</b> comme une appli "
-        +"(menu du navigateur → « Installer ») et fonctionne <b>hors-ligne</b> — pratique "
+  { part:'end', center:true, title:'C’est parti',
+    text:"Voilà l’essentiel ! "+ico('idee')+" Astuce : le site s’<b>installe</b> comme une appli "
+        +"(menu du navigateur "+ico('flecheD')+" « Installer ») et fonctionne <b>hors-ligne</b> — pratique "
         +"pour réviser dans le train. Bonnes révisions !",
     nextLabel:'Terminer' },
 ];
@@ -803,8 +803,8 @@ function tourBubbleHTML(step){
   let hasNextPart=false;
   for(let p=pos+1;p<seq.length;p++){ if(TOUR_STEPS[seq[p]].part!==step.part){ hasNextPart=true; break; } }
   // En fin de NOYAU, « Suivant » mène à l'écran de décision → libellé adapté.
-  const nextDefault=last?(tourState.mode==='core'?'Continuer ▶':'Terminer'):'Suivant ▶';
-  const prevBtn=first?'':`<button class="tour-btn tour-btn-prev" onclick="tourPrev()">◀ Précédent</button>`;
+  const nextDefault=last?(tourState.mode==='core'?'Continuer '+ico('chevronD'):'Terminer'):'Suivant '+ico('chevronD');
+  const prevBtn=first?'':`<button class="tour-btn tour-btn-prev" onclick="tourPrev()">${ico('chevronG')} Précédent</button>`;
   const nextBtn=`<button class="tour-btn tour-btn-next" onclick="tourNext()">${step.nextLabel||nextDefault}</button>`;
   const skipPart=(step.part!=='welcome'&&step.part!=='end'&&hasNextPart)
     ?`<button class="tour-link" onclick="tourSkipPart()">Passer cette partie</button>`:'';
@@ -823,10 +823,10 @@ function tourBubbleHTML(step){
    puis deux choix : poursuivre la visite détaillée, ou s'arrêter là. */
 function tourDecisionHTML(){
   return `<div class="tour-part">Visite express terminée</div>
-    <div class="tour-title">Tu connais l’essentiel 👍</div>
+    <div class="tour-title">Tu connais l’essentiel ${ico('pouce')}</div>
     <div class="tour-text">Tu sais maintenant <b>naviguer</b> (notions, auteurs, concepts, repères, méthodo) et <b>réviser</b>. Veux-tu poursuivre avec la <b>visite détaillée</b> ? Elle couvre les onglets d’une fiche, le <b>partage</b>, toutes les options du <b>quiz</b>, comment <b>proposer du contenu</b> et le <b>compte</b>. Tu pourras de toute façon la relancer à tout moment via le bouton <b>?</b> en haut à droite.</div>
     <div class="tour-ctrl tour-ctrl-decision">
-      <button class="tour-btn tour-btn-next" onclick="tourContinueDetailed()">Oui, voir le détail ▶</button>
+      <button class="tour-btn tour-btn-next" onclick="tourContinueDetailed()">Oui, voir le détail ${ico('chevronD')}</button>
       <button class="tour-link" onclick="endTour()">Non merci, j’ai compris</button>
     </div>`;
 }

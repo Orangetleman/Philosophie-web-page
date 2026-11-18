@@ -34,7 +34,7 @@ LEGAL({
       donnees: ["ton adresse e-mail", "ton mot de passe, enregistré sous forme chiffrée (personne ne peut le lire)", "le pseudo que tu choisis (facultatif)", "si tu te connectes avec Google : l'adresse et le nom que Google nous transmet", "la date à laquelle tu as accepté ces conditions, et leur version"],
       finalite: "Te reconnaître d'un appareil à l'autre, pour retrouver ta progression, tes réglages et tes propositions.",
       base: "L'exécution du service que tu demandes en créant un compte (article 6.1.b du RGPD). Le compte n'est jamais obligatoire : tout le site marche sans.",
-      duree: "Jusqu'à ce que tu le supprimes (un bouton dans ⚙ Réglages). Un compte sans aucune connexion depuis trois ans est supprimé d'office.",
+      duree: "Jusqu'à ce que tu le supprimes (un bouton dans Réglages). Un compte sans aucune connexion depuis trois ans est supprimé d'office.",
       tables: ["auth.users", "public.app_admins"], tiers: ["supabase", "google-connexion"]},
     {id: "synchro", titre: "Ta progression et tes réglages (avec un compte)",
       donnees: ["ta progression dans le quiz", "tes réglages d'affichage (thème, taille du texte, modes)", "le brouillon de proposition en cours", "la dernière page ouverte, pour reprendre où tu en étais"],
@@ -118,9 +118,9 @@ LEGAL({
 
   // ── Tes droits (RGPD, art. 15 à 21) ──────────────────────────────────
   droits: [
-    {titre: "Voir et emporter tes données", texte: "⚙ Réglages › Mes données › « Télécharger mes données » : un fichier avec tout ce que le site garde sur toi (compte, progression, réglages, propositions et leurs réponses, votes)."},
-    {titre: "Corriger", texte: "Ton pseudo se change dans 👤 Mon compte ; tes propositions en attente se corrigent depuis « Mes propositions »."},
-    {titre: "Effacer", texte: "⚙ Réglages › Mes données : « Effacer les données de cet appareil », et avec un compte « Supprimer mon compte ». La suppression est immédiate et définitive."},
+    {titre: "Voir et emporter tes données", texte: "Réglages › Mes données › « Télécharger mes données » : un fichier avec tout ce que le site garde sur toi (compte, progression, réglages, propositions et leurs réponses, votes)."},
+    {titre: "Corriger", texte: "Ton pseudo se change dans Mon compte ; tes propositions en attente se corrigent depuis « Mes propositions »."},
+    {titre: "Effacer", texte: "Réglages › Mes données : « Effacer les données de cet appareil », et avec un compte « Supprimer mon compte ». La suppression est immédiate et définitive."},
     {titre: "T'opposer, limiter", texte: "Écris à l'adresse de contact. Réponse sous un mois au plus."},
     {titre: "Réclamer", texte: "Si tu estimes que tes droits ne sont pas respectés, tu peux saisir la CNIL (cnil.fr, rubrique « Adresser une plainte »)."},
   ],
@@ -147,5 +147,6 @@ LEGAL({
     // Chantier Administration (lots A1 et A3), pas encore publiée : on met à jour
     // cette entrée plutôt que d'en ajouter une ; à redater au jour de la mise en ligne.
     {version: "2026-11-16", resume: "Tu peux suivre une proposition envoyée sans compte grâce à un numéro de suivi, lire la réponse à chaque partie de ta proposition, et voter, avec un compte, sur la page Propositions.", empreinte: "8d5fe0dd4e50"},
+    {version: "2026-11-18", resume: "Rien ne change sur tes données : le texte nomme les boutons Réglages et Mon compte par leur nom, sans les émojis qui les illustraient.", empreinte: "601a6142a8b3"},
   ],
 });

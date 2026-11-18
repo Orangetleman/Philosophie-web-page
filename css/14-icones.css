@@ -1,0 +1,33 @@
+/* ── Icônes (nov. 2026) ───────────────────────────────────────────────
+   SVG au trait de js/00-icones.js (ico()). Taille liée au texte (1.15em),
+   couleur du texte, posées sur la ligne de base : une icône se place
+   devant un libellé comme un mot. Règle : docs/charte-graphique.md. */
+.ico{
+  width:1.15em;height:1.15em;flex-shrink:0;
+  vertical-align:-.2em;
+  fill:none;stroke:currentColor;stroke-width:1.75;
+  stroke-linecap:round;stroke-linejoin:round;
+}
+.ico-acc{color:var(--color-ocre)}
+.ico-ok{color:#2ecc71}
+.ico-ko{color:#e74c3c}
+
+/* Chevrons des volets dépliables (<details>), en masque CSS : la forme vient
+   de --ico-chevron (même dessin que ICONES.chevronD), la couleur du texte
+   tertiaire ; ouvert, il tourne d'un quart de tour vers le bas. Remplace
+   les anciens ▶ ▼ ▸ ▾ écrits en `content`. */
+:root{--ico-chevron:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 6l6 6-6 6'/%3E%3C/svg%3E")}
+.plan-card>summary::before,.plan-sp>summary::before,.def-box summary::before,
+.author-def-box summary::before,.pmine-det>summary::before,.methodo-step>summary::after{
+  content:"";display:inline-block;width:.85em;height:.85em;flex-shrink:0;
+  margin-right:.35em;vertical-align:-.1em;background:var(--color-text-tertiary);
+  -webkit-mask:var(--ico-chevron) center/contain no-repeat;mask:var(--ico-chevron) center/contain no-repeat;
+  transition:transform .15s;
+}
+.methodo-step>summary::after{margin-right:0}
+.def-box summary::before,.author-def-box summary::before{margin-right:0}
+.plan-card[open]>summary::before,.plan-sp[open]>summary::before,.def-box details[open] summary::before,
+.author-def-box details[open] summary::before,.pmine-det[open]>summary::before,.methodo-step[open]>summary::after{transform:rotate(90deg)}
+
+/* Touche de clavier dessinée (flèches ↑ ↓ de la palette) : l'icône dans <kbd>. */
+kbd .ico{vertical-align:-.15em}

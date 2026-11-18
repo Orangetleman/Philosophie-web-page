@@ -98,7 +98,7 @@ function indexElements(){
   if(sbMode==='methodo'){
     // Les parcours de méthode (METHODO_GUIDE, js/04-fiches.js) : intro, squelette, étapes.
     el=METHODO_TOPICS.map(t=>{ const g=METHODO_GUIDE[t.id];
-      return {type:'methodo',cle:t.id,titre:g.titre||t.label,sous:g.etapes.length+' étapes · '+g.squelette.map(s=>s.bloc).join(' → '),notions:[],texte:texteBrut(g.intro),long:true,couleur:'var(--color-ocre)'}; });
+      return {type:'methodo',cle:t.id,titre:g.titre||t.label,sous:g.etapes.length+' étapes · '+g.squelette.map(s=>s.bloc).join(', '),notions:[],texte:texteBrut(g.intro),long:true,couleur:'var(--color-ocre)'}; });
   }else if(sbMode==='notions'){
     el=notionsVisibles().map(k=>({type:'notion',cle:k,titre:D[k].l,sous:D[k].s||'',notions:[k],couleur:D[k].c,hp:estHP(k),nouveau:D[k].new,modifie:D[k].modified}));
   }else if(sbMode==='auteurs'){
@@ -125,7 +125,7 @@ function indexGrilleHTML(){
   return `<p class="idx-compte">${el.length} résultat${el.length>1?'s':''}</p><div class="idx-grille">`+el.map(x=>
     `<button class="idx-carte${x.nouveau?' is-new':x.modifie?' is-modified':''}" style="--coul:${x.couleur||'var(--color-border-secondary)'}" onclick="indexOuvrir('${x.type}','${pEsc(x.cle).replace(/'/g,"\\'")}')">
       <b>${pEsc(x.titre)}</b>${x.sous?`<small>${pEsc(x.sous)}</small>`:''}
-      ${x.nouveau?'<span class="new-badge">✦ Nouveau</span>':x.modifie?'<span class="modified-badge">✎ Modifié</span>':''}
+      ${x.nouveau?'<span class="new-badge">'+ico('etincelle')+' Nouveau</span>':x.modifie?'<span class="modified-badge">'+ico('crayon')+' Modifié</span>':''}
       ${x.texte?`<span class="idx-texte">${pEsc(x.long?x.texte:x.texte.slice(0,140))}${!x.long&&x.texte.length>140?'…':''}</span>`:''}
       ${x.type!=='notion'&&x.type!=='methodo'?`<span class="idx-pts">${pts(x.notions)}</span>`:''}${x.hp?'<span class="idx-hp">hors programme</span>':''}
     </button>`).join('')+`</div>`;

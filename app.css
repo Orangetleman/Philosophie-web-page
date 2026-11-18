@@ -260,12 +260,10 @@ body.mode-fiche .a-idea .aq-details{display:none}
    marquée (encadré coloré).                                            */
 .plan-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:13px 15px;margin-bottom:12px}
 .plan-q{font-size:13.5px;font-weight:600;color:var(--color-text-primary);line-height:1.4;margin-bottom:9px}
-/* Sujet = résumé cliquable du plan déroulable. Marqueur ▶/▼ maison (comme
+/* Sujet = résumé cliquable du plan déroulable. Marqueur chevron maison (css/14-icones.css) (comme
    .plan-sp), puce native masquée ; pas de marge sous le sujet quand replié. */
 .plan-card>summary{list-style:none;cursor:pointer;margin-bottom:0}
 .plan-card>summary::-webkit-details-marker{display:none}
-.plan-card>summary::before{content:"▶ ";color:var(--color-text-tertiary);font-size:9px}
-.plan-card[open]>summary::before{content:"▼ "}
 .plan-card[open]>summary{margin-bottom:9px}
 .plan-card>summary:hover{color:var(--color-text-primary)}
 .plan-intro,.plan-pb{font-size:12px;color:var(--color-text-secondary);line-height:1.55;margin-bottom:6px}
@@ -277,8 +275,6 @@ body.mode-fiche .a-idea .aq-details{display:none}
 .plan-sp{margin:4px 0;border-left:2px solid var(--color-border-tertiary);padding-left:9px}
 .plan-sp>summary{font-size:12px;color:var(--color-text-secondary);cursor:pointer;line-height:1.45;list-style:none;padding:2px 0}
 .plan-sp>summary::-webkit-details-marker{display:none}
-.plan-sp>summary::before{content:"▸ ";color:var(--color-text-tertiary);font-size:10px}
-.plan-sp[open]>summary::before{content:"▾ "}
 .plan-sp>summary:hover{color:var(--color-text-primary)}
 .plan-sp[open]>summary{font-weight:600;color:var(--color-text-primary);margin-bottom:4px}
 .plan-sp-letter{font-weight:600;color:var(--color-text-primary)}
@@ -378,7 +374,7 @@ body.mode-edition .accroche-card.is-modified{border-color:var(--color-mod-border
   font:inherit;font-size:9.5px;font-weight:500;text-transform:uppercase;letter-spacing:.02em;
   white-space:nowrap;color:var(--color-text-quiz);cursor:pointer;text-align:left;
 }
-.sb-hp-caret{font-size:11px}
+.sb-hp-caret{font-size:11px;display:inline-flex}
 .nb.nb-hp{font-style:italic}
 /* Proposition de la première visite : carte en bas à droite ; sur
    téléphone, toute la largeur (règle @media juste en dessous). */
@@ -446,8 +442,6 @@ body.mode-edition .idea-card.is-modified{border-color:var(--color-mod-border);ba
 .def-box details{margin-top:10px;border-top:0.5px solid var(--color-border-tertiary);padding-top:8px}
 .def-box summary{cursor:pointer;font-size:11px;font-weight:600;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:.07em;list-style:none;display:flex;align-items:center;gap:5px;user-select:none}
 .def-box summary::-webkit-details-marker{display:none}
-.def-box summary::before{content:'▶';font-size:8px;transition:transform .2s}
-.def-box details[open] summary::before{content:'▼'}
 .def-box details[open] summary{color:var(--color-text-secondary)}
 .def-sec{margin-top:9px}
 .def-sec-title{font-size:10px;font-weight:600;color:var(--color-text-primary);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
@@ -564,8 +558,6 @@ h3.an{margin-bottom:2px}
 .author-def-box details{margin-top:10px;border-top:0.5px solid var(--color-border-tertiary);padding-top:8px}
 .author-def-box summary{cursor:pointer;font-size:11px;font-weight:600;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:.07em;list-style:none;display:flex;align-items:center;gap:5px;user-select:none}
 .author-def-box summary::-webkit-details-marker{display:none}
-.author-def-box summary::before{content:'▶';font-size:8px}
-.author-def-box details[open] summary::before{content:'▼'}
 
 /* ── Idea cards ─────────────────────────────────────────────── */
 .idea-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:12px 14px;margin-bottom:10px}
@@ -1437,8 +1429,6 @@ body.sb-open .sb-backdrop{display:block;opacity:1}
 .pmine-det{margin-top:7px;font-size:11.5px}
 .pmine-det>summary{cursor:pointer;color:var(--color-text-tertiary);font-weight:600;list-style:none}
 .pmine-det>summary::-webkit-details-marker{display:none}
-.pmine-det>summary::before{content:"▸ ";color:var(--color-text-tertiary)}
-.pmine-det[open]>summary::before{content:"▾ "}
 .pmine-box{margin-top:8px;padding-top:8px;border-top:0.5px solid var(--color-border-tertiary)}
 .pmine-box:first-of-type{border-top:0;padding-top:0}
 .pmine-box-h{font-size:10.5px;font-weight:700;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.03em;margin-bottom:4px}
@@ -1506,8 +1496,7 @@ body.sb-open .sb-backdrop{display:block;opacity:1}
 .methodo-step>summary{list-style:none;cursor:pointer;padding:12px 14px;font-weight:600;font-size:13.5px;
   color:var(--color-text-primary);display:flex;align-items:center;gap:8px}
 .methodo-step>summary::-webkit-details-marker{display:none}
-.methodo-step>summary::after{content:'▸';margin-left:auto;color:var(--color-text-tertiary);transition:transform .15s}
-.methodo-step[open]>summary::after{transform:rotate(90deg)}
+.methodo-step>summary::after{margin-left:auto}   /* chevron : css/14-icones.css */
 .methodo-step>summary:hover{background:var(--color-background-tertiary)}
 .methodo-step-num{flex:0 0 auto;width:22px;height:22px;border-radius:50%;background:var(--color-accent-quiz);
   color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
@@ -1946,3 +1935,36 @@ body.en-accueil .topbar{view-transition-name:none}
    le titre d'une notion ; on leur retire la marge par défaut d'un h1. */
 h1.concept-title{margin:0;line-height:inherit}
 h1.author-title{line-height:inherit}
+/* ── Icônes (nov. 2026) ───────────────────────────────────────────────
+   SVG au trait de js/00-icones.js (ico()). Taille liée au texte (1.15em),
+   couleur du texte, posées sur la ligne de base : une icône se place
+   devant un libellé comme un mot. Règle : docs/charte-graphique.md. */
+.ico{
+  width:1.15em;height:1.15em;flex-shrink:0;
+  vertical-align:-.2em;
+  fill:none;stroke:currentColor;stroke-width:1.75;
+  stroke-linecap:round;stroke-linejoin:round;
+}
+.ico-acc{color:var(--color-ocre)}
+.ico-ok{color:#2ecc71}
+.ico-ko{color:#e74c3c}
+
+/* Chevrons des volets dépliables (<details>), en masque CSS : la forme vient
+   de --ico-chevron (même dessin que ICONES.chevronD), la couleur du texte
+   tertiaire ; ouvert, il tourne d'un quart de tour vers le bas. Remplace
+   les anciens ▶ ▼ ▸ ▾ écrits en `content`. */
+:root{--ico-chevron:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 6l6 6-6 6'/%3E%3C/svg%3E")}
+.plan-card>summary::before,.plan-sp>summary::before,.def-box summary::before,
+.author-def-box summary::before,.pmine-det>summary::before,.methodo-step>summary::after{
+  content:"";display:inline-block;width:.85em;height:.85em;flex-shrink:0;
+  margin-right:.35em;vertical-align:-.1em;background:var(--color-text-tertiary);
+  -webkit-mask:var(--ico-chevron) center/contain no-repeat;mask:var(--ico-chevron) center/contain no-repeat;
+  transition:transform .15s;
+}
+.methodo-step>summary::after{margin-right:0}
+.def-box summary::before,.author-def-box summary::before{margin-right:0}
+.plan-card[open]>summary::before,.plan-sp[open]>summary::before,.def-box details[open] summary::before,
+.author-def-box details[open] summary::before,.pmine-det[open]>summary::before,.methodo-step[open]>summary::after{transform:rotate(90deg)}
+
+/* Touche de clavier dessinée (flèches ↑ ↓ de la palette) : l'icône dans <kbd>. */
+kbd .ico{vertical-align:-.15em}

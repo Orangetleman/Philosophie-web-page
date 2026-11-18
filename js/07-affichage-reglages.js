@@ -128,7 +128,7 @@ function hpInviterSiBesoin(){
       <button class="pbtn pbtn-primary" onclick="setVoirHP(false)">M'en tenir au programme</button>
       <button class="pbtn pbtn-ghost" onclick="setVoirHP(true)">Tout garder visible</button>
     </div>
-    <p class="hp-invite-note">Modifiable à tout moment dans ⚙ Réglages.</p>`;
+    <p class="hp-invite-note">Modifiable à tout moment dans ${ico('reglages')} Réglages.</p>`;
   document.body.appendChild(box);
 }
 function fermerHpInvite(){ const b=document.getElementById('hp-invite'); if(b) b.remove(); }
@@ -199,7 +199,7 @@ function renderSettingsBody(){
     +'<details class="rg-plus"><summary>Ce que ça change</summary>'
     +'<p><strong>Mode fiche</strong> : compresse chaque boîte d\'auteur dans les notions (idée bornée à 2 lignes, citations masquées) pour une <em>lecture rapide</em>, façon fiche de révision. Le contenu complet reste sur la fiche de l\'auteur.</p>'
     +(hp?'<p><strong>Hors programme</strong> : les notions qui ne sont pas au programme de terminale ('+KEYS_HP.length+' pour l\'instant), et ce qui n\'apparaît que sous elles : auteurs, concepts, cartes du quiz. Masqué, le site s\'en tient au programme du bac.</p>':'')
-    +'<p><strong>Mode édition</strong> : révèle les badges « ✦ nouveau / ✎ modifié » et les boutons « + » pour proposer du contenu. Le mode <em>révision</em> épure l\'affichage pour se concentrer sur l\'apprentissage.</p></details>');
+    +'<p><strong>Mode édition</strong> : révèle les badges « '+ico('etincelle')+' nouveau / '+ico('crayon')+' modifié » et les boutons « + » pour proposer du contenu. Le mode <em>révision</em> épure l\'affichage pour se concentrer sur l\'apprentissage.</p></details>');
 
   // ── Compte ──
   h+=rgCarte('rg-compte','Compte', connecte?'Connecté':'Sans compte',
@@ -215,7 +215,7 @@ function renderSettingsBody(){
   const surAppareil=Object.keys(donneesAppareil()).length;
   h+=rgCarte('rg-donnees','Mes données', surAppareil+' élément'+(surAppareil>1?'s':'')+' sur cet appareil'+(connecte?' · compte':''),
     '<p class="rg-texte">Pas de publicité, pas de statistiques, pas de traceur. Le site garde seulement ce qui sert à ta révision'+(connecte?', sur cet appareil et sur ton compte':', sur cet appareil')+'.</p>'
-    +'<div class="rg-actions"><button class="pbtn" onclick="exporterMesDonnees(this)">↓ Télécharger mes données</button>'
+    +'<div class="rg-actions"><button class="pbtn" onclick="exporterMesDonnees(this)">'+ico('telecharger')+' Télécharger mes données</button>'
     +'<button class="pbtn" onclick="effacerDonneesAppareil()">Effacer les données de cet appareil</button></div>'
     +'<div class="rg-statut" id="rg-donnees-statut" role="status"></div>'
     +'<details class="rg-plus"><summary>Ce que le site garde sur toi</summary><ul>'
@@ -227,10 +227,10 @@ function renderSettingsBody(){
   // ── À propos ──
   h+=rgCarte('rg-apropos','À propos', 'Version du '+legalDateFr(LEGAL_VERSION),
     '<div class="rg-liens">'
-    +'<a href="'+LEGAL_URL+'" target="_blank" rel="noopener">Informations légales et conditions ↗</a>'
+    +'<a href="'+LEGAL_URL+'" target="_blank" rel="noopener">Informations légales et conditions '+ico('externe')+'</a>'
     +'<a href="mailto:'+pEsc(LEGAL.contact)+'">Écrire à l\'éditeur</a>'
-    +'<a href="docs/carte/carte.html" target="_blank" rel="noopener">🗺 Carte du projet ↗</a>'
-    +'<a href="docs/carte/frise.html" target="_blank" rel="noopener">🕓 Frise des commits ↗</a>'
+    +'<a href="docs/carte/carte.html" target="_blank" rel="noopener">'+ico('carte')+' Carte du projet '+ico('externe')+'</a>'
+    +'<a href="docs/carte/frise.html" target="_blank" rel="noopener">'+ico('horloge')+' Frise des commits '+ico('externe')+'</a>'
     +'</div>'
     +'<details class="rg-plus"><summary>La carte et la frise, c\'est quoi ?</summary><p>Pour les curieux de la technique : une <strong>carte interactive</strong> de l\'architecture (du parcours élève jusqu\'au nom des fonctions) et une <strong>frise</strong> de l\'évolution du projet commit par commit.</p></details>');
 

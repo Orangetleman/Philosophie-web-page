@@ -1,8 +1,17 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
-  "genere_le": "2026-11-18T15:35:02.211Z",
+  "genere_le": "2026-11-18T16:21:35.237Z",
   "commits": [
+    {
+      "hash": "5ded2789449ca7e85576f8ceb787fb49c1aece4f",
+      "short": "5ded278",
+      "auteur": "Orangentleman",
+      "date": "2026-11-18T16:34:53+01:00",
+      "sujet": "Référencement : un <h1> sur les fiches d'auteur et de concept",
+      "corps": "Après le chargement de l'app, une fiche d'auteur ou de concept n'avait\naucun titre <h1> (un simple <div>), contrairement aux notions ; défaut\ndéjà présent sur main. Le nom de l'auteur et le terme du concept\ndeviennent des <h1>, à l'apparence inchangée.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": "Référencement"
+    },
     {
       "hash": "55f625d04d38cf5d382dcad364479837ad53dbfe",
       "short": "55f625d",

@@ -39,7 +39,7 @@ function renderShare(){
   // Bouton de partage natif : seulement si l'appareil le propose (mobiles
   // surtout). Sinon on s'appuie sur le QR + la copie, toujours présents.
   const nativeBtn = (typeof navigator!=='undefined' && navigator.share)
-    ? `<button class="share-btn share-btn-primary share-native" onclick="shareNative()">📲 Partager…</button>`
+    ? `<button class="share-btn share-btn-primary share-native" onclick="shareNative()">${ico('partager')} Partager…</button>`
     : '';
   body.innerHTML=`
     <div class="share-intro">Partage cette page (${paletteEsc(titrePage().replace(/ · Graphe Philosophie$/,''))}) à tes camarades : scanne le QR code, copie le lien, ou utilise le partage de ton appareil. Le lien ouvre le site directement sur cette page.</div>

@@ -58,7 +58,7 @@ export function pageLegale(L) {
       <p>Tous sont établis aux États-Unis : les transferts hors de l'Union européenne sont encadrés comme indiqué.</p>
       <ul class="lg-tiers">${L.tiers.map(t => `<li><strong>${esc(t.nom)}</strong> : ${esc(t.role)} <span class="lg-note">${esc(t.pays)}. ${esc(t.garanties)}</span></li>`).join('')}</ul>`],
     ['appareil', 'Ce qui reste sur ton appareil', `
-      <p>Le site garde quelques informations dans ton navigateur (<em>localStorage</em>), pour se souvenir de tes réglages et de ta progression. Ce ne sont pas des traceurs : elles ne quittent ton appareil que si tu as un compte (synchronisation), et aucune bannière de consentement n'est donc nécessaire. Tu peux tout effacer dans ⚙ Réglages › Mes données.</p>
+      <p>Le site garde quelques informations dans ton navigateur (<em>localStorage</em>), pour se souvenir de tes réglages et de ta progression. Ce ne sont pas des traceurs : elles ne quittent ton appareil que si tu as un compte (synchronisation), et aucune bannière de consentement n'est donc nécessaire. Tu peux tout effacer dans Réglages › Mes données.</p>
       <table class="lg-table"><thead><tr><th>Clé</th><th>À quoi elle sert</th></tr></thead><tbody>
       ${L.stockage.map(s => `<tr><td><code>${esc(s.cle)}</code></td><td>${esc(s.role)}</td></tr>`).join('')}
       </tbody></table>`],
