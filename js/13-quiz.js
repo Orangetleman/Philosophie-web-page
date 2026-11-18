@@ -525,7 +525,7 @@ function renderQuizDashboard(){
   // Étape 5 : boutons des notions HP seulement si le hors programme est affiché.
   const notionBtns=notionsVisibles().map(k=>`<button class="${nf.has(k)?'active':''}${estHP(k)?' quiz-hp':''}" onclick="toggleNotionFilter('${k}')">${D[k].l}</button>`).join('');
   const hpBtn=(KEYS_HP.length&&voirHP())?`<button class="${quizInclureHP()?'active':''}" onclick="toggleQuizHP()" title="Ajouter aux sessions les cartes des notions hors programme">+ Hors programme</button>`:'';
-  const typeLabels={'concept-def':'Concept→déf','def-concept':'Déf→concept','cite-author':'Citation→auteur','author-cite':'Auteur→citation','notion-authors':'Notion→auteurs'};
+  const typeLabels={'concept-def':'Concept '+ico('flecheD')+' déf','def-concept':'Déf '+ico('flecheD')+' concept','cite-author':'Citation '+ico('flecheD')+' auteur','author-cite':'Auteur '+ico('flecheD')+' citation','notion-authors':'Notion '+ico('flecheD')+' auteurs'};
   const typeBtns=Object.keys(typeLabels).map(t=>`<button class="${tf.has(t)?'active':''}" onclick="toggleTypeFilter('${t}')">${typeLabels[t]}</button>`).join('');
   // v3 — gamification : niveau courant + XP dans le niveau (0..99).
   const xp=st.gamif.xp||0, lvl=quizLevel(xp), inLvl=quizXpInLevel(xp);
@@ -543,25 +543,25 @@ function renderQuizDashboard(){
   // v3 — badges (1 par notion ; acquis à 80 % de cartes mémorisées depuis v4).
   const badges=quizBadges(st);
   const earned=badges.filter(b=>b.earned);
-  const badgesHtml=(earned.length?earned:badges).slice(0,12).map(b=>`<span class="quiz-badge${b.earned?' earned':''}">${b.earned?'🏅':'🔒'} ${b.label}</span>`).join('');
+  const badgesHtml=(earned.length?earned:badges).slice(0,12).map(b=>`<span class="quiz-badge${b.earned?' earned':''}">${ico(b.earned?'medaille':'cadenas')} ${b.label}</span>`).join('');
   // Bloc de lancement adaptatif : avertissement, ou reprise + nouvelle, ou simple lancement.
   const canResume=quizSessionActive();
   const launchHtml = quizState.confirmNew
     ? renderNewSessionWarning()
     : (canResume
-       ? `<button class="quiz-start" onclick="resumeQuizSession()">▶ Reprendre la session (${quizState.idx+1}/${quizState.session.length})</button>
-          <button class="quiz-start quiz-start-alt" onclick="requestNewSession()">🆕 Nouvelle session${s.sessionN<1?'':' ('+s.sessionN+' cartes)'}</button>`
+       ? `<button class="quiz-start" onclick="resumeQuizSession()">${ico('lecture')} Reprendre la session (${quizState.idx+1}/${quizState.session.length})</button>
+          <button class="quiz-start quiz-start-alt" onclick="requestNewSession()">${ico('plus')} Nouvelle session${s.sessionN<1?'':' ('+s.sessionN+' cartes)'}</button>`
        : `<button class="quiz-start" ${s.sessionN<1?'disabled':''} onclick="requestNewSession()">
-            ${s.sessionN<1?'Rien à réviser ici 🎉':'Session du jour ('+s.sessionN+' cartes)'}
+            ${s.sessionN<1?'Rien à réviser ici':'Session du jour ('+s.sessionN+' cartes)'}
           </button>`);
   return `
   <div class="quiz-top">
-    <div class="quiz-title">🎯 Réviser</div>
+    <div class="quiz-title">${ico('cible')} Réviser</div>
     <button class="quiz-close" onclick="closeQuiz()" aria-label="Fermer">×</button>
   </div>
   <div class="quiz-level">
     <div class="quiz-level-top">
-      <span class="quiz-level-badge">⭐ Niveau ${lvl}</span>
+      <span class="quiz-level-badge">${ico('etoile')} Niveau ${lvl}</span>
       <span class="quiz-level-xp">${xp} XP · ${inLvl}/100 vers le niveau ${lvl+1}</span>
     </div>
     <div class="quiz-level-bar"><div class="quiz-level-fill" style="width:${inLvl}%"></div></div>
@@ -571,25 +571,25 @@ function renderQuizDashboard(){
     <div class="quiz-mastery-lbl">mémorisé (${s.mastered}/${s.total} cartes bien ancrées)</div>
     <div class="quiz-bar"><div class="quiz-bar-fill" style="width:${s.pct}%"></div></div>
   </div>
-  <details class="quiz-help"><summary>❓ Comment fonctionne la révision&nbsp;?</summary>
+  <details class="quiz-help"><summary>${ico('question')} Comment fonctionne la révision&nbsp;?</summary>
     <div class="quiz-help-body">
       <p>Chaque carte gravit <b>5 paliers de mémorisation</b>. Quand tu réponds «&nbsp;je savais&nbsp;», la carte <b>monte d'un palier</b> et reviendra <b>moins souvent</b>&nbsp;; si tu te trompes, elle <b>redescend au palier&nbsp;1</b> et revient vite. C'est la <b>répétition espacée</b>&nbsp;: on revoit surtout ce qu'on maîtrise mal, et de plus en plus rarement ce qu'on connaît.</p>
       <p>Une carte est comptée comme <b>mémorisée</b> à partir du palier&nbsp;4. Le pourcentage en haut = la part de tes cartes aux paliers&nbsp;4-5.</p>
-      <p>Deux rythmes au choix&nbsp;: <b>⚡ Sprint</b> (révisions resserrées sur ≈2&nbsp;semaines, avant un contrôle) et <b>📅 Long terme</b> (espacées sur ≈2&nbsp;mois, pour ancrer durablement). Chaque rythme garde sa propre progression.</p>
+      <p>Deux rythmes au choix&nbsp;: <b>${ico('eclair')} Sprint</b> (révisions resserrées sur ≈2&nbsp;semaines, avant un contrôle) et <b>${ico('calendrier')} Long terme</b> (espacées sur ≈2&nbsp;mois, pour ancrer durablement). Chaque rythme garde sa propre progression.</p>
     </div>
   </details>
   <div>
     <div class="quiz-section-lbl">Horizon de révision</div>
     <div class="quiz-horizon">
-      <button class="${quizState.horizon==='sprint'?'active':''}" onclick="setQuizHorizon('sprint')">⚡ Sprint <span style="opacity:.7">(≈2 sem.)</span></button>
-      <button class="${quizState.horizon==='long'?'active':''}" onclick="setQuizHorizon('long')">📅 Long terme <span style="opacity:.7">(≈2 mois)</span></button>
+      <button class="${quizState.horizon==='sprint'?'active':''}" onclick="setQuizHorizon('sprint')">${ico('eclair')} Sprint <span style="opacity:.7">(≈2 sem.)</span></button>
+      <button class="${quizState.horizon==='long'?'active':''}" onclick="setQuizHorizon('long')">${ico('calendrier')} Long terme <span style="opacity:.7">(≈2 mois)</span></button>
     </div>
   </div>
   <div>
     <div class="quiz-section-lbl">Format</div>
     <div class="quiz-mode-toggle quiz-horizon">
-      <button class="${quizState.mode==='cards'?'active':''}" onclick="setQuizMode('cards')">🃏 Cartes</button>
-      <button class="${quizState.mode==='qcm'?'active':''}" onclick="setQuizMode('qcm')">📝 QCM</button>
+      <button class="${quizState.mode==='cards'?'active':''}" onclick="setQuizMode('cards')">${ico('cartes')} Cartes</button>
+      <button class="${quizState.mode==='qcm'?'active':''}" onclick="setQuizMode('qcm')">${ico('qcm')} QCM</button>
     </div>
     ${quizState.mode==='qcm'?`<div class="quiz-meta-lbl" style="margin-top:5px">En QCM, la session privilégie les cartes à choix (Définition→concept, Citation→auteur) ; les rares autres restent à retourner.</div>`:''}
   </div>
@@ -609,7 +609,7 @@ function renderQuizDashboard(){
       </div>
     </div>
     <div class="quiz-day-bar"><div class="quiz-day-fill" style="width:${dayPct}%"></div></div>
-    <div class="quiz-meta-lbl" style="text-align:center;margin-top:5px">${dayCount}/${goal} cartes aujourd'hui · 🔥 ${st.daily.streak||0} j d'affilée</div>
+    <div class="quiz-meta-lbl" style="text-align:center;margin-top:5px">${dayCount}/${goal} cartes aujourd'hui · ${ico('flamme')} ${st.daily.streak||0} j d'affilée</div>
   </div>
   <div class="quiz-meta-row">
     <div><div class="quiz-meta-num">${s.due}</div><div class="quiz-meta-lbl">à revoir</div></div>
@@ -622,16 +622,16 @@ function renderQuizDashboard(){
   <details><summary class="quiz-section-lbl" style="cursor:pointer">Badges (${earned.length}/${badges.length})</summary>
     <div class="quiz-badges" style="margin-top:8px">${badgesHtml}</div>
   </details>
-  <details class="quiz-help"><summary>💾 Ma progression est-elle sauvegardée&nbsp;?</summary>
+  <details class="quiz-help"><summary>${ico('disquette')} Ma progression est-elle sauvegardée&nbsp;?</summary>
     <div class="quiz-help-body">
       ${authUser ? `
       <p><b>Oui — et surtout, elle te suit d'un appareil à l'autre&nbsp;!</b> Tu es connecté&nbsp;: ta progression complète (niveau, cartes, série, objectif <b>et même la session en cours</b>) est enregistrée <b>sur ton compte</b> à chaque réponse.</p>
-      <p>📱➡️💻 C'est tout l'intérêt du compte&nbsp;: commence à réviser sur ton <b>téléphone</b> dans le bus, reprends <b>exactement où tu en étais</b> sur l'<b>ordinateur</b> à la maison — il suffit d'être connecté avec le même compte. Une copie reste aussi sur cet appareil, donc <b>même hors-ligne tout fonctionne</b>&nbsp;: la synchro se fait dès le retour en ligne, et c'est <b>la version la plus récente qui gagne</b>.</p>
-      <p>👉 Pareil pour tes <b>brouillons de proposition</b> et tes <b>réglages</b> (mode, objectif)&nbsp;: ils voyagent avec ton compte.</p>
+      <p>${ico('appareils')} C'est tout l'intérêt du compte&nbsp;: commence à réviser sur ton <b>téléphone</b> dans le bus, reprends <b>exactement où tu en étais</b> sur l'<b>ordinateur</b> à la maison — il suffit d'être connecté avec le même compte. Une copie reste aussi sur cet appareil, donc <b>même hors-ligne tout fonctionne</b>&nbsp;: la synchro se fait dès le retour en ligne, et c'est <b>la version la plus récente qui gagne</b>.</p>
+      <p>Pareil pour tes <b>brouillons de proposition</b> et tes <b>réglages</b> (mode, objectif)&nbsp;: ils voyagent avec ton compte.</p>
       ` : `
       <p><b>Oui — mais pour l'instant sur cet appareil uniquement</b> (ce navigateur). Elle est enregistrée <b>à chaque réponse</b> et survit si tu actualises la page, fermes l'onglet ou éteins l'appareil.</p>
-      <p>📱➡️💻 <b>Pour la retrouver sur TOUS tes appareils</b> — réviser sur le téléphone puis continuer sur l'ordinateur, sans rien reperdre — il n'y a qu'une chose à faire&nbsp;: <b>crée un compte ou connecte-toi</b> (boutons en bas de la barre latérale). Ta progression complète (cartes, série, session en cours), tes brouillons et tes réglages sont alors <b>sauvegardés en ligne et synchronisés partout</b>. Bonne nouvelle&nbsp;: ta progression actuelle sera <b>fusionnée</b> avec ton compte — rien n'est perdu.</p>
-      <p>⚠️ Sans compte, tu perdrais ta progression en cas d'effacement des données de navigation, de <b>navigation privée</b>, ou de changement de navigateur/appareil.</p>
+      <p>${ico('appareils')} <b>Pour la retrouver sur TOUS tes appareils</b> — réviser sur le téléphone puis continuer sur l'ordinateur, sans rien reperdre — il n'y a qu'une chose à faire&nbsp;: <b>crée un compte ou connecte-toi</b> (boutons en bas de la barre latérale). Ta progression complète (cartes, série, session en cours), tes brouillons et tes réglages sont alors <b>sauvegardés en ligne et synchronisés partout</b>. Bonne nouvelle&nbsp;: ta progression actuelle sera <b>fusionnée</b> avec ton compte — rien n'est perdu.</p>
+      <p>${ico('alerte')} Sans compte, tu perdrais ta progression en cas d'effacement des données de navigation, de <b>navigation privée</b>, ou de changement de navigateur/appareil.</p>
       `}
     </div>
   </details>
@@ -689,7 +689,7 @@ function resetAllQuiz(){
    Case « ne plus afficher » → mémorisée dans prefs.dontWarnNewSession. */
 function renderNewSessionWarning(){
   return `<div class="quiz-warn">
-    <div class="quiz-warn-txt">⚠️ Une session est en cours. En démarrer une nouvelle l'abandonnera. Rassure-toi : ta progression déjà enregistrée (carte par carte) est conservée — seul le score de cette session-ci sera remis à zéro.</div>
+    <div class="quiz-warn-txt">${ico('alerte')} Une session est en cours. En démarrer une nouvelle l'abandonnera. Rassure-toi : ta progression déjà enregistrée (carte par carte) est conservée — seul le score de cette session-ci sera remis à zéro.</div>
     <label class="quiz-warn-check"><input type="checkbox" id="quiz-dontwarn"> Ne plus afficher cet avertissement</label>
     <div class="quiz-warn-btns">
       <button class="quiz-no" onclick="cancelNewSession()">Annuler</button>
@@ -806,7 +806,7 @@ function renderQuizSession(){
   const isQCM=!!quizState.qcmData;
   return `
   <div class="quiz-top">
-    <div class="quiz-title">🎯 Réviser</div>
+    <div class="quiz-title">${ico('cible')} Réviser</div>
     <button class="quiz-close" onclick="closeQuiz()" aria-label="Fermer">×</button>
   </div>
   <div class="quiz-progress">Carte ${i+1} / ${sess.length}${isQCM?' · QCM':''}</div>
@@ -832,17 +832,17 @@ function renderFlipBody(card){
       <div class="quiz-card-qlabel">${card.qLabel}</div>
       <div class="quiz-card-recto">${card.recto}</div>
       ${notionLbl?`<div class="quiz-card-notion">${notionLbl}</div>`:''}
-      <div class="quiz-actions"><button class="quiz-reveal" onclick="revealQuiz()">${rev?'Voir la réponse →':'Révéler'}</button></div>
+      <div class="quiz-actions"><button class="quiz-reveal" onclick="revealQuiz()">${rev?'Voir la réponse '+ico('flecheD'):'Révéler'}</button></div>
     </div>
     <div class="quiz-card quiz-face-back">
       <div class="quiz-card-qlabel">Réponse</div>
       <div class="quiz-card-verso" style="border-top:none;padding-top:0">${card.verso}</div>
-      <div class="quiz-actions"><button class="quiz-reveal quiz-reflip" onclick="flipToQuestion()">↩ Revoir la question</button><button class="quiz-reveal quiz-reflip" onclick="quizReread()">📖 Relire la fiche</button></div>
+      <div class="quiz-actions"><button class="quiz-reveal quiz-reflip" onclick="flipToQuestion()">${ico('retourner')} Revoir la question</button><button class="quiz-reveal quiz-reflip" onclick="quizReread()">${ico('livre')} Relire la fiche</button></div>
     </div>
   </div></div>
   <div class="quiz-actions quiz-answer-row${rev?'':' hidden'}">
-    <button class="quiz-no" onclick="answerQuiz(false)">❌ Je ne savais pas</button>
-    <button class="quiz-yes" onclick="answerQuiz(true)">✅ Je savais</button>
+    <button class="quiz-no" onclick="answerQuiz(false)">${ico('non')} Je ne savais pas</button>
+    <button class="quiz-yes" onclick="answerQuiz(true)">${ico('oui')} Je savais</button>
   </div>`;
 }
 
@@ -865,8 +865,8 @@ function renderQCMBody(card){
     ${notionLbl?`<div class="quiz-card-notion">${notionLbl}</div>`:''}
     <div class="quiz-choices">${choicesHtml}</div>
     ${src}
-    ${answered?`<button class="quiz-next" onclick="advanceQuiz()">Suivant →</button>
-      <button class="quiz-quit" onclick="quizReread()">📖 Relire la fiche</button>`:''}
+    ${answered?`<button class="quiz-next" onclick="advanceQuiz()">Suivant ${ico('flecheD')}</button>
+      <button class="quiz-quit" onclick="quizReread()">${ico('livre')} Relire la fiche</button>`:''}
   </div>`;
 }
 
@@ -898,7 +898,7 @@ function revealQuiz(){
   if(!inner){ renderQuiz(); return; }
   inner.classList.add('flipped');
   if(!wasRevealed){
-    const fb=document.querySelector('.quiz-face-front .quiz-reveal'); if(fb) fb.textContent='Voir la réponse →';
+    const fb=document.querySelector('.quiz-face-front .quiz-reveal'); if(fb) fb.innerHTML='Voir la réponse '+ico('flecheD');
     const row=document.querySelector('.quiz-answer-row'); if(row) row.classList.remove('hidden');
   }
 }
@@ -992,24 +992,24 @@ function renderQuizEnd(){
   const goalReached=dayCount>=goal;
   return `
   <div class="quiz-top">
-    <div class="quiz-title">🎯 Session terminée</div>
+    <div class="quiz-title">${ico('cible')} Session terminée</div>
     <button class="quiz-close" onclick="closeQuiz()" aria-label="Fermer">×</button>
   </div>
   <div class="quiz-end">
     <div class="quiz-end-score">${r.ok} / ${tot}</div>
-    <div class="quiz-end-lbl">${r.ok===tot?'Sans-faute, bravo ! 🎉':'Continue, la répétition fait le maître.'}</div>
-    ${r.leveledUp?`<div class="quiz-levelup">🎉 Niveau ${lvl} atteint !</div>`:''}
+    <div class="quiz-end-lbl">${r.ok===tot?'Sans-faute, bravo !':'Continue, la répétition fait le maître.'}</div>
+    ${r.leveledUp?`<div class="quiz-levelup">${ico('fete')} Niveau ${lvl} atteint !</div>`:''}
     <div class="quiz-end-stats">
       <div class="quiz-end-stat"><div class="quiz-end-num">+${r.xp}</div><div class="quiz-meta-lbl">XP gagnés</div></div>
       <div class="quiz-end-stat"><div class="quiz-end-num">${r.promoted}</div><div class="quiz-meta-lbl">cartes en progrès</div></div>
       <div class="quiz-end-stat"><div class="quiz-end-num">${r.mastered}</div><div class="quiz-meta-lbl">nouvelles maîtrisées</div></div>
     </div>
     <div class="quiz-end-level">
-      <div class="quiz-meta-lbl" style="text-align:center">⭐ Niveau ${lvl} · ${inLvl}/100 XP</div>
+      <div class="quiz-meta-lbl" style="text-align:center">${ico('etoile')} Niveau ${lvl} · ${inLvl}/100 XP</div>
       <div class="quiz-day-bar"><div class="quiz-day-fill" style="width:${inLvl}%;background:var(--color-accent-quiz)"></div></div>
     </div>
     <div class="quiz-end-level">
-      <div class="quiz-meta-lbl" style="text-align:center">${goalReached?'🎯 Objectif du jour atteint ! ':''}${dayCount}/${goal} cartes aujourd'hui · 🔥 ${st.daily.streak||0} j d'affilée</div>
+      <div class="quiz-meta-lbl" style="text-align:center">${goalReached?ico('cible')+' Objectif du jour atteint ! ':''}${dayCount}/${goal} cartes aujourd'hui · ${ico('flamme')} ${st.daily.streak||0} j d'affilée</div>
       <div class="quiz-day-bar"><div class="quiz-day-fill" style="width:${dayPct}%"></div></div>
     </div>
     ${hasWrong?`<button class="quiz-start" onclick="redoWrong()">Refaire les ${r.wrongIds.length} ratés</button>`:''}

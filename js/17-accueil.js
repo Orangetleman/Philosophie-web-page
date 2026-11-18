@@ -159,7 +159,7 @@ function renderAccueilContent(){
   // par ces liens, une notion, ou les boutons de l'accroche.
   const lien=(l,m)=>`<button class="acc-nav-l" onclick="accueilAller('${m}')">${l}</button>`;
   const entete=`<header class="acc-entete"><span class="acc-logo">Philo<span>.</span> Terminale</span>
-    <nav class="acc-nav">${lien('Notions','notions')}${lien('Auteurs','auteurs')}${lien('Concepts','concepts')}${lien('Méthodo','methodo')}${lien('Explorer','explorer')}<button class="acc-nav-l" onclick="openQuiz()">Quiz</button><button class="acc-nav-l" onclick="openPalette()" aria-label="Rechercher">🔍</button></nav></header>`;
+    <nav class="acc-nav">${lien('Notions','notions')}${lien('Auteurs','auteurs')}${lien('Concepts','concepts')}${lien('Méthodo','methodo')}${lien('Explorer','explorer')}<button class="acc-nav-l" onclick="openQuiz()">Quiz</button><button class="acc-nav-l" onclick="openPalette()" aria-label="Rechercher">${ico('loupe')}</button></nav></header>`;
   mc.innerHTML=entete+`<div class="acc">
     <div class="acc-hero">
       <div>
@@ -171,8 +171,8 @@ function renderAccueilContent(){
     </div>
     <section class="acc-section"><h2>Les notions</h2><div class="acc-notions">${grille}</div></section>
     <section class="acc-section acc-deux">
-      <div><h2>Tombé au bac</h2>${sujets}<button class="acc-plus" onclick="accueilExplorer('sujets')">Tous les sujets →</button></div>
-      <div><h2>Nouveautés</h2>${nouv}<button class="acc-plus" onclick="accueilExplorer('nouveautes')">Tout le journal →</button></div>
+      <div><h2>Tombé au bac</h2>${sujets}<button class="acc-plus" onclick="accueilExplorer('sujets')">Tous les sujets ${ico('flecheD')}</button></div>
+      <div><h2>Nouveautés</h2>${nouv}<button class="acc-plus" onclick="accueilExplorer('nouveautes')">Tout le journal ${ico('flecheD')}</button></div>
     </section>
   </div>`;
 }

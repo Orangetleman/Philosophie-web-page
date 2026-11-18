@@ -298,7 +298,7 @@ function sujetBacHTML(x, avecNotions){
   const corps=x.type==='explication'
     ? `Explication de texte : <span class="aterm" role="link" tabindex="0" onclick="openAuthor('${x.auteur.replace(/'/g,"\\'")}')">${x.auteur}</span>, <em>${x.oeuvre}</em>`
     : `« ${x.q} »`;
-  const pills=avecNotions?(x.notions||[]).filter(notionVisible).map(k=>`<span class="notion-pill" style="color:${D[k].c};border-color:${D[k].c}40;background:${D[k].c}12" onclick="pushHistory();cur='${k}';curTab='diss';sbMode='notions';renderSB();renderContent()">${D[k].l} →</span>`).join(''):'';
+  const pills=avecNotions?(x.notions||[]).filter(notionVisible).map(k=>`<span class="notion-pill" style="color:${D[k].c};border-color:${D[k].c}40;background:${D[k].c}12" onclick="pushHistory();cur='${k}';curTab='diss';sbMode='notions';renderSB();renderContent()">${D[k].l} ${ico('flecheD')}</span>`).join(''):'';
   return `<li class="bac-sujet"><div>${corps} ${quand}</div>${pills?`<div class="bac-pills">${pills}</div>`:''}</li>`;
 }
 /* sujetsDeNotion(k) / sujetsDAuteur(nom) — les sujets d'une notion (onglet
@@ -339,7 +339,7 @@ function nouveautesHTML(){
       <div class="nouveaute-date">${dateLongue(e.date)}</div>
       <h3 class="nouveaute-titre">${e.titre}</h3>
       <p>${e.texte}</p>
-      ${(e.liens||[]).length?`<div class="nouveaute-liens">${e.liens.map(l=>`<button class="pbtn pbtn-ghost" onclick="ouvrirAdresse('${l.h}')">${l.l} →</button>`).join('')}</div>`:''}
+      ${(e.liens||[]).length?`<div class="nouveaute-liens">${e.liens.map(l=>`<button class="pbtn pbtn-ghost" onclick="ouvrirAdresse('${l.h}')">${l.l} ${ico('flecheD')}</button>`).join('')}</div>`:''}
     </article>`).join('');
 }
 
@@ -352,7 +352,7 @@ function nouveautesHTML(){
    des propositions ni de leurs auteurs. Données : la fonction publique
    propositions() de 2026_administration.sql (score = demandes + ▲ − ▼) ;
    vote : voter(sujet, valeur). Lues à l'ouverture de l'onglet. */
-const ETATS_PROPOSITION={propose:'Proposé', prevu:'Prévu', fait:'Fait ✓', refuse:'Refusé'};
+const ETATS_PROPOSITION={propose:'Proposé', prevu:'Prévu', fait:'Fait', refuse:'Refusé'};
 let propositionsEtat={charge:false, erreur:'', liste:[], filtre:'', occupe:false};
 
 /* chargerPropositions(force) — lit les sujets publiés (une fois, ou de
@@ -395,7 +395,7 @@ function propositionsHTML(){
     const vote=(v,sym,nom)=>`<button class="prop-vote" aria-pressed="${s.mon_vote===v}" aria-label="${nom}${s.mon_vote===v?' (ton vote, reclique pour le retirer)':''}"${P.occupe?' disabled':''} onclick="voterProposition(${Number(s.id)},${v})">${sym}</button>`;
     const dem=s.demandes+s.pour;
     return `<article class="prop">
-      <div class="prop-votes">${vote(1,'▲','Pour')}<span class="prop-score" title="score : demandes + pour − contre">${s.score}</span>${vote(-1,'▼','Contre')}</div>
+      <div class="prop-votes">${vote(1,ico('chevronH'),'Pour')}<span class="prop-score" title="score : demandes + pour − contre">${s.score}</span>${vote(-1,ico('chevronB'),'Contre')}</div>
       <div class="prop-corps">
         <h3 class="prop-titre">${pEsc(s.titre)} <span class="prop-etat prop-${pEsc(s.etat)}">${ETATS_PROPOSITION[s.etat]||pEsc(s.etat)}</span></h3>
         ${s.description?`<p class="prop-desc">${pEsc(s.description)}</p>`:''}

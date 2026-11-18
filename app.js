@@ -1,5 +1,90 @@
 /* app.js — GÉNÉRÉ par outils/construire.mjs : js/*.js recollés dans l'ordre des noms.
    NE PAS ÉDITER : modifier js/, puis lancer « node outils/construire.mjs ». */
+/* ══════════════════════════════════════════════════════════════════════
+   00-icones.js — le jeu d'icônes du site (nov. 2026)
+   ──────────────────────────────────────────────────────────────────────
+   Règle de la charte (docs/charte-graphique.md) : pas d'émoji dans
+   l'interface. Un émoji change d'aspect d'un système à l'autre, jure avec
+   les bruns et l'ocre de la DA et se lit mal en petit. On dessine donc
+   chaque icône ici, en SVG au trait (grille 24, trait 1.75, bouts ronds),
+   dans la couleur du texte qui l'entoure (currentColor).
+
+   Premier morceau de app.js (00-) : ICONES existe avant tout code de
+   premier niveau des autres morceaux.
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* ICONES — nom → contenu SVG (chemins seuls, sans la balise <svg>). */
+const ICONES={
+  cible:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.2"/>',
+  idee:'<path d="M9 18h6"/><path d="M10 21h4"/><path d="M12 3a6 6 0 0 0-3.6 10.8c.6.5 1.1 1.3 1.1 2.2h5c0-.9.5-1.7 1.1-2.2A6 6 0 0 0 12 3z"/>',
+  reglages:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',
+  personne:'<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
+  diplome:'<path d="M2 9l10-5 10 5-10 5z"/><path d="M6 11v5c0 1.7 2.7 3 6 3s6-1.3 6-3v-5"/><path d="M22 9v6"/>',
+  imprimer:'<path d="M6 9V3h12v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M6 14h12v7H6z"/>',
+  alerte:'<path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/>',
+  fete:'<path d="M4 20l5-14 9 9z"/><path d="M14 4l1-2"/><path d="M19 9l2-1"/><path d="M17 4l-1 3 3-1"/>',
+  ia:'<rect x="4" y="8" width="16" height="12" rx="3"/><path d="M12 4v4"/><circle cx="12" cy="3" r="1"/><path d="M9 13v1"/><path d="M15 13v1"/><path d="M2 13v2"/><path d="M22 13v2"/>',
+  carte:'<path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2z"/><path d="M9 4v14"/><path d="M15 6v14"/>',
+  horloge:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  temple:'<path d="M3 21h18"/><path d="M4 18h16"/><path d="M6 18v-7"/><path d="M10 18v-7"/><path d="M14 18v-7"/><path d="M18 18v-7"/><path d="M3 9l9-6 9 6z"/>',
+  lien:'<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>',
+  partager:'<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4"/><path d="M15.4 6.5l-6.8 4"/>',
+  eclair:'<path d="M13 2L4 14h7l-1 8 9-12h-7z"/>',
+  calendrier:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18"/><path d="M8 3v4"/><path d="M16 3v4"/>',
+  cartes:'<rect x="7" y="3" width="13" height="17" rx="2"/><path d="M4 7v12a2 2 0 0 0 2 2h9"/>',
+  qcm:'<path d="M9 6h11"/><path d="M9 12h11"/><path d="M9 18h11"/><path d="M3.5 6l1 1 2-2"/><circle cx="5" cy="12" r="1.5"/><circle cx="5" cy="18" r="1.5"/>',
+  flamme:'<path d="M12 22a7 7 0 0 0 7-7c0-4-3-6-4-9-1 2-2 3-3.5 3.5C11 7 11 5 10 3c-2 3-5 6-5 12a7 7 0 0 0 7 7z"/>',
+  pouce:'<path d="M7 10v11"/><path d="M15 5.9L14 10h5.8a2 2 0 0 1 2 2.3l-1.4 7A2 2 0 0 1 18.4 21H4a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1h3l4-7a2.5 2.5 0 0 1 4 2.9z"/>',
+  liste:'<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1"/><path d="M9 10h6"/><path d="M9 14h6"/><path d="M9 18h3"/>',
+  outils:'<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.8-3.8a6 6 0 0 1-7.9 7.9l-6.9 6.9a2.1 2.1 0 0 1-3-3l6.9-6.9a6 6 0 0 1 7.9-7.9z"/>',
+  cle:'<circle cx="7.5" cy="15.5" r="4.5"/><path d="M11 12l9-9"/><path d="M16 7l3 3"/><path d="M14 9l2 2"/>',
+  oeil:'<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+  oeilBarre:'<path d="M3 3l18 18"/><path d="M10.6 5.1A10 10 0 0 1 12 5c6.5 0 10 7 10 7a17 17 0 0 1-3 3.7"/><path d="M6.6 6.6A17 17 0 0 0 2 12s3.5 7 10 7a9.6 9.6 0 0 0 5.4-1.6"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/>',
+  medaille:'<circle cx="12" cy="15" r="6"/><path d="M8.5 10L6 2h4l2 4 2-4h4l-2.5 8"/><path d="M12 12.5l.9 1.8 2 .3-1.4 1.4.3 2-1.8-.9-1.8.9.3-2-1.4-1.4 2-.3z"/>',
+  cadenas:'<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',
+  plus:'<circle cx="12" cy="12" r="9"/><path d="M12 8v8"/><path d="M8 12h8"/>',
+  etoile:'<path d="M12 3l2.8 5.7 6.2.9-4.5 4.4 1 6.2L12 17.3 6.5 20.2l1-6.2L3 9.6l6.2-.9z"/>',
+  question:'<circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 0 1 4.9.8c0 1.7-2.4 2.2-2.4 3.7"/><path d="M12 17h.01"/>',
+  disquette:'<path d="M5 3h11l5 5v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M7 3v5h8V3"/><rect x="7" y="13" width="10" height="8"/>',
+  appareils:'<rect x="2" y="5" width="13" height="10" rx="1.5"/><path d="M6 19h5"/><path d="M8.5 15v4"/><rect x="17" y="8" width="5" height="12" rx="1"/>',
+  non:'<circle cx="12" cy="12" r="9"/><path d="M9 9l6 6"/><path d="M15 9l-6 6"/>',
+  oui:'<circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.7 2.5L16 9.5"/>',
+  livre:'<path d="M2 5h6a4 4 0 0 1 4 4v12a3 3 0 0 0-3-3H2z"/><path d="M22 5h-6a4 4 0 0 0-4 4v12a3 3 0 0 1 3-3h7z"/>',
+  loupe:'<circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/>',
+  // Signes d'interface (anciens ← → ↗ ▸ ▾ ✓ ✕ ✎ ✦ ↻ ↩ ↓ ▲ ▼ ☰ ⌘)
+  flecheG:'<path d="M19 12H5"/><path d="M11 6l-6 6 6 6"/>',
+  flecheD:'<path d="M5 12h14"/><path d="M13 6l6 6-6 6"/>',
+  externe:'<path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>',
+  chevronD:'<path d="M9 6l6 6-6 6"/>',
+  chevronG:'<path d="M15 6l-6 6 6 6"/>',
+  chevronB:'<path d="M6 9l6 6 6-6"/>',
+  chevronH:'<path d="M6 15l6-6 6 6"/>',
+  fermer:'<path d="M6 6l12 12"/><path d="M18 6L6 18"/>',
+  coche:'<path d="M5 12.5l4.5 4.5L19 7"/>',
+  crayon:'<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/>',
+  etincelle:'<path d="M12 3c.6 4.6 2.4 6.4 7 7-4.6.6-6.4 2.4-7 7-.6-4.6-2.4-6.4-7-7 4.6-.6 6.4-2.4 7-7z"/>',
+  recommencer:'<path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/>',
+  retourner:'<path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/>',
+  telecharger:'<path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/>',
+  lecture:'<path d="M7 4l13 8-13 8z"/>',
+  menu:'<path d="M4 6h16"/><path d="M4 12h16"/><path d="M4 18h16"/>',
+  commande:'<path d="M9 6a3 3 0 1 0-3 3h12a3 3 0 1 0-3-3v12a3 3 0 1 0 3-3H6a3 3 0 1 0 3 3z"/>'
+};
+
+/* ico(nom, classe?) — balise <svg> de l'icône `nom`, décorative
+   (aria-hidden) : le texte voisin ou un aria-label porte le sens.
+   Un nom inconnu rend une chaîne vide plutôt qu'une icône cassée. */
+function ico(nom, classe){
+  const c=ICONES[nom]; if(!c) return '';
+  return '<svg class="ico'+(classe?' '+classe:'')+'" viewBox="0 0 24 24" aria-hidden="true" focusable="false">'+c+'</svg>';
+}
+
+/* icosStatiques(racine) — remplit les <i data-ico="nom"></i> écrits dans
+   index.html (le HTML statique ne peut pas appeler ico()). Appelé au
+   démarrage ; sans effet sur un élément déjà rempli. */
+function icosStatiques(racine){
+  (racine||document).querySelectorAll('i[data-ico]:empty').forEach(el=>{ el.outerHTML=ico(el.dataset.ico); });
+}
 /* js/01-donnees-etat.js — morceau du script du site. Le build (outils/construire.mjs)
    recolle js/*.js dans l'ORDRE des noms en UN SEUL script, app.js : les
    fonctions restent visibles d'un morceau à l'autre comme avant, et le code
@@ -504,7 +589,7 @@ function restoreNavHistory(){
    de navigation est vide). Inséré en tête des barres d'onglets. */
 function backBtnHTML(){
   const disabled=navHistory.length===0;
-  return `<button class="back-btn"${disabled?' disabled':''} onclick="avecTransition(goBack)" title="${disabled?'Aucune page précédente':`Retour (${navHistory.length} page${navHistory.length>1?'s':''})`}">← Retour</button>`;
+  return `<button class="back-btn"${disabled?' disabled':''} onclick="avecTransition(goBack)" title="${disabled?'Aucune page précédente':`Retour (${navHistory.length} page${navHistory.length>1?'s':''})`}">${ico('flecheG')} Retour</button>`;
 }
 
 /* ── Adresses de page (#/…) — étape 3, octobre 2026 ──────────────────────
@@ -827,7 +912,7 @@ function renderSB(){
   if(!quizBtn){
     quizBtn=document.createElement('button');
     quizBtn.className='sb-quiz';
-    quizBtn.innerHTML='🎯 Réviser';
+    quizBtn.innerHTML=ico('cible')+' Réviser';
     quizBtn.title='Réviser en cartes (quiz à répétition espacée)';
     quizBtn.onclick=openQuiz;
     sb.appendChild(quizBtn);
@@ -839,7 +924,7 @@ function renderSB(){
   if(!propose){
     propose=document.createElement('button');
     propose.className='sb-propose';
-    propose.innerHTML='💡 Proposer du contenu';
+    propose.innerHTML=ico('idee')+' Proposer du contenu';
     propose.title='Proposer un ajout, une correction ou une remarque';
     propose.onclick=openProposal;
     sb.appendChild(propose);
@@ -860,7 +945,7 @@ function renderSB(){
   if(!settingsBtn){
     settingsBtn=document.createElement('button');
     settingsBtn.className='sb-settings';
-    settingsBtn.innerHTML='⚙ Réglages';
+    settingsBtn.innerHTML=ico('reglages')+' Réglages';
     settingsBtn.title='Réglages (mode d\'affichage…)';
     settingsBtn.onclick=openSettings;
     sb.appendChild(settingsBtn);
@@ -914,7 +999,7 @@ function renderSB(){
       tete.className='sb-hp-head';
       tete.setAttribute('aria-expanded', String(!replie));
       tete.title='Notions qui ne sont pas au programme de terminale : pour aller plus loin';
-      tete.innerHTML=`<span>Hors programme (${KEYS_HP.length})</span><span class="sb-hp-caret">${replie?'▸':'▾'}</span>`;
+      tete.innerHTML=`<span>Hors programme (${KEYS_HP.length})</span><span class="sb-hp-caret">${ico(replie?'chevronD':'chevronB')}</span>`;
       tete.onclick=()=>{ try{ localStorage.setItem('philo-hp-replie', replie?'0':'1'); }catch(e){} renderSB(); };
       list.appendChild(tete);
       KEYS_HP.filter(k=>!replie||k===cur).forEach(ajouterNotion);
@@ -931,7 +1016,7 @@ function renderSB(){
       <div class="sb-search-field">
         <input class="sb-search" type="text" placeholder="Rechercher…" value="${authorSearch.replace(/"/g,'&quot;')}"
           oninput="sbSearchInput(this,'author')" oncontextmenu="searchCtxClear(event,'author')" />
-        <button class="sb-search-clear" style="display:${authorSearch?'flex':'none'}" title="Effacer (clic droit aussi)" aria-label="Effacer la recherche" onclick="clearSidebarSearch('author')">✕</button>
+        <button class="sb-search-clear" style="display:${authorSearch?'flex':'none'}" title="Effacer (clic droit aussi)" aria-label="Effacer la recherche" onclick="clearSidebarSearch('author')">${ico('fermer')}</button>
       </div>
       <button class="sb-filter-btn${(authorFilter.size>0)||filterOpen?' active':''}" onclick="filterOpen=!filterOpen;renderSB()" title="Filtrer par notion">⊟</button>`;
     // Filter panel (dans la zone scrollable)
@@ -941,7 +1026,7 @@ function renderSB(){
       const checks=notionsVisibles().map(k=>{   // étape 5 : sans les notions HP masquées
         const checked=authorFilter.has(k);
         return `<div class="filter-notion-item" onclick="toggleFilter('${k}')">
-          <div class="filter-notion-check${checked?' checked':''}" style="${checked?`background:${D[k].c};color:#fff`:''}">${checked?'✓':''}</div>
+          <div class="filter-notion-check${checked?' checked':''}" style="${checked?`background:${D[k].c};color:#fff`:''}">${checked?ico('coche'):''}</div>
           <span class="filter-notion-label">${D[k].l}</span>
           <span style="width:6px;height:6px;border-radius:50%;background:${D[k].c};flex-shrink:0;margin-left:auto"></span>
         </div>`;
@@ -976,7 +1061,7 @@ function renderSB(){
       <div class="sb-search-field">
         <input class="sb-search" type="text" placeholder="Rechercher…" value="${conceptSearch.replace(/"/g,'&quot;')}"
           oninput="sbSearchInput(this,'concept')" oncontextmenu="searchCtxClear(event,'concept')" />
-        <button class="sb-search-clear" style="display:${conceptSearch?'flex':'none'}" title="Effacer (clic droit aussi)" aria-label="Effacer la recherche" onclick="clearSidebarSearch('concept')">✕</button>
+        <button class="sb-search-clear" style="display:${conceptSearch?'flex':'none'}" title="Effacer (clic droit aussi)" aria-label="Effacer la recherche" onclick="clearSidebarSearch('concept')">${ico('fermer')}</button>
       </div>
       <button class="sb-filter-btn${(conceptFilter.size>0)||conceptFilterOpen?' active':''}" onclick="conceptFilterOpen=!conceptFilterOpen;renderSB()" title="Filtrer par notion">⊟</button>`;
     if(conceptFilterOpen){
@@ -985,7 +1070,7 @@ function renderSB(){
       const cChecks=notionsVisibles().map(k=>{
         const checked=conceptFilter.has(k);
         return `<div class="filter-notion-item" onclick="toggleConceptFilter('${k}')">
-          <div class="filter-notion-check${checked?' checked':''}" style="${checked?`background:${D[k].c};color:#fff`:''}">${checked?'✓':''}</div>
+          <div class="filter-notion-check${checked?' checked':''}" style="${checked?`background:${D[k].c};color:#fff`:''}">${checked?ico('coche'):''}</div>
           <span class="filter-notion-label">${D[k].l}</span>
           <span style="width:6px;height:6px;border-radius:50%;background:${D[k].c};flex-shrink:0;margin-left:auto"></span>
         </div>`;
@@ -1022,7 +1107,7 @@ function renderSB(){
       <div class="sb-search-field">
         <input class="sb-search" type="text" placeholder="Rechercher un repère…" value="${repereSearch.replace(/"/g,'&quot;')}"
           oninput="sbSearchInput(this,'repere')" oncontextmenu="searchCtxClear(event,'repere')" />
-        <button class="sb-search-clear" style="display:${repereSearch?'flex':'none'}" title="Effacer (clic droit aussi)" aria-label="Effacer la recherche" onclick="clearSidebarSearch('repere')">✕</button>
+        <button class="sb-search-clear" style="display:${repereSearch?'flex':'none'}" title="Effacer (clic droit aussi)" aria-label="Effacer la recherche" onclick="clearSidebarSearch('repere')">${ico('fermer')}</button>
       </div>`;
     const listWrap=document.createElement('div');
     listWrap.id='sb-reperes-list';
@@ -1362,9 +1447,9 @@ function planCardHTML(p){
   const ROMAN=['I','II','III','IV','V','VI'];
   const LETTERS=['A','B','C','D','E','F'];
   const statusCls=p.new?' is-new':p.modified?' is-modified':'';
-  const nb=p.new?`<span class="new-badge">✦ Nouveau</span>`:'';
-  const mb=p.modified?`<span class="modified-badge">✎ Modifié</span>`:'';
-  const mig=p.migrated?`<span class="plan-migr" title="Plan converti automatiquement depuis l'ancien format — à enrichir (problématisation, titres d'axes, limites)">↻ à enrichir</span>`:'';
+  const nb=p.new?`<span class="new-badge">${ico('etincelle')} Nouveau</span>`:'';
+  const mb=p.modified?`<span class="modified-badge">${ico('crayon')} Modifié</span>`:'';
+  const mig=p.migrated?`<span class="plan-migr" title="Plan converti automatiquement depuis l'ancien format — à enrichir (problématisation, titres d'axes, limites)">${ico('recommencer')} à enrichir</span>`:'';
   // CORPS du plan (problématisation + problématique + axes). Construit à
   // part car la carte est désormais DÉROULABLE : le développement est
   // replié par défaut, on ne montre que le sujet (summary). Divulgation
@@ -1435,7 +1520,7 @@ function renderConceptContent(){
   const notionPills=c.notions.map(k=>{
     const nd=D[k]; if(!nd||!notionVisible(k)) return '';   // étape 5 : HP masqué
     return `<span class="notion-pill" style="color:${nd.c};border-color:${nd.c}40;background:${nd.c}12"
-      onclick="openNotionFromConcept('${k}','${safeCid}')">${nd.l} →</span>`;
+      onclick="openNotionFromConcept('${k}','${safeCid}')">${nd.l} ${ico('flecheD')}</span>`;
   }).join('');
 
   // Auteur link
@@ -1531,11 +1616,11 @@ const METHODO_GUIDE={
         +"On part d'une question, on montre qu'elle oppose plusieurs réponses possibles, puis on construit pas à pas une réponse "
         +"argumentée en s'appuyant sur des <b>auteurs</b>, des <b>concepts</b> et des <b>exemples</b>.",
     squelette:[
-      {bloc:'Introduction', detail:"Accroche → analyse des termes du sujet → <b>problématique</b> (la question qui oppose deux réponses) → annonce du plan."},
+      {bloc:'Introduction', detail:"Accroche "+ico('flecheD')+" analyse des termes du sujet "+ico('flecheD')+" <b>problématique</b> (la question qui oppose deux réponses) "+ico('flecheD')+" annonce du plan."},
       {bloc:'I. Thèse', detail:"La réponse la plus spontanée au sujet : on la défend solidement… puis on en montre la limite."},
       {bloc:'II. Antithèse', detail:"Une objection qui corrige la première réponse et <b>déplace</b> le problème."},
       {bloc:'III. Dépassement', detail:"Une position plus fine qui lève la tension — souvent grâce à une <b>distinction</b> décisive."},
-      {bloc:'Conclusion', detail:"Bilan des étapes → réponse claire à la problématique → ouverture."}
+      {bloc:'Conclusion', detail:"Bilan des étapes "+ico('flecheD')+" réponse claire à la problématique "+ico('flecheD')+" ouverture."}
     ],
     etapes:[
       {t:"Analyser le sujet",
@@ -1547,7 +1632,7 @@ const METHODO_GUIDE={
        phrases:["« On pourrait répondre que … ; pourtant, … »","« Le problème est donc de savoir si … ou si, au contraire, … »"],
        tip:"Une bonne problématique se reconnaît à ce qu'on <b>ne peut pas y répondre par oui ou non immédiatement</b>."},
       {t:"Construire le plan",
-       body:"<p>Trois parties (les correcteurs y tiennent) qui <b>progressent</b> — chacune corrige ou approfondit la précédente. Deux formes admises : le plan <b>dialectique</b> (thèse → objection → dépassement) et le plan <b>progressif</b> (on creuse la même question par paliers de plus en plus fins). Jamais un « pour / contre / synthèse » plaqué : chaque partie répond à la problématique d'une manière <b>nouvelle</b>.</p>",
+       body:"<p>Trois parties (les correcteurs y tiennent) qui <b>progressent</b> — chacune corrige ou approfondit la précédente. Deux formes admises : le plan <b>dialectique</b> (thèse "+ico('flecheD')+" objection "+ico('flecheD')+" dépassement) et le plan <b>progressif</b> (on creuse la même question par paliers de plus en plus fins). Jamais un « pour / contre / synthèse » plaqué : chaque partie répond à la problématique d'une manière <b>nouvelle</b>.</p>",
        phrases:["I. réponse spontanée — II. objection qui la limite — III. distinction qui dépasse","« Ce qui était vrai en … ne l'est plus dès lors que … »"],
        tip:"Teste ton plan : si on peut <b>inverser deux parties sans rien changer</b>, c'est qu'il ne progresse pas."},
       {t:"Rédiger l'introduction",
@@ -1571,10 +1656,10 @@ const METHODO_GUIDE={
         +"sans paraphraser (redire en moins bien) ni plaquer un cours. On montre <b>pourquoi</b> l'auteur dit ce qu'il dit, "
         +"et en quoi sa réponse est forte.",
     squelette:[
-      {bloc:'Introduction', detail:"Thème → <b>problème</b> auquel le texte répond → <b>thèse</b> de l'auteur → annonce des mouvements."},
+      {bloc:'Introduction', detail:"Thème "+ico('flecheD')+" <b>problème</b> auquel le texte répond "+ico('flecheD')+" <b>thèse</b> de l'auteur "+ico('flecheD')+" annonce des mouvements."},
       {bloc:'Développement', detail:"On suit l'<b>ordre du texte</b> : pour chaque mouvement, on cite, on explique les termes, on reformule l'argument."},
       {bloc:'Discussion', detail:"(Selon la consigne) intérêt et portée de la thèse, puis une <b>limite</b> éventuelle, discutée avec rigueur."},
-      {bloc:'Conclusion', detail:"Ce que le texte établit → réponse au problème → ouverture."}
+      {bloc:'Conclusion', detail:"Ce que le texte établit "+ico('flecheD')+" réponse au problème "+ico('flecheD')+" ouverture."}
     ],
     etapes:[
       {t:"Lire et situer le texte",
@@ -1624,7 +1709,7 @@ function renderMethodoContent(){
   // présentation #/methodo et de la barre latérale) ; un lien vers l'autre
   // parcours en bas de page, utile sur téléphone (barre en tiroir).
   const autre=METHODO_TOPICS.find(t=>t.id!==methodoTopic);
-  const autreHTML=autre?`<button class="methodo-autre" onclick="indexOuvrir('methodo','${autre.id}')">Voir aussi : ${(METHODO_GUIDE[autre.id]||{}).titre||autre.label} →</button>`:'';
+  const autreHTML=autre?`<button class="methodo-autre" onclick="indexOuvrir('methodo','${autre.id}')">Voir aussi : ${(METHODO_GUIDE[autre.id]||{}).titre||autre.label} ${ico('flecheD')}</button>`:'';
   // Squelette : une ligne par bloc de copie (vue d'ensemble de la structure).
   const skelHTML=g.squelette.map(s=>
     `<div class="methodo-skel-row"><div class="methodo-skel-bloc">${s.bloc}</div><div class="methodo-skel-detail">${linkTerms('<span>'+s.detail+'</span>')}</div></div>`
@@ -1634,7 +1719,7 @@ function renderMethodoContent(){
     const phrases=(e.phrases||[]).length
       ? `<div class="methodo-block-title">Phrases toutes prêtes</div><ul class="methodo-phrases">${e.phrases.map(p=>`<li>${linkTerms('<span>'+p+'</span>')}</li>`).join('')}</ul>`
       : '';
-    const tip=e.tip?`<div class="methodo-tip">💡 ${linkTerms('<span>'+e.tip+'</span>')}</div>`:'';
+    const tip=e.tip?`<div class="methodo-tip">${ico('idee')} ${linkTerms('<span>'+e.tip+'</span>')}</div>`:'';
     return `<details class="methodo-step"${i===0?' open':''}>
       <summary><span class="methodo-step-num">${i+1}</span>${e.t}</summary>
       <div class="methodo-step-body">${linkTerms('<span>'+e.body+'</span>')}${phrases}${tip}</div>
@@ -1929,7 +2014,7 @@ function renderAuthorContent(){
 
   // Étape 6 : un texte de cet auteur est-il tombé à l'explication de texte ?
   const bacAuteur=sujetsDAuteur(curAuthor);
-  const bacHTML=bacAuteur.length?`<div class="bac-auteur">🎓 Tombé au bac : ${bacAuteur.map(x=>`<em>${x.oeuvre}</em> (${x.annee}, voie ${x.voie})`).join(' ; ')}.</div>`:'';
+  const bacHTML=bacAuteur.length?`<div class="bac-auteur">${ico('diplome')} Tombé au bac : ${bacAuteur.map(x=>`<em>${x.oeuvre}</em> (${x.annee}, voie ${x.voie})`).join(' ; ')}.</div>`:'';
   if(meta.bio){
     html+=`<div class="author-def-box">${linkTerms('<span>'+meta.bio+'</span>')}${bacHTML}`;
     if(meta.periode||meta.themes.length){
@@ -1951,14 +2036,14 @@ function renderAuthorContent(){
     entry.notions.forEach(k=>{
       const a=entry.entries[k]; const nc=D[k].c;
       a.ideas.forEach(it=>{
-        const nb=it.new?`<span class="new-badge">✦ Nouveau</span>`:'';
-        const mb=it.modified?`<span class="modified-badge">✎ Modifié</span>`:'';
+        const nb=it.new?`<span class="new-badge">${ico('etincelle')} Nouveau</span>`:'';
+        const mb=it.modified?`<span class="modified-badge">${ico('crayon')} Modifié</span>`:'';
         const statusCls=it.new?' is-new':it.modified?' is-modified':'';
         html+=`<div class="idea-card${statusCls}">
           <div class="idea-card-head">
             <div class="idea-card-work">${it.w||''} ${nb}${mb}</div>
             <span class="notion-pill" style="color:${nc};border-color:${nc}40;background:${nc}12"
-              onclick="openNotionFromAuthor('${k}','${safeAuthor}')">${D[k].l} →</span>
+              onclick="openNotionFromAuthor('${k}','${safeAuthor}')">${D[k].l} ${ico('flecheD')}</span>
           </div>
           ${it.i?`<div class="idea-card-body">${linkTerms('<span>'+it.i+'</span>')}</div>`:''}
           ${ideaCitationsHTML(it.citations)}
@@ -1985,7 +2070,7 @@ function renderAuthorContent(){
           <div class="cit-card-footer">
             <span class="cit-card-src">${it.w||''}</span>
             <span class="notion-pill" style="color:${nc};border-color:${nc}40;background:${nc}12"
-              onclick="openNotionFromAuthor('${k}','${safeAuthor}')">${D[k].l} →</span>
+              onclick="openNotionFromAuthor('${k}','${safeAuthor}')">${D[k].l} ${ico('flecheD')}</span>
           </div>
           ${pPlus('correction','auteur',k,curAuthor+' — citation · '+D[k].l,curAuthor)}
         </div>`;
@@ -2092,7 +2177,7 @@ function renderContent(){
 <div class="notion-head">
   <div class="nbadge" style="background:${c}"></div>
   <div><h1 class="ntitle">${n.l}${estHP(cur)?' '+hpBadgeHTML():''}</h1><div class="nsub">${n.s}</div></div>
-  <button class="fiche-btn" onclick="imprimerFiche('${cur}')" title="Imprimer la fiche de révision de la notion, ou l'enregistrer en PDF">🖨 Fiche</button>
+  <button class="fiche-btn" onclick="imprimerFiche('${cur}')" title="Imprimer la fiche de révision de la notion, ou l'enregistrer en PDF">${ico('imprimer')} Fiche</button>
 </div>
 ${estHP(cur)?hpNoticeHTML():''}
 <div class="def-box">${linkTerms(n.def)}${sourcesHTML(n.sources)}${pPlus('ajout','notion',cur,'Définition / approfondissement de '+n.l)}</div>`;
@@ -2119,8 +2204,8 @@ ${estHP(cur)?hpNoticeHTML():''}
       // de la carte. Les zones se disposent horizontalement (cf. .a-ideas).
       let ideasHTML='';
       a.ideas.forEach(it=>{
-        const nb=it.new?`<span class="new-badge">✦ Nouveau</span>`:'';
-        const mb=it.modified?`<span class="modified-badge">✎ Modifié</span>`:'';
+        const nb=it.new?`<span class="new-badge">${ico('etincelle')} Nouveau</span>`:'';
+        const mb=it.modified?`<span class="modified-badge">${ico('crayon')} Modifié</span>`:'';
         const ic=it.new?' is-new':it.modified?' is-modified':'';   // teinte propre à l'idée
         ideasHTML+=`<div class="a-idea${ic}">
           <div class="aw">${it.w||''} ${nb}${mb}</div>
@@ -2148,8 +2233,8 @@ ${estHP(cur)?hpNoticeHTML():''}
   else if(curTab==='textes'){
     html+=`<div class="slabel">Textes &amp; extraits à connaître</div><div class="tbox">`;
     n.textes.forEach(t=>{
-      const newBadge=t.new?`<span class="new-badge">✦ Nouveau</span>`:'';
-      const modBadge=t.modified?`<span class="modified-badge">✎ Modifié</span>`:'';
+      const newBadge=t.new?`<span class="new-badge">${ico('etincelle')} Nouveau</span>`:'';
+      const modBadge=t.modified?`<span class="modified-badge">${ico('crayon')} Modifié</span>`:'';
       const statusClass=t.new?' is-new':t.modified?' is-modified':'';
       html+=`<div class="ti2${statusClass}"><span class="tinum">${t.n} ${newBadge}${modBadge}</span><span class="titxt">${linkTerms('<span>'+t.t+'</span>')}</span>${pPlus('correction','texte',cur,t.n)}</div>`;
     });
@@ -2206,14 +2291,14 @@ ${estHP(cur)?hpNoticeHTML():''}
       cs.forEach(c=>{
         const isNew=c.new, isMod=c.modified;
         const statusCls=isNew?' is-new':isMod?' is-modified':'';
-        const nb=isNew?`<span class="new-badge">✦ Nouveau</span>`:'';
-        const mb=isMod?`<span class="modified-badge">✎ Modifié</span>`:'';
+        const nb=isNew?`<span class="new-badge">${ico('etincelle')} Nouveau</span>`:'';
+        const mb=isMod?`<span class="modified-badge">${ico('crayon')} Modifié</span>`:'';
         const safeId=c.id.replace(/'/g,"\\'");
         // Définition COMPLÈTE + explication du lien concept ↔ notion (c.liens[cur]).
         const lien=c.liens&&c.liens[cur];
         html+=`<div class="concept-card${statusCls}">
           <div class="cc-head">
-            <span class="cc-term" onclick="openConcept('${safeId}')">${c.term} →</span>
+            <span class="cc-term" onclick="openConcept('${safeId}')">${c.term} ${ico('flecheD')}</span>
             ${c.cat?`<span class="cc-cat facet-clickable" title="Voir les concepts de cette catégorie" onclick="event.stopPropagation();openFacet('cat','${String(c.cat).replace(/'/g,"\\'")}')">${c.cat}</span>`:''}${nb}${mb}
           </div>
           <div class="cc-def">${linkTerms(c.def||'')}</div>
@@ -2249,8 +2334,8 @@ ${estHP(cur)?hpNoticeHTML():''}
       html+=`<div class="slabel">Phrases d'accroche prêtes pour ouvrir une dissertation</div>`;
       if(!accs.length) html+=`<div style="color:var(--color-text-tertiary);font-size:12px;padding:6px 0 10px">Aucune accroche pour l'instant.</div>`;
       accs.forEach((a,ai)=>{
-        const nb=a.new?`<span class="new-badge">✦ Nouveau</span>`:'';
-        const mb=a.modified?`<span class="modified-badge">✎ Modifié</span>`:'';
+        const nb=a.new?`<span class="new-badge">${ico('etincelle')} Nouveau</span>`:'';
+        const mb=a.modified?`<span class="modified-badge">${ico('crayon')} Modifié</span>`:'';
         const sc=a.new?' is-new':a.modified?' is-modified':'';
         html+=`<div class="accroche-card${sc}" data-acc="${ai}">
           <div class="accroche-head">
@@ -2276,8 +2361,8 @@ ${estHP(cur)?hpNoticeHTML():''}
           'Politique':'#5F5E5A','Numérique':'#185FA5','Clinique':'#D85A30'
         };
         const tc=tagColors[e.tag]||c;
-        const newBadgeEx=e.new?`<span class="new-badge">✦ Nouveau</span>`:'';
-        const modBadgeEx=e.modified?`<span class="modified-badge">✎ Modifié</span>`:'';
+        const newBadgeEx=e.new?`<span class="new-badge">${ico('etincelle')} Nouveau</span>`:'';
+        const modBadgeEx=e.modified?`<span class="modified-badge">${ico('crayon')} Modifié</span>`:'';
         const statusClassEx=e.new?' is-new':e.modified?' is-modified':'';
         html+=`<div class="ex-card${statusClassEx}">
           <div class="ex-head">
@@ -2325,7 +2410,7 @@ ${estHP(cur)?hpNoticeHTML():''}
       const isNew=typeof d==='object'&&d.new;
       const isMod=typeof d==='object'&&d.modified;
       const txt=typeof d==='object'?d.q:d;
-      const modBadgeDq=isMod?`<span class="modified-badge" style="margin-left:6px;vertical-align:middle">✎ Modifié</span>`:'';
+      const modBadgeDq=isMod?`<span class="modified-badge" style="margin-left:6px;vertical-align:middle">${ico('crayon')} Modifié</span>`:'';
       html+=`<div class="dq${isNew?' is-new':isMod?' is-modified':''}">${linkTerms('<span>'+txt+'</span>')}${modBadgeDq}${pPlus('correction','dissertation',cur,txt)}</div>`;
     });
     html+=`</div>`;
@@ -3117,7 +3202,7 @@ function findKnownAuthor(name){
 function authorStatusHTML(val,known){
   if(!val.trim()) return "";
   return known
-    ? '<div class="pauth-ok">✓ Auteur déjà présent : <strong>'+pEsc(known)+"</strong></div>"
+    ? '<div class="pauth-ok">'+ico('coche')+' Auteur déjà présent : <strong>'+pEsc(known)+"</strong></div>"
     : '<div class="pauth-newmsg">Auteur non répertorié — vous pouvez compléter sa fiche ci-dessous (facultatif).</div>';
 }
 /* onAuthorName — saisie du nom : met à jour le statut et affiche/masque le
@@ -3464,7 +3549,7 @@ function generateBoxBody(b){
       ideas.forEach((it,idx)=>{
         const lbl=multi?(' (idée '+(idx+1)+')'):'';
         if(gv(it,'notion')) lines.push('  - Notion'+lbl+' : '+(D[gv(it,'notion')]?D[gv(it,'notion')].l:gv(it,'notion')));
-        if(it.remove) lines.push('  - ⚠ RETRAIT'+lbl+' : '+(gv(it,'justif')||'(sans justification)'));
+        if(it.remove) lines.push('  - ATTENTION, RETRAIT'+lbl+' : '+(gv(it,'justif')||'(sans justification)'));
         (PROPOSAL_FIELDS.auteur).forEach(d=>{ if(gv(it,d.k)) lines.push('  - '+d.l+lbl+' : '+gv(it,d.k)); });
         (it.citations||[]).forEach(c=>{ if(String(c).trim()) lines.push('  - Citation'+lbl+' : '+String(c).trim()); });
       });
@@ -3558,7 +3643,7 @@ function copyProposal(){
   const txt=generateProposalText();
   if(navigator.clipboard&&navigator.clipboard.writeText){
     navigator.clipboard.writeText(txt).then(function(){
-      const btn=document.getElementById('pcopy-btn'); if(btn) btn.textContent='✓ Copié';
+      const btn=document.getElementById('pcopy-btn'); if(btn) btn.innerHTML=ico('coche')+' Copié';
     },function(){});
   }
 }
@@ -3615,8 +3700,8 @@ function sendProposalToSupabase(){
     payload: generateProposalJSON()  // ton JSON v3, stocké tel quel (colonne jsonb)
   }).then(function(res){
     if(res.error) throw res.error;
-    if(btn){ btn.textContent='✓ Envoyé'; }   // reste désactivé : évite le double envoi
-    setStatus('Merci ! Ta proposition est enregistrée sur ton compte. Suis son statut dans « Mes propositions ». 🎉','#2ecc71');
+    if(btn){ btn.innerHTML=ico('coche')+' Envoyé'; }   // reste désactivé : évite le double envoi
+    setStatus('Merci ! Ta proposition est enregistrée sur ton compte. Suis son statut dans « Mes propositions ».','#2ecc71');
     clearDrafts();   // new (Phase 3) : la proposition étant soumise, on vide le brouillon
   }).catch(function(err){
     // new (Phase 5) : repli mailto automatique (plus de message « clique ici »).
@@ -3655,17 +3740,17 @@ async function sendProposalAnonSupabase(){
       res=await SB.from('contributions').insert({user_id:null, payload:payload});
     }
     if(res.error) throw res.error;
-    if(btn){ btn.textContent='✓ Envoyé'; }   // reste désactivé : évite le double envoi
+    if(btn){ btn.innerHTML=ico('coche')+' Envoyé'; }   // reste désactivé : évite le double envoi
     if(numero){
       garderSuivi(numero);
       if(status){
         status.style.color='';
-        status.innerHTML='<b style="color:#2ecc71">Merci ! Ta proposition est envoyée. 🎉</b><br>'
+        status.innerHTML='<b style="color:#2ecc71">Merci ! Ta proposition est envoyée.</b><br>'
           +'Son numéro de suivi : <b class="psuivi-num">'+pEsc(formaterSuivi(numero))+'</b> '
           +'<button class="pbtn pbtn-sm" onclick="navigator.clipboard&&navigator.clipboard.writeText(\''+formaterSuivi(numero)+'\')">Copier</button><br>'
           +'Ce navigateur le garde : tu verras la réponse dans « Mes propositions ». Sur un autre appareil, tape ce numéro. Rien d\'autre n\'est gardé sur toi.';
       }
-    } else setStatus('Merci ! Ta proposition anonyme a bien été envoyée. 🎉','#2ecc71');
+    } else setStatus('Merci ! Ta proposition anonyme a bien été envoyée.','#2ecc71');
     clearDrafts();
   }catch(err){
     proposalMailtoFallback((err&&err.message)||err);
@@ -3755,8 +3840,8 @@ function proposalGuardOk(){
   if(!miss.length && !sansAccord){ if(!editingContribId) legalRetenir(); return true; }
   const status=document.getElementById('psend-status');
   const msg=miss.length
-    ? '⚠ Champs obligatoires manquants — '+miss.slice(0,8).join(' ; ')+(miss.length>8?' …':'')
-    : '⚠ Coche la case pour accepter les conditions d’utilisation avant d’envoyer.';
+    ? ico('alerte')+' Champs obligatoires manquants — '+miss.slice(0,8).join(' ; ')+(miss.length>8?' …':'')
+    : ico('alerte')+' Coche la case pour accepter les conditions d’utilisation avant d’envoyer.';
   if(status){ status.textContent=msg; status.style.color='#e74c3c'; try{ status.scrollIntoView({behavior:'smooth',block:'center'}); }catch(e){} }
   else alert(msg);
   return false;
@@ -4056,7 +4141,7 @@ async function renderMyContributions(){
       // auteur (bouton ✎) — l'envoi fera un UPDATE de la ligne (cf. RLS).
       const canEdit=(c.statut||'en_attente')==='en_attente';
       const editBtn=canEdit
-        ? '<div class="pmine-actions"><button class="pbtn pbtn-sm" onclick="editMyContribution(\''+pEsc(String(c.id))+'\')">✎ Modifier</button></div>'
+        ? '<div class="pmine-actions"><button class="pbtn pbtn-sm" onclick="editMyContribution(\''+pEsc(String(c.id))+'\')">'+ico('crayon')+' Modifier</button></div>'
         : '';
       // Explication = mot du RELECTEUR (humain), écrit lors du changement de
       // statut et renvoyé via Supabase. Présent seulement une fois trié.
@@ -4065,7 +4150,7 @@ async function renderMyContributions(){
       // l'agrégateur dans la colonne avis_ia — DISTINCT de l'explication
       // ci-dessus. Affiché à part et étiqueté « indicatif » : c'est une aide,
       // un humain tranche ensuite.
-      const avia=c.avis_ia ? '<div class="pmine-avia"><span class="pmine-avia-h">🤖 Avis automatique (indicatif)</span>'+pEsc(c.avis_ia)+'</div>' : '';
+      const avia=c.avis_ia ? '<div class="pmine-avia"><span class="pmine-avia-h">'+ico('ia')+' Avis automatique (indicatif)</span>'+pEsc(c.avis_ia)+'</div>' : '';
       // new : détail repliable du contenu proposé (toutes les boîtes).
       const detail=contribDetailHTML(c.payload);
       return '<div class="pmine-item">'
@@ -4102,7 +4187,7 @@ function renderProposal(){
       +'<div class="pfield" style="margin-top:10px"><label class="plabel" for="psuivi-code">Suivre une proposition envoyée ailleurs</label>'
       +'<div class="pactions" style="margin-top:4px"><input id="psuivi-code" class="pinput" placeholder="ex. K7Q-4MD-2XA-B3C" autocomplete="off" style="flex:1;min-width:0">'
       +'<button class="pbtn" onclick="ajouterSuivi()">Retrouver</button></div></div>'
-      +'<div class="pactions"><button class="pbtn" onclick="startNewProposal()">← Nouvelle proposition</button></div>';
+      +'<div class="pactions"><button class="pbtn" onclick="startNewProposal()">'+ico('flecheG')+' Nouvelle proposition</button></div>';
     if(logged) renderMyContributions();   // remplit #pmine-list de façon asynchrone
     renderSuivis();                       // remplit #psuivi-list
     return;
@@ -4139,7 +4224,7 @@ function renderProposal(){
       +(editing?'':cguCaseHTML('pcgu','envoyer cette proposition'))
       +'<div id="psend-status" class="phint" style="margin-top:8px;min-height:1.1em"></div>'
       +'<div class="pactions">'
-      +'<button class="pbtn" onclick="showProposalEdit()">← Modifier</button>'
+      +'<button class="pbtn" onclick="showProposalEdit()">'+ico('flecheG')+' Modifier</button>'
       +fallbackBtns
       +mineBtn
       // new (Phase 3): voie principale — UPDATE si édition, sinon insertion Supabase.
@@ -4153,7 +4238,7 @@ function renderProposal(){
   // propre (cancelEditContrib restaure le brouillon local et revient à la liste).
   let html='';
   if(editingContribId){
-    html+='<div class="pedit-banner">✎ Tu modifies une proposition <b>déjà envoyée</b> (en attente). '
+    html+='<div class="pedit-banner">'+ico('crayon')+' Tu modifies une proposition <b>déjà envoyée</b> (en attente). '
       +'En l\'enregistrant, tu <b>remplaces</b> la version précédente. '
       +'<button class="pbtn pbtn-ghost pbtn-sm" onclick="cancelEditContrib()">Annuler</button></div>';
   }
@@ -4175,7 +4260,7 @@ function renderProposal(){
       <div class="pbox-head">
         <span class="pbox-num">Boîte ${i+1}</span>
         <button class="pbox-del" title="Supprimer cette boîte"${proposalBoxes.length<=1?' disabled':''}
-          onclick="removeProposalBox(${b.id})">✕</button>
+          onclick="removeProposalBox(${b.id})">${ico('fermer')}</button>
       </div>
       <div class="pfield">
         <label class="plabel">Catégorie</label>
@@ -4443,7 +4528,7 @@ function hpInviterSiBesoin(){
       <button class="pbtn pbtn-primary" onclick="setVoirHP(false)">M'en tenir au programme</button>
       <button class="pbtn pbtn-ghost" onclick="setVoirHP(true)">Tout garder visible</button>
     </div>
-    <p class="hp-invite-note">Modifiable à tout moment dans ⚙ Réglages.</p>`;
+    <p class="hp-invite-note">Modifiable à tout moment dans ${ico('reglages')} Réglages.</p>`;
   document.body.appendChild(box);
 }
 function fermerHpInvite(){ const b=document.getElementById('hp-invite'); if(b) b.remove(); }
@@ -4514,7 +4599,7 @@ function renderSettingsBody(){
     +'<details class="rg-plus"><summary>Ce que ça change</summary>'
     +'<p><strong>Mode fiche</strong> : compresse chaque boîte d\'auteur dans les notions (idée bornée à 2 lignes, citations masquées) pour une <em>lecture rapide</em>, façon fiche de révision. Le contenu complet reste sur la fiche de l\'auteur.</p>'
     +(hp?'<p><strong>Hors programme</strong> : les notions qui ne sont pas au programme de terminale ('+KEYS_HP.length+' pour l\'instant), et ce qui n\'apparaît que sous elles : auteurs, concepts, cartes du quiz. Masqué, le site s\'en tient au programme du bac.</p>':'')
-    +'<p><strong>Mode édition</strong> : révèle les badges « ✦ nouveau / ✎ modifié » et les boutons « + » pour proposer du contenu. Le mode <em>révision</em> épure l\'affichage pour se concentrer sur l\'apprentissage.</p></details>');
+    +'<p><strong>Mode édition</strong> : révèle les badges « '+ico('etincelle')+' nouveau / '+ico('crayon')+' modifié » et les boutons « + » pour proposer du contenu. Le mode <em>révision</em> épure l\'affichage pour se concentrer sur l\'apprentissage.</p></details>');
 
   // ── Compte ──
   h+=rgCarte('rg-compte','Compte', connecte?'Connecté':'Sans compte',
@@ -4530,7 +4615,7 @@ function renderSettingsBody(){
   const surAppareil=Object.keys(donneesAppareil()).length;
   h+=rgCarte('rg-donnees','Mes données', surAppareil+' élément'+(surAppareil>1?'s':'')+' sur cet appareil'+(connecte?' · compte':''),
     '<p class="rg-texte">Pas de publicité, pas de statistiques, pas de traceur. Le site garde seulement ce qui sert à ta révision'+(connecte?', sur cet appareil et sur ton compte':', sur cet appareil')+'.</p>'
-    +'<div class="rg-actions"><button class="pbtn" onclick="exporterMesDonnees(this)">↓ Télécharger mes données</button>'
+    +'<div class="rg-actions"><button class="pbtn" onclick="exporterMesDonnees(this)">'+ico('telecharger')+' Télécharger mes données</button>'
     +'<button class="pbtn" onclick="effacerDonneesAppareil()">Effacer les données de cet appareil</button></div>'
     +'<div class="rg-statut" id="rg-donnees-statut" role="status"></div>'
     +'<details class="rg-plus"><summary>Ce que le site garde sur toi</summary><ul>'
@@ -4542,10 +4627,10 @@ function renderSettingsBody(){
   // ── À propos ──
   h+=rgCarte('rg-apropos','À propos', 'Version du '+legalDateFr(LEGAL_VERSION),
     '<div class="rg-liens">'
-    +'<a href="'+LEGAL_URL+'" target="_blank" rel="noopener">Informations légales et conditions ↗</a>'
+    +'<a href="'+LEGAL_URL+'" target="_blank" rel="noopener">Informations légales et conditions '+ico('externe')+'</a>'
     +'<a href="mailto:'+pEsc(LEGAL.contact)+'">Écrire à l\'éditeur</a>'
-    +'<a href="docs/carte/carte.html" target="_blank" rel="noopener">🗺 Carte du projet ↗</a>'
-    +'<a href="docs/carte/frise.html" target="_blank" rel="noopener">🕓 Frise des commits ↗</a>'
+    +'<a href="docs/carte/carte.html" target="_blank" rel="noopener">'+ico('carte')+' Carte du projet '+ico('externe')+'</a>'
+    +'<a href="docs/carte/frise.html" target="_blank" rel="noopener">'+ico('horloge')+' Frise des commits '+ico('externe')+'</a>'
     +'</div>'
     +'<details class="rg-plus"><summary>La carte et la frise, c\'est quoi ?</summary><p>Pour les curieux de la technique : une <strong>carte interactive</strong> de l\'architecture (du parcours élève jusqu\'au nom des fonctions) et une <strong>frise</strong> de l\'évolution du projet commit par commit.</p></details>');
 
@@ -4772,11 +4857,11 @@ function tourSettingsRow(fn){
 
 const TOUR_STEPS=[
   // ── Partie 0 : Bienvenue (carte centrée, sans projecteur) ──
-  { part:'welcome', center:true, title:'🏛️ Bienvenue !',
+  { part:'welcome', center:true, title:'Bienvenue !',
     text:"Tu viens d'arriver sur un <b>outil de fiches de philo</b> pour le bac : "
         +"notions, auteurs et concepts du programme de Terminale, reliés entre eux, "
         +"avec une <b>révision active</b> en cartes. Petit tour du propriétaire ?",
-    nextLabel:'Commencer ▶' },
+    nextLabel:'Commencer '+ico('chevronD') },
 
   // ── Partie 1 : Les fiches ──
   // Nov. 2026 : la visite part du lobby, puis présente chaque rubrique par sa
@@ -4884,14 +4969,14 @@ const TOUR_STEPS=[
     text:"En haut, le <b>fil d’Ariane</b> montre où tu te trouves : clique un niveau pour y remonter.",
     setup:tourShowNotion, target:()=>document.getElementById('crumbs') },
   { part:'nav', side:'main', title:'Revenir en arrière',
-    text:"Le bouton <b>← Retour</b> te ramène à la page précédente — pratique après avoir suivi un lien.",
+    text:"Le bouton <b>"+ico('flecheG')+" Retour</b> te ramène à la page précédente — pratique après avoir suivi un lien.",
     setup:tourShowNotion, target:()=>document.querySelector('.back-btn') },
   { part:'nav', side:'main', title:'Chercher partout (Ctrl + K)',
-    text:"Ce bouton, ou le raccourci <b>Ctrl + K</b> (⌘ + K sur Mac), ouvre la <b>recherche globale</b> : "
+    text:"Ce bouton, ou le raccourci <b>Ctrl + K</b> ("+ico('commande')+" + K sur Mac), ouvre la <b>recherche globale</b> : "
         +"tape une notion, un auteur ou un concept et saute droit à sa fiche.",
     setup:tourShowNotion, target:()=>document.getElementById('topbar-search') },
   { part:'nav', side:'sidebar', title:'Réglages & aide',
-    text:"Tout en bas de la barre latérale (ou en haut à droite quand elle est repliée), <b>⚙ Réglages</b> regroupe deux options :"
+    text:"Tout en bas de la barre latérale (ou en haut à droite quand elle est repliée), <b>"+ico('reglages')+" Réglages</b> regroupe deux options :"
         +"<ul class='tour-list'>"
         +"<li><b>Mode fiche</b> : compresse chaque fiche d’auteur en une <b>synthèse courte</b>, pour réviser vite.</li>"
         +"<li><b>Mode édition</b> : fait apparaître les boutons <b>+</b> pour proposer des corrections.</li>"
@@ -4904,7 +4989,7 @@ const TOUR_STEPS=[
   // (QR code à scanner, lien à copier, partage natif du téléphone). On ne fait
   // que DÉSIGNER le bouton : la visite ne l'ouvre pas, pour rester simple.
   { part:'partage', side:'main', title:'Partager l’outil',
-    text:"Le bouton <b>🔗 Partager</b> ouvre une fenêtre pour transmettre le site à un camarade : "
+    text:"Le bouton <b>"+ico('partager')+" Partager</b> ouvre une fenêtre pour transmettre le site à un camarade : "
         +"un <b>QR code</b> à scanner, le <b>lien à copier</b>, et — sur téléphone — le <b>partage "
         +"direct</b> (messages, mail…). De quoi réviser à plusieurs.",
     setup:tourShowNotion, target:()=>document.getElementById('topbar-share') },
@@ -4914,7 +4999,7 @@ const TOUR_STEPS=[
   // pointe le bouton (quiz fermé), les suivantes pilotent l'overlay ouvert
   // (setup:tourOpenQuiz) et mettent en valeur chaque réglage du tableau de bord.
   { part:'reviser', side:'sidebar', title:'Réviser activement',
-    text:"Le bouton <b>🎯 Réviser</b> ouvre le <b>mode révision</b> : un quiz en cartes que le site "
+    text:"Le bouton <b>"+ico('cible')+" Réviser</b> ouvre le <b>mode révision</b> : un quiz en cartes que le site "
         +"fabrique tout seul à partir des fiches. Ouvrons-le pour le visiter.",
     setup:tourShowNotion, target:()=>document.querySelector('.sb-quiz') },
   { part:'reviser', side:'main', title:'Ton niveau et tes points',
@@ -4927,13 +5012,13 @@ const TOUR_STEPS=[
         +"erreur la fait redescendre. C’est la <b>répétition espacée</b>.",
     setup:tourOpenQuiz, target:()=>document.querySelector('#quiz-overlay .quiz-mastery') },
   { part:'reviser', side:'main', title:'Sprint ou long terme',
-    text:"Choisis ton <b>rythme</b> : <b>⚡ Sprint</b> resserre les révisions (avant un contrôle), "
-        +"<b>📅 Long terme</b> les espace pour ancrer durablement. Chaque rythme garde sa propre "
+    text:"Choisis ton <b>rythme</b> : <b>"+ico('eclair')+" Sprint</b> resserre les révisions (avant un contrôle), "
+        +"<b>"+ico('calendrier')+" Long terme</b> les espace pour ancrer durablement. Chaque rythme garde sa propre "
         +"progression.",
     setup:tourOpenQuiz, target:()=>document.querySelector('#quiz-overlay .quiz-horizon') },
   { part:'reviser', side:'main', title:'Cartes ou QCM',
-    text:"Deux formats au choix : <b>🃏 Cartes</b> (tu retournes la carte pour vérifier) ou "
-        +"<b>📝 QCM</b> (choix multiples). Prends celui qui t’aide le plus à mémoriser.",
+    text:"Deux formats au choix : <b>"+ico('cartes')+" Cartes</b> (tu retournes la carte pour vérifier) ou "
+        +"<b>"+ico('qcm')+" QCM</b> (choix multiples). Prends celui qui t’aide le plus à mémoriser.",
     setup:tourOpenQuiz, target:()=>document.querySelector('#quiz-overlay .quiz-mode-toggle') },
   { part:'reviser', side:'main', title:'Cibler une révision',
     text:"Tu peux <b>filtrer</b> : une ou plusieurs notions, un type de question, ou seulement "
@@ -4944,7 +5029,7 @@ const TOUR_STEPS=[
         +"maintenant. Une session interrompue se <b>reprend</b> là où tu l’avais laissée.",
     setup:tourOpenQuiz, target:()=>document.querySelector('#quiz-overlay .quiz-start') },
   { part:'reviser', side:'main', title:'Un objectif par jour',
-    text:"Fixe un <b>objectif quotidien</b> (10, 20 ou 50 cartes) et garde ta <b>série</b> 🔥 en "
+    text:"Fixe un <b>objectif quotidien</b> (10, 20 ou 50 cartes) et garde ta <b>série</b> "+ico('flamme')+" en "
         +"révisant un peu chaque jour. Le vrai secret, c’est la régularité.",
     setup:tourOpenQuiz, target:()=>document.querySelector('#quiz-overlay .quiz-goal-pick') },
 
@@ -4959,14 +5044,14 @@ const TOUR_STEPS=[
   // 💡) ; les suivantes OUVRENT la modale de contribution (tourOpenProposal)
   // et détaillent les 3 menus en cascade, les champs, l'empilement et l'envoi.
   // La 1re étape dans la modale souligne d'un halo le bouton 💡 qui l'ouvre.
-  { part:'proposer', side:'main', title:'Réglages → mode édition',
-    text:"Dans <b>⚙ Réglages</b> (en bas de la barre latérale), ce bouton fait passer en "
+  { part:'proposer', side:'main', title:'Réglages '+ico('flecheD')+' mode édition',
+    text:"Dans <b>"+ico('reglages')+" Réglages</b> (en bas de la barre latérale), ce bouton fait passer en "
         +"<b>mode édition</b> : il fait apparaître partout de petits boutons <b>+</b> sur les cartes "
         +"(cachés par défaut pour un rendu épuré), pour proposer des corrections ciblées.",
     setup:tourOpenSettings, target:()=>tourSettingsRow('togglePhiloMode'),
     halo:()=>document.querySelector('.sb-settings') },
   { part:'proposer', side:'sidebar', title:'Proposer du contenu',
-    text:"En mode édition, <b>💡 Proposer du contenu</b> ouvre une fenêtre pour suggérer un "
+    text:"En mode édition, <b>"+ico('idee')+" Proposer du contenu</b> ouvre une fenêtre pour suggérer un "
         +"<b>ajout</b>, une <b>correction</b> ou une <b>remarque</b>. Ouvrons-la pour la découvrir.",
     // On force l'affichage du bouton (caché en mode révision) le temps de
     // l'étape ; endTour()/renderTourStep() restaurent le mode réel ensuite.
@@ -5010,14 +5095,14 @@ const TOUR_STEPS=[
   // CLIQUE pas le bouton : aucun risque si Supabase n'est pas encore configuré,
   // on ne fait que le désigner.
   { part:'compte', side:'sidebar', title:'Un compte (facultatif)',
-    text:"Tout en bas de la barre latérale (ou avec 👤 en haut quand elle est repliée), tu peux <b>créer un compte</b>. Ce n’est pas "
+    text:"Tout en bas de la barre latérale (ou avec "+ico('personne')+" en haut quand elle est repliée), tu peux <b>créer un compte</b>. Ce n’est pas "
         +"obligatoire pour réviser, mais ça débloque deux choses bien pratiques.",
     setup:tourShowNotion, target:()=>document.querySelector('.sb-account') },
   { part:'compte', center:true, title:'Sync & suivi',
     text:"<b>1.</b> Ta <b>révision</b> (progression, série, objectif) te suit sur <b>tous tes "
         +"appareils</b> — commence sur l’ordi, continue sur le téléphone.<br>"
         +"<b>2.</b> Les <b>propositions</b> qu’on vient de voir sont reliées à ton compte : suis "
-        +"leur <b>statut</b> (en attente, intégrée, refusée) via le bouton <b>📋 Mes propositions</b>, "
+        +"leur <b>statut</b> (en attente, intégrée, refusée) via le bouton <b>"+ico('liste')+" Mes propositions</b>, "
         +"qui apparaît en haut de la page une fois connecté.<br>"
         +"Tu restes maître de tes données : on peut se <b>déconnecter</b> ou <b>supprimer son "
         +"compte</b> à tout moment." },
@@ -5030,9 +5115,9 @@ const TOUR_STEPS=[
     text:"Ce bouton <b>?</b>, en haut à droite, <b>rouvre cette visite</b> quand tu veux — "
         +"en entier ou directement sur une partie précise. Tu peux donc y revenir sans crainte.",
     setup:tourShowNotion, target:()=>document.getElementById('help-btn') },
-  { part:'end', center:true, title:'C’est parti 🎓',
-    text:"Voilà l’essentiel ! 💡 Astuce : le site s’<b>installe</b> comme une appli "
-        +"(menu du navigateur → « Installer ») et fonctionne <b>hors-ligne</b> — pratique "
+  { part:'end', center:true, title:'C’est parti',
+    text:"Voilà l’essentiel ! "+ico('idee')+" Astuce : le site s’<b>installe</b> comme une appli "
+        +"(menu du navigateur "+ico('flecheD')+" « Installer ») et fonctionne <b>hors-ligne</b> — pratique "
         +"pour réviser dans le train. Bonnes révisions !",
     nextLabel:'Terminer' },
 ];
@@ -5360,8 +5445,8 @@ function tourBubbleHTML(step){
   let hasNextPart=false;
   for(let p=pos+1;p<seq.length;p++){ if(TOUR_STEPS[seq[p]].part!==step.part){ hasNextPart=true; break; } }
   // En fin de NOYAU, « Suivant » mène à l'écran de décision → libellé adapté.
-  const nextDefault=last?(tourState.mode==='core'?'Continuer ▶':'Terminer'):'Suivant ▶';
-  const prevBtn=first?'':`<button class="tour-btn tour-btn-prev" onclick="tourPrev()">◀ Précédent</button>`;
+  const nextDefault=last?(tourState.mode==='core'?'Continuer '+ico('chevronD'):'Terminer'):'Suivant '+ico('chevronD');
+  const prevBtn=first?'':`<button class="tour-btn tour-btn-prev" onclick="tourPrev()">${ico('chevronG')} Précédent</button>`;
   const nextBtn=`<button class="tour-btn tour-btn-next" onclick="tourNext()">${step.nextLabel||nextDefault}</button>`;
   const skipPart=(step.part!=='welcome'&&step.part!=='end'&&hasNextPart)
     ?`<button class="tour-link" onclick="tourSkipPart()">Passer cette partie</button>`:'';
@@ -5380,10 +5465,10 @@ function tourBubbleHTML(step){
    puis deux choix : poursuivre la visite détaillée, ou s'arrêter là. */
 function tourDecisionHTML(){
   return `<div class="tour-part">Visite express terminée</div>
-    <div class="tour-title">Tu connais l’essentiel 👍</div>
+    <div class="tour-title">Tu connais l’essentiel ${ico('pouce')}</div>
     <div class="tour-text">Tu sais maintenant <b>naviguer</b> (notions, auteurs, concepts, repères, méthodo) et <b>réviser</b>. Veux-tu poursuivre avec la <b>visite détaillée</b> ? Elle couvre les onglets d’une fiche, le <b>partage</b>, toutes les options du <b>quiz</b>, comment <b>proposer du contenu</b> et le <b>compte</b>. Tu pourras de toute façon la relancer à tout moment via le bouton <b>?</b> en haut à droite.</div>
     <div class="tour-ctrl tour-ctrl-decision">
-      <button class="tour-btn tour-btn-next" onclick="tourContinueDetailed()">Oui, voir le détail ▶</button>
+      <button class="tour-btn tour-btn-next" onclick="tourContinueDetailed()">Oui, voir le détail ${ico('chevronD')}</button>
       <button class="tour-link" onclick="endTour()">Non merci, j’ai compris</button>
     </div>`;
 }
@@ -5657,8 +5742,8 @@ function renderAccountBtn(){
     // Connecté : un seul bouton (nom → ouvre le profil / la déconnexion),
     // plus « Administration » si la base reconnaît ce compte comme admin
     // (nov. 2026, chantier Administration : verifierAdmin()).
-    wrap.innerHTML=`<button class="sb-account" title="Gérer le compte ou se déconnecter" onclick="openAuth()">👤 ${pEsc(authLabel())}</button>`+
-      (authEstAdmin===authUser.id?`<a class="sb-account sb-admin" href="/admin/" title="Trier les propositions (réservé aux administrateurs)">🛠 Administration</a>`:'');
+    wrap.innerHTML=`<button class="sb-account" title="Gérer le compte ou se déconnecter" onclick="openAuth()">${ico('personne')} ${pEsc(authLabel())}</button>`+
+      (authEstAdmin===authUser.id?`<a class="sb-account sb-admin" href="/admin/" title="Trier les propositions (réservé aux administrateurs)">${ico('outils')} Administration</a>`:'');
     if(authEstAdmin!==authUser.id) verifierAdmin();
   }else{
     // Déconnecté : deux boutons distincts (chacun ouvre le bon onglet).
@@ -5707,13 +5792,13 @@ function renderAuth(){
   //    récupération). PRIORITAIRE même si une session de récupération est
   //    déjà ouverte (sinon on afficherait le profil). ──
   if(authView==='newpw'){
-    if(titleEl) titleEl.textContent='🔑 Nouveau mot de passe';
+    if(titleEl) titleEl.innerHTML=ico('cle')+' Nouveau mot de passe';
     body.innerHTML=`
       <div class="auth-intro">Choisis un nouveau mot de passe pour ton compte.</div>
       <form class="auth-form" onsubmit="authSetNewPassword(event)">
         <div class="auth-pw-wrap">
           <input class="auth-input" id="auth-newpw" type="password" placeholder="Nouveau mot de passe (6 caractères min.)" autocomplete="new-password" minlength="6" required>
-          <button type="button" class="auth-pw-eye" title="Afficher / masquer le mot de passe" aria-label="Afficher le mot de passe" onclick="togglePwEye(this)">👁</button>
+          <button type="button" class="auth-pw-eye" title="Afficher / masquer le mot de passe" aria-label="Afficher le mot de passe" onclick="togglePwEye(this)">${ico('oeil')}</button>
         </div>
         <button class="auth-btn auth-btn-primary" type="submit">Définir le mot de passe</button>
       </form>
@@ -5721,7 +5806,7 @@ function renderAuth(){
     return;
   }
   if(authUser){                                  // ── déjà connecté : profil ──
-    if(titleEl) titleEl.textContent='👤 Mon compte';
+    if(titleEl) titleEl.innerHTML=ico('personne')+' Mon compte';
     const rawProv=(authUser.app_metadata&&authUser.app_metadata.provider)||'email';
     // « google » s'affiche « Gmail » ; « email » → « e-mail / mot de passe ».
     const prov=rawProv==='google'?'Gmail':(rawProv==='email'?'e-mail / mot de passe':rawProv);
@@ -5749,18 +5834,18 @@ function renderAuth(){
   }
   // ── Écran « mot de passe oublié » : demande l'e-mail, envoie le lien. ──
   if(authView==='reset'){
-    if(titleEl) titleEl.textContent='🔑 Mot de passe oublié';
+    if(titleEl) titleEl.innerHTML=ico('cle')+' Mot de passe oublié';
     body.innerHTML=`
       <div class="auth-intro">Saisis ton adresse e-mail : on t’envoie un <b>lien</b> pour choisir un nouveau mot de passe.</div>
       <form class="auth-form" onsubmit="authResetSend(event)">
         <input class="auth-input" id="auth-email" type="email" placeholder="Adresse e-mail" autocomplete="email" required>
         <button class="auth-btn auth-btn-primary" type="submit">Envoyer le lien</button>
       </form>
-      <button class="auth-link-btn" onclick="authSetView('signin')">← Retour à la connexion</button>
+      <button class="auth-link-btn" onclick="authSetView('signin')">${ico('flecheG')} Retour à la connexion</button>
       <div class="auth-status" id="auth-status"></div>`;
     return;
   }
-  if(titleEl) titleEl.textContent='👤 Créer un compte / se connecter';
+  if(titleEl) titleEl.innerHTML=ico('personne')+' Créer un compte / se connecter';
   const isSignup=authView==='signup';            // ── déconnecté : connexion ──
   body.innerHTML=`
     <div class="auth-tabs">
@@ -5775,7 +5860,7 @@ function renderAuth(){
       <input class="auth-input" id="auth-email" type="email" placeholder="Adresse e-mail" autocomplete="email" required>
       <div class="auth-pw-wrap">
         <input class="auth-input" id="auth-pw" type="password" placeholder="Mot de passe (6 caractères min.)" autocomplete="${isSignup?'new-password':'current-password'}" minlength="6" required>
-        <button type="button" class="auth-pw-eye" title="Afficher / masquer le mot de passe" aria-label="Afficher le mot de passe" onclick="togglePwEye(this)">👁</button>
+        <button type="button" class="auth-pw-eye" title="Afficher / masquer le mot de passe" aria-label="Afficher le mot de passe" onclick="togglePwEye(this)">${ico('oeil')}</button>
       </div>
       ${isSignup?cguCaseHTML('auth-cgu','créer mon compte'):''}
       <button class="auth-btn auth-btn-primary" type="submit">${isSignup?'Créer mon compte':'Se connecter'}</button>
@@ -5796,7 +5881,7 @@ function togglePwEye(btn){
   if(!inp) return;
   const show=inp.type==='password';
   inp.type=show?'text':'password';
-  btn.textContent=show?'🙈':'👁';
+  btn.innerHTML=ico(show?'oeilBarre':'oeil');
   btn.setAttribute('aria-label', show?'Masquer le mot de passe':'Afficher le mot de passe');
   inp.focus();
 }
@@ -6021,7 +6106,7 @@ function renderShare(){
   // Bouton de partage natif : seulement si l'appareil le propose (mobiles
   // surtout). Sinon on s'appuie sur le QR + la copie, toujours présents.
   const nativeBtn = (typeof navigator!=='undefined' && navigator.share)
-    ? `<button class="share-btn share-btn-primary share-native" onclick="shareNative()">📲 Partager…</button>`
+    ? `<button class="share-btn share-btn-primary share-native" onclick="shareNative()">${ico('partager')} Partager…</button>`
     : '';
   body.innerHTML=`
     <div class="share-intro">Partage cette page (${paletteEsc(titrePage().replace(/ · Graphe Philosophie$/,''))}) à tes camarades : scanne le QR code, copie le lien, ou utilise le partage de ton appareil. Le lien ouvre le site directement sur cette page.</div>
@@ -7326,7 +7411,7 @@ function renderQuizDashboard(){
   // Étape 5 : boutons des notions HP seulement si le hors programme est affiché.
   const notionBtns=notionsVisibles().map(k=>`<button class="${nf.has(k)?'active':''}${estHP(k)?' quiz-hp':''}" onclick="toggleNotionFilter('${k}')">${D[k].l}</button>`).join('');
   const hpBtn=(KEYS_HP.length&&voirHP())?`<button class="${quizInclureHP()?'active':''}" onclick="toggleQuizHP()" title="Ajouter aux sessions les cartes des notions hors programme">+ Hors programme</button>`:'';
-  const typeLabels={'concept-def':'Concept→déf','def-concept':'Déf→concept','cite-author':'Citation→auteur','author-cite':'Auteur→citation','notion-authors':'Notion→auteurs'};
+  const typeLabels={'concept-def':'Concept '+ico('flecheD')+' déf','def-concept':'Déf '+ico('flecheD')+' concept','cite-author':'Citation '+ico('flecheD')+' auteur','author-cite':'Auteur '+ico('flecheD')+' citation','notion-authors':'Notion '+ico('flecheD')+' auteurs'};
   const typeBtns=Object.keys(typeLabels).map(t=>`<button class="${tf.has(t)?'active':''}" onclick="toggleTypeFilter('${t}')">${typeLabels[t]}</button>`).join('');
   // v3 — gamification : niveau courant + XP dans le niveau (0..99).
   const xp=st.gamif.xp||0, lvl=quizLevel(xp), inLvl=quizXpInLevel(xp);
@@ -7344,25 +7429,25 @@ function renderQuizDashboard(){
   // v3 — badges (1 par notion ; acquis à 80 % de cartes mémorisées depuis v4).
   const badges=quizBadges(st);
   const earned=badges.filter(b=>b.earned);
-  const badgesHtml=(earned.length?earned:badges).slice(0,12).map(b=>`<span class="quiz-badge${b.earned?' earned':''}">${b.earned?'🏅':'🔒'} ${b.label}</span>`).join('');
+  const badgesHtml=(earned.length?earned:badges).slice(0,12).map(b=>`<span class="quiz-badge${b.earned?' earned':''}">${ico(b.earned?'medaille':'cadenas')} ${b.label}</span>`).join('');
   // Bloc de lancement adaptatif : avertissement, ou reprise + nouvelle, ou simple lancement.
   const canResume=quizSessionActive();
   const launchHtml = quizState.confirmNew
     ? renderNewSessionWarning()
     : (canResume
-       ? `<button class="quiz-start" onclick="resumeQuizSession()">▶ Reprendre la session (${quizState.idx+1}/${quizState.session.length})</button>
-          <button class="quiz-start quiz-start-alt" onclick="requestNewSession()">🆕 Nouvelle session${s.sessionN<1?'':' ('+s.sessionN+' cartes)'}</button>`
+       ? `<button class="quiz-start" onclick="resumeQuizSession()">${ico('lecture')} Reprendre la session (${quizState.idx+1}/${quizState.session.length})</button>
+          <button class="quiz-start quiz-start-alt" onclick="requestNewSession()">${ico('plus')} Nouvelle session${s.sessionN<1?'':' ('+s.sessionN+' cartes)'}</button>`
        : `<button class="quiz-start" ${s.sessionN<1?'disabled':''} onclick="requestNewSession()">
-            ${s.sessionN<1?'Rien à réviser ici 🎉':'Session du jour ('+s.sessionN+' cartes)'}
+            ${s.sessionN<1?'Rien à réviser ici':'Session du jour ('+s.sessionN+' cartes)'}
           </button>`);
   return `
   <div class="quiz-top">
-    <div class="quiz-title">🎯 Réviser</div>
+    <div class="quiz-title">${ico('cible')} Réviser</div>
     <button class="quiz-close" onclick="closeQuiz()" aria-label="Fermer">×</button>
   </div>
   <div class="quiz-level">
     <div class="quiz-level-top">
-      <span class="quiz-level-badge">⭐ Niveau ${lvl}</span>
+      <span class="quiz-level-badge">${ico('etoile')} Niveau ${lvl}</span>
       <span class="quiz-level-xp">${xp} XP · ${inLvl}/100 vers le niveau ${lvl+1}</span>
     </div>
     <div class="quiz-level-bar"><div class="quiz-level-fill" style="width:${inLvl}%"></div></div>
@@ -7372,25 +7457,25 @@ function renderQuizDashboard(){
     <div class="quiz-mastery-lbl">mémorisé (${s.mastered}/${s.total} cartes bien ancrées)</div>
     <div class="quiz-bar"><div class="quiz-bar-fill" style="width:${s.pct}%"></div></div>
   </div>
-  <details class="quiz-help"><summary>❓ Comment fonctionne la révision&nbsp;?</summary>
+  <details class="quiz-help"><summary>${ico('question')} Comment fonctionne la révision&nbsp;?</summary>
     <div class="quiz-help-body">
       <p>Chaque carte gravit <b>5 paliers de mémorisation</b>. Quand tu réponds «&nbsp;je savais&nbsp;», la carte <b>monte d'un palier</b> et reviendra <b>moins souvent</b>&nbsp;; si tu te trompes, elle <b>redescend au palier&nbsp;1</b> et revient vite. C'est la <b>répétition espacée</b>&nbsp;: on revoit surtout ce qu'on maîtrise mal, et de plus en plus rarement ce qu'on connaît.</p>
       <p>Une carte est comptée comme <b>mémorisée</b> à partir du palier&nbsp;4. Le pourcentage en haut = la part de tes cartes aux paliers&nbsp;4-5.</p>
-      <p>Deux rythmes au choix&nbsp;: <b>⚡ Sprint</b> (révisions resserrées sur ≈2&nbsp;semaines, avant un contrôle) et <b>📅 Long terme</b> (espacées sur ≈2&nbsp;mois, pour ancrer durablement). Chaque rythme garde sa propre progression.</p>
+      <p>Deux rythmes au choix&nbsp;: <b>${ico('eclair')} Sprint</b> (révisions resserrées sur ≈2&nbsp;semaines, avant un contrôle) et <b>${ico('calendrier')} Long terme</b> (espacées sur ≈2&nbsp;mois, pour ancrer durablement). Chaque rythme garde sa propre progression.</p>
     </div>
   </details>
   <div>
     <div class="quiz-section-lbl">Horizon de révision</div>
     <div class="quiz-horizon">
-      <button class="${quizState.horizon==='sprint'?'active':''}" onclick="setQuizHorizon('sprint')">⚡ Sprint <span style="opacity:.7">(≈2 sem.)</span></button>
-      <button class="${quizState.horizon==='long'?'active':''}" onclick="setQuizHorizon('long')">📅 Long terme <span style="opacity:.7">(≈2 mois)</span></button>
+      <button class="${quizState.horizon==='sprint'?'active':''}" onclick="setQuizHorizon('sprint')">${ico('eclair')} Sprint <span style="opacity:.7">(≈2 sem.)</span></button>
+      <button class="${quizState.horizon==='long'?'active':''}" onclick="setQuizHorizon('long')">${ico('calendrier')} Long terme <span style="opacity:.7">(≈2 mois)</span></button>
     </div>
   </div>
   <div>
     <div class="quiz-section-lbl">Format</div>
     <div class="quiz-mode-toggle quiz-horizon">
-      <button class="${quizState.mode==='cards'?'active':''}" onclick="setQuizMode('cards')">🃏 Cartes</button>
-      <button class="${quizState.mode==='qcm'?'active':''}" onclick="setQuizMode('qcm')">📝 QCM</button>
+      <button class="${quizState.mode==='cards'?'active':''}" onclick="setQuizMode('cards')">${ico('cartes')} Cartes</button>
+      <button class="${quizState.mode==='qcm'?'active':''}" onclick="setQuizMode('qcm')">${ico('qcm')} QCM</button>
     </div>
     ${quizState.mode==='qcm'?`<div class="quiz-meta-lbl" style="margin-top:5px">En QCM, la session privilégie les cartes à choix (Définition→concept, Citation→auteur) ; les rares autres restent à retourner.</div>`:''}
   </div>
@@ -7410,7 +7495,7 @@ function renderQuizDashboard(){
       </div>
     </div>
     <div class="quiz-day-bar"><div class="quiz-day-fill" style="width:${dayPct}%"></div></div>
-    <div class="quiz-meta-lbl" style="text-align:center;margin-top:5px">${dayCount}/${goal} cartes aujourd'hui · 🔥 ${st.daily.streak||0} j d'affilée</div>
+    <div class="quiz-meta-lbl" style="text-align:center;margin-top:5px">${dayCount}/${goal} cartes aujourd'hui · ${ico('flamme')} ${st.daily.streak||0} j d'affilée</div>
   </div>
   <div class="quiz-meta-row">
     <div><div class="quiz-meta-num">${s.due}</div><div class="quiz-meta-lbl">à revoir</div></div>
@@ -7423,16 +7508,16 @@ function renderQuizDashboard(){
   <details><summary class="quiz-section-lbl" style="cursor:pointer">Badges (${earned.length}/${badges.length})</summary>
     <div class="quiz-badges" style="margin-top:8px">${badgesHtml}</div>
   </details>
-  <details class="quiz-help"><summary>💾 Ma progression est-elle sauvegardée&nbsp;?</summary>
+  <details class="quiz-help"><summary>${ico('disquette')} Ma progression est-elle sauvegardée&nbsp;?</summary>
     <div class="quiz-help-body">
       ${authUser ? `
       <p><b>Oui — et surtout, elle te suit d'un appareil à l'autre&nbsp;!</b> Tu es connecté&nbsp;: ta progression complète (niveau, cartes, série, objectif <b>et même la session en cours</b>) est enregistrée <b>sur ton compte</b> à chaque réponse.</p>
-      <p>📱➡️💻 C'est tout l'intérêt du compte&nbsp;: commence à réviser sur ton <b>téléphone</b> dans le bus, reprends <b>exactement où tu en étais</b> sur l'<b>ordinateur</b> à la maison — il suffit d'être connecté avec le même compte. Une copie reste aussi sur cet appareil, donc <b>même hors-ligne tout fonctionne</b>&nbsp;: la synchro se fait dès le retour en ligne, et c'est <b>la version la plus récente qui gagne</b>.</p>
-      <p>👉 Pareil pour tes <b>brouillons de proposition</b> et tes <b>réglages</b> (mode, objectif)&nbsp;: ils voyagent avec ton compte.</p>
+      <p>${ico('appareils')} C'est tout l'intérêt du compte&nbsp;: commence à réviser sur ton <b>téléphone</b> dans le bus, reprends <b>exactement où tu en étais</b> sur l'<b>ordinateur</b> à la maison — il suffit d'être connecté avec le même compte. Une copie reste aussi sur cet appareil, donc <b>même hors-ligne tout fonctionne</b>&nbsp;: la synchro se fait dès le retour en ligne, et c'est <b>la version la plus récente qui gagne</b>.</p>
+      <p>Pareil pour tes <b>brouillons de proposition</b> et tes <b>réglages</b> (mode, objectif)&nbsp;: ils voyagent avec ton compte.</p>
       ` : `
       <p><b>Oui — mais pour l'instant sur cet appareil uniquement</b> (ce navigateur). Elle est enregistrée <b>à chaque réponse</b> et survit si tu actualises la page, fermes l'onglet ou éteins l'appareil.</p>
-      <p>📱➡️💻 <b>Pour la retrouver sur TOUS tes appareils</b> — réviser sur le téléphone puis continuer sur l'ordinateur, sans rien reperdre — il n'y a qu'une chose à faire&nbsp;: <b>crée un compte ou connecte-toi</b> (boutons en bas de la barre latérale). Ta progression complète (cartes, série, session en cours), tes brouillons et tes réglages sont alors <b>sauvegardés en ligne et synchronisés partout</b>. Bonne nouvelle&nbsp;: ta progression actuelle sera <b>fusionnée</b> avec ton compte — rien n'est perdu.</p>
-      <p>⚠️ Sans compte, tu perdrais ta progression en cas d'effacement des données de navigation, de <b>navigation privée</b>, ou de changement de navigateur/appareil.</p>
+      <p>${ico('appareils')} <b>Pour la retrouver sur TOUS tes appareils</b> — réviser sur le téléphone puis continuer sur l'ordinateur, sans rien reperdre — il n'y a qu'une chose à faire&nbsp;: <b>crée un compte ou connecte-toi</b> (boutons en bas de la barre latérale). Ta progression complète (cartes, série, session en cours), tes brouillons et tes réglages sont alors <b>sauvegardés en ligne et synchronisés partout</b>. Bonne nouvelle&nbsp;: ta progression actuelle sera <b>fusionnée</b> avec ton compte — rien n'est perdu.</p>
+      <p>${ico('alerte')} Sans compte, tu perdrais ta progression en cas d'effacement des données de navigation, de <b>navigation privée</b>, ou de changement de navigateur/appareil.</p>
       `}
     </div>
   </details>
@@ -7490,7 +7575,7 @@ function resetAllQuiz(){
    Case « ne plus afficher » → mémorisée dans prefs.dontWarnNewSession. */
 function renderNewSessionWarning(){
   return `<div class="quiz-warn">
-    <div class="quiz-warn-txt">⚠️ Une session est en cours. En démarrer une nouvelle l'abandonnera. Rassure-toi : ta progression déjà enregistrée (carte par carte) est conservée — seul le score de cette session-ci sera remis à zéro.</div>
+    <div class="quiz-warn-txt">${ico('alerte')} Une session est en cours. En démarrer une nouvelle l'abandonnera. Rassure-toi : ta progression déjà enregistrée (carte par carte) est conservée — seul le score de cette session-ci sera remis à zéro.</div>
     <label class="quiz-warn-check"><input type="checkbox" id="quiz-dontwarn"> Ne plus afficher cet avertissement</label>
     <div class="quiz-warn-btns">
       <button class="quiz-no" onclick="cancelNewSession()">Annuler</button>
@@ -7607,7 +7692,7 @@ function renderQuizSession(){
   const isQCM=!!quizState.qcmData;
   return `
   <div class="quiz-top">
-    <div class="quiz-title">🎯 Réviser</div>
+    <div class="quiz-title">${ico('cible')} Réviser</div>
     <button class="quiz-close" onclick="closeQuiz()" aria-label="Fermer">×</button>
   </div>
   <div class="quiz-progress">Carte ${i+1} / ${sess.length}${isQCM?' · QCM':''}</div>
@@ -7633,17 +7718,17 @@ function renderFlipBody(card){
       <div class="quiz-card-qlabel">${card.qLabel}</div>
       <div class="quiz-card-recto">${card.recto}</div>
       ${notionLbl?`<div class="quiz-card-notion">${notionLbl}</div>`:''}
-      <div class="quiz-actions"><button class="quiz-reveal" onclick="revealQuiz()">${rev?'Voir la réponse →':'Révéler'}</button></div>
+      <div class="quiz-actions"><button class="quiz-reveal" onclick="revealQuiz()">${rev?'Voir la réponse '+ico('flecheD'):'Révéler'}</button></div>
     </div>
     <div class="quiz-card quiz-face-back">
       <div class="quiz-card-qlabel">Réponse</div>
       <div class="quiz-card-verso" style="border-top:none;padding-top:0">${card.verso}</div>
-      <div class="quiz-actions"><button class="quiz-reveal quiz-reflip" onclick="flipToQuestion()">↩ Revoir la question</button><button class="quiz-reveal quiz-reflip" onclick="quizReread()">📖 Relire la fiche</button></div>
+      <div class="quiz-actions"><button class="quiz-reveal quiz-reflip" onclick="flipToQuestion()">${ico('retourner')} Revoir la question</button><button class="quiz-reveal quiz-reflip" onclick="quizReread()">${ico('livre')} Relire la fiche</button></div>
     </div>
   </div></div>
   <div class="quiz-actions quiz-answer-row${rev?'':' hidden'}">
-    <button class="quiz-no" onclick="answerQuiz(false)">❌ Je ne savais pas</button>
-    <button class="quiz-yes" onclick="answerQuiz(true)">✅ Je savais</button>
+    <button class="quiz-no" onclick="answerQuiz(false)">${ico('non')} Je ne savais pas</button>
+    <button class="quiz-yes" onclick="answerQuiz(true)">${ico('oui')} Je savais</button>
   </div>`;
 }
 
@@ -7666,8 +7751,8 @@ function renderQCMBody(card){
     ${notionLbl?`<div class="quiz-card-notion">${notionLbl}</div>`:''}
     <div class="quiz-choices">${choicesHtml}</div>
     ${src}
-    ${answered?`<button class="quiz-next" onclick="advanceQuiz()">Suivant →</button>
-      <button class="quiz-quit" onclick="quizReread()">📖 Relire la fiche</button>`:''}
+    ${answered?`<button class="quiz-next" onclick="advanceQuiz()">Suivant ${ico('flecheD')}</button>
+      <button class="quiz-quit" onclick="quizReread()">${ico('livre')} Relire la fiche</button>`:''}
   </div>`;
 }
 
@@ -7699,7 +7784,7 @@ function revealQuiz(){
   if(!inner){ renderQuiz(); return; }
   inner.classList.add('flipped');
   if(!wasRevealed){
-    const fb=document.querySelector('.quiz-face-front .quiz-reveal'); if(fb) fb.textContent='Voir la réponse →';
+    const fb=document.querySelector('.quiz-face-front .quiz-reveal'); if(fb) fb.innerHTML='Voir la réponse '+ico('flecheD');
     const row=document.querySelector('.quiz-answer-row'); if(row) row.classList.remove('hidden');
   }
 }
@@ -7793,24 +7878,24 @@ function renderQuizEnd(){
   const goalReached=dayCount>=goal;
   return `
   <div class="quiz-top">
-    <div class="quiz-title">🎯 Session terminée</div>
+    <div class="quiz-title">${ico('cible')} Session terminée</div>
     <button class="quiz-close" onclick="closeQuiz()" aria-label="Fermer">×</button>
   </div>
   <div class="quiz-end">
     <div class="quiz-end-score">${r.ok} / ${tot}</div>
-    <div class="quiz-end-lbl">${r.ok===tot?'Sans-faute, bravo ! 🎉':'Continue, la répétition fait le maître.'}</div>
-    ${r.leveledUp?`<div class="quiz-levelup">🎉 Niveau ${lvl} atteint !</div>`:''}
+    <div class="quiz-end-lbl">${r.ok===tot?'Sans-faute, bravo !':'Continue, la répétition fait le maître.'}</div>
+    ${r.leveledUp?`<div class="quiz-levelup">${ico('fete')} Niveau ${lvl} atteint !</div>`:''}
     <div class="quiz-end-stats">
       <div class="quiz-end-stat"><div class="quiz-end-num">+${r.xp}</div><div class="quiz-meta-lbl">XP gagnés</div></div>
       <div class="quiz-end-stat"><div class="quiz-end-num">${r.promoted}</div><div class="quiz-meta-lbl">cartes en progrès</div></div>
       <div class="quiz-end-stat"><div class="quiz-end-num">${r.mastered}</div><div class="quiz-meta-lbl">nouvelles maîtrisées</div></div>
     </div>
     <div class="quiz-end-level">
-      <div class="quiz-meta-lbl" style="text-align:center">⭐ Niveau ${lvl} · ${inLvl}/100 XP</div>
+      <div class="quiz-meta-lbl" style="text-align:center">${ico('etoile')} Niveau ${lvl} · ${inLvl}/100 XP</div>
       <div class="quiz-day-bar"><div class="quiz-day-fill" style="width:${inLvl}%;background:var(--color-accent-quiz)"></div></div>
     </div>
     <div class="quiz-end-level">
-      <div class="quiz-meta-lbl" style="text-align:center">${goalReached?'🎯 Objectif du jour atteint ! ':''}${dayCount}/${goal} cartes aujourd'hui · 🔥 ${st.daily.streak||0} j d'affilée</div>
+      <div class="quiz-meta-lbl" style="text-align:center">${goalReached?ico('cible')+' Objectif du jour atteint ! ':''}${dayCount}/${goal} cartes aujourd'hui · ${ico('flamme')} ${st.daily.streak||0} j d'affilée</div>
       <div class="quiz-day-bar"><div class="quiz-day-fill" style="width:${dayPct}%"></div></div>
     </div>
     ${hasWrong?`<button class="quiz-start" onclick="redoWrong()">Refaire les ${r.wrongIds.length} ratés</button>`:''}
@@ -8446,7 +8531,7 @@ function sujetBacHTML(x, avecNotions){
   const corps=x.type==='explication'
     ? `Explication de texte : <span class="aterm" role="link" tabindex="0" onclick="openAuthor('${x.auteur.replace(/'/g,"\\'")}')">${x.auteur}</span>, <em>${x.oeuvre}</em>`
     : `« ${x.q} »`;
-  const pills=avecNotions?(x.notions||[]).filter(notionVisible).map(k=>`<span class="notion-pill" style="color:${D[k].c};border-color:${D[k].c}40;background:${D[k].c}12" onclick="pushHistory();cur='${k}';curTab='diss';sbMode='notions';renderSB();renderContent()">${D[k].l} →</span>`).join(''):'';
+  const pills=avecNotions?(x.notions||[]).filter(notionVisible).map(k=>`<span class="notion-pill" style="color:${D[k].c};border-color:${D[k].c}40;background:${D[k].c}12" onclick="pushHistory();cur='${k}';curTab='diss';sbMode='notions';renderSB();renderContent()">${D[k].l} ${ico('flecheD')}</span>`).join(''):'';
   return `<li class="bac-sujet"><div>${corps} ${quand}</div>${pills?`<div class="bac-pills">${pills}</div>`:''}</li>`;
 }
 /* sujetsDeNotion(k) / sujetsDAuteur(nom) — les sujets d'une notion (onglet
@@ -8487,7 +8572,7 @@ function nouveautesHTML(){
       <div class="nouveaute-date">${dateLongue(e.date)}</div>
       <h3 class="nouveaute-titre">${e.titre}</h3>
       <p>${e.texte}</p>
-      ${(e.liens||[]).length?`<div class="nouveaute-liens">${e.liens.map(l=>`<button class="pbtn pbtn-ghost" onclick="ouvrirAdresse('${l.h}')">${l.l} →</button>`).join('')}</div>`:''}
+      ${(e.liens||[]).length?`<div class="nouveaute-liens">${e.liens.map(l=>`<button class="pbtn pbtn-ghost" onclick="ouvrirAdresse('${l.h}')">${l.l} ${ico('flecheD')}</button>`).join('')}</div>`:''}
     </article>`).join('');
 }
 
@@ -8500,7 +8585,7 @@ function nouveautesHTML(){
    des propositions ni de leurs auteurs. Données : la fonction publique
    propositions() de 2026_administration.sql (score = demandes + ▲ − ▼) ;
    vote : voter(sujet, valeur). Lues à l'ouverture de l'onglet. */
-const ETATS_PROPOSITION={propose:'Proposé', prevu:'Prévu', fait:'Fait ✓', refuse:'Refusé'};
+const ETATS_PROPOSITION={propose:'Proposé', prevu:'Prévu', fait:'Fait', refuse:'Refusé'};
 let propositionsEtat={charge:false, erreur:'', liste:[], filtre:'', occupe:false};
 
 /* chargerPropositions(force) — lit les sujets publiés (une fois, ou de
@@ -8543,7 +8628,7 @@ function propositionsHTML(){
     const vote=(v,sym,nom)=>`<button class="prop-vote" aria-pressed="${s.mon_vote===v}" aria-label="${nom}${s.mon_vote===v?' (ton vote, reclique pour le retirer)':''}"${P.occupe?' disabled':''} onclick="voterProposition(${Number(s.id)},${v})">${sym}</button>`;
     const dem=s.demandes+s.pour;
     return `<article class="prop">
-      <div class="prop-votes">${vote(1,'▲','Pour')}<span class="prop-score" title="score : demandes + pour − contre">${s.score}</span>${vote(-1,'▼','Contre')}</div>
+      <div class="prop-votes">${vote(1,ico('chevronH'),'Pour')}<span class="prop-score" title="score : demandes + pour − contre">${s.score}</span>${vote(-1,ico('chevronB'),'Contre')}</div>
       <div class="prop-corps">
         <h3 class="prop-titre">${pEsc(s.titre)} <span class="prop-etat prop-${pEsc(s.etat)}">${ETATS_PROPOSITION[s.etat]||pEsc(s.etat)}</span></h3>
         ${s.description?`<p class="prop-desc">${pEsc(s.description)}</p>`:''}
@@ -8788,7 +8873,7 @@ function renderAccueilContent(){
   // par ces liens, une notion, ou les boutons de l'accroche.
   const lien=(l,m)=>`<button class="acc-nav-l" onclick="accueilAller('${m}')">${l}</button>`;
   const entete=`<header class="acc-entete"><span class="acc-logo">Philo<span>.</span> Terminale</span>
-    <nav class="acc-nav">${lien('Notions','notions')}${lien('Auteurs','auteurs')}${lien('Concepts','concepts')}${lien('Méthodo','methodo')}${lien('Explorer','explorer')}<button class="acc-nav-l" onclick="openQuiz()">Quiz</button><button class="acc-nav-l" onclick="openPalette()" aria-label="Rechercher">🔍</button></nav></header>`;
+    <nav class="acc-nav">${lien('Notions','notions')}${lien('Auteurs','auteurs')}${lien('Concepts','concepts')}${lien('Méthodo','methodo')}${lien('Explorer','explorer')}<button class="acc-nav-l" onclick="openQuiz()">Quiz</button><button class="acc-nav-l" onclick="openPalette()" aria-label="Rechercher">${ico('loupe')}</button></nav></header>`;
   mc.innerHTML=entete+`<div class="acc">
     <div class="acc-hero">
       <div>
@@ -8800,8 +8885,8 @@ function renderAccueilContent(){
     </div>
     <section class="acc-section"><h2>Les notions</h2><div class="acc-notions">${grille}</div></section>
     <section class="acc-section acc-deux">
-      <div><h2>Tombé au bac</h2>${sujets}<button class="acc-plus" onclick="accueilExplorer('sujets')">Tous les sujets →</button></div>
-      <div><h2>Nouveautés</h2>${nouv}<button class="acc-plus" onclick="accueilExplorer('nouveautes')">Tout le journal →</button></div>
+      <div><h2>Tombé au bac</h2>${sujets}<button class="acc-plus" onclick="accueilExplorer('sujets')">Tous les sujets ${ico('flecheD')}</button></div>
+      <div><h2>Nouveautés</h2>${nouv}<button class="acc-plus" onclick="accueilExplorer('nouveautes')">Tout le journal ${ico('flecheD')}</button></div>
     </section>
   </div>`;
 }
@@ -8905,7 +8990,7 @@ function indexElements(){
   if(sbMode==='methodo'){
     // Les parcours de méthode (METHODO_GUIDE, js/04-fiches.js) : intro, squelette, étapes.
     el=METHODO_TOPICS.map(t=>{ const g=METHODO_GUIDE[t.id];
-      return {type:'methodo',cle:t.id,titre:g.titre||t.label,sous:g.etapes.length+' étapes · '+g.squelette.map(s=>s.bloc).join(' → '),notions:[],texte:texteBrut(g.intro),long:true,couleur:'var(--color-ocre)'}; });
+      return {type:'methodo',cle:t.id,titre:g.titre||t.label,sous:g.etapes.length+' étapes · '+g.squelette.map(s=>s.bloc).join(', '),notions:[],texte:texteBrut(g.intro),long:true,couleur:'var(--color-ocre)'}; });
   }else if(sbMode==='notions'){
     el=notionsVisibles().map(k=>({type:'notion',cle:k,titre:D[k].l,sous:D[k].s||'',notions:[k],couleur:D[k].c,hp:estHP(k),nouveau:D[k].new,modifie:D[k].modified}));
   }else if(sbMode==='auteurs'){
@@ -8932,7 +9017,7 @@ function indexGrilleHTML(){
   return `<p class="idx-compte">${el.length} résultat${el.length>1?'s':''}</p><div class="idx-grille">`+el.map(x=>
     `<button class="idx-carte${x.nouveau?' is-new':x.modifie?' is-modified':''}" style="--coul:${x.couleur||'var(--color-border-secondary)'}" onclick="indexOuvrir('${x.type}','${pEsc(x.cle).replace(/'/g,"\\'")}')">
       <b>${pEsc(x.titre)}</b>${x.sous?`<small>${pEsc(x.sous)}</small>`:''}
-      ${x.nouveau?'<span class="new-badge">✦ Nouveau</span>':x.modifie?'<span class="modified-badge">✎ Modifié</span>':''}
+      ${x.nouveau?'<span class="new-badge">'+ico('etincelle')+' Nouveau</span>':x.modifie?'<span class="modified-badge">'+ico('crayon')+' Modifié</span>':''}
       ${x.texte?`<span class="idx-texte">${pEsc(x.long?x.texte:x.texte.slice(0,140))}${!x.long&&x.texte.length>140?'…':''}</span>`:''}
       ${x.type!=='notion'&&x.type!=='methodo'?`<span class="idx-pts">${pts(x.notions)}</span>`:''}${x.hp?'<span class="idx-hp">hors programme</span>':''}
     </button>`).join('')+`</div>`;
@@ -9006,6 +9091,7 @@ restoreNavFromStorage();      // position survit à l'actualisation (philo-nav)
 restoreNavFromAddress();      // … mais une adresse #/… (lien partagé, favori) l'emporte
 accueilAuDemarrage();         // nov. 2026 : à la racine sans adresse, la page d'accueil (js/17-accueil.js)
 restoreNavHistory();          // pile « ← Retour » survit aussi (philo-navhist)
+icosStatiques();              // nov. 2026 : icônes SVG des <i data-ico> du HTML statique (js/00-icones.js)
 appliquerAffichage();         // étape 6 : thème et taille du texte (avant le premier rendu)
 // Sommaire /fiches/ (page d'entrée data-entree="fiches") : son contenu pré-rendu
 // reste affiché tel quel ; la barre latérale démarre, la 1re navigation le remplace.

@@ -532,7 +532,7 @@ function findKnownAuthor(name){
 function authorStatusHTML(val,known){
   if(!val.trim()) return "";
   return known
-    ? '<div class="pauth-ok">✓ Auteur déjà présent : <strong>'+pEsc(known)+"</strong></div>"
+    ? '<div class="pauth-ok">'+ico('coche')+' Auteur déjà présent : <strong>'+pEsc(known)+"</strong></div>"
     : '<div class="pauth-newmsg">Auteur non répertorié — vous pouvez compléter sa fiche ci-dessous (facultatif).</div>';
 }
 /* onAuthorName — saisie du nom : met à jour le statut et affiche/masque le
@@ -879,7 +879,7 @@ function generateBoxBody(b){
       ideas.forEach((it,idx)=>{
         const lbl=multi?(' (idée '+(idx+1)+')'):'';
         if(gv(it,'notion')) lines.push('  - Notion'+lbl+' : '+(D[gv(it,'notion')]?D[gv(it,'notion')].l:gv(it,'notion')));
-        if(it.remove) lines.push('  - ⚠ RETRAIT'+lbl+' : '+(gv(it,'justif')||'(sans justification)'));
+        if(it.remove) lines.push('  - ATTENTION, RETRAIT'+lbl+' : '+(gv(it,'justif')||'(sans justification)'));
         (PROPOSAL_FIELDS.auteur).forEach(d=>{ if(gv(it,d.k)) lines.push('  - '+d.l+lbl+' : '+gv(it,d.k)); });
         (it.citations||[]).forEach(c=>{ if(String(c).trim()) lines.push('  - Citation'+lbl+' : '+String(c).trim()); });
       });
@@ -973,7 +973,7 @@ function copyProposal(){
   const txt=generateProposalText();
   if(navigator.clipboard&&navigator.clipboard.writeText){
     navigator.clipboard.writeText(txt).then(function(){
-      const btn=document.getElementById('pcopy-btn'); if(btn) btn.textContent='✓ Copié';
+      const btn=document.getElementById('pcopy-btn'); if(btn) btn.innerHTML=ico('coche')+' Copié';
     },function(){});
   }
 }
@@ -1030,8 +1030,8 @@ function sendProposalToSupabase(){
     payload: generateProposalJSON()  // ton JSON v3, stocké tel quel (colonne jsonb)
   }).then(function(res){
     if(res.error) throw res.error;
-    if(btn){ btn.textContent='✓ Envoyé'; }   // reste désactivé : évite le double envoi
-    setStatus('Merci ! Ta proposition est enregistrée sur ton compte. Suis son statut dans « Mes propositions ». 🎉','#2ecc71');
+    if(btn){ btn.innerHTML=ico('coche')+' Envoyé'; }   // reste désactivé : évite le double envoi
+    setStatus('Merci ! Ta proposition est enregistrée sur ton compte. Suis son statut dans « Mes propositions ».','#2ecc71');
     clearDrafts();   // new (Phase 3) : la proposition étant soumise, on vide le brouillon
   }).catch(function(err){
     // new (Phase 5) : repli mailto automatique (plus de message « clique ici »).
@@ -1070,17 +1070,17 @@ async function sendProposalAnonSupabase(){
       res=await SB.from('contributions').insert({user_id:null, payload:payload});
     }
     if(res.error) throw res.error;
-    if(btn){ btn.textContent='✓ Envoyé'; }   // reste désactivé : évite le double envoi
+    if(btn){ btn.innerHTML=ico('coche')+' Envoyé'; }   // reste désactivé : évite le double envoi
     if(numero){
       garderSuivi(numero);
       if(status){
         status.style.color='';
-        status.innerHTML='<b style="color:#2ecc71">Merci ! Ta proposition est envoyée. 🎉</b><br>'
+        status.innerHTML='<b style="color:#2ecc71">Merci ! Ta proposition est envoyée.</b><br>'
           +'Son numéro de suivi : <b class="psuivi-num">'+pEsc(formaterSuivi(numero))+'</b> '
           +'<button class="pbtn pbtn-sm" onclick="navigator.clipboard&&navigator.clipboard.writeText(\''+formaterSuivi(numero)+'\')">Copier</button><br>'
           +'Ce navigateur le garde : tu verras la réponse dans « Mes propositions ». Sur un autre appareil, tape ce numéro. Rien d\'autre n\'est gardé sur toi.';
       }
-    } else setStatus('Merci ! Ta proposition anonyme a bien été envoyée. 🎉','#2ecc71');
+    } else setStatus('Merci ! Ta proposition anonyme a bien été envoyée.','#2ecc71');
     clearDrafts();
   }catch(err){
     proposalMailtoFallback((err&&err.message)||err);
@@ -1170,8 +1170,8 @@ function proposalGuardOk(){
   if(!miss.length && !sansAccord){ if(!editingContribId) legalRetenir(); return true; }
   const status=document.getElementById('psend-status');
   const msg=miss.length
-    ? '⚠ Champs obligatoires manquants — '+miss.slice(0,8).join(' ; ')+(miss.length>8?' …':'')
-    : '⚠ Coche la case pour accepter les conditions d’utilisation avant d’envoyer.';
+    ? ico('alerte')+' Champs obligatoires manquants — '+miss.slice(0,8).join(' ; ')+(miss.length>8?' …':'')
+    : ico('alerte')+' Coche la case pour accepter les conditions d’utilisation avant d’envoyer.';
   if(status){ status.textContent=msg; status.style.color='#e74c3c'; try{ status.scrollIntoView({behavior:'smooth',block:'center'}); }catch(e){} }
   else alert(msg);
   return false;
@@ -1471,7 +1471,7 @@ async function renderMyContributions(){
       // auteur (bouton ✎) — l'envoi fera un UPDATE de la ligne (cf. RLS).
       const canEdit=(c.statut||'en_attente')==='en_attente';
       const editBtn=canEdit
-        ? '<div class="pmine-actions"><button class="pbtn pbtn-sm" onclick="editMyContribution(\''+pEsc(String(c.id))+'\')">✎ Modifier</button></div>'
+        ? '<div class="pmine-actions"><button class="pbtn pbtn-sm" onclick="editMyContribution(\''+pEsc(String(c.id))+'\')">'+ico('crayon')+' Modifier</button></div>'
         : '';
       // Explication = mot du RELECTEUR (humain), écrit lors du changement de
       // statut et renvoyé via Supabase. Présent seulement une fois trié.
@@ -1480,7 +1480,7 @@ async function renderMyContributions(){
       // l'agrégateur dans la colonne avis_ia — DISTINCT de l'explication
       // ci-dessus. Affiché à part et étiqueté « indicatif » : c'est une aide,
       // un humain tranche ensuite.
-      const avia=c.avis_ia ? '<div class="pmine-avia"><span class="pmine-avia-h">🤖 Avis automatique (indicatif)</span>'+pEsc(c.avis_ia)+'</div>' : '';
+      const avia=c.avis_ia ? '<div class="pmine-avia"><span class="pmine-avia-h">'+ico('ia')+' Avis automatique (indicatif)</span>'+pEsc(c.avis_ia)+'</div>' : '';
       // new : détail repliable du contenu proposé (toutes les boîtes).
       const detail=contribDetailHTML(c.payload);
       return '<div class="pmine-item">'
@@ -1517,7 +1517,7 @@ function renderProposal(){
       +'<div class="pfield" style="margin-top:10px"><label class="plabel" for="psuivi-code">Suivre une proposition envoyée ailleurs</label>'
       +'<div class="pactions" style="margin-top:4px"><input id="psuivi-code" class="pinput" placeholder="ex. K7Q-4MD-2XA-B3C" autocomplete="off" style="flex:1;min-width:0">'
       +'<button class="pbtn" onclick="ajouterSuivi()">Retrouver</button></div></div>'
-      +'<div class="pactions"><button class="pbtn" onclick="startNewProposal()">← Nouvelle proposition</button></div>';
+      +'<div class="pactions"><button class="pbtn" onclick="startNewProposal()">'+ico('flecheG')+' Nouvelle proposition</button></div>';
     if(logged) renderMyContributions();   // remplit #pmine-list de façon asynchrone
     renderSuivis();                       // remplit #psuivi-list
     return;
@@ -1554,7 +1554,7 @@ function renderProposal(){
       +(editing?'':cguCaseHTML('pcgu','envoyer cette proposition'))
       +'<div id="psend-status" class="phint" style="margin-top:8px;min-height:1.1em"></div>'
       +'<div class="pactions">'
-      +'<button class="pbtn" onclick="showProposalEdit()">← Modifier</button>'
+      +'<button class="pbtn" onclick="showProposalEdit()">'+ico('flecheG')+' Modifier</button>'
       +fallbackBtns
       +mineBtn
       // new (Phase 3): voie principale — UPDATE si édition, sinon insertion Supabase.
@@ -1568,7 +1568,7 @@ function renderProposal(){
   // propre (cancelEditContrib restaure le brouillon local et revient à la liste).
   let html='';
   if(editingContribId){
-    html+='<div class="pedit-banner">✎ Tu modifies une proposition <b>déjà envoyée</b> (en attente). '
+    html+='<div class="pedit-banner">'+ico('crayon')+' Tu modifies une proposition <b>déjà envoyée</b> (en attente). '
       +'En l\'enregistrant, tu <b>remplaces</b> la version précédente. '
       +'<button class="pbtn pbtn-ghost pbtn-sm" onclick="cancelEditContrib()">Annuler</button></div>';
   }
@@ -1590,7 +1590,7 @@ function renderProposal(){
       <div class="pbox-head">
         <span class="pbox-num">Boîte ${i+1}</span>
         <button class="pbox-del" title="Supprimer cette boîte"${proposalBoxes.length<=1?' disabled':''}
-          onclick="removeProposalBox(${b.id})">✕</button>
+          onclick="removeProposalBox(${b.id})">${ico('fermer')}</button>
       </div>
       <div class="pfield">
         <label class="plabel">Catégorie</label>

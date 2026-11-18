@@ -115,7 +115,7 @@ function renderSB(){
   if(!quizBtn){
     quizBtn=document.createElement('button');
     quizBtn.className='sb-quiz';
-    quizBtn.innerHTML='🎯 Réviser';
+    quizBtn.innerHTML=ico('cible')+' Réviser';
     quizBtn.title='Réviser en cartes (quiz à répétition espacée)';
     quizBtn.onclick=openQuiz;
     sb.appendChild(quizBtn);
@@ -127,7 +127,7 @@ function renderSB(){
   if(!propose){
     propose=document.createElement('button');
     propose.className='sb-propose';
-    propose.innerHTML='💡 Proposer du contenu';
+    propose.innerHTML=ico('idee')+' Proposer du contenu';
     propose.title='Proposer un ajout, une correction ou une remarque';
     propose.onclick=openProposal;
     sb.appendChild(propose);
@@ -148,7 +148,7 @@ function renderSB(){
   if(!settingsBtn){
     settingsBtn=document.createElement('button');
     settingsBtn.className='sb-settings';
-    settingsBtn.innerHTML='⚙ Réglages';
+    settingsBtn.innerHTML=ico('reglages')+' Réglages';
     settingsBtn.title='Réglages (mode d\'affichage…)';
     settingsBtn.onclick=openSettings;
     sb.appendChild(settingsBtn);
@@ -202,7 +202,7 @@ function renderSB(){
       tete.className='sb-hp-head';
       tete.setAttribute('aria-expanded', String(!replie));
       tete.title='Notions qui ne sont pas au programme de terminale : pour aller plus loin';
-      tete.innerHTML=`<span>Hors programme (${KEYS_HP.length})</span><span class="sb-hp-caret">${replie?'▸':'▾'}</span>`;
+      tete.innerHTML=`<span>Hors programme (${KEYS_HP.length})</span><span class="sb-hp-caret">${ico(replie?'chevronD':'chevronB')}</span>`;
       tete.onclick=()=>{ try{ localStorage.setItem('philo-hp-replie', replie?'0':'1'); }catch(e){} renderSB(); };
       list.appendChild(tete);
       KEYS_HP.filter(k=>!replie||k===cur).forEach(ajouterNotion);
@@ -219,7 +219,7 @@ function renderSB(){
       <div class="sb-search-field">
         <input class="sb-search" type="text" placeholder="Rechercher…" value="${authorSearch.replace(/"/g,'&quot;')}"
           oninput="sbSearchInput(this,'author')" oncontextmenu="searchCtxClear(event,'author')" />
-        <button class="sb-search-clear" style="display:${authorSearch?'flex':'none'}" title="Effacer (clic droit aussi)" aria-label="Effacer la recherche" onclick="clearSidebarSearch('author')">✕</button>
+        <button class="sb-search-clear" style="display:${authorSearch?'flex':'none'}" title="Effacer (clic droit aussi)" aria-label="Effacer la recherche" onclick="clearSidebarSearch('author')">${ico('fermer')}</button>
       </div>
       <button class="sb-filter-btn${(authorFilter.size>0)||filterOpen?' active':''}" onclick="filterOpen=!filterOpen;renderSB()" title="Filtrer par notion">⊟</button>`;
     // Filter panel (dans la zone scrollable)
@@ -229,7 +229,7 @@ function renderSB(){
       const checks=notionsVisibles().map(k=>{   // étape 5 : sans les notions HP masquées
         const checked=authorFilter.has(k);
         return `<div class="filter-notion-item" onclick="toggleFilter('${k}')">
-          <div class="filter-notion-check${checked?' checked':''}" style="${checked?`background:${D[k].c};color:#fff`:''}">${checked?'✓':''}</div>
+          <div class="filter-notion-check${checked?' checked':''}" style="${checked?`background:${D[k].c};color:#fff`:''}">${checked?ico('coche'):''}</div>
           <span class="filter-notion-label">${D[k].l}</span>
           <span style="width:6px;height:6px;border-radius:50%;background:${D[k].c};flex-shrink:0;margin-left:auto"></span>
         </div>`;
@@ -264,7 +264,7 @@ function renderSB(){
       <div class="sb-search-field">
         <input class="sb-search" type="text" placeholder="Rechercher…" value="${conceptSearch.replace(/"/g,'&quot;')}"
           oninput="sbSearchInput(this,'concept')" oncontextmenu="searchCtxClear(event,'concept')" />
-        <button class="sb-search-clear" style="display:${conceptSearch?'flex':'none'}" title="Effacer (clic droit aussi)" aria-label="Effacer la recherche" onclick="clearSidebarSearch('concept')">✕</button>
+        <button class="sb-search-clear" style="display:${conceptSearch?'flex':'none'}" title="Effacer (clic droit aussi)" aria-label="Effacer la recherche" onclick="clearSidebarSearch('concept')">${ico('fermer')}</button>
       </div>
       <button class="sb-filter-btn${(conceptFilter.size>0)||conceptFilterOpen?' active':''}" onclick="conceptFilterOpen=!conceptFilterOpen;renderSB()" title="Filtrer par notion">⊟</button>`;
     if(conceptFilterOpen){
@@ -273,7 +273,7 @@ function renderSB(){
       const cChecks=notionsVisibles().map(k=>{
         const checked=conceptFilter.has(k);
         return `<div class="filter-notion-item" onclick="toggleConceptFilter('${k}')">
-          <div class="filter-notion-check${checked?' checked':''}" style="${checked?`background:${D[k].c};color:#fff`:''}">${checked?'✓':''}</div>
+          <div class="filter-notion-check${checked?' checked':''}" style="${checked?`background:${D[k].c};color:#fff`:''}">${checked?ico('coche'):''}</div>
           <span class="filter-notion-label">${D[k].l}</span>
           <span style="width:6px;height:6px;border-radius:50%;background:${D[k].c};flex-shrink:0;margin-left:auto"></span>
         </div>`;
@@ -310,7 +310,7 @@ function renderSB(){
       <div class="sb-search-field">
         <input class="sb-search" type="text" placeholder="Rechercher un repère…" value="${repereSearch.replace(/"/g,'&quot;')}"
           oninput="sbSearchInput(this,'repere')" oncontextmenu="searchCtxClear(event,'repere')" />
-        <button class="sb-search-clear" style="display:${repereSearch?'flex':'none'}" title="Effacer (clic droit aussi)" aria-label="Effacer la recherche" onclick="clearSidebarSearch('repere')">✕</button>
+        <button class="sb-search-clear" style="display:${repereSearch?'flex':'none'}" title="Effacer (clic droit aussi)" aria-label="Effacer la recherche" onclick="clearSidebarSearch('repere')">${ico('fermer')}</button>
       </div>`;
     const listWrap=document.createElement('div');
     listWrap.id='sb-reperes-list';

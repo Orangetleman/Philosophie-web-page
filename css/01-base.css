@@ -240,12 +240,10 @@ body.mode-fiche .a-idea .aq-details{display:none}
    marquée (encadré coloré).                                            */
 .plan-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:13px 15px;margin-bottom:12px}
 .plan-q{font-size:13.5px;font-weight:600;color:var(--color-text-primary);line-height:1.4;margin-bottom:9px}
-/* Sujet = résumé cliquable du plan déroulable. Marqueur ▶/▼ maison (comme
+/* Sujet = résumé cliquable du plan déroulable. Marqueur chevron maison (css/14-icones.css) (comme
    .plan-sp), puce native masquée ; pas de marge sous le sujet quand replié. */
 .plan-card>summary{list-style:none;cursor:pointer;margin-bottom:0}
 .plan-card>summary::-webkit-details-marker{display:none}
-.plan-card>summary::before{content:"▶ ";color:var(--color-text-tertiary);font-size:9px}
-.plan-card[open]>summary::before{content:"▼ "}
 .plan-card[open]>summary{margin-bottom:9px}
 .plan-card>summary:hover{color:var(--color-text-primary)}
 .plan-intro,.plan-pb{font-size:12px;color:var(--color-text-secondary);line-height:1.55;margin-bottom:6px}
@@ -257,8 +255,6 @@ body.mode-fiche .a-idea .aq-details{display:none}
 .plan-sp{margin:4px 0;border-left:2px solid var(--color-border-tertiary);padding-left:9px}
 .plan-sp>summary{font-size:12px;color:var(--color-text-secondary);cursor:pointer;line-height:1.45;list-style:none;padding:2px 0}
 .plan-sp>summary::-webkit-details-marker{display:none}
-.plan-sp>summary::before{content:"▸ ";color:var(--color-text-tertiary);font-size:10px}
-.plan-sp[open]>summary::before{content:"▾ "}
 .plan-sp>summary:hover{color:var(--color-text-primary)}
 .plan-sp[open]>summary{font-weight:600;color:var(--color-text-primary);margin-bottom:4px}
 .plan-sp-letter{font-weight:600;color:var(--color-text-primary)}
@@ -358,7 +354,7 @@ body.mode-edition .accroche-card.is-modified{border-color:var(--color-mod-border
   font:inherit;font-size:9.5px;font-weight:500;text-transform:uppercase;letter-spacing:.02em;
   white-space:nowrap;color:var(--color-text-quiz);cursor:pointer;text-align:left;
 }
-.sb-hp-caret{font-size:11px}
+.sb-hp-caret{font-size:11px;display:inline-flex}
 .nb.nb-hp{font-style:italic}
 /* Proposition de la première visite : carte en bas à droite ; sur
    téléphone, toute la largeur (règle @media juste en dessous). */
@@ -426,8 +422,6 @@ body.mode-edition .idea-card.is-modified{border-color:var(--color-mod-border);ba
 .def-box details{margin-top:10px;border-top:0.5px solid var(--color-border-tertiary);padding-top:8px}
 .def-box summary{cursor:pointer;font-size:11px;font-weight:600;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:.07em;list-style:none;display:flex;align-items:center;gap:5px;user-select:none}
 .def-box summary::-webkit-details-marker{display:none}
-.def-box summary::before{content:'▶';font-size:8px;transition:transform .2s}
-.def-box details[open] summary::before{content:'▼'}
 .def-box details[open] summary{color:var(--color-text-secondary)}
 .def-sec{margin-top:9px}
 .def-sec-title{font-size:10px;font-weight:600;color:var(--color-text-primary);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}

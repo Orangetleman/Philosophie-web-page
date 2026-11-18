@@ -189,7 +189,7 @@ function restoreNavHistory(){
    de navigation est vide). Inséré en tête des barres d'onglets. */
 function backBtnHTML(){
   const disabled=navHistory.length===0;
-  return `<button class="back-btn"${disabled?' disabled':''} onclick="avecTransition(goBack)" title="${disabled?'Aucune page précédente':`Retour (${navHistory.length} page${navHistory.length>1?'s':''})`}">← Retour</button>`;
+  return `<button class="back-btn"${disabled?' disabled':''} onclick="avecTransition(goBack)" title="${disabled?'Aucune page précédente':`Retour (${navHistory.length} page${navHistory.length>1?'s':''})`}">${ico('flecheG')} Retour</button>`;
 }
 
 /* ── Adresses de page (#/…) — étape 3, octobre 2026 ──────────────────────

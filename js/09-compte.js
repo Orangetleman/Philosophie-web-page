@@ -106,8 +106,8 @@ function renderAccountBtn(){
     // Connecté : un seul bouton (nom → ouvre le profil / la déconnexion),
     // plus « Administration » si la base reconnaît ce compte comme admin
     // (nov. 2026, chantier Administration : verifierAdmin()).
-    wrap.innerHTML=`<button class="sb-account" title="Gérer le compte ou se déconnecter" onclick="openAuth()">👤 ${pEsc(authLabel())}</button>`+
-      (authEstAdmin===authUser.id?`<a class="sb-account sb-admin" href="/admin/" title="Trier les propositions (réservé aux administrateurs)">🛠 Administration</a>`:'');
+    wrap.innerHTML=`<button class="sb-account" title="Gérer le compte ou se déconnecter" onclick="openAuth()">${ico('personne')} ${pEsc(authLabel())}</button>`+
+      (authEstAdmin===authUser.id?`<a class="sb-account sb-admin" href="/admin/" title="Trier les propositions (réservé aux administrateurs)">${ico('outils')} Administration</a>`:'');
     if(authEstAdmin!==authUser.id) verifierAdmin();
   }else{
     // Déconnecté : deux boutons distincts (chacun ouvre le bon onglet).
@@ -156,13 +156,13 @@ function renderAuth(){
   //    récupération). PRIORITAIRE même si une session de récupération est
   //    déjà ouverte (sinon on afficherait le profil). ──
   if(authView==='newpw'){
-    if(titleEl) titleEl.textContent='🔑 Nouveau mot de passe';
+    if(titleEl) titleEl.innerHTML=ico('cle')+' Nouveau mot de passe';
     body.innerHTML=`
       <div class="auth-intro">Choisis un nouveau mot de passe pour ton compte.</div>
       <form class="auth-form" onsubmit="authSetNewPassword(event)">
         <div class="auth-pw-wrap">
           <input class="auth-input" id="auth-newpw" type="password" placeholder="Nouveau mot de passe (6 caractères min.)" autocomplete="new-password" minlength="6" required>
-          <button type="button" class="auth-pw-eye" title="Afficher / masquer le mot de passe" aria-label="Afficher le mot de passe" onclick="togglePwEye(this)">👁</button>
+          <button type="button" class="auth-pw-eye" title="Afficher / masquer le mot de passe" aria-label="Afficher le mot de passe" onclick="togglePwEye(this)">${ico('oeil')}</button>
         </div>
         <button class="auth-btn auth-btn-primary" type="submit">Définir le mot de passe</button>
       </form>
@@ -170,7 +170,7 @@ function renderAuth(){
     return;
   }
   if(authUser){                                  // ── déjà connecté : profil ──
-    if(titleEl) titleEl.textContent='👤 Mon compte';
+    if(titleEl) titleEl.innerHTML=ico('personne')+' Mon compte';
     const rawProv=(authUser.app_metadata&&authUser.app_metadata.provider)||'email';
     // « google » s'affiche « Gmail » ; « email » → « e-mail / mot de passe ».
     const prov=rawProv==='google'?'Gmail':(rawProv==='email'?'e-mail / mot de passe':rawProv);
@@ -198,18 +198,18 @@ function renderAuth(){
   }
   // ── Écran « mot de passe oublié » : demande l'e-mail, envoie le lien. ──
   if(authView==='reset'){
-    if(titleEl) titleEl.textContent='🔑 Mot de passe oublié';
+    if(titleEl) titleEl.innerHTML=ico('cle')+' Mot de passe oublié';
     body.innerHTML=`
       <div class="auth-intro">Saisis ton adresse e-mail : on t’envoie un <b>lien</b> pour choisir un nouveau mot de passe.</div>
       <form class="auth-form" onsubmit="authResetSend(event)">
         <input class="auth-input" id="auth-email" type="email" placeholder="Adresse e-mail" autocomplete="email" required>
         <button class="auth-btn auth-btn-primary" type="submit">Envoyer le lien</button>
       </form>
-      <button class="auth-link-btn" onclick="authSetView('signin')">← Retour à la connexion</button>
+      <button class="auth-link-btn" onclick="authSetView('signin')">${ico('flecheG')} Retour à la connexion</button>
       <div class="auth-status" id="auth-status"></div>`;
     return;
   }
-  if(titleEl) titleEl.textContent='👤 Créer un compte / se connecter';
+  if(titleEl) titleEl.innerHTML=ico('personne')+' Créer un compte / se connecter';
   const isSignup=authView==='signup';            // ── déconnecté : connexion ──
   body.innerHTML=`
     <div class="auth-tabs">
@@ -224,7 +224,7 @@ function renderAuth(){
       <input class="auth-input" id="auth-email" type="email" placeholder="Adresse e-mail" autocomplete="email" required>
       <div class="auth-pw-wrap">
         <input class="auth-input" id="auth-pw" type="password" placeholder="Mot de passe (6 caractères min.)" autocomplete="${isSignup?'new-password':'current-password'}" minlength="6" required>
-        <button type="button" class="auth-pw-eye" title="Afficher / masquer le mot de passe" aria-label="Afficher le mot de passe" onclick="togglePwEye(this)">👁</button>
+        <button type="button" class="auth-pw-eye" title="Afficher / masquer le mot de passe" aria-label="Afficher le mot de passe" onclick="togglePwEye(this)">${ico('oeil')}</button>
       </div>
       ${isSignup?cguCaseHTML('auth-cgu','créer mon compte'):''}
       <button class="auth-btn auth-btn-primary" type="submit">${isSignup?'Créer mon compte':'Se connecter'}</button>
@@ -245,7 +245,7 @@ function togglePwEye(btn){
   if(!inp) return;
   const show=inp.type==='password';
   inp.type=show?'text':'password';
-  btn.textContent=show?'🙈':'👁';
+  btn.innerHTML=ico(show?'oeilBarre':'oeil');
   btn.setAttribute('aria-label', show?'Masquer le mot de passe':'Afficher le mot de passe');
   inp.focus();
 }

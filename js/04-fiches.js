@@ -182,9 +182,9 @@ function planCardHTML(p){
   const ROMAN=['I','II','III','IV','V','VI'];
   const LETTERS=['A','B','C','D','E','F'];
   const statusCls=p.new?' is-new':p.modified?' is-modified':'';
-  const nb=p.new?`<span class="new-badge">✦ Nouveau</span>`:'';
-  const mb=p.modified?`<span class="modified-badge">✎ Modifié</span>`:'';
-  const mig=p.migrated?`<span class="plan-migr" title="Plan converti automatiquement depuis l'ancien format — à enrichir (problématisation, titres d'axes, limites)">↻ à enrichir</span>`:'';
+  const nb=p.new?`<span class="new-badge">${ico('etincelle')} Nouveau</span>`:'';
+  const mb=p.modified?`<span class="modified-badge">${ico('crayon')} Modifié</span>`:'';
+  const mig=p.migrated?`<span class="plan-migr" title="Plan converti automatiquement depuis l'ancien format — à enrichir (problématisation, titres d'axes, limites)">${ico('recommencer')} à enrichir</span>`:'';
   // CORPS du plan (problématisation + problématique + axes). Construit à
   // part car la carte est désormais DÉROULABLE : le développement est
   // replié par défaut, on ne montre que le sujet (summary). Divulgation
@@ -255,7 +255,7 @@ function renderConceptContent(){
   const notionPills=c.notions.map(k=>{
     const nd=D[k]; if(!nd||!notionVisible(k)) return '';   // étape 5 : HP masqué
     return `<span class="notion-pill" style="color:${nd.c};border-color:${nd.c}40;background:${nd.c}12"
-      onclick="openNotionFromConcept('${k}','${safeCid}')">${nd.l} →</span>`;
+      onclick="openNotionFromConcept('${k}','${safeCid}')">${nd.l} ${ico('flecheD')}</span>`;
   }).join('');
 
   // Auteur link
@@ -351,11 +351,11 @@ const METHODO_GUIDE={
         +"On part d'une question, on montre qu'elle oppose plusieurs réponses possibles, puis on construit pas à pas une réponse "
         +"argumentée en s'appuyant sur des <b>auteurs</b>, des <b>concepts</b> et des <b>exemples</b>.",
     squelette:[
-      {bloc:'Introduction', detail:"Accroche → analyse des termes du sujet → <b>problématique</b> (la question qui oppose deux réponses) → annonce du plan."},
+      {bloc:'Introduction', detail:"Accroche "+ico('flecheD')+" analyse des termes du sujet "+ico('flecheD')+" <b>problématique</b> (la question qui oppose deux réponses) "+ico('flecheD')+" annonce du plan."},
       {bloc:'I. Thèse', detail:"La réponse la plus spontanée au sujet : on la défend solidement… puis on en montre la limite."},
       {bloc:'II. Antithèse', detail:"Une objection qui corrige la première réponse et <b>déplace</b> le problème."},
       {bloc:'III. Dépassement', detail:"Une position plus fine qui lève la tension — souvent grâce à une <b>distinction</b> décisive."},
-      {bloc:'Conclusion', detail:"Bilan des étapes → réponse claire à la problématique → ouverture."}
+      {bloc:'Conclusion', detail:"Bilan des étapes "+ico('flecheD')+" réponse claire à la problématique "+ico('flecheD')+" ouverture."}
     ],
     etapes:[
       {t:"Analyser le sujet",
@@ -367,7 +367,7 @@ const METHODO_GUIDE={
        phrases:["« On pourrait répondre que … ; pourtant, … »","« Le problème est donc de savoir si … ou si, au contraire, … »"],
        tip:"Une bonne problématique se reconnaît à ce qu'on <b>ne peut pas y répondre par oui ou non immédiatement</b>."},
       {t:"Construire le plan",
-       body:"<p>Trois parties (les correcteurs y tiennent) qui <b>progressent</b> — chacune corrige ou approfondit la précédente. Deux formes admises : le plan <b>dialectique</b> (thèse → objection → dépassement) et le plan <b>progressif</b> (on creuse la même question par paliers de plus en plus fins). Jamais un « pour / contre / synthèse » plaqué : chaque partie répond à la problématique d'une manière <b>nouvelle</b>.</p>",
+       body:"<p>Trois parties (les correcteurs y tiennent) qui <b>progressent</b> — chacune corrige ou approfondit la précédente. Deux formes admises : le plan <b>dialectique</b> (thèse "+ico('flecheD')+" objection "+ico('flecheD')+" dépassement) et le plan <b>progressif</b> (on creuse la même question par paliers de plus en plus fins). Jamais un « pour / contre / synthèse » plaqué : chaque partie répond à la problématique d'une manière <b>nouvelle</b>.</p>",
        phrases:["I. réponse spontanée — II. objection qui la limite — III. distinction qui dépasse","« Ce qui était vrai en … ne l'est plus dès lors que … »"],
        tip:"Teste ton plan : si on peut <b>inverser deux parties sans rien changer</b>, c'est qu'il ne progresse pas."},
       {t:"Rédiger l'introduction",
@@ -391,10 +391,10 @@ const METHODO_GUIDE={
         +"sans paraphraser (redire en moins bien) ni plaquer un cours. On montre <b>pourquoi</b> l'auteur dit ce qu'il dit, "
         +"et en quoi sa réponse est forte.",
     squelette:[
-      {bloc:'Introduction', detail:"Thème → <b>problème</b> auquel le texte répond → <b>thèse</b> de l'auteur → annonce des mouvements."},
+      {bloc:'Introduction', detail:"Thème "+ico('flecheD')+" <b>problème</b> auquel le texte répond "+ico('flecheD')+" <b>thèse</b> de l'auteur "+ico('flecheD')+" annonce des mouvements."},
       {bloc:'Développement', detail:"On suit l'<b>ordre du texte</b> : pour chaque mouvement, on cite, on explique les termes, on reformule l'argument."},
       {bloc:'Discussion', detail:"(Selon la consigne) intérêt et portée de la thèse, puis une <b>limite</b> éventuelle, discutée avec rigueur."},
-      {bloc:'Conclusion', detail:"Ce que le texte établit → réponse au problème → ouverture."}
+      {bloc:'Conclusion', detail:"Ce que le texte établit "+ico('flecheD')+" réponse au problème "+ico('flecheD')+" ouverture."}
     ],
     etapes:[
       {t:"Lire et situer le texte",
@@ -444,7 +444,7 @@ function renderMethodoContent(){
   // présentation #/methodo et de la barre latérale) ; un lien vers l'autre
   // parcours en bas de page, utile sur téléphone (barre en tiroir).
   const autre=METHODO_TOPICS.find(t=>t.id!==methodoTopic);
-  const autreHTML=autre?`<button class="methodo-autre" onclick="indexOuvrir('methodo','${autre.id}')">Voir aussi : ${(METHODO_GUIDE[autre.id]||{}).titre||autre.label} →</button>`:'';
+  const autreHTML=autre?`<button class="methodo-autre" onclick="indexOuvrir('methodo','${autre.id}')">Voir aussi : ${(METHODO_GUIDE[autre.id]||{}).titre||autre.label} ${ico('flecheD')}</button>`:'';
   // Squelette : une ligne par bloc de copie (vue d'ensemble de la structure).
   const skelHTML=g.squelette.map(s=>
     `<div class="methodo-skel-row"><div class="methodo-skel-bloc">${s.bloc}</div><div class="methodo-skel-detail">${linkTerms('<span>'+s.detail+'</span>')}</div></div>`
@@ -454,7 +454,7 @@ function renderMethodoContent(){
     const phrases=(e.phrases||[]).length
       ? `<div class="methodo-block-title">Phrases toutes prêtes</div><ul class="methodo-phrases">${e.phrases.map(p=>`<li>${linkTerms('<span>'+p+'</span>')}</li>`).join('')}</ul>`
       : '';
-    const tip=e.tip?`<div class="methodo-tip">💡 ${linkTerms('<span>'+e.tip+'</span>')}</div>`:'';
+    const tip=e.tip?`<div class="methodo-tip">${ico('idee')} ${linkTerms('<span>'+e.tip+'</span>')}</div>`:'';
     return `<details class="methodo-step"${i===0?' open':''}>
       <summary><span class="methodo-step-num">${i+1}</span>${e.t}</summary>
       <div class="methodo-step-body">${linkTerms('<span>'+e.body+'</span>')}${phrases}${tip}</div>
@@ -749,7 +749,7 @@ function renderAuthorContent(){
 
   // Étape 6 : un texte de cet auteur est-il tombé à l'explication de texte ?
   const bacAuteur=sujetsDAuteur(curAuthor);
-  const bacHTML=bacAuteur.length?`<div class="bac-auteur">🎓 Tombé au bac : ${bacAuteur.map(x=>`<em>${x.oeuvre}</em> (${x.annee}, voie ${x.voie})`).join(' ; ')}.</div>`:'';
+  const bacHTML=bacAuteur.length?`<div class="bac-auteur">${ico('diplome')} Tombé au bac : ${bacAuteur.map(x=>`<em>${x.oeuvre}</em> (${x.annee}, voie ${x.voie})`).join(' ; ')}.</div>`:'';
   if(meta.bio){
     html+=`<div class="author-def-box">${linkTerms('<span>'+meta.bio+'</span>')}${bacHTML}`;
     if(meta.periode||meta.themes.length){
@@ -771,14 +771,14 @@ function renderAuthorContent(){
     entry.notions.forEach(k=>{
       const a=entry.entries[k]; const nc=D[k].c;
       a.ideas.forEach(it=>{
-        const nb=it.new?`<span class="new-badge">✦ Nouveau</span>`:'';
-        const mb=it.modified?`<span class="modified-badge">✎ Modifié</span>`:'';
+        const nb=it.new?`<span class="new-badge">${ico('etincelle')} Nouveau</span>`:'';
+        const mb=it.modified?`<span class="modified-badge">${ico('crayon')} Modifié</span>`:'';
         const statusCls=it.new?' is-new':it.modified?' is-modified':'';
         html+=`<div class="idea-card${statusCls}">
           <div class="idea-card-head">
             <div class="idea-card-work">${it.w||''} ${nb}${mb}</div>
             <span class="notion-pill" style="color:${nc};border-color:${nc}40;background:${nc}12"
-              onclick="openNotionFromAuthor('${k}','${safeAuthor}')">${D[k].l} →</span>
+              onclick="openNotionFromAuthor('${k}','${safeAuthor}')">${D[k].l} ${ico('flecheD')}</span>
           </div>
           ${it.i?`<div class="idea-card-body">${linkTerms('<span>'+it.i+'</span>')}</div>`:''}
           ${ideaCitationsHTML(it.citations)}
@@ -805,7 +805,7 @@ function renderAuthorContent(){
           <div class="cit-card-footer">
             <span class="cit-card-src">${it.w||''}</span>
             <span class="notion-pill" style="color:${nc};border-color:${nc}40;background:${nc}12"
-              onclick="openNotionFromAuthor('${k}','${safeAuthor}')">${D[k].l} →</span>
+              onclick="openNotionFromAuthor('${k}','${safeAuthor}')">${D[k].l} ${ico('flecheD')}</span>
           </div>
           ${pPlus('correction','auteur',k,curAuthor+' — citation · '+D[k].l,curAuthor)}
         </div>`;
@@ -912,7 +912,7 @@ function renderContent(){
 <div class="notion-head">
   <div class="nbadge" style="background:${c}"></div>
   <div><h1 class="ntitle">${n.l}${estHP(cur)?' '+hpBadgeHTML():''}</h1><div class="nsub">${n.s}</div></div>
-  <button class="fiche-btn" onclick="imprimerFiche('${cur}')" title="Imprimer la fiche de révision de la notion, ou l'enregistrer en PDF">🖨 Fiche</button>
+  <button class="fiche-btn" onclick="imprimerFiche('${cur}')" title="Imprimer la fiche de révision de la notion, ou l'enregistrer en PDF">${ico('imprimer')} Fiche</button>
 </div>
 ${estHP(cur)?hpNoticeHTML():''}
 <div class="def-box">${linkTerms(n.def)}${sourcesHTML(n.sources)}${pPlus('ajout','notion',cur,'Définition / approfondissement de '+n.l)}</div>`;
@@ -939,8 +939,8 @@ ${estHP(cur)?hpNoticeHTML():''}
       // de la carte. Les zones se disposent horizontalement (cf. .a-ideas).
       let ideasHTML='';
       a.ideas.forEach(it=>{
-        const nb=it.new?`<span class="new-badge">✦ Nouveau</span>`:'';
-        const mb=it.modified?`<span class="modified-badge">✎ Modifié</span>`:'';
+        const nb=it.new?`<span class="new-badge">${ico('etincelle')} Nouveau</span>`:'';
+        const mb=it.modified?`<span class="modified-badge">${ico('crayon')} Modifié</span>`:'';
         const ic=it.new?' is-new':it.modified?' is-modified':'';   // teinte propre à l'idée
         ideasHTML+=`<div class="a-idea${ic}">
           <div class="aw">${it.w||''} ${nb}${mb}</div>
@@ -968,8 +968,8 @@ ${estHP(cur)?hpNoticeHTML():''}
   else if(curTab==='textes'){
     html+=`<div class="slabel">Textes &amp; extraits à connaître</div><div class="tbox">`;
     n.textes.forEach(t=>{
-      const newBadge=t.new?`<span class="new-badge">✦ Nouveau</span>`:'';
-      const modBadge=t.modified?`<span class="modified-badge">✎ Modifié</span>`:'';
+      const newBadge=t.new?`<span class="new-badge">${ico('etincelle')} Nouveau</span>`:'';
+      const modBadge=t.modified?`<span class="modified-badge">${ico('crayon')} Modifié</span>`:'';
       const statusClass=t.new?' is-new':t.modified?' is-modified':'';
       html+=`<div class="ti2${statusClass}"><span class="tinum">${t.n} ${newBadge}${modBadge}</span><span class="titxt">${linkTerms('<span>'+t.t+'</span>')}</span>${pPlus('correction','texte',cur,t.n)}</div>`;
     });
@@ -1026,14 +1026,14 @@ ${estHP(cur)?hpNoticeHTML():''}
       cs.forEach(c=>{
         const isNew=c.new, isMod=c.modified;
         const statusCls=isNew?' is-new':isMod?' is-modified':'';
-        const nb=isNew?`<span class="new-badge">✦ Nouveau</span>`:'';
-        const mb=isMod?`<span class="modified-badge">✎ Modifié</span>`:'';
+        const nb=isNew?`<span class="new-badge">${ico('etincelle')} Nouveau</span>`:'';
+        const mb=isMod?`<span class="modified-badge">${ico('crayon')} Modifié</span>`:'';
         const safeId=c.id.replace(/'/g,"\\'");
         // Définition COMPLÈTE + explication du lien concept ↔ notion (c.liens[cur]).
         const lien=c.liens&&c.liens[cur];
         html+=`<div class="concept-card${statusCls}">
           <div class="cc-head">
-            <span class="cc-term" onclick="openConcept('${safeId}')">${c.term} →</span>
+            <span class="cc-term" onclick="openConcept('${safeId}')">${c.term} ${ico('flecheD')}</span>
             ${c.cat?`<span class="cc-cat facet-clickable" title="Voir les concepts de cette catégorie" onclick="event.stopPropagation();openFacet('cat','${String(c.cat).replace(/'/g,"\\'")}')">${c.cat}</span>`:''}${nb}${mb}
           </div>
           <div class="cc-def">${linkTerms(c.def||'')}</div>
@@ -1069,8 +1069,8 @@ ${estHP(cur)?hpNoticeHTML():''}
       html+=`<div class="slabel">Phrases d'accroche prêtes pour ouvrir une dissertation</div>`;
       if(!accs.length) html+=`<div style="color:var(--color-text-tertiary);font-size:12px;padding:6px 0 10px">Aucune accroche pour l'instant.</div>`;
       accs.forEach((a,ai)=>{
-        const nb=a.new?`<span class="new-badge">✦ Nouveau</span>`:'';
-        const mb=a.modified?`<span class="modified-badge">✎ Modifié</span>`:'';
+        const nb=a.new?`<span class="new-badge">${ico('etincelle')} Nouveau</span>`:'';
+        const mb=a.modified?`<span class="modified-badge">${ico('crayon')} Modifié</span>`:'';
         const sc=a.new?' is-new':a.modified?' is-modified':'';
         html+=`<div class="accroche-card${sc}" data-acc="${ai}">
           <div class="accroche-head">
@@ -1096,8 +1096,8 @@ ${estHP(cur)?hpNoticeHTML():''}
           'Politique':'#5F5E5A','Numérique':'#185FA5','Clinique':'#D85A30'
         };
         const tc=tagColors[e.tag]||c;
-        const newBadgeEx=e.new?`<span class="new-badge">✦ Nouveau</span>`:'';
-        const modBadgeEx=e.modified?`<span class="modified-badge">✎ Modifié</span>`:'';
+        const newBadgeEx=e.new?`<span class="new-badge">${ico('etincelle')} Nouveau</span>`:'';
+        const modBadgeEx=e.modified?`<span class="modified-badge">${ico('crayon')} Modifié</span>`:'';
         const statusClassEx=e.new?' is-new':e.modified?' is-modified':'';
         html+=`<div class="ex-card${statusClassEx}">
           <div class="ex-head">
@@ -1145,7 +1145,7 @@ ${estHP(cur)?hpNoticeHTML():''}
       const isNew=typeof d==='object'&&d.new;
       const isMod=typeof d==='object'&&d.modified;
       const txt=typeof d==='object'?d.q:d;
-      const modBadgeDq=isMod?`<span class="modified-badge" style="margin-left:6px;vertical-align:middle">✎ Modifié</span>`:'';
+      const modBadgeDq=isMod?`<span class="modified-badge" style="margin-left:6px;vertical-align:middle">${ico('crayon')} Modifié</span>`:'';
       html+=`<div class="dq${isNew?' is-new':isMod?' is-modified':''}">${linkTerms('<span>'+txt+'</span>')}${modBadgeDq}${pPlus('correction','dissertation',cur,txt)}</div>`;
     });
     html+=`</div>`;

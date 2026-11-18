@@ -16,7 +16,7 @@ liste officielle, 5 hors programme, 6 enrichir ; décisions de l'auteur au
 | Chemin | Rôle | On l'édite ? |
 |---|---|---|
 | `contenu/` | **le contenu** : `notions/<clé>.js` (un fichier par notion), `auteurs/<nom>.js` (fiche de chaque auteur), `concepts.js`, `reperes.js`, `ordre.js`, `programme.js` (la liste officielle : 17 notions, 84 auteurs), `sujets-bac.js` (sujets tombés au bac depuis 2021), `nouveautes.js` (journal daté, affiché dans Explorer), `legal.js` (la notice légale : mentions, données personnelles, stockage local, tiers, CGU, historique des versions) | **oui** |
-| `js/`, `css/` | **le code** du site, en morceaux numérotés (`js/01-…` à `16-…`, puis `99-demarrage.js` en dernier ; `css/01-…` à `10-…`) | **oui** |
+| `js/`, `css/` | **le code** du site, en morceaux numérotés (`js/00-icones.js`, `js/01-…` à `18-…`, puis `99-demarrage.js` en dernier ; `css/01-…` à `14-…`) | **oui** |
 | `index.html` | le squelette HTML ; charge `app.css`, `data.js`, puis `app.js` | oui (HTML seulement) |
 | `data.js`, `app.js`, `app.css` | **générés** par le build à partir de `contenu/`, `js/`, `css/` | **jamais** |
 | `notions/`, `auteurs/`, `fiches/`, `sitemap.xml`, `robots.txt`, `llms.txt` | **générés** par le build (`outils/lib/pages.mjs`) : une page par fiche, pour le référencement : depuis nov. 2026, chaque page notion ou auteur est l'app elle-même (gabarit `index.html`) ouverte sur sa fiche pré-rendue (`pageApp`, `entreeDePage`), miroir exact de l'onglet par défaut ; `fiches/` suit le même gabarit | **jamais** |
@@ -24,7 +24,7 @@ liste officielle, 5 hors programme, 6 enrichir ; décisions de l'auteur au
 | `polices/`, `lib/` | police Inter et bibliothèques (supabase-js, qrcode) servies par le site au lieu d'un tiers (RGPD, nov. 2026) | non (sauf montée de version) |
 | `sw.js` | service worker ; ses lignes `CACHE` et `PRECACHE` sont écrites par le build | le reste, oui |
 | `outils/` | `construire.mjs` (build), `verifier_contenu.mjs` (contrôle), `lib/` (formats, écriture), `banc/` (règles d'accès Supabase) | oui |
-| `docs/` | diagnostic, protocole du contenu, architecture détaillée, carte du projet | oui |
+| `docs/` | diagnostic, protocole du contenu, charte graphique, architecture détaillée, carte du projet | oui |
 | `admin/` | page `/admin/` : tri des propositions, en ligne et en local (`/admin/?essai` : fausses données) ; logique dans `modele.js` | oui |
 | `supabase/functions/` | fonctions Supabase (Deno) : `relire` (relecture des propositions par Gemini), `prevenir` (message Discord à chaque proposition) ; déployées par `supabase functions deploy` | oui |
 | `integrations/` | comptes rendus d'intégration des propositions (`philo-integration/v1`), écrits par Claude selon `docs/protocole-integration.md`, servis par le site hors précache | oui |
@@ -72,6 +72,12 @@ liste officielle, 5 hors programme, 6 enrichir ; décisions de l'auteur au
   `AUTHOR_ALIASES` (`js/05-liens-dynamiques.js`). Chercher avant d'ajouter.
 - **`id` de concept unique**, et ne jamais en renommer un à la légère : c'est
   la clé de progression du quiz.
+- **Charte graphique : suivre `docs/charte-graphique.md`.** Jamais d'émoji
+  ni de signe d'interface (← → ↗ ▸ ▾ ✓ ✕ ✎ ✦…) dans l'interface ni
+  dans le contenu (sauf les flèches de la prose) : une icône du jeu du site
+  (`ico('nom')`, `js/00-icones.js` ; `<i data-ico="nom"></i>` dans
+  `index.html`), ou rien. Une icône manquante se dessine dans le même style
+  (SVG au trait, `currentColor`) et s'ajoute à `ICONES`.
 - **Ne pas toucher au CSS ni au JS de rendu existant** sans raison explicite
   et justifiée ; **ne pas toucher aux commentaires existants** sauf pour les
   mettre à jour quand ils deviennent faux.

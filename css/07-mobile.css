@@ -125,8 +125,6 @@ body.sb-open .sb-backdrop{display:block;opacity:1}
 .pmine-det{margin-top:7px;font-size:11.5px}
 .pmine-det>summary{cursor:pointer;color:var(--color-text-tertiary);font-weight:600;list-style:none}
 .pmine-det>summary::-webkit-details-marker{display:none}
-.pmine-det>summary::before{content:"▸ ";color:var(--color-text-tertiary)}
-.pmine-det[open]>summary::before{content:"▾ "}
 .pmine-box{margin-top:8px;padding-top:8px;border-top:0.5px solid var(--color-border-tertiary)}
 .pmine-box:first-of-type{border-top:0;padding-top:0}
 .pmine-box-h{font-size:10.5px;font-weight:700;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.03em;margin-bottom:4px}

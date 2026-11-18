@@ -38,8 +38,7 @@
 .methodo-step>summary{list-style:none;cursor:pointer;padding:12px 14px;font-weight:600;font-size:13.5px;
   color:var(--color-text-primary);display:flex;align-items:center;gap:8px}
 .methodo-step>summary::-webkit-details-marker{display:none}
-.methodo-step>summary::after{content:'▸';margin-left:auto;color:var(--color-text-tertiary);transition:transform .15s}
-.methodo-step[open]>summary::after{transform:rotate(90deg)}
+.methodo-step>summary::after{margin-left:auto}   /* chevron : css/14-icones.css */
 .methodo-step>summary:hover{background:var(--color-background-tertiary)}
 .methodo-step-num{flex:0 0 auto;width:22px;height:22px;border-radius:50%;background:var(--color-accent-quiz);
   color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
