@@ -13,6 +13,12 @@
 -- is_admin(). Plus aucune clé secrète dans la fonction.
 -- ===========================================================================
 
+-- La colonne ia_message (l'avis rédigé pour le contributeur) a été ajoutée
+-- au « create table boites » de 2026_administration.sql APRÈS que la vraie
+-- base l'avait déjà créée : le « if not exists » ne l'ajoute donc pas.
+-- (16 nov. 2026 : « column "ia_message" of relation "boites" does not exist ».)
+alter table public.boites add column if not exists ia_message text;
+
 -- admin_ecrire_avis(id, verdict, avis, message) : l'avis de l'IA sur une
 -- boîte, puis l'avis pour le contributeur (contributions.avis_ia) refait
 -- depuis toutes les boîtes relues de la proposition : le message seul s'il

@@ -1,8 +1,35 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
-  "genere_le": "2026-11-16T18:12:54.329Z",
+  "genere_le": "2026-11-16T18:39:53.761Z",
   "commits": [
+    {
+      "hash": "4222cfc698977eb60e0d02f91323bb60928c404c",
+      "short": "4222cfc",
+      "auteur": "Orangentleman",
+      "date": "2026-11-16T19:39:33+01:00",
+      "sujet": "Intégration du 16 nov. 2026 : boîte n° 36 (Jankélévitch, le temps)",
+      "corps": "Citation proposée introuvable telle quelle : ajoutée en reformulation.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": "Intégration du 16 nov. 2026"
+    },
+    {
+      "hash": "c9510e9d9533672bd820adec302fe96f50c9f15f",
+      "short": "c9510e9",
+      "auteur": "Orangentleman",
+      "date": "2026-11-16T19:35:53+01:00",
+      "sujet": "Migration relecture : ajoute la colonne ia_message aux bases déjà créées",
+      "corps": "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": "Migration relecture"
+    },
+    {
+      "hash": "9a3453570fae05044c72aaf4b9e9294096cdb0d8",
+      "short": "9a34535",
+      "auteur": "Orangentleman",
+      "date": "2026-11-16T19:12:52+01:00",
+      "sujet": "Administration A6 : ménage, l'agrégateur Python et triage/ retirés",
+      "corps": "/admin/ remplace le tableau de bord Flask et la page de triage. Le code\nPython de philo-aggregator/ est retiré (il reste dans l'historique) ;\nle dossier garde migrations/ et dashboard.bat. triage/ redirige vers\n/admin/ et son service worker se désinstalle. Doc et carte à jour.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": "Administration A6"
+    },
     {
       "hash": "462d8378825b16d672fd88e3d947add10356f68f",
       "short": "462d837",
