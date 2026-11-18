@@ -332,8 +332,8 @@ function renderSB(){
     METHODO_TOPICS.forEach(t=>{
       const el=document.createElement('div');
       el.className='nb'+(t.id===methodoTopic?' active':'');
-      el.innerHTML=`<span class="dot" style="background:var(--color-accent-quiz,#4f9dff)"></span>${t.label}`;
-      el.onclick=()=>{methodoTopic=t.id;renderSB();renderMethodoContent();};
+      el.innerHTML=`<span class="dot" style="background:var(--color-ocre,var(--color-accent-quiz))"></span>${t.label}`;
+      el.onclick=()=>{methodoTopic=t.id;renderSB();renderMethodoContent();};   // pastille ocre (DA, nov. 2026)
       list.appendChild(el);
     });
   }

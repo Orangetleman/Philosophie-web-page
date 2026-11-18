@@ -1926,3 +1926,17 @@ body.en-accueil .topbar{view-transition-name:none}
 .idx-larges .idx-carte b{font-size:24px}
 .idx-larges .idx-texte{font-size:14px;line-height:1.6;margin-top:6px}
 .idx-larges .idx-compte{display:none}
+
+/* ── Page d'un parcours de Méthodo (nov. 2026) : un vrai titre à la place du
+   sélecteur, et les accents bleus (repris du quiz) passés à l'ocre de la DA. ── */
+:root[data-theme="clair"]{--color-ocre:#a8641f;--color-ocre-texte:#fff}
+@media (prefers-color-scheme: light){:root[data-theme="auto"]{--color-ocre:#a8641f;--color-ocre-texte:#fff}}
+.methodo-titre{font:500 32px/1.15 var(--font-titre,inherit);margin:2px 0 14px;color:var(--color-text-primary)}
+.methodo-intro{font-size:15px}
+.methodo-skel-row{border-left-color:var(--color-ocre,var(--color-accent-quiz))}
+.methodo-skel-bloc{background:var(--color-background-primary);font-family:var(--font-titre,inherit);font-weight:500;font-size:14px}
+.methodo-step-num{background:var(--color-ocre,var(--color-accent-quiz));color:var(--color-ocre-texte,#fff)}
+.methodo-step>summary{font-family:var(--font-titre,inherit);font-weight:500;font-size:15px}
+.methodo-phrases li{background:var(--color-background-primary);border-left-color:var(--color-ocre,var(--color-border-quiz))}
+.methodo-autre{margin:22px 0 10px;font:inherit;font-size:14px;padding:10px 16px;border-radius:var(--border-radius-md);border:1px solid var(--color-border-tertiary);background:var(--color-background-secondary);color:var(--color-text-primary);cursor:pointer}
+.methodo-autre:hover{border-color:var(--color-ocre,var(--color-border-secondary))}

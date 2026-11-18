@@ -1044,8 +1044,8 @@ function renderSB(){
     METHODO_TOPICS.forEach(t=>{
       const el=document.createElement('div');
       el.className='nb'+(t.id===methodoTopic?' active':'');
-      el.innerHTML=`<span class="dot" style="background:var(--color-accent-quiz,#4f9dff)"></span>${t.label}`;
-      el.onclick=()=>{methodoTopic=t.id;renderSB();renderMethodoContent();};
+      el.innerHTML=`<span class="dot" style="background:var(--color-ocre,var(--color-accent-quiz))"></span>${t.label}`;
+      el.onclick=()=>{methodoTopic=t.id;renderSB();renderMethodoContent();};   // pastille ocre (DA, nov. 2026)
       list.appendChild(el);
     });
   }
@@ -1620,10 +1620,11 @@ function renderMethodoContent(){
   tabsEl.innerHTML=backBtnHTML();   // bouton retour seul dans la barre
 
   const g=METHODO_GUIDE[methodoTopic]||METHODO_GUIDE.dissertation;
-  // Bascule entre les deux parcours (boutons en tête de zone principale).
-  const switchHTML=METHODO_TOPICS.map(t=>
-    `<button class="${t.id===methodoTopic?'active':''}" role="tab" aria-selected="${t.id===methodoTopic}" onclick="methodoTopic='${t.id}';renderSB();renderMethodoContent();">${t.label}</button>`
-  ).join('');
+  // Nov. 2026 : plus de sélecteur de parcours en tête (doublon de la page de
+  // présentation #/methodo et de la barre latérale) ; un lien vers l'autre
+  // parcours en bas de page, utile sur téléphone (barre en tiroir).
+  const autre=METHODO_TOPICS.find(t=>t.id!==methodoTopic);
+  const autreHTML=autre?`<button class="methodo-autre" onclick="indexOuvrir('methodo','${autre.id}')">Voir aussi : ${(METHODO_GUIDE[autre.id]||{}).titre||autre.label} →</button>`:'';
   // Squelette : une ligne par bloc de copie (vue d'ensemble de la structure).
   const skelHTML=g.squelette.map(s=>
     `<div class="methodo-skel-row"><div class="methodo-skel-bloc">${s.bloc}</div><div class="methodo-skel-detail">${linkTerms('<span>'+s.detail+'</span>')}</div></div>`
@@ -1641,13 +1642,14 @@ function renderMethodoContent(){
   }).join('');
 
   mc.innerHTML=`<div class="methodo-wrap">
-    <div class="methodo-eyebrow">Je révise la méthode de…</div>
-    <div class="methodo-switch" role="tablist" aria-label="Choisir la méthode">${switchHTML}</div>
+    <div class="methodo-eyebrow">Méthode</div>
+    <h1 class="methodo-titre">${g.titre}</h1>
     <p class="methodo-intro">${linkTerms('<span>'+g.intro+'</span>')}</p>
     <div class="methodo-sectitle">La copie en un coup d'œil</div>
     <div class="methodo-skel">${skelHTML}</div>
     <div class="methodo-sectitle">Étape par étape</div>
     <div class="methodo-steps">${stepsHTML}</div>
+    ${autreHTML}
   </div>`;
 }
 

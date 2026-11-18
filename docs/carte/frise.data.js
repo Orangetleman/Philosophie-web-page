@@ -1,8 +1,17 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
-  "genere_le": "2026-11-18T15:26:13.596Z",
+  "genere_le": "2026-11-18T15:30:33.107Z",
   "commits": [
+    {
+      "hash": "761a8d5904f7bb784eb8247788c784130dd1f7e0",
+      "short": "761a8d5",
+      "auteur": "Orangentleman",
+      "date": "2026-11-18T16:26:05+01:00",
+      "sujet": "Méthodo : une page de présentation, comme les autres onglets",
+      "corps": "#/methodo montre une grande carte par parcours (Dissertation, Explication\nde texte) avec son intro, le squelette de la copie et le nombre\nd'étapes ; ni recherche ni filtre pour deux éléments. La barre latérale\nn'apparaît qu'une fois un parcours ouvert, l'onglet Méthodo de la barre\net le fil d'Ariane mènent à cette page.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": "Méthodo"
+    },
     {
       "hash": "e49c8b123270089496be45f9b47c074b3182fe9b",
       "short": "e49c8b1",
