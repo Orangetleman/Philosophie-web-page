@@ -1,0 +1,152 @@
+<!doctype html>
+<!-- docs/maquettes/accueil-piste-a.html — MAQUETTE de la page d'accueil,
+     piste A « Bibliothèque » (nov. 2026). Ce n'est pas le site : un brouillon
+     à regarder, servi depuis la racine du dépôt (/docs/maquettes/…), qui lit
+     les vraies données de data.js. Jamais dans le précache.
+     La police de titre vient ici de Google Fonts pour aller vite ; sur le
+     site, elle sera servie depuis polices/ (règle RGPD, CLAUDE.md). -->
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Maquette accueil, piste A</title>
+<link href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,400;7..72,500;7..72,600&display=swap" rel="stylesheet">
+<style>
+@font-face{font-family:Inter;src:url(../../polices/inter-latin-400-normal.woff2) format("woff2");font-weight:400}
+@font-face{font-family:Inter;src:url(../../polices/inter-latin-500-normal.woff2) format("woff2");font-weight:500}
+/* Jetons de la piste A : ce sont eux qui iraient dans css/01-base.css. */
+:root{
+  --fond:#17130f;          /* papier sombre, un peu chaud */
+  --fond-2:#211b15;        /* cartes */
+  --fond-3:#2b231b;        /* survol */
+  --trait:#3a3026;
+  --texte:#ede4d3;
+  --texte-2:#bfb19a;
+  --texte-3:#8c7f6b;
+  --ocre:#c8873f;          /* l'accent, une seule fois fort par écran */
+  --ocre-doux:#3a2a1a;
+  --serif:"Literata",Georgia,serif;
+  --sans:Inter,system-ui,sans-serif;
+  --r:6px;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--fond);color:var(--texte);font:16px/1.6 var(--sans)}
+a{color:inherit;text-decoration:none}
+.wrap{max-width:1080px;margin:0 auto;padding:0 20px}
+header{display:flex;align-items:center;justify-content:space-between;padding:18px 0;border-bottom:1px solid var(--trait)}
+.logo{font:600 19px var(--serif)}
+.logo span{color:var(--ocre)}
+nav a{color:var(--texte-2);font-size:14px;margin-left:20px}
+nav a:hover{color:var(--texte)}
+.hero{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:40px;padding:56px 0 40px;align-items:end}
+h1{font:500 clamp(30px,4.4vw,46px)/1.15 var(--serif);margin:0 0 16px;letter-spacing:-.01em}
+.chapo{color:var(--texte-2);max-width:34em;margin:0 0 24px}
+.btn{display:inline-block;padding:10px 18px;border-radius:var(--r);font-size:15px;font-weight:500;margin:0 8px 8px 0}
+.btn.p{background:var(--ocre);color:#1b130a}
+.btn.s{border:1px solid var(--trait);color:var(--texte)}
+.btn.s:hover{background:var(--fond-2)}
+.reprendre{border:1px solid var(--trait);border-radius:var(--r);padding:16px 18px;background:var(--fond-2)}
+.petit{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--texte-3);margin:0 0 6px}
+.reprendre b{font:500 20px var(--serif);display:block;margin-bottom:4px}
+.reprendre small{color:var(--texte-2)}
+h2{font:500 22px var(--serif);margin:0 0 14px}
+section{padding:28px 0;border-top:1px solid var(--trait)}
+.notions{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px}
+.n{background:var(--fond-2);border-radius:var(--r);padding:14px 16px;border-left:3px solid var(--coul);transition:background .15s}
+.n:hover{background:var(--fond-3)}
+.n b{font:500 18px var(--serif);display:block}
+.n small{color:var(--texte-2);font-size:13px;line-height:1.4;display:block;margin-top:4px}
+.n.vedette{grid-column:span 2;grid-row:span 2;padding:22px}
+.n.vedette b{font-size:28px}
+.n.vedette small{font-size:15px;margin-top:10px}
+.n.vedette .def{color:var(--texte-2);font-size:14px;margin-top:14px}
+.deux{display:grid;grid-template-columns:1fr 1fr;gap:40px}
+.sujet{padding:10px 0;border-bottom:1px solid var(--trait)}
+.sujet q{font:400 17px var(--serif);quotes:"« " " »"}
+.sujet small,.nv small{display:block;color:var(--texte-3);font-size:13px}
+.nv{padding:10px 0;border-bottom:1px solid var(--trait)}
+.nv b{font-weight:500}
+footer{padding:30px 0 50px;color:var(--texte-3);font-size:13px;border-top:1px solid var(--trait)}
+@media (max-width:760px){.hero,.deux{grid-template-columns:1fr;gap:24px}.n.vedette{grid-column:auto;grid-row:auto}nav a:not(:last-child){display:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header><a class="logo" href="#">Philo<span>.</span> Terminale</a>
+<nav><a href="#">Notions</a><a href="#">Auteurs</a><a href="#">Concepts</a><a href="#">Quiz</a><a href="#">Réglages</a></nav></header>
+
+<div class="hero">
+  <div>
+    <h1>Les 17 notions du bac de philo, expliquées et reliées.</h1>
+    <p class="chapo" id="chapo"></p>
+    <a class="btn p" href="#">Je découvre la philo</a><a class="btn s" href="#">Je révise le bac</a>
+  </div>
+  <div class="reprendre">
+    <p class="petit">Reprendre</p>
+    <b id="rep-titre"></b><small id="rep-detail"></small>
+  </div>
+</div>
+
+<section><h2>Les notions</h2><div class="notions" id="notions"></div></section>
+
+<section class="deux">
+  <div><h2>Tombé au bac</h2><div id="sujets"></div></div>
+  <div><h2>Nouveautés</h2><div id="nouveautes"></div></div>
+</section>
+
+<footer>Maquette, piste A. Données réelles lues dans data.js.</footer>
+</div>
+
+<script src="../../data.js"></script>
+<script>
+/* Remplit la maquette avec les vraies données (globales de data.js). */
+(function(){
+  const notions = PROGRAMME.notions.filter(k => D[k]);
+  const nbAuteurs = Object.keys(AM).length;
+  document.getElementById('chapo').textContent =
+    notions.length + ' notions, ' + nbAuteurs + ' auteurs, des concepts reliés entre eux et les sujets tombés depuis 2021. Pour découvrir sans rien connaître, ou pour réviser avant l’écrit.';
+
+  /* Vedette : la notion du jour (change chaque jour, même ordre pour tous). */
+  const jour = Math.floor(Date.now() / 864e5);
+  const vedette = notions[jour % notions.length];
+  const texte = h => { const d = document.createElement('div'); d.innerHTML = h || ''; return d.textContent; };
+
+  const cont = document.getElementById('notions');
+  [vedette, ...notions.filter(k => k !== vedette)].forEach(k => {
+    const n = D[k], a = document.createElement('a');
+    a.className = 'n' + (k === vedette ? ' vedette' : '');
+    a.href = '#'; a.style.setProperty('--coul', n.c);
+    a.innerHTML = (k === vedette ? '<p class="petit">Notion du jour</p>' : '') +
+      '<b></b><small></small>' + (k === vedette ? '<div class="def"></div>' : '');
+    a.querySelector('b').textContent = n.l;
+    a.querySelector('small').textContent = n.s;
+    if (k === vedette) a.querySelector('.def').textContent = texte(n.def).slice(0, 220) + '…';
+    cont.appendChild(a);
+  });
+
+  /* « Reprendre » : sur le site, ce serait la dernière fiche ouverte (localStorage). */
+  const r = D[notions[(jour + 5) % notions.length]];
+  document.getElementById('rep-titre').textContent = r.l;
+  document.getElementById('rep-detail').textContent = 'Dernière fiche ouverte · onglet Auteurs';
+
+  const s = document.getElementById('sujets');
+  SUJETS_BAC.sujets.filter(x => x.q).slice(0, 4).forEach(x => {
+    const d = document.createElement('div'); d.className = 'sujet';
+    d.innerHTML = '<q></q><small></small>';
+    d.querySelector('q').textContent = x.q;
+    d.querySelector('small').textContent = x.date + ' · voie ' + x.voie;
+    s.appendChild(d);
+  });
+
+  const nv = document.getElementById('nouveautes');
+  NOUVEAUTES.slice(0, 4).forEach(x => {
+    const d = document.createElement('div'); d.className = 'nv';
+    d.innerHTML = '<b></b><small></small>';
+    d.querySelector('b').textContent = x.titre;
+    d.querySelector('small').textContent = new Date(x.date).toLocaleDateString('fr-FR', {day:'numeric', month:'long', year:'numeric'});
+    nv.appendChild(d);
+  });
+})();
+</script>
+</body>
+</html>

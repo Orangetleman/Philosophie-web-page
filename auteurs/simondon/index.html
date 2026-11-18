@@ -165,11 +165,29 @@
   <div class="topbar">
     <button class="sb-burger" id="sb-burger" aria-label="Ouvrir le menu" aria-controls="sb">☰</button>
     <div class="crumbs" id="crumbs"><nav class="fa" aria-label="Fil d’Ariane"><a href="/">Accueil</a> › <a href="/fiches/">Fiches</a> › <span aria-current="page">Simondon</span></nav></div>
+    <!-- Nov. 2026 : onglets de mode, montrés seulement quand la barre latérale
+         est repliée (body.sans-barre : pages de présentation, Explorer ; cf.
+         js/18-index.js). marquerAccueil allume celui du mode courant. -->
+    <nav class="topbar-modes" aria-label="Rubriques">
+      <button class="topbar-mode" data-mode="accueil" onclick="allerIndex('accueil')">Accueil</button>
+      <button class="topbar-mode" data-mode="notions" onclick="allerIndex('notions')">Notions</button>
+      <button class="topbar-mode" data-mode="auteurs" onclick="allerIndex('auteurs')">Auteurs</button>
+      <button class="topbar-mode" data-mode="concepts" onclick="allerIndex('concepts')">Concepts</button>
+      <button class="topbar-mode" data-mode="reperes" onclick="allerIndex('reperes')">Repères</button>
+      <button class="topbar-mode" data-mode="methodo" onclick="allerIndex('methodo')">Méthodo</button>
+      <button class="topbar-mode" data-mode="explorer" onclick="allerIndex('explorer')">Explorer</button>
+    </nav>
     <!-- Groupe d'actions aligné à droite. Tous les boutons y sont des éléments
          flex (donc aucun chevauchement possible, y compris sur mobile) :
          « Mes propositions » (visible connecté), la recherche globale, puis
          le bouton d'aide « ? » qui n'est PLUS en position:fixed. -->
     <div class="topbar-actions">
+      <!-- Nov. 2026 : les boutons du BAS de la barre latérale, repris ici
+           quand elle est repliée (body.sans-barre) ; masqués sinon. -->
+      <button class="topbar-hors-barre" onclick="openQuiz()" title="Réviser en cartes (quiz)"><span aria-hidden="true">🎯</span><span class="ts-label">Réviser</span></button>
+      <button class="topbar-hors-barre proposer" onclick="openProposal()" title="Proposer un ajout, une correction ou une remarque"><span aria-hidden="true">💡</span><span class="ts-label">Proposer</span></button>
+      <button class="topbar-hors-barre" onclick="openSettings()" aria-label="Réglages" title="Réglages">⚙</button>
+      <button class="topbar-hors-barre" onclick="openAuth(authUser?undefined:'signin')" aria-label="Compte" title="Compte : se connecter ou gérer son compte">👤</button>
       <!-- Accès direct au suivi des propositions (réservé aux comptes
            connectés via CSS body.is-signed-in). -->
       <button class="topbar-mine" id="topbar-mine" aria-label="Mes propositions" onclick="openMyProposals()">

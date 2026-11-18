@@ -77,6 +77,14 @@ function tourShowTab(tab){
   renderSB(); renderContent();
 }
 
+/* tourShowAccueil() / tourShowIndex(mode) — nov. 2026 : montrent le lobby ou
+   la page de présentation d'un onglet (js/17-accueil.js, js/18-index.js),
+   sans toucher à l'historique. tourModeActif : l'onglet allumé de la barre
+   du haut, qui sert de halo (où cliquer pour revenir à cette page). */
+function tourShowAccueil(){ sbMode='accueil'; renderSB(); renderAccueilContent(); }
+function tourShowIndex(mode){ sbMode=mode; enIndex=true; indexRecherche=''; indexNotions=new Set(); indexFiltreOuvert=false; renderSB(); renderIndexContent(); }
+function tourModeActif(){ return document.querySelector('.topbar-mode.on'); }
+
 /* tourSbTabActif() — renvoie l'onglet actif de la barre latérale (Notions,
    Auteurs…). Sert de halo aux étapes qui présentent la LISTE d'un mode :
    le projecteur reste sur la liste, le halo rappelle sur quel onglet
@@ -214,43 +222,50 @@ const TOUR_STEPS=[
     nextLabel:'Commencer ▶' },
 
   // ── Partie 1 : Les fiches ──
-  { part:'fiches', side:'sidebar', title:'Cinq portes d’entrée',
-    text:"Tout en haut de la barre latérale, <b>cinq onglets</b> ouvrent l’outil "
-        +"sous plusieurs angles : <b>Notions</b>, <b>Auteurs</b>, <b>Concepts</b>, "
-        +"<b>Repères</b> (les distinctions du programme) et <b>Méthodo</b> "
-        +"(la méthode pas à pas de la dissertation et de l’explication de texte).",
-    setup:tourShowNotion, target:()=>document.querySelector('.sb-tabs') },
+  // Nov. 2026 : la visite part du lobby, puis présente chaque rubrique par sa
+  // page de présentation (pleine largeur, barre latérale repliée).
+  { part:'fiches', side:'main', title:'L’accueil',
+    text:"Tu arrives ici en ouvrant le site. En haut, les <b>rubriques</b> : <b>Notions</b>, "
+        +"<b>Auteurs</b>, <b>Concepts</b>, <b>Méthodo</b>, <b>Explorer</b>, le <b>Quiz</b> et la recherche. "
+        +"Plus bas, la <b>notion du jour</b>, « Reprendre où j’en étais », les sujets tombés au bac et les nouveautés.",
+    setup:tourShowAccueil, target:()=>document.querySelector('.acc-entete') },
   // Chaque porte d'entrée est PRÉSENTÉE en basculant réellement la sidebar dans
   // son mode (tourShowSidebarMode) puis en mettant en valeur sa LISTE, pas le
   // simple bouton d'onglet (retour utilisateur BOX 17 : « tu dis Notions, tu
   // présentes les notions ; tu dis Auteurs, tu présentes les auteurs… »).
   // L'onglet lui-même reçoit un léger halo (tourSbTabActif), comme les
   // onglets de la fiche plus bas (tourTabEl) : on voit la liste ET où cliquer.
-  { part:'fiches', side:'sidebar', title:'Les Notions',
-    text:"Voici la liste des <b>notions</b> du programme (la conscience, la nature, l’art…). "
-        +"C’est le point de départ le plus naturel.",
-    setup:()=>tourShowSidebarMode('notions'), target:()=>document.querySelector('#sb .sidebar-list'),
-    halo:tourSbTabActif },
-  { part:'fiches', side:'sidebar', title:'Les Auteurs',
-    text:"Tu préfères entrer par un <b>philosophe</b> ? Cet onglet liste les auteurs et, pour "
-        +"chacun, ses idées clés et les notions qu’il a traitées.",
-    setup:()=>tourShowSidebarMode('auteurs'), target:()=>document.querySelector('#sb .sidebar-list'),
-    halo:tourSbTabActif },
-  { part:'fiches', side:'sidebar', title:'Les Concepts',
+  { part:'fiches', side:'main', title:'Les Notions',
+    text:"Chaque rubrique s’ouvre d’abord sur une <b>page de présentation</b>. Ici, les "
+        +"<b>notions</b> du programme (la conscience, la nature, l’art…) : le point de départ le plus naturel.",
+    setup:()=>tourShowIndex('notions'), target:()=>document.querySelector('.idx-grille'),
+    halo:tourModeActif },
+  { part:'fiches', side:'main', title:'Les Auteurs',
+    text:"Tu préfères entrer par un <b>philosophe</b> ? Les auteurs, avec leurs dates, leur courant "
+        +"et des points de couleur pour les notions où ils apparaissent.",
+    setup:()=>tourShowIndex('auteurs'), target:()=>document.querySelector('.idx-grille'),
+    halo:tourModeActif },
+  { part:'fiches', side:'main', title:'Chercher et filtrer',
+    text:"Sur chaque page, une <b>recherche</b> et un bouton <b>Filtrer par notion</b> : coche des notions, "
+        +"puis choisis <b>Au moins une</b> (ce qui touche l’une d’elles) ou <b>Toutes</b> (ce qui les touche toutes).",
+    setup:()=>{ tourShowIndex('concepts'); indexFiltreOuvert=true; renderIndexContent(); },
+    target:()=>document.querySelector('.idx-outils'), halo:tourModeActif },
+  { part:'fiches', side:'main', title:'Les Concepts',
     text:"Le <b>glossaire</b> des termes techniques (le déterminisme, l’aliénation…), avec leur "
         +"définition et leurs liens vers les notions et les autres concepts.",
-    setup:()=>tourShowSidebarMode('concepts'), target:()=>document.querySelector('#sb .sidebar-list'),
-    halo:tourSbTabActif },
-  { part:'fiches', side:'sidebar', title:'Les Repères',
+    setup:()=>tourShowIndex('concepts'), target:()=>document.querySelector('.idx-grille'),
+    halo:tourModeActif },
+  { part:'fiches', side:'main', title:'Les Repères',
     text:"Les <b>repères du programme</b> : les distinctions à maîtriser pour analyser un sujet "
         +"(absolu/relatif, légal/légitime, en fait/en droit…), chacune avec sa définition et un exemple.",
-    setup:()=>tourShowSidebarMode('reperes'), target:()=>document.querySelector('#sb .sidebar-list'),
-    halo:tourSbTabActif },
+    setup:()=>tourShowIndex('reperes'), target:()=>document.querySelector('.idx-grille'),
+    halo:tourModeActif },
   { part:'fiches', side:'sidebar', title:'La Méthodo',
-    text:"Le <b>guide de méthode</b> : comment analyser un sujet, problématiser, bâtir un plan et "
+    text:"Quand tu ouvres une fiche, la <b>barre latérale</b> apparaît à gauche avec la liste de la rubrique. "
+        +"Ici, le <b>guide de méthode</b> : comment analyser un sujet, problématiser, bâtir un plan et "
         +"rédiger une <b>dissertation</b> ou une <b>explication de texte</b> — avec un squelette "
         +"visuel de la copie et des phrases toutes prêtes, étape par étape.",
-    setup:()=>tourShowSidebarMode('methodo'), target:()=>document.querySelector('#sb .sidebar-list'),
+    setup:()=>tourShowSidebarMode('methodo'), target:()=>document.querySelector('#sb .sidebar-list'),   // un parcours ouvert (renderMethodoContent remet enIndex à false)
     halo:tourSbTabActif },
   // — Au cœur du projet : le DÉTAIL d'une fiche de notion. On montre la
   //   définition, le volet « Approfondir », puis CHAQUE onglet (en basculant
@@ -319,7 +334,7 @@ const TOUR_STEPS=[
         +"tape une notion, un auteur ou un concept et saute droit à sa fiche.",
     setup:tourShowNotion, target:()=>document.getElementById('topbar-search') },
   { part:'nav', side:'sidebar', title:'Réglages & aide',
-    text:"Tout en bas de la barre, <b>⚙ Réglages</b> regroupe deux options :"
+    text:"Tout en bas de la barre latérale (ou en haut à droite quand elle est repliée), <b>⚙ Réglages</b> regroupe deux options :"
         +"<ul class='tour-list'>"
         +"<li><b>Mode fiche</b> : compresse chaque fiche d’auteur en une <b>synthèse courte</b>, pour réviser vite.</li>"
         +"<li><b>Mode édition</b> : fait apparaître les boutons <b>+</b> pour proposer des corrections.</li>"
@@ -438,7 +453,7 @@ const TOUR_STEPS=[
   // CLIQUE pas le bouton : aucun risque si Supabase n'est pas encore configuré,
   // on ne fait que le désigner.
   { part:'compte', side:'sidebar', title:'Un compte (facultatif)',
-    text:"Tout en bas de la barre latérale, tu peux <b>créer un compte</b>. Ce n’est pas "
+    text:"Tout en bas de la barre latérale (ou avec 👤 en haut quand elle est repliée), tu peux <b>créer un compte</b>. Ce n’est pas "
         +"obligatoire pour réviser, mais ça débloque deux choses bien pratiques.",
     setup:tourShowNotion, target:()=>document.querySelector('.sb-account') },
   { part:'compte', center:true, title:'Sync & suivi',
@@ -590,6 +605,9 @@ function endTour(){
   }
   tourState.i=-1;
   tourCloseOverlays();                           // referme quiz/contribution ouverts par la visite
+  // Nov. 2026 : l'étape « Chercher et filtrer » déplie le filtre des pages de
+  // présentation (js/18-index.js) ; on le replie en sortant de la visite.
+  if(indexFiltreOuvert){ indexFiltreOuvert=false; if(enIndex&&MODES_INDEX[sbMode]) renderIndexContent(); }
   applyPhiloMode();                              // restaure le mode (édition tempo)
   try{ localStorage.setItem('philo-tour-v1','1'); }catch(e){}
   syncOnPrefsChange();                           // new (Phase 2) : « visite vue » suit le compte

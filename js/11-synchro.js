@@ -118,7 +118,10 @@ function applyPrefsBlob(p){
   // n'a pas encore navigué sur cet appareil (navTouched). Sinon sa position
   // locale fait foi — on ne le « téléporte » jamais en pleine lecture, et on
   // n'écrase pas non plus son philo-nav local.
-  if(p.nav && !navTouched && !sameNav(p.nav, navStateNow())){
+  // Nov. 2026 : sur l'accueil (lobby), on ne bascule pas : la position
+  // distante devient la cible de la carte « Reprendre » (accueilPositionDistante).
+  if(p.nav && !navTouched && sbMode==='accueil') accueilPositionDistante(p.nav);
+  else if(p.nav && !navTouched && !sameNav(p.nav, navStateNow())){
     // Avant de basculer sur la page d'un AUTRE appareil, on empile la page
     // LOCALE courante dans l'historique : ainsi « ← Retour » ramène à là où CET
     // appareil en était (la page distante ne fait pas disparaître la locale).

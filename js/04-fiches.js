@@ -236,6 +236,7 @@ function planCardHTML(p){
    Contenu : titre, catégorie, définition, auteur(s) associé(s),
    tensions conceptuelles, notion-pills (liens vers les notions liées). */
 function renderConceptContent(){
+  enIndex=false;   // nov. 2026 : une fiche, pas la page de présentation (js/18-index.js)
   renderCrumbs();
   const mainEl=document.getElementById('main');
   if(!mainEl.querySelector('.tabs')||!mainEl.querySelector('.main-content')){
@@ -266,7 +267,7 @@ function renderConceptContent(){
   let html=`
 <div class="notion-head">
   <div>
-    <div class="concept-title">${c.term}${statutConcept(c)==='hors-programme'?' '+hpBadgeHTML():''}</div>
+    <h1 class="concept-title">${c.term}${statutConcept(c)==='hors-programme'?' '+hpBadgeHTML():''}</h1>
     ${c.cat?`<span class="concept-cat-badge facet-clickable" title="Voir les concepts de cette catégorie" onclick="openFacet('cat','${String(c.cat).replace(/'/g,"\\'")}')">${c.cat}</span>`:''}
   </div>
 </div>
@@ -428,6 +429,7 @@ const METHODO_GUIDE={
    dans la zone principale : bascule de parcours, squelette visuel, puis étapes
    dépliables. Mirroir de renderConceptContent pour la structure du #main. */
 function renderMethodoContent(){
+  enIndex=false;   // nov. 2026 : un parcours, pas la page de présentation (js/18-index.js)
   renderCrumbs();
   const mainEl=document.getElementById('main');
   if(!mainEl.querySelector('.tabs')||!mainEl.querySelector('.main-content')){
@@ -438,10 +440,11 @@ function renderMethodoContent(){
   tabsEl.innerHTML=backBtnHTML();   // bouton retour seul dans la barre
 
   const g=METHODO_GUIDE[methodoTopic]||METHODO_GUIDE.dissertation;
-  // Bascule entre les deux parcours (boutons en tête de zone principale).
-  const switchHTML=METHODO_TOPICS.map(t=>
-    `<button class="${t.id===methodoTopic?'active':''}" role="tab" aria-selected="${t.id===methodoTopic}" onclick="methodoTopic='${t.id}';renderSB();renderMethodoContent();">${t.label}</button>`
-  ).join('');
+  // Nov. 2026 : plus de sélecteur de parcours en tête (doublon de la page de
+  // présentation #/methodo et de la barre latérale) ; un lien vers l'autre
+  // parcours en bas de page, utile sur téléphone (barre en tiroir).
+  const autre=METHODO_TOPICS.find(t=>t.id!==methodoTopic);
+  const autreHTML=autre?`<button class="methodo-autre" onclick="indexOuvrir('methodo','${autre.id}')">Voir aussi : ${(METHODO_GUIDE[autre.id]||{}).titre||autre.label} →</button>`:'';
   // Squelette : une ligne par bloc de copie (vue d'ensemble de la structure).
   const skelHTML=g.squelette.map(s=>
     `<div class="methodo-skel-row"><div class="methodo-skel-bloc">${s.bloc}</div><div class="methodo-skel-detail">${linkTerms('<span>'+s.detail+'</span>')}</div></div>`
@@ -459,13 +462,14 @@ function renderMethodoContent(){
   }).join('');
 
   mc.innerHTML=`<div class="methodo-wrap">
-    <div class="methodo-eyebrow">Je révise la méthode de…</div>
-    <div class="methodo-switch" role="tablist" aria-label="Choisir la méthode">${switchHTML}</div>
+    <div class="methodo-eyebrow">Méthode</div>
+    <h1 class="methodo-titre">${g.titre}</h1>
     <p class="methodo-intro">${linkTerms('<span>'+g.intro+'</span>')}</p>
     <div class="methodo-sectitle">La copie en un coup d'œil</div>
     <div class="methodo-skel">${skelHTML}</div>
     <div class="methodo-sectitle">Étape par étape</div>
     <div class="methodo-steps">${stepsHTML}</div>
+    ${autreHTML}
   </div>`;
 }
 
@@ -550,6 +554,7 @@ document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeFacet(); });
    pour y revenir directement. Le dernier segment (en cours) est inerte. */
 function renderCrumbs(){
   persistNav();   // mémorise la position courante (résiste à l'actualisation + cloud)
+  marquerAccueil();   // nov. 2026 : lobby plein écran sur l'accueil (js/17-accueil.js)
   const el=document.getElementById('crumbs'); if(!el) return;
   // Helper : un segment. cur=true → segment « courant » (non cliquable).
   const seg=(label,act,arg,cur)=>cur
@@ -557,7 +562,9 @@ function renderCrumbs(){
     : `<span class="crumb" data-act="${act}" data-arg="${pEsc(arg||'')}">${label}</span>`;
   const sep=`<span class="crumb-sep">›</span>`;
   const segs=[];
-  if(sbMode==='notions'){
+  if(enIndex&&MODES_INDEX[sbMode]){
+    segs.push(seg(MODES_INDEX[sbMode],'',null,true));   // nov. 2026 : page de présentation
+  }else if(sbMode==='notions'){
     segs.push(seg('Notions','mode','notions',false));
     const n=D[cur];
     if(n){
@@ -608,6 +615,8 @@ function renderCrumbs(){
     segs.push(seg('Méthodo','mode','methodo',false));
     const t=METHODO_TOPICS.find(t=>t.id===methodoTopic);
     if(t) segs.push(seg(t.label,'',null,true));
+  }else if(sbMode==='accueil'){
+    segs.push(seg('Accueil','',null,true));   // nov. 2026 : page d'accueil
   }else if(sbMode==='explorer'){
     // Explorer (étape 6) : racine « Explorer » + sujet courant.
     segs.push(seg('Explorer','mode','explorer',false));
@@ -619,6 +628,9 @@ function renderCrumbs(){
 /* goMode(mode) — bascule la sidebar vers un mode (notions/auteurs/concepts)
    et re-rend la zone principale. Utilisé par les crumbs et la sb-tab. */
 function goMode(mode){
+  // Nov. 2026 : les onglets qui ont une page de présentation y mènent
+  // (fil d'Ariane, lobby) ; allerIndex empile l'historique.
+  if(MODES_INDEX[mode]){ allerIndex(mode); return; }
   if(sbMode===mode){ renderSB(); return; }
   sbMode=mode;
   if(mode==='notions'){ renderSB(); renderContent(); }
@@ -627,6 +639,7 @@ function goMode(mode){
   else if(mode==='reperes'){ const r0=REPERES().find(c=>c.id===curConcept)||REPERES()[0]; if(r0) curConcept=r0.id; renderSB(); renderConceptContent(); }
   else if(mode==='methodo'){ renderSB(); renderMethodoContent(); }   // guide de méthodologie
   else if(mode==='explorer'){ renderSB(); renderExplorerContent(); }   // étape 6 : frise, graphe
+  else if(mode==='accueil'){ renderSB(); renderAccueilContent(); }    // nov. 2026 : page d'accueil
 }
 
 /* openAuthor(name) — ouvre la fiche d'un auteur depuis n'importe où :
@@ -695,6 +708,7 @@ function ideaSynthese(it){
 }
 
 function renderAuthorContent(){
+  enIndex=false;   // nov. 2026 : une fiche, pas la page de présentation (js/18-index.js)
   renderCrumbs();
   const mainEl=document.getElementById('main');
   if(!mainEl.querySelector('.tabs')||!mainEl.querySelector('.main-content')){
@@ -725,7 +739,7 @@ function renderAuthorContent(){
 <div class="notion-head">
   <div>
     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-      <div class="author-title">${curAuthor}</div>
+      <h1 class="author-title">${curAuthor}</h1>
       ${statutAuteurHTML(curAuthor)}
       ${meta.courant?`<span class="author-courant facet-clickable" style="background:${cc}18;color:${cc};border:0.5px solid ${cc}40" title="Voir les auteurs de ce courant" onclick="openFacet('courant','${String(meta.courant).replace(/'/g,"\\'")}')">${meta.courant}</span>`:''}
     </div>
@@ -875,6 +889,7 @@ function sourcesHTML(src){
 }
 
 function renderContent(){
+  enIndex=false;   // nov. 2026 : une fiche, pas la page de présentation (js/18-index.js)
   renderCrumbs();
   const mainEl=document.getElementById('main');
   // Garantir la structure .tabs + .main-content

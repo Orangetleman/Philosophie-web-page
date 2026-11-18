@@ -30,8 +30,9 @@ function pushHistory(){
   // Ne pas pousser si on est déjà sur la même page
   if(last&&last.sbMode===sbMode&&last.cur===cur&&last.curTab===curTab
     &&last.curAuthor===curAuthor&&last.curAuthorTab===curAuthorTab
-    &&last.curConcept===curConcept&&last.methodoTopic===methodoTopic&&last.explorerTopic===explorerTopic) return;
-  navHistory.push({sbMode,cur,curTab,curAuthor,curAuthorTab,curConcept,methodoTopic,explorerTopic});
+    &&last.curConcept===curConcept&&last.methodoTopic===methodoTopic&&last.explorerTopic===explorerTopic
+    &&!!last.enIndex===enIndex) return;
+  navHistory.push({sbMode,cur,curTab,curAuthor,curAuthorTab,curConcept,methodoTopic,explorerTopic,enIndex});
   if(navHistory.length>50) navHistory.shift();
   updateBackBtn();
 }
@@ -46,6 +47,7 @@ function goBack(){
   curAuthor=s.curAuthor; curAuthorTab=s.curAuthorTab; curConcept=s.curConcept;
   if(s.methodoTopic) methodoTopic=s.methodoTopic;
   if(s.explorerTopic) explorerTopic=s.explorerTopic;
+  enIndex=!!s.enIndex&&!!MODES_INDEX[s.sbMode];   // nov. 2026 : page de présentation
   renderSB();
   renderCurrentView();
   _navigating=false;
@@ -75,17 +77,19 @@ const NOTION_TABS=['auteurs','textes','concepts','diss','exemples'];
 /* renderCurrentView() — (re)rend la vue correspondant au sbMode courant.
    Même aiguillage que goBack ; factorisé pour la restauration et le démarrage. */
 function renderCurrentView(){
+  if(enIndex&&MODES_INDEX[sbMode]) return renderIndexContent();   // nov. 2026 (js/18-index.js)
   if(sbMode==='auteurs'&&curAuthor) renderAuthorContent();
   else if(sbMode==='concepts'||sbMode==='reperes') renderConceptContent();
   else if(sbMode==='methodo') renderMethodoContent();
   else if(sbMode==='explorer') renderExplorerContent();   // étape 6 : frise, graphe
+  else if(sbMode==='accueil') renderAccueilContent();     // nov. 2026 : page d'accueil (js/17-accueil.js)
   else renderContent();
 }
 
 /* navStateNow() — capture la position courante sous forme d'objet sérialisable. */
 function navStateNow(){
   return {sbMode,cur,curTab,curConceptSubTab,curExempleSubTab,
-          curAuthor,curAuthorTab,curConcept,methodoTopic,explorerTopic};
+          curAuthor,curAuthorTab,curConcept,methodoTopic,explorerTopic,enIndex};
 }
 
 /* sameNav(a,b) — deux états désignent-ils la même page ? (champs « cœur »,
@@ -94,7 +98,7 @@ function sameNav(a,b){
   return !!a&&!!b&&a.sbMode===b.sbMode&&a.cur===b.cur&&a.curTab===b.curTab
     &&a.curAuthor===b.curAuthor&&a.curAuthorTab===b.curAuthorTab
     &&a.curConcept===b.curConcept&&a.methodoTopic===b.methodoTopic
-    &&a.explorerTopic===b.explorerTopic;
+    &&a.explorerTopic===b.explorerTopic&&!!a.enIndex===!!b.enIndex;
 }
 
 /* persistNav() — sauvegarde la position dans localStorage à chaque rendu (donc
@@ -102,7 +106,10 @@ function sameNav(a,b){
    qu'il est connecté, la synchro des préférences (debouncée) emportera aussi la
    position vers le cloud. Appelée depuis renderCrumbs (commun aux 4 vues). */
 function persistNav(){
-  try{ localStorage.setItem('philo-nav', JSON.stringify(navStateNow())); }catch(e){}
+  // L'accueil n'est pas une « position » : on garde la dernière fiche, que la
+  // carte « Reprendre » de l'accueil propose (js/17-accueil.js).
+  // Idem pour une page de présentation (nov. 2026) : son adresse #/auteurs suffit à l'actualisation.
+  if(sbMode!=='accueil'&&!enIndex) try{ localStorage.setItem('philo-nav', JSON.stringify(navStateNow())); }catch(e){}
   majAdresse();   // l'adresse #/… et le titre de l'onglet suivent la page affichée
   if(navTouched && typeof syncOnPrefsChange==='function') syncOnPrefsChange();
 }
@@ -114,6 +121,9 @@ function persistNav(){
 function applyNavState(s){
   if(!s||typeof s!=='object') return false;
   const m=s.sbMode;
+  // Nov. 2026 : page de présentation d'un onglet (js/18-index.js).
+  if(s.enIndex&&MODES_INDEX[m]){ sbMode=m; enIndex=true; return true; }
+  enIndex=false;
   if(m==='notions'){
     if(!s.cur||!D[s.cur]) return false;
     cur=s.cur; sbMode='notions';
@@ -138,6 +148,7 @@ function applyNavState(s){
     sbMode='methodo';
     return true;
   }
+  if(m==='accueil'){ sbMode='accueil'; return true; }   // nov. 2026 : page d'accueil
   if(m==='explorer'){
     explorerTopic=(EXPLORER_TOPICS.find(t=>t.id===s.explorerTopic))?s.explorerTopic:'frise';
     sbMode='explorer';
@@ -157,10 +168,11 @@ function restoreNavFromStorage(){
    cible existante ? (sans muter l'état). Sert à nettoyer l'historique restauré. */
 function navEntryValid(s){
   if(!s) return false;
+  if(s.enIndex&&MODES_INDEX[s.sbMode]) return true;   // page de présentation
   if(s.sbMode==='notions') return !!D[s.cur];
   if(s.sbMode==='auteurs') return !!(s.curAuthor&&AI[s.curAuthor]);
   if(s.sbMode==='concepts'||s.sbMode==='reperes') return !!CONCEPTS.find(x=>x&&x.id===s.curConcept);
-  if(s.sbMode==='methodo'||s.sbMode==='explorer') return true;
+  if(s.sbMode==='methodo'||s.sbMode==='explorer'||s.sbMode==='accueil') return true;
   return false;
 }
 
@@ -177,7 +189,7 @@ function restoreNavHistory(){
    de navigation est vide). Inséré en tête des barres d'onglets. */
 function backBtnHTML(){
   const disabled=navHistory.length===0;
-  return `<button class="back-btn"${disabled?' disabled':''} onclick="goBack()" title="${disabled?'Aucune page précédente':`Retour (${navHistory.length} page${navHistory.length>1?'s':''})`}">← Retour</button>`;
+  return `<button class="back-btn"${disabled?' disabled':''} onclick="avecTransition(goBack)" title="${disabled?'Aucune page précédente':`Retour (${navHistory.length} page${navHistory.length>1?'s':''})`}">← Retour</button>`;
 }
 
 /* ── Adresses de page (#/…) — étape 3, octobre 2026 ──────────────────────
@@ -202,11 +214,13 @@ let navAdresseEnAttente=false;   // la prochaine majAdresse doit-elle créer une
 /* adresseDe(s) — l'adresse (#/…) d'un état de navigation. */
 function adresseDe(s){
   const e=encodeURIComponent;
+  if(s.enIndex&&MODES_INDEX[s.sbMode]) return '#/'+s.sbMode;   // nov. 2026 : #/notions, #/auteurs…
   if(s.sbMode==='auteurs'&&s.curAuthor) return '#/auteur/'+e(s.curAuthor)+(s.curAuthorTab&&s.curAuthorTab!=='idees'?'/'+e(s.curAuthorTab):'');
   if(s.sbMode==='concepts'&&s.curConcept) return '#/concept/'+e(s.curConcept);
   if(s.sbMode==='reperes'&&s.curConcept) return '#/repere/'+e(s.curConcept);
   if(s.sbMode==='methodo') return '#/methodo/'+e(s.methodoTopic||'dissertation');
   if(s.sbMode==='explorer') return '#/explorer/'+e(s.explorerTopic||'frise');
+  if(s.sbMode==='accueil') return '';   // nov. 2026 : l'accueil, c'est la racine sans #
   return '#/notion/'+e(s.cur)+(s.curTab&&s.curTab!=='auteurs'?'/'+e(s.curTab):'');
 }
 
@@ -215,6 +229,9 @@ function adresseDe(s){
    ramené au nom canonique. La validité de la cible est vérifiée ensuite par
    applyNavState (une adresse vers une fiche disparue est ignorée). */
 function etatDe(h){
+  // Nov. 2026 : #/notions, #/auteurs, #/concepts, #/reperes = pages de présentation.
+  const i=/^#\/([a-z]+)\/?$/.exec(h||'');
+  if(i&&MODES_INDEX[i[1]]) return {sbMode:i[1],enIndex:true};
   const m=/^#\/([a-z]+)\/([^/]+)(?:\/([^/]+))?$/.exec(h||'');
   if(!m) return null;
   let v, o;
@@ -232,6 +249,8 @@ function etatDe(h){
 
 /* titrePage() — le titre de l'onglet : « Liberté · Graphe Philosophie ». */
 function titrePage(){
+  if(sbMode==='accueil') return TITRE_ACCUEIL;   // nov. 2026 : le titre d'index.html
+  if(enIndex&&MODES_INDEX[sbMode]) return MODES_INDEX[sbMode]+' · Graphe Philosophie';
   let t='';
   if(sbMode==='auteurs'&&curAuthor) t=curAuthor;
   else if((sbMode==='concepts'||sbMode==='reperes')&&curConcept){ const c=CONCEPTS.find(x=>x.id===curConcept); t=c?c.term:''; }
@@ -334,10 +353,16 @@ window.addEventListener('popstate',()=>{
   const s=etatDe(location.hash)||etatDeChemin(location.pathname);
   // Retour au sommaire /fiches/ (pré-rendu, sans état d'app) : on recharge la page.
   if(!s&&!location.hash&&/^\/fiches\/$/.test(location.pathname)){ location.reload(); return; }
+  // Nov. 2026 : revenu à la racine sans # = l'accueil.
+  if(!s&&!location.hash&&!PAGE_ENTREE){ applyNavState({sbMode:'accueil'}); avecTransition(()=>{ _navigating=true; renderSB(); renderCurrentView(); _navigating=false; }); return; }
   if(!s||!applyNavState(s)) return;
-  _navigating=true;
-  renderSB(); renderCurrentView();
-  _navigating=false;
+  // Nov. 2026 : rendu dans une transition de vue (avecTransition, js/18-index.js),
+  // pour que la barre latérale glisse aussi au « précédent » du navigateur.
+  avecTransition(()=>{
+    _navigating=true;
+    renderSB(); renderCurrentView();
+    _navigating=false;
+  });
   const top=navHistory[navHistory.length-1];
   if(top&&sameNav(top,navStateNow())){ navHistory.pop(); updateBackBtn(); }
 });

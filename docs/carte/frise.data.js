@@ -1,8 +1,44 @@
 /* GÉNÉRÉ par frise.gen.mjs — ne pas éditer à la main.
    Relancer : node docs/carte/frise.gen.mjs */
 window.FRISE = {
-  "genere_le": "2026-11-18T12:46:48.006Z",
+  "genere_le": "2026-11-18T15:35:02.211Z",
   "commits": [
+    {
+      "hash": "55f625d04d38cf5d382dcad364479837ad53dbfe",
+      "short": "55f625d",
+      "auteur": "Orangentleman",
+      "date": "2026-11-18T16:30:25+01:00",
+      "sujet": "Méthodo : la page d'un parcours sans sélecteur, aux couleurs de la DA",
+      "corps": "Le sélecteur « Je révise la méthode de… » faisait doublon avec la page\nde présentation et la barre latérale : remplacé par un titre (Literata)\net, en bas de page, un lien vers l'autre parcours. Les accents bleus\nrepris du quiz (squelette, numéros d'étapes, phrases, pastilles de la\nbarre) passent à l'ocre ; l'ocre est aussi défini pour le thème clair.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": "Méthodo"
+    },
+    {
+      "hash": "761a8d5904f7bb784eb8247788c784130dd1f7e0",
+      "short": "761a8d5",
+      "auteur": "Orangentleman",
+      "date": "2026-11-18T16:26:05+01:00",
+      "sujet": "Méthodo : une page de présentation, comme les autres onglets",
+      "corps": "#/methodo montre une grande carte par parcours (Dissertation, Explication\nde texte) avec son intro, le squelette de la copie et le nombre\nd'étapes ; ni recherche ni filtre pour deux éléments. La barre latérale\nn'apparaît qu'une fois un parcours ouvert, l'onglet Méthodo de la barre\net le fil d'Ariane mènent à cette page.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": "Méthodo"
+    },
+    {
+      "hash": "e49c8b123270089496be45f9b47c074b3182fe9b",
+      "short": "e49c8b1",
+      "auteur": "Orangentleman",
+      "date": "2026-11-18T16:21:25+01:00",
+      "sujet": "Lobby d'accueil, pages de présentation des onglets et identité visuelle (piste A)",
+      "corps": "Accueil : une page à part (sbMode='accueil', js/17-accueil.js), sans\nbarre latérale ni barre du haut, avec sa propre en-tête, la notion du\njour, « Reprendre où j'en étais », les sujets du bac et les nouveautés.\nLa position d'un autre appareil n'en fait plus sortir : elle alimente\n« Reprendre ».\n\nOnglets : Notions, Auteurs, Concepts et Repères ouvrent une page de\nprésentation pleine largeur (js/18-index.js, #/notions…), avec recherche\net filtre par notion repliable (au moins une / toutes). En mode édition,\ndrapeaux Nouveau / Modifié et bouton Proposer. La barre latérale ne\ns'affiche que sur une fiche (et la Méthodo) ; ses boutons du bas passent\ndans la barre du haut quand elle est repliée.\n\nAnimations : transitions de vue du navigateur, la barre latérale glisse\ndepuis la gauche, y compris au Retour et au précédent du navigateur.\n\nDA : thème sombre en bruns chauds, accent ocre, titres en Literata\nservie depuis polices/ (OFL, précache). Visite guidée revue autour du\nlobby et des pages de présentation. Carte du projet à jour. Maquette\ndans docs/maquettes/.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": ""
+    },
+    {
+      "hash": "b91c6a5e82a93262e6b7b1896afe8a861ab3afb5",
+      "short": "b91c6a5",
+      "auteur": "Orangentleman",
+      "date": "2026-11-18T13:46:46+01:00",
+      "sujet": "Admin : l'export retrouve la fiche d'auteur existante, l'IA répond en français",
+      "corps": "fichierCible cherche le nom proposé parmi les fiches (AM), sans accents et\nà une inclusion près, et range une idée rattachée à une notion dans la\nnotion. La consigne de Gemini exige le français et le rappelle en tête du\ntexte de chaque boîte (avis en anglais sur la n° 36).\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "tag": "Admin"
+    },
     {
       "hash": "f3be07c7854cec7f384e64e3cdf65214247c997e",
       "short": "f3be07c",

@@ -63,6 +63,10 @@ let repereSearch='';
 //   'dissertation' | 'explication'. METHODO_TOPICS pilote la liste de la
 //   sidebar et le fil d'Ariane (défini plus bas, près de METHODO_GUIDE).
 let methodoTopic='dissertation';
+/* MODES_INDEX — les onglets qui ont une page de présentation (js/18-index.js),
+   et leur titre. Ici, et pas en 18, car du code de premier niveau (js/17) s'en sert. */
+const MODES_INDEX={notions:'Notions', auteurs:'Auteurs', concepts:'Concepts', reperes:'Repères', methodo:'Méthodo'};
+let enIndex=false;           // nov. 2026 : page de présentation de l'onglet (js/18-index.js) plutôt qu'une fiche
 let explorerTopic='frise';   // étape 6 : sujet du mode Explorer (frise | graphe)
 // REPERES() / vrais concepts : helpers de partition du tableau CONCEPTS.
 //   isRepere(c)    → ce concept est-il un repère méthodologique ?
